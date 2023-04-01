@@ -1,0 +1,98 @@
+version: '3'
+
+services:
+  db:
+    image: postgres
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydb
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  jupyter:
+    image: jupyter/datascience-notebook:latest
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+    volumes:
+      - ./notebooks:/home/jovyan/work
+    platform: "linux/amd64"
+    networks:
+      - frontend
+      - backend
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.jupyter.rule=Host(`jupyter.localhost`)
+#        && Path(`/jupyter`)
+      - traefik.http.routers.jupyter.entrypoints=web
+      - traefik.http.services.jupyter.loadbalancer.server.port=8888
+#    command:
+#      - jupyter --ip='*' --NotebookApp.token='' --NotebookApp.password=''
+
+  traefik:
+    image: traefik:v2.9
+    command:
+      - --providers.docker
+      - --providers.docker.watch=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=frontend
+      - --entrypoints.web.address=:80
+      - --api.insecure=true
+      - --api.dashboard=true
+    ports:
+      - '80:80'
+      - '8080:8080'
+    networks:
+      - frontend
+      - traefik_public
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik:/etc/traefik/
+
+  prometheus:
+    image: prom/prometheus:v2.28.1
+    networks:
+      - backend
+    volumes:
+      - ./prometheus:/etc/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    ports:
+      - '9090:9090'
+
+  whoami:
+    # A container that exposes an API to show its IP address
+    image: traefik/whoami:latest
+    networks:
+      - frontend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami.rule=Host(`whoami.localhost`)"
+      - "traefik.http.routers.whoami.entrypoints=web"
+
+  grafana:
+    image: grafana/grafana:8.3.0
+    networks:
+      - frontend
+      - backend
+    ports:
+      - '3000:3000'
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+    volumes:
+      - ./grafana:/var/lib/grafana
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.localhost`)"
+#      - "traefik.http.routers.grafana.rule=Host(`localhost`) && Path(`/grafana`)"
+#      - "traefik.http.middlewares.grafana.stripprefix.prefixes=/grafana"
+      - "traefik.http.routers.grafana.entrypoints=web"
+
+networks:
+  frontend:
+  backend:
+  traefik_public:
+    external: true
