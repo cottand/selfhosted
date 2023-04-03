@@ -1,0 +1,18 @@
+global:
+  scrape_interval: 1m
+
+scrape_configs:
+  - job_name: 'prometheus'
+    scrape_interval: 2m
+    static_configs:
+      - targets: ['localhost:9090']
+  - job_name: 'db'
+    scrape_interval: 20s
+    static_configs:
+      - targets: ['db-metrics:9187']
+
+#remote_write:
+#  - url: '<Your Prometheus remote_write endpoint>'
+#    basic_auth:
+#      username: '<Your Grafana Username>'
+#      password: '<Your Grafana API key>'

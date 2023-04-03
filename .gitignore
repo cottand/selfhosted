@@ -1,11 +1,4 @@
 .idea/
 
-grafana
-
-notebooks
-
-traefik
-
+grafana-data
 data
-
-prometheus

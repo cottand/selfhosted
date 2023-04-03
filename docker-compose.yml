@@ -1,16 +1,33 @@
 version: '3'
 
+#secrets:
+#  pg_password:
+#    file: ./password
+networks:
+  backend: {}
+  traefik_public:
+    external: true
+
 services:
   db:
     image: postgres
+#    secrets:
+#      - pg_password
     environment:
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mypassword
-      POSTGRES_DB: mydb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: yolo
+      POSTGRES_DB: postgres
+#    entrypoint: [ '/bin/sh', '-c', 'export POSTGRES_PASSWORD=$$(cat /var/run/secrets/test) ; source /entrypoint.sh' ]
     volumes:
       - ./data:/var/lib/postgresql/data
     networks:
       - backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.tcp.services.db.loadbalancer.server.port=5432"
+      - "traefik.tcp.routers.db.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.db.entrypoints=db"
+
 
   jupyter:
     image: jupyter/datascience-notebook:latest
@@ -20,7 +37,6 @@ services:
       - ./notebooks:/home/jovyan/work
     platform: "linux/amd64"
     networks:
-      - frontend
       - backend
     labels:
       - traefik.enable=true
@@ -33,23 +49,23 @@ services:
 
   traefik:
     image: traefik:v2.9
-    command:
-      - --providers.docker
-      - --providers.docker.watch=true
-      - --providers.docker.exposedbydefault=false
-      - --providers.docker.network=frontend
-      - --entrypoints.web.address=:80
-      - --api.insecure=true
-      - --api.dashboard=true
     ports:
       - '80:80'
       - '8080:8080'
+      - '5432:5432'
     networks:
-      - frontend
+      - backend
       - traefik_public
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik:/etc/traefik/
+    labels:
+      traefik.enable: true
+#      traefik.http.routers.traefik_https.rule: Host(`traefik.example.com`)
+#      traefik.http.routers.traefik_https.entrypoints: websecure
+#      traefik.http.routers.traefik_https.tls: true
+#      traefik.http.routers.traefik_https.tls.certResolver: myresolver
+#      traefik.http.routers.traefik_https.service: api@internal
 
   prometheus:
     image: prom/prometheus:v2.28.1
@@ -59,40 +75,31 @@ services:
       - ./prometheus:/etc/prometheus
     command:
       - --config.file=/etc/prometheus/prometheus.yml
+  db-metrics:
+    image: prometheuscommunity/postgres-exporter:latest
+    networks: [backend]
+    depends_on: [db]
     ports:
-      - '9090:9090'
+      - '9187:9187'
+    environment:
+      DATA_SOURCE_NAME: postgresql://postgres_exporter:password@db:5432/marti_phd?sslmode=disable
 
-  whoami:
-    # A container that exposes an API to show its IP address
-    image: traefik/whoami:latest
-    networks:
-      - frontend
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.whoami.rule=Host(`whoami.localhost`)"
-      - "traefik.http.routers.whoami.entrypoints=web"
 
   grafana:
+    container_name: grafana
     image: grafana/grafana:8.3.0
     networks:
-      - frontend
       - backend
-    ports:
-      - '3000:3000'
     environment:
       GF_AUTH_ANONYMOUS_ENABLED: "true"
       GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
     volumes:
-      - ./grafana:/var/lib/grafana
+      - ./grafana-data:/var/lib/grafana
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.grafana.rule=Host(`grafana.localhost`)"
-#      - "traefik.http.routers.grafana.rule=Host(`localhost`) && Path(`/grafana`)"
-#      - "traefik.http.middlewares.grafana.stripprefix.prefixes=/grafana"
       - "traefik.http.routers.grafana.entrypoints=web"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
 
-networks:
-  frontend:
-  backend:
-  traefik_public:
-    external: true
