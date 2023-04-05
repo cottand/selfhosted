@@ -46,7 +46,7 @@ services:
       - backend
     labels:
       - traefik.enable=true
-      - traefik.http.routers.jupyter.rule=Host(`jupyter.vps.dcotta.eu`)
+      - traefik.http.routers.jupyter.rule=Host(`jupyter`)
 #        && Path(`/jupyter`)
       - traefik.http.routers.jupyter.entrypoints=web
       - traefik.http.services.jupyter.loadbalancer.server.port=8888
