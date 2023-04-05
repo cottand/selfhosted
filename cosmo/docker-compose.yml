@@ -154,7 +154,7 @@ services:
     sysctls:
       net.ipv4.conf.all.src_valid_mark: 1
       net.ipv4.ip_forward: 1
-    networks: [backend]
+    networks: [backend, traefik_public]
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.wg-easy.entrypoints=websecure"
@@ -164,7 +164,7 @@ services:
       - "traefik.http.routers.wg-easy.middlewares=wg-easy-stripprefix"
       - "traefik.http.middlewares.wg-easy-stripprefix.stripprefix.prefixes=/wg-easy"
       - "traefik.http.middlewares.wg-easy-redirectslash.redirectregex.regex=(.*)/wg-easy"
-      - "traefik.http.middlewares.wg-easy-redirectslash.redirectregex.replacement=(.*)/wg-easy/"
+      - "traefik.http.middlewares.wg-easy-redirectslash.redirectregex.replacement=$$1/wg-easy/"
       - "traefik.http.services.wg-easy.loadbalancer.server.port=51821"
 
 #  bytebase:
