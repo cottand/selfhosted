@@ -26,7 +26,7 @@
 
 [certificatesResolvers.lets-encrypt.acme]
   email = "nico@dcotta.eu"
-  storage = "acme.json"
+  storage = "/etc/traefik/cert/acme.json"
 
   [certificatesResolvers.lets-encrypt.acme.httpChallenge]
     # let's encrypt has to be able to reach on this entrypoint for cert
