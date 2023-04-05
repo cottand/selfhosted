@@ -161,9 +161,11 @@ services:
       - "traefik.http.routers.wg-easy.tls=true"
       - "traefik.http.routers.wg-easy.tls.certresolver=lets-encrypt"
       - "traefik.http.routers.wg-easy.rule=Host(`vps.dcotta.eu`) && PathPrefix(`/wg-easy`)"
-      - "traefik.http.services.wg-easy.loadbalancer.server.port=51821"
-      - "traefik.http.middlewares.wg-easy-stripprefix.stripprefix.prefixes=/wg-easy"
       - "traefik.http.routers.wg-easy.middlewares=wg-easy-stripprefix"
+      - "traefik.http.middlewares.wg-easy-stripprefix.stripprefix.prefixes=/wg-easy"
+      - "traefik.http.middlewares.wg-easy-redirectslash.redirectregex.regex=(.*)/wg-easy"
+      - "traefik.http.middlewares.wg-easy-redirectslash.redirectregex.replacement=(.*)/wg-easy/"
+      - "traefik.http.services.wg-easy.loadbalancer.server.port=51821"
 
 #  bytebase:
 #    image: bytebase/bytebase:1.15.0
