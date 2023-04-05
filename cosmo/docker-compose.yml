@@ -123,9 +123,11 @@ services:
     networks: [backend]
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.portainer.rule=Host(`portainer.vps.dcotta.eu`)"
+      - "traefik.http.routers.portainer.rule=Host(`vps.dcotta.eu/portaner`)"
       - "traefik.http.routers.portainer.entrypoints=web"
       - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+      - "traefik.http.middlewares.portainer.stripprefix.prefixes=/portainer"
+
   wg-easy:
     image: weejewel/wg-easy
     container_name: wg-easy
