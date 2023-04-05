@@ -126,9 +126,9 @@ services:
     networks: [backend]
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.portainer.rule=Host(`vps.dcotta.eu`) && PathPrefix(`/portainer`)"
       - "traefik.http.services.portainer.loadbalancer.server.port=9000"
       - "traefik.http.middlewares.portainer-stripprefix.stripprefix.prefixes=/portainer"
+      - "traefik.http.routers.portainer.rule=Host(`vps.dcotta.eu`) && PathPrefix(`/portainer`)"
       - "traefik.http.routers.portainer.middlewares=portainer-stripprefix"
       - "traefik.http.routers.portainer.entrypoints=websecure"
       - "traefik.http.routers.portainer.tls=true"
@@ -157,13 +157,13 @@ services:
     networks: [backend]
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.wg-easy.entrypoints=web,websecure"
-      - "traefik.http.routers.portainer.tls=true"
-      - "traefik.http.routers.portainer.tls.certresolver=lets-encrypt"
+      - "traefik.http.routers.wg-easy.entrypoints=websecure"
+      - "traefik.http.routers.wg-easy.tls=true"
+      - "traefik.http.routers.wg-easy.tls.certresolver=lets-encrypt"
       - "traefik.http.routers.wg-easy.rule=Host(`vps.dcotta.eu`) && PathPrefix(`/wg-easy`)"
       - "traefik.http.services.wg-easy.loadbalancer.server.port=51821"
       - "traefik.http.middlewares.wg-easy-stripprefix.stripprefix.prefixes=/wg-easy"
-      - "traefik.http.routers.portainer.middlewares=wg-easy-stripprefix"
+      - "traefik.http.routers.wg-easy.middlewares=wg-easy-stripprefix"
 
 #  bytebase:
 #    image: bytebase/bytebase:1.15.0

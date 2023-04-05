@@ -20,7 +20,7 @@
 
 [api]
   dashboard = true
-  insecure = true
+  insecure = false
 
 
 
