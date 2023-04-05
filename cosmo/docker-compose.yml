@@ -14,6 +14,7 @@ secrets:
 services:
   db:
     image: postgres
+    restart: unless-stopped
 #    secrets:
 #      - pg_password
     environment:
@@ -34,6 +35,7 @@ services:
 
   jupyter:
     image: jupyter/datascience-notebook:latest
+    restart: unless-stopped
     environment:
       - JUPYTER_ENABLE_LAB=yes
     volumes:
@@ -52,6 +54,7 @@ services:
 
   traefik:
     image: traefik:v2.9
+    restart: unless-stopped
     ports:
       - '80:80'
       - '8080:8080'
@@ -72,6 +75,7 @@ services:
 
   prometheus:
     image: prom/prometheus:v2.28.1
+    restart: unless-stopped
     networks:
       - backend
     volumes:
@@ -83,6 +87,7 @@ services:
       #host.docker.internal:127.0.0.1 for linux
   db-metrics:
     image: prometheuscommunity/postgres-exporter:latest
+    restart: unless-stopped
     networks: [backend]
     depends_on: [db]
     ports:
@@ -92,6 +97,7 @@ services:
 
   grafana:
     container_name: grafana
+    restart: unless-stopped
     image: grafana/grafana:8.3.0
     networks:
       - backend
@@ -110,6 +116,7 @@ services:
 
   portainer:
     image: portainer/portainer-ce:latest
+    restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./portainer-data:/data
@@ -119,6 +126,32 @@ services:
       - "traefik.http.routers.portainer.rule=Host(`portainer.localhost`)"
       - "traefik.http.routers.portainer.entrypoints=web"
       - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+  wg-easy:
+    image: weejewel/wg-easy
+    container_name: wg-easy
+    restart: unless-stopped
+    environment:
+      - WG_HOST=vps.dcotta.eu
+    env_file:
+      # SECRET
+      - ./secrets/bytebase.env
+    volumes:
+      - ./wg:/etc/wireguard
+    ports:
+      # bypass traefik to reach this container that manages VPN
+      - "51820:51820/udp"
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    sysctls:
+      net.ipv4.conf.all.src_valid_mark: 1
+      net.ipv4.ip_forward: 1
+    networks: [backend]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.wg-easy.rule=Host(`wg-easy.localhost`)"
+      - "traefik.http.routers.wg-easy.entrypoints=web"
+      - "traefik.http.services.wg-easy.loadbalancer.server.port=51821"
 
 #  bytebase:
 #    image: bytebase/bytebase:1.15.0
