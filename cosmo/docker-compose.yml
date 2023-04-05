@@ -127,7 +127,7 @@ services:
       - "traefik.http.routers.portainer.rule=Host(`vps.dcotta.eu`) && PathPrefix(`/portainer`)"
       - "traefik.http.middlewares.portainer-stripprefix.stripprefix.prefixes=/portainer"
       - "traefik.http.routers.portainer.middlewares=portainer-stripprefix"
-      - "traefik.http.routers.portainer.entrypoints=web"
+      - "traefik.http.routers.portainer.entrypoints=websecure"
       - "traefik.http.services.portainer.loadbalancer.server.port=9000"
       - "traefik.http.routers.portainer.tls=true"
       - "traefik.http.routers.portainer.tls.certresolver=lets-encrypt"
