@@ -1,0 +1,15 @@
+version: '3.9'
+
+name: maco
+
+
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel run --no-autoupdate
+    env_file:
+      - secrets/cloudflared.env
+
+
+
+
