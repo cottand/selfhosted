@@ -1,4 +1,4 @@
-version: '3'
+version: '3.9'
 
 #secrets:
 #  pg_password:
@@ -7,6 +7,9 @@ networks:
   backend: {}
   traefik_public:
     external: true
+secrets:
+  pg_admin_password:
+    file: secrets/pg_admin_password
 
 services:
   db:
@@ -75,6 +78,9 @@ services:
       - ./prometheus:/etc/prometheus
     command:
       - --config.file=/etc/prometheus/prometheus.yml
+    extra_hosts:
+      - host.docker.internal:host-gateway
+      #host.docker.internal:127.0.0.1 for linux
   db-metrics:
     image: prometheuscommunity/postgres-exporter:latest
     networks: [backend]
@@ -82,8 +88,7 @@ services:
     ports:
       - '9187:9187'
     environment:
-      DATA_SOURCE_NAME: postgresql://postgres_exporter:password@db:5432/marti_phd?sslmode=disable
-
+      DATA_SOURCE_NAME: 'postgresql://postgres_exporter:password@db:5432/marti_phd?sslmode=disable'
 
   grafana:
     container_name: grafana
@@ -103,3 +108,30 @@ services:
       - "traefik.http.routers.grafana.entrypoints=web"
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
 
+  portainer:
+    image: portainer/portainer-ce:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./portainer-data:/data
+    networks: [backend]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.portainer.rule=Host(`portainer.localhost`)"
+      - "traefik.http.routers.portainer.entrypoints=web"
+      - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+
+#  bytebase:
+#    image: bytebase/bytebase:1.15.0
+##    restart: unless-stopped
+#    healthcheck:
+#      test: [ "CMD", "curl", "--fail", "http://localhost:5678/healthz", "||", "exit", "1" ]
+#      interval: 5m
+#      timeout: 60s
+##    volumes:
+##      - ./bytebase/data:/var/opt/bytebase
+#    env_file:
+#      - ./secrets/bytebase.env
+#    ports:
+#      - "5678:5678"
+#    networks: [backend]
+#    command: --data /var/opt/bytebase --port 5678

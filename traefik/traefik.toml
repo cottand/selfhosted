@@ -2,7 +2,6 @@
 
   [entryPoints.db]
     address = ":5432"
-
   [entryPoints.web]
     address = ":80"
 #    [entryPoints.web.http.redirections.entryPoint]
@@ -11,7 +10,13 @@
 
 #  [entryPoints.websecure]
 #    address = ":443"
+  [entryPoints.metrics]
+    address = ":8082"
 
+[metrics]
+  [metrics.prometheus]
+    addServicesLabels = true
+    entryPoint = "metrics"
 
 [api]
   dashboard = true
