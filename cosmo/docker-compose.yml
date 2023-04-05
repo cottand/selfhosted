@@ -45,7 +45,7 @@ services:
       - backend
     labels:
       - traefik.enable=true
-      - traefik.http.routers.jupyter.rule=Host(`jupyter.localhost`)
+      - traefik.http.routers.jupyter.rule=Host(`jupyter.vps.dcotta.eu`)
 #        && Path(`/jupyter`)
       - traefik.http.routers.jupyter.entrypoints=web
       - traefik.http.services.jupyter.loadbalancer.server.port=8888
@@ -57,8 +57,8 @@ services:
     restart: unless-stopped
     ports:
       - '80:80'
-      - '8080:8080'
-      - '5432:5432'
+#      - '8080:8080'
+#      - '5432:5432'
     networks:
       - backend
       - traefik_public
@@ -110,7 +110,7 @@ services:
       - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.grafana.rule=Host(`grafana.localhost`)"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.vps.dcotta.eu`)"
       - "traefik.http.routers.grafana.entrypoints=web"
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
 
@@ -123,7 +123,7 @@ services:
     networks: [backend]
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.portainer.rule=Host(`portainer.localhost`)"
+      - "traefik.http.routers.portainer.rule=Host(`portainer.vps.dcotta.eu`)"
       - "traefik.http.routers.portainer.entrypoints=web"
       - "traefik.http.services.portainer.loadbalancer.server.port=9000"
   wg-easy:
@@ -149,7 +149,7 @@ services:
     networks: [backend]
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.wg-easy.rule=Host(`wg-easy.localhost`)"
+      - "traefik.http.routers.wg-easy.rule=Host(`wg-easy.vps.dcotta.eu`)"
       - "traefik.http.routers.wg-easy.entrypoints=web"
       - "traefik.http.services.wg-easy.loadbalancer.server.port=51821"
 
