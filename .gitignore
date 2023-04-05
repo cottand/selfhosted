@@ -1,7 +1,3 @@
 .idea/
 
-grafana-data
-data
 **/.DS_Store
-secrets/
-portainer-data/
