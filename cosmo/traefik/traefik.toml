@@ -4,12 +4,12 @@
     address = ":5432"
   [entryPoints.web]
     address = ":80"
-#    [entryPoints.web.http.redirections.entryPoint]
-#      to = "websecure"
-#      scheme = "https"
-
-#  [entryPoints.websecure]
-#    address = ":443"
+    [entryPoints.web.http.redirections.entryPoint]
+      to = "websecure"
+      scheme = "https"
+#
+  [entryPoints.websecure]
+    address = ":443"
   [entryPoints.metrics]
     address = ":8082"
 
@@ -24,10 +24,14 @@
 
 
 
-#[certificatesResolvers.lets-encrypt.acme]
-#  email = "your_email@your_domain"
-#  storage = "acme.json"
-#  [certificatesResolvers.lets-encrypt.acme.tlsChallenge]
+[certificatesResolvers.lets-encrypt.acme]
+  email = "nico@dcotta.eu"
+  storage = "acme.json"
+
+  [certificatesResolvers.lets-encrypt.acme.httpChallenge]
+    # let's encrypt has to be able to reach on this entrypoint for cert
+    entryPoint = "web"
+
 
 [providers.docker]
   watch = true
