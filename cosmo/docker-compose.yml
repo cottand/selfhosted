@@ -97,7 +97,7 @@ services:
 
   grafana:
     container_name: grafana
-    restart: unless-stopped
+#    restart: unless-stopped
     image: grafana/grafana:8.3.0
     networks:
       - backend
