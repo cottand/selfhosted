@@ -131,7 +131,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
       - "traefik.http.middlewares.grafana-stripprefix.stripprefix.prefixes=/grafana"
-      - "traefik.http.routers.grafana.rule=Host(`vps.dcotta.eu`) && PathPrefix(`/grafana`)"
+      - "traefik.http.routers.grafana.rule=Host(`web.vps.dcotta.eu`) && PathPrefix(`/grafana`)"
       - "traefik.http.routers.grafana.entrypoints=websecure"
       - "traefik.http.routers.grafana.tls=true"
       - "traefik.http.routers.grafana.tls.certresolver=lets-encrypt"
@@ -150,7 +150,7 @@ services:
       - "traefik.http.services.portainer.loadbalancer.server.port=9000"
       - "traefik.http.middlewares.portainer-stripprefix.stripprefix.prefixes=/portainer"
       - "traefik.http.routers.portainer.middlewares=portainer-stripprefix"
-      - "traefik.http.routers.portainer.rule=Host(`vps.dcotta.eu`) && PathPrefix(`/portainer`)"
+      - "traefik.http.routers.portainer.rule=Host(`web.vps.dcotta.eu`) && PathPrefix(`/portainer`)"
       - "traefik.http.routers.portainer.entrypoints=websecure"
       - "traefik.http.routers.portainer.tls=true"
       - "traefik.http.routers.portainer.tls.certresolver=lets-encrypt"
@@ -160,7 +160,7 @@ services:
     container_name: wg-easy
     restart: unless-stopped
     environment:
-      - WG_HOST=vps.dcotta.eu
+      - WG_HOST=web.vps.dcotta.eu
     env_file:
       # SECRET
       - ./secrets/bytebase.env
@@ -181,7 +181,7 @@ services:
       - "traefik.http.routers.wg-easy.entrypoints=websecure"
       - "traefik.http.routers.wg-easy.tls=true"
       - "traefik.http.routers.wg-easy.tls.certresolver=lets-encrypt"
-      - "traefik.http.routers.wg-easy.rule=Host(`vps.dcotta.eu`) && PathPrefix(`/wg-easy`)"
+      - "traefik.http.routers.wg-easy.rule=Host(`web.vps.dcotta.eu`) && PathPrefix(`/wg-easy`)"
       - "traefik.http.routers.wg-easy.middlewares=wg-easy-stripprefix,auth@file"
       - "traefik.http.middlewares.wg-easy-stripprefix.stripprefix.prefixes=/wg-easy"
       - "traefik.http.middlewares.wg-easy-redirectslash.redirectregex.regex=(.*)/wg-easy"
