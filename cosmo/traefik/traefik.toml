@@ -40,7 +40,7 @@
 
 [providers.file]
   # specified as docker secret, bound in compose file and under cosmo/secrets
-  directory = "/run/secrets/traefik_secret.toml"
+  directory = "/etc/traefik/dynamic"
 
 #[providers.file]
 #  filename = "traefik_dynamic.toml"

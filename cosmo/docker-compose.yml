@@ -11,8 +11,8 @@ networks:
 secrets:
   pg_admin_password:
     file: secrets/pg_admin_password
-  traefik_secret_config:
-    file: secrets/traefik_secret.toml
+  traefik_auth_users:
+    file: secrets/traefik-auth-users
 
 services:
   db:
@@ -58,7 +58,7 @@ services:
   traefik:
     image: traefik:v2.9
     restart: unless-stopped
-    secrets: [traefik_secret_config]
+    secrets: [traefik_auth_users]
     ports:
       - '80:80'
       - '443:443'
