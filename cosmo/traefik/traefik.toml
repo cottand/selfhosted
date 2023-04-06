@@ -32,6 +32,10 @@
     # let's encrypt has to be able to reach on this entrypoint for cert
     entryPoint = "web"
 
+  [certificatesResolvers.lets-encrypt.acme.tlsChallenge]
+    entryPoint = "db"
+
+
 
 [providers.docker]
   watch = true
