@@ -20,9 +20,6 @@
 
 [api]
   dashboard = true
-  insecure = false
-
-
 
 [certificatesResolvers.lets-encrypt.acme]
   email = "nico@dcotta.eu"

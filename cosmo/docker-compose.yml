@@ -17,6 +17,7 @@ secrets:
 services:
   db:
     image: postgres
+    container_name: db
     restart: unless-stopped
 #    secrets:
 #      - pg_password
@@ -40,6 +41,7 @@ services:
 
   jupyter:
     image: jupyter/datascience-notebook:latest
+    container_name: jupyter
     restart: unless-stopped
     environment:
       - JUPYTER_ENABLE_LAB=yes
@@ -59,6 +61,7 @@ services:
 
   traefik:
     image: traefik:v3.0
+    container_name: traefik
     restart: unless-stopped
     secrets: [traefik-auth-users]
     ports:
@@ -75,8 +78,8 @@ services:
     labels:
       traefik.enable: true
       traefik.http.routers.traefik_https.rule: Host(`vps.dcotta.eu`) && PathPrefix(`/traefik`)
-      traefik.http.middlewares.traefik-stripprefix.stripprefix.prefixes: /traefik
-      traefik.http.routers.traefik_https.middlewares: traefik-stripprefix
+#      traefik.http.middlewares.traefik-stripprefix.stripprefix.prefixes: /traefik
+#      traefik.http.routers.traefik_https.middlewares: traefik-stripprefix
       traefik.http.routers.traefik_https.entrypoints: websecure
       traefik.http.routers.traefik_https.tls: true
       traefik.http.routers.traefik_https.tls.certResolver: lets-encrypt
@@ -84,6 +87,7 @@ services:
 
   prometheus:
     image: prom/prometheus:v2.28.1
+    container_name: prometheus
     restart: unless-stopped
     networks:
       - backend
@@ -96,6 +100,7 @@ services:
       #host.docker.internal:127.0.0.1 for linux
   db-metrics:
     image: prometheuscommunity/postgres-exporter:latest
+    container_name: db-metrics
     restart: unless-stopped
     networks: [backend]
     depends_on: [db]
