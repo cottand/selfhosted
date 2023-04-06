@@ -32,7 +32,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.tcp.services.db.loadbalancer.server.port=5432"
-      - "traefik.tcp.routers.db.rule=HostSNI(`vpn.dcotta.eu`)"
+      - "traefik.tcp.routers.db.rule=HostSNI(`vps.dcotta.eu`)"
       - "traefik.tcp.routers.db.entrypoints=db"
       - "traefik.tcp.routers.db.tls=true"
       - "traefik.tcp.routers.db.tls.certResolver=lets-encrypt"
