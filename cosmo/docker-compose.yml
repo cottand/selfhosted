@@ -140,7 +140,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.portainer.loadbalancer.server.port=9000"
       - "traefik.http.middlewares.portainer-stripprefix.stripprefix.prefixes=/portainer"
-      - "traefik.http.routers.portainer.middlewares=portainer-stripprefix,auth@file"
+      - "traefik.http.routers.portainer.middlewares=portainer-stripprefix"
       - "traefik.http.routers.portainer.rule=Host(`vps.dcotta.eu`) && PathPrefix(`/portainer`)"
       - "traefik.http.routers.portainer.entrypoints=websecure"
       - "traefik.http.routers.portainer.tls=true"
