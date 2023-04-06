@@ -123,6 +123,7 @@ services:
     environment:
       # traefik takes care of auth
       GF_AUTH_BASIC_ENABLED: 'false'
+      GF_AUTH_DISABLE_LOGIN_FORM: 'true'
 #      GF_AUTH_ANONYMOUS_ENABLED: "true"
 #      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
     volumes:
