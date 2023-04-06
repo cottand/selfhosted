@@ -81,9 +81,7 @@ services:
     labels:
       traefik.enable: true
       traefik.http.routers.traefik_https.rule: Host(`traefik.vps.dcotta.eu`)
-#      traefik.http.middlewares.traefik-stripprefix.stripprefix.prefixes: /traefik
-#      traefik.http.routers.traefik_https.middlewares: traefik-stripprefix
-      traefik.http.routers.traefik_https.entrypoints: websecure
+      traefik.http.routers.traefik_https.entrypoints: websecure,auth@file
       traefik.http.routers.traefik_https.tls: true
       traefik.http.routers.traefik_https.tls.certResolver: lets-encrypt
       traefik.http.routers.traefik_https.service: api@internal
@@ -130,8 +128,11 @@ services:
       - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.grafana.rule=Host(`grafana.vps.dcotta.eu`)"
-      - "traefik.http.routers.grafana.entrypoints=web"
+      - "traefik.http.middlewares.grafana-stripprefix.stripprefix.prefixes=/grafana"
+      - "traefik.http.routers.grafana.rule=Host(`vps.dcotta.eu`) && PathPrefix(`/grafana`)"
+      - "traefik.http.routers.grafana.entrypoints=websecure,auth@file"
+      - "traefik.http.routers.grafana.tls=true"
+      - "traefik.http.routers.grafana.tls.certresolver=lets-encrypt"
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
 
   portainer:
