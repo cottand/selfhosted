@@ -11,6 +11,8 @@ networks:
 secrets:
   pg_admin_password:
     file: secrets/pg_admin_password
+  traefik_secret_config:
+    file: secrets/traefik_secret.toml
 
 services:
   db:
@@ -56,6 +58,7 @@ services:
   traefik:
     image: traefik:v2.9
     restart: unless-stopped
+    secrets: [traefik_secret_config]
     ports:
       - '80:80'
       - '443:443'
@@ -161,7 +164,7 @@ services:
       - "traefik.http.routers.wg-easy.tls=true"
       - "traefik.http.routers.wg-easy.tls.certresolver=lets-encrypt"
       - "traefik.http.routers.wg-easy.rule=Host(`vps.dcotta.eu`) && PathPrefix(`/wg-easy`)"
-      - "traefik.http.routers.wg-easy.middlewares=wg-easy-stripprefix"
+      - "traefik.http.routers.wg-easy.middlewares=wg-easy-stripprefix,auth"
       - "traefik.http.middlewares.wg-easy-stripprefix.stripprefix.prefixes=/wg-easy"
       - "traefik.http.middlewares.wg-easy-redirectslash.redirectregex.regex=(.*)/wg-easy"
       - "traefik.http.middlewares.wg-easy-redirectslash.redirectregex.replacement=$$1/wg-easy/"
