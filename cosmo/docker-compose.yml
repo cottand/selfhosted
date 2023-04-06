@@ -72,11 +72,13 @@ services:
       - ./traefik:/etc/traefik/
     labels:
       traefik.enable: true
-#      traefik.http.routers.traefik_https.rule: Host(`traefik.example.com`)
-#      traefik.http.routers.traefik_https.entrypoints: websecure
-#      traefik.http.routers.traefik_https.tls: true
-#      traefik.http.routers.traefik_https.tls.certResolver: myresolver
-#      traefik.http.routers.traefik_https.service: api@internal
+      traefik.http.routers.traefik_https.rule: Host(`vps.dcotta.eu`) && PathPrefix(`/traefik`)
+      traefik.http.middlewares.traefik-stripprefix.stripprefix.prefixes: /traefik
+      traefik.http.routers.traefik_https.middlewares: traefik-stripprefix
+      traefik.http.routers.traefik_https.entrypoints: websecure
+      traefik.http.routers.traefik_https.tls: true
+      traefik.http.routers.traefik_https.tls.certResolver: lets-encrypt
+      traefik.http.routers.traefik_https.service: api@internal
 
   prometheus:
     image: prom/prometheus:v2.28.1
@@ -131,8 +133,8 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.portainer.loadbalancer.server.port=9000"
       - "traefik.http.middlewares.portainer-stripprefix.stripprefix.prefixes=/portainer"
-      - "traefik.http.routers.portainer.rule=Host(`vps.dcotta.eu`) && PathPrefix(`/portainer`)"
       - "traefik.http.routers.portainer.middlewares=portainer-stripprefix"
+      - "traefik.http.routers.portainer.rule=Host(`vps.dcotta.eu`) && PathPrefix(`/portainer`)"
       - "traefik.http.routers.portainer.entrypoints=websecure"
       - "traefik.http.routers.portainer.tls=true"
       - "traefik.http.routers.portainer.tls.certresolver=lets-encrypt"
@@ -164,7 +166,7 @@ services:
       - "traefik.http.routers.wg-easy.tls=true"
       - "traefik.http.routers.wg-easy.tls.certresolver=lets-encrypt"
       - "traefik.http.routers.wg-easy.rule=Host(`vps.dcotta.eu`) && PathPrefix(`/wg-easy`)"
-      - "traefik.http.routers.wg-easy.middlewares=wg-easy-stripprefix,auth"
+      - "traefik.http.routers.wg-easy.middlewares=wg-easy-stripprefix,auth@file"
       - "traefik.http.middlewares.wg-easy-stripprefix.stripprefix.prefixes=/wg-easy"
       - "traefik.http.middlewares.wg-easy-redirectslash.redirectregex.regex=(.*)/wg-easy"
       - "traefik.http.middlewares.wg-easy-redirectslash.redirectregex.replacement=$$1/wg-easy/"
