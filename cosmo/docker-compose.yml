@@ -1,10 +1,13 @@
 version: '3.9'
 
+# changing name has impact on hostnames
+# places where hostnames are hardcoded:
+# - data/pg_hba.conf
 name: cosmo
-#secrets:
-#  pg_password:
-#    file: ./password
 networks:
+  # changing name has impact on hostnames
+  # places where hostnames are hardcoded:
+  # - data/pg_hba.conf
   backend: {}
   traefik_public:
     external: true
@@ -99,6 +102,8 @@ services:
       - host.docker.internal:host-gateway
       #host.docker.internal:127.0.0.1 for linux
   db-metrics:
+    # places where hostnames are hardcoded:
+    # - data/pg_hba.conf
     image: prometheuscommunity/postgres-exporter:latest
     container_name: db-metrics
     restart: unless-stopped
