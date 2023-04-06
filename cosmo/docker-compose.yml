@@ -77,7 +77,7 @@ services:
       - ./traefik:/etc/traefik/
     labels:
       traefik.enable: true
-      traefik.http.routers.traefik_https.rule: Host(`vps.dcotta.eu`) && PathPrefix(`/traefik`)
+      traefik.http.routers.traefik_https.rule: Host(`traefik.vps.dcotta.eu`)
 #      traefik.http.middlewares.traefik-stripprefix.stripprefix.prefixes: /traefik
 #      traefik.http.routers.traefik_https.middlewares: traefik-stripprefix
       traefik.http.routers.traefik_https.entrypoints: websecure
