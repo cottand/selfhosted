@@ -160,7 +160,7 @@ services:
     container_name: wg-easy
     restart: unless-stopped
     environment:
-      - WG_HOST=web.vps.dcotta.eu
+      - WG_HOST=vps.dcotta.eu
     env_file:
       # SECRET
       - ./secrets/bytebase.env
