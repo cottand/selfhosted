@@ -32,8 +32,10 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.tcp.services.db.loadbalancer.server.port=5432"
-      - "traefik.tcp.routers.db.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.db.rule=HostSNI(`vpn.dcotta.eu`)"
       - "traefik.tcp.routers.db.entrypoints=db"
+      - "traefik.tcp.routers.db.tls=true"
+      - "traefik.tcp.routers.db.tls.certResolver=lets-encrypt"
 
 
   jupyter:
@@ -56,14 +58,14 @@ services:
 #      - jupyter --ip='*' --NotebookApp.token='' --NotebookApp.password=''
 
   traefik:
-    image: traefik:v2.9
+    image: traefik:v3.0
     restart: unless-stopped
     secrets: [traefik-auth-users]
     ports:
       - '80:80'
       - '443:443'
-      - '8080:8080'
-#      - '5432:5432'
+#      - '8080:8080'
+      - '5432:5432'
     networks:
       - backend
       - traefik_public
