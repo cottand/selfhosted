@@ -18,6 +18,10 @@ scrape_configs:
     scrape_interval: 1m
     static_configs:
       - targets: [ 'traefik:8082' ]
+  - job_name: 'blocky-dns'
+    scrape_interval: 1m
+    static_configs:
+      - targets: [ 'blocky-dns:8082' ]
 
 #remote_write:
 #  - url: '<Your Prometheus remote_write endpoint>'

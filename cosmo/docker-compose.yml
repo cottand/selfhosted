@@ -1,3 +1,4 @@
+#file: noinspection SpellCheckingInspection
 version: '3.9'
 
 # changing name has impact on hostnames
@@ -8,14 +9,12 @@ networks:
   # changing name has impact on hostnames
   # places where hostnames are hardcoded:
   # - data/pg_hba.conf
+  # net traefik is in
   backend: {}
+  # net prometheus is in
+  metrics: {}
   traefik_public:
     external: true
-#  wg-internal:
-#    driver: bridge
-#    ipam:
-#      config:
-#        - subnet: '10.8.0.1/24'
 secrets:
   pg_admin_password:
     file: secrets/pg_admin_password
@@ -36,8 +35,7 @@ services:
 #    entrypoint: [ '/bin/sh', '-c', 'export POSTGRES_PASSWORD=$$(cat /var/run/secrets/test) ; source /entrypoint.sh' ]
     volumes:
       - ./data:/var/lib/postgresql/data
-    networks:
-      - backend
+    networks: [backend]
     labels:
       - "traefik.enable=true"
       - "traefik.tcp.services.db.loadbalancer.server.port=5432"
@@ -56,10 +54,9 @@ services:
     volumes:
       - ./notebooks:/home/jovyan/work
     platform: "linux/amd64"
-    networks:
-      - backend
+#    networks: TODO SECURE
     labels:
-      - traefik.enable=true
+      - traefik.enable=false # TODO SECURE
       - traefik.http.routers.jupyter.rule=Host(`jupyter`)
 #        && Path(`/jupyter`)
       - traefik.http.routers.jupyter.entrypoints=web
@@ -80,6 +77,7 @@ services:
     networks:
       - backend
       - traefik_public
+      - metrics
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik:/etc/traefik/
@@ -92,54 +90,47 @@ services:
       traefik.http.routers.traefik_https.service: api@internal
       traefik.http.routers.traefik_https.middlewares: auth@file
 
-  whoami:
-    image: traefik/whoami
-    ports:
-      - '2001:2001'
-    command:
-      # It tells whoami to start listening on 2001 instead of 80
-      - --port=2001
-      - --name=iamfoo
-
-#  dns:
-#    image: spx01/blocky
-#    container_name: dns
-#    restart: unless-stopped
-#    # Optional the instance hostname for logging purpose
-#    hostname: dns
+  dns:
+    image: spx01/blocky
+    container_name: dns
+    restart: unless-stopped
+    # Optional the instance hostname for logging purpose
+    hostname: dns
+    networks:
+      - traefik-dns
+      - metrics
 #    ports:
 #      - "53:53/tcp"
 #      - "53:53/udp"
 #      - "4000:4000/tcp"  # Prometheus stats (if enabled).
-#    environment:
-#      - TZ=Europe/Berlin # Optional to synchronize the log timestamp with host
-#    volumes:
-#      # Optional to synchronize the log timestamp with host
-#      - /etc/localtime:/etc/localtime:ro
-#      # config file
-#      - ./blocky-dns/:/app/
+    environment:
+      - TZ=Europe/Berlin # Optional to synchronize the log timestamp with host
+    volumes:
+      # Optional to synchronize the log timestamp with host
+      - /etc/localtime:/etc/localtime:ro
+      - ./blocky-dns/config.yml:/app/config.yml
 
   prometheus:
     image: prom/prometheus:v2.28.1
     container_name: prometheus
     restart: unless-stopped
     networks:
-      - backend
+      - metrics
     volumes:
       - ./prometheus:/etc/prometheus
     command:
       - --config.file=/etc/prometheus/prometheus.yml
     extra_hosts:
+      # needed for calling the dockerdaemon:9323 for docker metrics
       - host.docker.internal:host-gateway
-      #host.docker.internal:127.0.0.1 for linux
   db-metrics:
     # places where hostnames are hardcoded:
     # - data/pg_hba.conf
     image: prometheuscommunity/postgres-exporter:latest
     container_name: db-metrics
     restart: unless-stopped
-    networks: [backend]
-    depends_on: [db]
+    networks: [backend, metrics]
+    depends_on: [db, prometheus]
     ports:
       - '9187:9187'
     environment:
@@ -150,8 +141,7 @@ services:
 #    restart: unless-stopped
     image: grafana/grafana:8.3.0
     user: 'root:root'
-    networks:
-      - backend
+    networks: [backend, metrics]
     environment:
       # traefik takes care of auth
       GF_AUTH_BASIC_ENABLED: 'false'
@@ -197,7 +187,6 @@ services:
     environment:
       - WG_HOST=vps.dcotta.eu
     env_file:
-      # SECRET
       - ./secrets/bytebase.env
     volumes:
       - ./wg:/etc/wireguard

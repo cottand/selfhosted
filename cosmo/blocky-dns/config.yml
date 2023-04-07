@@ -1,0 +1,22 @@
+port: 53
+httpPort: 4000
+upstream:
+  default:
+    - 1.1.1.1
+    - 9.9.9.9
+#    - https://dns.digitale-gesellschaft.ch/dns-query
+
+customDNS:
+  customTTL: 5m
+  mapping:
+
+blocking:
+  blackLists:
+    ads:
+      - https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+  clientGroupsBlock:
+    default:
+      - ads
+prometheus:
+  enable: true
+  path: /metrics
