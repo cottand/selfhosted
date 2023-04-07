@@ -5,6 +5,9 @@ data/*
 **/.DS_Store
 secrets/
 portainer-data/
+traefik/acme.json
 
 !data/pg_hba.conf
 !data/postgresql.conf
+
+grafana.db.bu

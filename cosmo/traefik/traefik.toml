@@ -1,5 +1,4 @@
 [entryPoints]
-
   [entryPoints.db]
     address = ":5432"
   [entryPoints.web]
@@ -31,7 +30,7 @@
 
 [providers.docker]
   watch = true
-#  network = "backend"
+#  network = "backend" - not necessary - add if traefik cannot find the right net to talk to containers
   exposedByDefault = false
 
 [providers.file]

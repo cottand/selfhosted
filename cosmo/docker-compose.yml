@@ -11,6 +11,11 @@ networks:
   backend: {}
   traefik_public:
     external: true
+#  wg-internal:
+#    driver: bridge
+#    ipam:
+#      config:
+#        - subnet: '10.8.0.1/24'
 secrets:
   pg_admin_password:
     file: secrets/pg_admin_password
@@ -86,6 +91,33 @@ services:
       traefik.http.routers.traefik_https.tls.certResolver: lets-encrypt
       traefik.http.routers.traefik_https.service: api@internal
       traefik.http.routers.traefik_https.middlewares: auth@file
+
+  whoami:
+    image: traefik/whoami
+    ports:
+      - '2001:2001'
+    command:
+      # It tells whoami to start listening on 2001 instead of 80
+      - --port=2001
+      - --name=iamfoo
+
+#  dns:
+#    image: spx01/blocky
+#    container_name: dns
+#    restart: unless-stopped
+#    # Optional the instance hostname for logging purpose
+#    hostname: dns
+#    ports:
+#      - "53:53/tcp"
+#      - "53:53/udp"
+#      - "4000:4000/tcp"  # Prometheus stats (if enabled).
+#    environment:
+#      - TZ=Europe/Berlin # Optional to synchronize the log timestamp with host
+#    volumes:
+#      # Optional to synchronize the log timestamp with host
+#      - /etc/localtime:/etc/localtime:ro
+#      # config file
+#      - ./blocky-dns/:/app/
 
   prometheus:
     image: prom/prometheus:v2.28.1
@@ -179,6 +211,9 @@ services:
       net.ipv4.conf.all.src_valid_mark: 1
       net.ipv4.ip_forward: 1
     networks: [backend, traefik_public]
+    # IP address of this will be the host
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.wg-easy.entrypoints=websecure"
