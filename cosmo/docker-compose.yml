@@ -132,7 +132,7 @@ services:
     command:
       - --config.file=/etc/prometheus/prometheus.yml
     extra_hosts:
-      # needed for calling the dockerdaemon:9323 for docker metrics
+      # needed for calling the dockerdaemon:9323 for docker metrics and node-metrics:9000
       - host.docker.internal:host-gateway
   db-metrics:
     # places where hostnames are hardcoded:
@@ -146,18 +146,20 @@ services:
       - '9187:9187'
     environment:
       DATA_SOURCE_NAME: 'postgresql://postgres_exporter:password@db:5432/marti_phd?sslmode=disable'
-#  node-metrics:
-#    image: quay.io/prometheus/node-exporter:latest
-#    container_name: node_metrics
-#    command:
-#      - '--path.rootfs=/host'
+
+  node-metrics:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: node_metrics
+    command:
+      - '--path.rootfs=/host'
+    # on port 9100
 #    network_mode: host
-#    networks:
-#      metrics:
 #    pid: host
-#    restart: unless-stopped
-#    volumes:
-#      - '/:/host:ro,rslave'
+    networks: [metrics]
+    restart: unless-stopped
+    volumes:
+      - '/:/host:ro,rslave'
+
 
   grafana:
     container_name: grafana
@@ -166,7 +168,6 @@ services:
     user: 'root:root'
     networks: [backend, metrics]
     environment:
-      # traefik takes care of auth
       GF_AUTH_BASIC_ENABLED: 'false'
       GF_AUTH_DISABLE_LOGIN_FORM: 'false'
       GF_AUTH_ANONYMOUS_ENABLED: "true"
@@ -199,7 +200,7 @@ services:
       traefik.enable: true
       traefik.http.services.portainer.loadbalancer.server.port: 9000
       traefik.http.middlewares.portainer-stripprefix.stripprefix.prefixes: /portainer
-      traefik.http.routers.portainer.middlewares: portainer-stripprefix
+      traefik.http.routers.portainer.middlewares: portainer-stripprefix,vps-whitelist@file
       traefik.http.routers.portainer.rule: Host(`web.vps.dcotta.eu`) && PathPrefix(`/portainer`)
       traefik.http.routers.portainer.entrypoints: websecure
       traefik.http.routers.portainer.tls: true
@@ -235,7 +236,7 @@ services:
       net.ipv4.conf.all.src_valid_mark: 1
     networks:
       backend: {}
-      traefik_public: {}
+#      traefik_public: {}
       # see https://github:com/WeeJeWel/wg-easy/wiki/Using-WireGuard-Easy-with-Pi-Hole:
       wg:
         ipv4_address: 10.8.1.2
@@ -248,7 +249,7 @@ services:
       traefik.http.routers.wg-easy.tls: true
       traefik.http.routers.wg-easy.tls.certresolver: lets-encrypt
       traefik.http.routers.wg-easy.rule: Host(`web.vps.dcotta.eu`) && PathPrefix(`/wg-easy`)
-      traefik.http.routers.wg-easy.middlewares: wg-easy-stripprefix,auth@file
+      traefik.http.routers.wg-easy.middlewares: wg-easy-stripprefix,auth@file,vps-whitelist@file
       traefik.http.middlewares.wg-easy-stripprefix.stripprefix.prefixes: /wg-easy
       traefik.http.middlewares.wg-easy-redirectslash.redirectregex.regex: (.*)/wg-easy
       traefik.http.middlewares.wg-easy-redirectslash.redirectregex.replacement: $$1/wg-easy/
@@ -281,7 +282,7 @@ services:
       traefik.http.routers.whoami.rule: Host(`web.vps.dcotta.eu`) && PathPrefix(`/whoami`)
       traefik.http.middlewares.whoami-stripprefix.stripprefix.prefixes: /whoami
       traefik.http.services.whoami.loadbalancer.server.port: 80
-      traefik.http.routers.whoami.middlewares: whoami-stripprefix,vps-whitelist@file
+      traefik.http.routers.whoami.middlewares: whoami-stripprefix,auth@file
       traefik.http.routers.whoami.entrypoints: websecure
       traefik.http.routers.whoami.tls: true
 

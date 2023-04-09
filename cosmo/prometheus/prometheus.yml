@@ -22,6 +22,11 @@ scrape_configs:
     scrape_interval: 1m
     static_configs:
       - targets: [ 'blocky-dns:8082' ]
+  - job_name: 'node'
+    scrape_interval: 1m
+    static_configs:
+      # node-metrics container
+      - targets: [ 'host.docker.internal:9100']
 
 #remote_write:
 #  - url: '<Your Prometheus remote_write endpoint>'
