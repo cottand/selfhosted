@@ -11,3 +11,4 @@ traefik/acme.json
 !data/postgresql.conf
 
 grafana.db.bu
+grafana/data/*

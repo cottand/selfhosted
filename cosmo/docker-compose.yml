@@ -1,6 +1,5 @@
 #file: noinspection SpellCheckingInspection
 version: '3.9'
-
 # changing name has impact on hostnames
 # places where hostnames are hardcoded:
 # - data/pg_hba.conf
@@ -13,6 +12,14 @@ networks:
   backend: {}
   # net prometheus is in
   metrics: {}
+  # see https://github.com/WeeJeWel/wg-easy/wiki/Using-WireGuard-Easy-with-Pi-Hole
+  wg:
+    ipam:
+      config:
+        # subnet CIDR hardcoded in
+        # - ip addresses of hosts in network (wg-easy, dns, traefik)
+        # - traefik whitelist config
+        - subnet: 10.8.1.0/24
   traefik_public:
     external: true
 secrets:
@@ -37,12 +44,12 @@ services:
       - ./data:/var/lib/postgresql/data
     networks: [backend]
     labels:
-      - "traefik.enable=true"
-      - "traefik.tcp.services.db.loadbalancer.server.port=5432"
-      - "traefik.tcp.routers.db.rule=HostSNI(`vps.dcotta.eu`)"
-      - "traefik.tcp.routers.db.entrypoints=db"
-      - "traefik.tcp.routers.db.tls=true"
-      - "traefik.tcp.routers.db.tls.certResolver=lets-encrypt"
+      traefik.enable: true
+      traefik.tcp.services.db.loadbalancer.server.port: 5432
+      traefik.tcp.routers.db.rule: HostSNI(`vps.dcotta.eu`)
+      traefik.tcp.routers.db.entrypoints: db
+      traefik.tcp.routers.db.tls: true
+      traefik.tcp.routers.db.tls.certResolver: lets-encrypt
 
 
   jupyter:
@@ -54,13 +61,15 @@ services:
     volumes:
       - ./notebooks:/home/jovyan/work
     platform: "linux/amd64"
-#    networks: TODO SECURE
+    networks: [backend]
     labels:
-      - traefik.enable=false # TODO SECURE
-      - traefik.http.routers.jupyter.rule=Host(`jupyter`)
-#        && Path(`/jupyter`)
-      - traefik.http.routers.jupyter.entrypoints=web
-      - traefik.http.services.jupyter.loadbalancer.server.port=8888
+      traefik.enable: false # TODO SECURE
+      traefik.http.routers.jupyter.rule: Host(`jupyter`) && Path(`/jupyter`)
+      traefik.http.services.jupyter.loadbalancer.server.port: 8888
+      traefik.http.middlewares.jupyter-stripprefix.stripprefix.prefixes: /jupyter
+      traefik.http.routers.jupyter.middlewares: whoami-stripprefix,vps-whitelist@file
+      traefik.http.routers.jupyter.entrypoints: websecure
+      traefik.http.routers.jupyter.tls: true
 #    command:
 #      - jupyter --ip='*' --NotebookApp.token='' --NotebookApp.password=''
 
@@ -75,9 +84,13 @@ services:
 #      - '8080:8080'
       - '5432:5432'
     networks:
-      - backend
-      - traefik_public
-      - metrics
+      backend:
+      traefik_public:
+      metrics:
+      wg:
+        # hardcoded in DNS
+        ipv4_address: 10.8.1.4
+
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik:/etc/traefik/
@@ -97,14 +110,12 @@ services:
     # Optional the instance hostname for logging purpose
     hostname: dns
     networks:
-      - traefik-dns
-      - metrics
-#    ports:
-#      - "53:53/tcp"
-#      - "53:53/udp"
-#      - "4000:4000/tcp"  # Prometheus stats (if enabled).
-    environment:
-      - TZ=Europe/Berlin # Optional to synchronize the log timestamp with host
+      metrics: # on port 4000/tcp
+      wg:
+        ipv4_address: 10.8.1.3
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
     volumes:
       # Optional to synchronize the log timestamp with host
       - /etc/localtime:/etc/localtime:ro
@@ -135,32 +146,46 @@ services:
       - '9187:9187'
     environment:
       DATA_SOURCE_NAME: 'postgresql://postgres_exporter:password@db:5432/marti_phd?sslmode=disable'
+#  node-metrics:
+#    image: quay.io/prometheus/node-exporter:latest
+#    container_name: node_metrics
+#    command:
+#      - '--path.rootfs=/host'
+#    network_mode: host
+#    networks:
+#      metrics:
+#    pid: host
+#    restart: unless-stopped
+#    volumes:
+#      - '/:/host:ro,rslave'
 
   grafana:
     container_name: grafana
 #    restart: unless-stopped
-    image: grafana/grafana:8.3.0
+    image: grafana/grafana:9.4.7
     user: 'root:root'
     networks: [backend, metrics]
     environment:
       # traefik takes care of auth
       GF_AUTH_BASIC_ENABLED: 'false'
-      GF_AUTH_DISABLE_LOGIN_FORM: 'true'
-#      GF_AUTH_ANONYMOUS_ENABLED: "true"
-#      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+      GF_AUTH_DISABLE_LOGIN_FORM: 'false'
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Viewer"
+      GF_SERVER_ROOT_URL: https://web.vps.dcotta.eu/grafana
+      GF_SERVER_SERVE_FROM_SUB_PATH: true
     volumes:
-      - ./grafana-data:/var/lib/grafana
+      - ./grafana/data:/var/lib/grafana
       - ./grafana/datasources:/etc/grafana/provisioning/datasources
       - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
-      - "traefik.http.middlewares.grafana-stripprefix.stripprefix.prefixes=/grafana"
-      - "traefik.http.routers.grafana.rule=Host(`web.vps.dcotta.eu`) && PathPrefix(`/grafana`)"
-      - "traefik.http.routers.grafana.entrypoints=websecure"
-      - "traefik.http.routers.grafana.tls=true"
-      - "traefik.http.routers.grafana.tls.certresolver=lets-encrypt"
-      - "traefik.http.routers.grafana.middlewares=grafana-stripprefix,auth@file"
+      traefik.enable: true
+      traefik.http.services.grafana.loadbalancer.server.port: 3000
+      traefik.http.middlewares.grafana-stripprefix.stripprefix.prefixes: /grafana
+      traefik.http.routers.grafana.rule: Host(`web.vps.dcotta.eu`) && PathPrefix(`/grafana`)
+      traefik.http.routers.grafana.entrypoints: websecure
+      traefik.http.routers.grafana.tls: true
+      traefik.http.routers.grafana.tls.certresolver: lets-encrypt
+      traefik.http.routers.grafana.middlewares: grafana-stripprefix,vps-whitelist@file
 
   portainer:
     image: portainer/portainer-ce:latest
@@ -171,23 +196,32 @@ services:
       - ./portainer-data:/data
     networks: [backend]
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.services.portainer.loadbalancer.server.port=9000"
-      - "traefik.http.middlewares.portainer-stripprefix.stripprefix.prefixes=/portainer"
-      - "traefik.http.routers.portainer.middlewares=portainer-stripprefix"
-      - "traefik.http.routers.portainer.rule=Host(`web.vps.dcotta.eu`) && PathPrefix(`/portainer`)"
-      - "traefik.http.routers.portainer.entrypoints=websecure"
-      - "traefik.http.routers.portainer.tls=true"
-      - "traefik.http.routers.portainer.tls.certresolver=lets-encrypt"
+      traefik.enable: true
+      traefik.http.services.portainer.loadbalancer.server.port: 9000
+      traefik.http.middlewares.portainer-stripprefix.stripprefix.prefixes: /portainer
+      traefik.http.routers.portainer.middlewares: portainer-stripprefix
+      traefik.http.routers.portainer.rule: Host(`web.vps.dcotta.eu`) && PathPrefix(`/portainer`)
+      traefik.http.routers.portainer.entrypoints: websecure
+      traefik.http.routers.portainer.tls: true
+      traefik.http.routers.portainer.tls.certresolver: lets-encrypt
 
   wg-easy:
     image: weejewel/wg-easy
     container_name: wg-easy
     restart: unless-stopped
     environment:
-      - WG_HOST=vps.dcotta.eu
-    env_file:
-      - ./secrets/bytebase.env
+      WG_HOST: vps.dcotta.eu
+      WG_DEFAULT_DNS: 10.8.1.3
+      # see https://github.com/WeeJeWel/wg-easy/blob/master/src/config.js
+      #
+      # add 'eth1' interface to masquerade so stuff is forwarded to wg network
+      WG_POST_UP: "
+        iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o eth0 -j MASQUERADE;
+        iptables -A INPUT -p udp -m udp --dport 51820 -j ACCEPT;
+        iptables -A FORWARD -i wg0 -j ACCEPT;
+        iptables -A FORWARD -o wg0 -j ACCEPT;
+        iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o eth1 -j MASQUERADE;"
+    #        iptables -A FORWARD -i wg0 -d dns -j ACCEPT"
     volumes:
       - ./wg:/etc/wireguard
     ports:
@@ -197,23 +231,28 @@ services:
       - NET_ADMIN
       - SYS_MODULE
     sysctls:
-      net.ipv4.conf.all.src_valid_mark: 1
       net.ipv4.ip_forward: 1
-    networks: [backend, traefik_public]
+      net.ipv4.conf.all.src_valid_mark: 1
+    networks:
+      backend: {}
+      traefik_public: {}
+      # see https://github:com/WeeJeWel/wg-easy/wiki/Using-WireGuard-Easy-with-Pi-Hole:
+      wg:
+        ipv4_address: 10.8.1.2
     # IP address of this will be the host
     extra_hosts:
       - "host.docker.internal:host-gateway"
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.wg-easy.entrypoints=websecure"
-      - "traefik.http.routers.wg-easy.tls=true"
-      - "traefik.http.routers.wg-easy.tls.certresolver=lets-encrypt"
-      - "traefik.http.routers.wg-easy.rule=Host(`web.vps.dcotta.eu`) && PathPrefix(`/wg-easy`)"
-      - "traefik.http.routers.wg-easy.middlewares=wg-easy-stripprefix,auth@file"
-      - "traefik.http.middlewares.wg-easy-stripprefix.stripprefix.prefixes=/wg-easy"
-      - "traefik.http.middlewares.wg-easy-redirectslash.redirectregex.regex=(.*)/wg-easy"
-      - "traefik.http.middlewares.wg-easy-redirectslash.redirectregex.replacement=$$1/wg-easy/"
-      - "traefik.http.services.wg-easy.loadbalancer.server.port=51821"
+      traefik.enable: true
+      traefik.http.routers.wg-easy.entrypoints: websecure
+      traefik.http.routers.wg-easy.tls: true
+      traefik.http.routers.wg-easy.tls.certresolver: lets-encrypt
+      traefik.http.routers.wg-easy.rule: Host(`web.vps.dcotta.eu`) && PathPrefix(`/wg-easy`)
+      traefik.http.routers.wg-easy.middlewares: wg-easy-stripprefix,auth@file
+      traefik.http.middlewares.wg-easy-stripprefix.stripprefix.prefixes: /wg-easy
+      traefik.http.middlewares.wg-easy-redirectslash.redirectregex.regex: (.*)/wg-easy
+      traefik.http.middlewares.wg-easy-redirectslash.redirectregex.replacement: $$1/wg-easy/
+      traefik.http.services.wg-easy.loadbalancer.server.port: 51821
 
 #  bytebase:
 #    image: bytebase/bytebase:1.15.0
@@ -230,3 +269,19 @@ services:
 #      - "5678:5678"
 #    networks: [backend]
 #    command: --data /var/opt/bytebase --port 5678
+  whoami:
+    image: traefik/whoami
+    command:
+      - --port=80
+      - --name=iamfoo
+    networks:
+      backend:
+    labels:
+      traefik.enable: true
+      traefik.http.routers.whoami.rule: Host(`web.vps.dcotta.eu`) && PathPrefix(`/whoami`)
+      traefik.http.middlewares.whoami-stripprefix.stripprefix.prefixes: /whoami
+      traefik.http.services.whoami.loadbalancer.server.port: 80
+      traefik.http.routers.whoami.middlewares: whoami-stripprefix,vps-whitelist@file
+      traefik.http.routers.whoami.entrypoints: websecure
+      traefik.http.routers.whoami.tls: true
+

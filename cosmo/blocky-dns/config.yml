@@ -2,18 +2,26 @@ port: 53
 httpPort: 4000
 upstream:
   default:
-    - 1.1.1.1
+    # DNS over TCP https://blog.uncensoreddns.org/dns-servers/
+    - 91.239.100.100:843
     - 9.9.9.9
+    - 1.1.1.1
 #    - https://dns.digitale-gesellschaft.ch/dns-query
 
 customDNS:
   customTTL: 5m
+  rewrite:
+    dcotta.eu: internal-web.vps
+    internal-web.vps.dcotta.eu: internal-web.vps
   mapping:
+    # hardcoded in traefik container
+    internal-web.vps: 10.8.1.4
 
 blocking:
   blackLists:
     ads:
       - https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+      - https://raw.githubusercontent.com/kboghdady/youTube_ads_4_pi-hole/master/black.list
   clientGroupsBlock:
     default:
       - ads
