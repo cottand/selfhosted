@@ -24,6 +24,7 @@ services:
   wg-client:
     image: linuxserver/wireguard:alpine
     restart: unless-stopped
+    extra_hosts: ['host_docker:host-gateway']
     volumes:
       - ./wg:/config
     networks: [backend]
@@ -43,7 +44,6 @@ services:
     container_name: traefik
     restart: unless-stopped
     secrets: [traefik-auth-users]
-    extra_hosts: ['host_docker:host-gateway']
     #    ports:
     #      - '80:80'
     #      - '443:443'
