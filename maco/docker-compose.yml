@@ -17,25 +17,33 @@ services:
 #      - secrets/cloudflared.env
 
   wg-client:
-    image: cmulk/wireguard-docker:alpine
+    image: linuxserver/wireguard:alpine
     restart: unless-stopped
     volumes:
-      - ./wg:/etc/wireguard
-    networks:
-      - net
+      - ./wg:/config
+    network_mode: host
+#    networks: #[wg]
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
+    privileged: true
+#    sysctls:
+#      net.ipv4.ip_forward: 1
+#      net.ipv4.conf.all.src_valid_mark: 1
+#      net.ipv6.conf.all.disable_ipv6: 0
+    environment:
+      IPTABLES_MASQ: '0'
 
   whoami:
     image: traefik/whoami
     command:
       - --port=80
-    ports:
-      - '80:80'
-    networks:
-      wg:
-        ipv4_address: 10.8.1.101
+#    ports:
+#      - '80:80'
+    network_mode: host
+#    networks:
+#      wg:
+#        ipv4_address: 10.8.1.101
     labels:
       traefik.enable: true
       traefik.http.routers.whoami.rule: Host(`web.vps.dcotta.eu`) && PathPrefix(`/whoami`)
