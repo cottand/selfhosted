@@ -1,0 +1,13 @@
+[tcp.routers]
+# Define a connection between requests and services
+    [tcp.routers.host-ssh]
+        rule = "HostSNI(`*`)"
+        entrypoints = ["ssh"]
+        service = "host"
+
+[tcp.services]
+    [tcp.services.HostSSH]
+    # Define how to reach an existing service on our infrastructure
+        [tcp.services.HostSSH.loadBalancer]
+            [[http.services.HostSSH.loadBalancer.servers]]
+                address='host_docker:22'
