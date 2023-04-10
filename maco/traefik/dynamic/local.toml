@@ -9,5 +9,5 @@
     [tcp.services.HostSSH]
     # Define how to reach an existing service on our infrastructure
         [tcp.services.HostSSH.loadBalancer]
-            [[http.services.HostSSH.loadBalancer.servers]]
+            [[tcp.services.HostSSH.loadBalancer.servers]]
                 address='host_docker:22'
