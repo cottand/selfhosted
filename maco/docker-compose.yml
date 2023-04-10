@@ -43,6 +43,7 @@ services:
     container_name: traefik
     restart: unless-stopped
     secrets: [traefik-auth-users]
+    extra_hosts: ['host_docker:host-gateway']
     #    ports:
     #      - '80:80'
     #      - '443:443'
