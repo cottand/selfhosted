@@ -11,8 +11,8 @@ upstream:
 customDNS:
   customTTL: 5m
   rewrite:
-    vps.dcotta.eu: host.vps
-    web.dcotta.eu: internal-web.vps
+#    web.vps.dcotta.eu: internal-web.vps
+    vps.dcotta.eu: internal-web.vps
     internal-web.vps.dcotta.eu: internal-web.vps
   mapping:
     # hardcoded in traefik container

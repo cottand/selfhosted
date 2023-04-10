@@ -20,8 +20,11 @@ networks:
         # - ip addresses of hosts in network (wg-easy, dns, traefik)
         # - traefik whitelist config
         - subnet: 10.8.1.0/24
-  traefik_public:
+  hostnet:
     external: true
+    name: host
+
+
 secrets:
   pg_admin_password:
     file: secrets/pg_admin_password
@@ -85,7 +88,6 @@ services:
       - '5432:5432'
     networks:
       backend:
-      traefik_public:
       metrics:
       wg:
         # hardcoded in DNS
@@ -133,20 +135,31 @@ services:
       - --config.file=/etc/prometheus/prometheus.yml
     extra_hosts:
       # needed for calling the dockerdaemon:9323 for docker metrics and node-metrics:9000
-      - host.docker.internal:host-gateway
+      - 'host_docker:host-gateway'
   db-metrics:
     # places where hostnames are hardcoded:
     # - data/pg_hba.conf
     image: prometheuscommunity/postgres-exporter:latest
     container_name: db-metrics
     restart: unless-stopped
-    networks: [backend, metrics]
-    depends_on: [db, prometheus]
-    ports:
-      - '9187:9187'
+    networks: [backend, metrics] # on 9187
+    depends_on: [db]
     environment:
       DATA_SOURCE_NAME: 'postgresql://postgres_exporter:password@db:5432/marti_phd?sslmode=disable'
-
+  container-metrics:
+    container_name: container-metrics
+    hostname: container-metrics
+    privileged: true
+    image: gcr.io/cadvisor/cadvisor:v0.46.0
+    restart: unless-stopped
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - metrics # on port 8080
   node-metrics:
     image: quay.io/prometheus/node-exporter:latest
     container_name: node_metrics

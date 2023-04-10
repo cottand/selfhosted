@@ -1,5 +1,5 @@
 global:
-  scrape_interval: 1m
+  scrape_interval: 30s
 
 scrape_configs:
   - job_name: 'prometheus'
@@ -7,26 +7,21 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
   - job_name: 'db'
-    scrape_interval: 20s
     static_configs:
       - targets: ['db-metrics:9187']
-  - job_name: 'docker'
-    scrape_interval: 1m
+  - job_name: 'cadvisor'
     static_configs:
-      - targets: [ 'host.docker.internal:9323' ]
+      - targets: [ 'container-metrics:8080' ]
   - job_name: 'traefik'
-    scrape_interval: 1m
     static_configs:
       - targets: [ 'traefik:8082' ]
   - job_name: 'blocky-dns'
-    scrape_interval: 1m
     static_configs:
       - targets: [ 'blocky-dns:8082' ]
   - job_name: 'node'
-    scrape_interval: 1m
     static_configs:
       # node-metrics container
-      - targets: [ 'host.docker.internal:9100']
+      - targets: [ 'node-metrics:9100']
 
 #remote_write:
 #  - url: '<Your Prometheus remote_write endpoint>'
