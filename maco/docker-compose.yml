@@ -1,3 +1,4 @@
+#file: noinspection SpellCheckingInspection
 version: '3.9'
 
 name: maco
@@ -7,7 +8,8 @@ networks:
       config:
         # subnet CIDR hardcoded in
         # maco is reserved for addresses only above 10.8.1.100
-        - subnet: 10.8.1.0/24
+        - subnet: 10.8.2.0/24
+  backend:
 
 services:
 #  cloudflared:
@@ -21,8 +23,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./wg:/config
-    network_mode: host
-#    networks: #[wg]
+    networks: [backend]
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
@@ -34,22 +35,43 @@ services:
     environment:
       IPTABLES_MASQ: '0'
 
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    restart: unless-stopped
+    secrets: [traefik-auth-users]
+    #    ports:
+    #      - '80:80'
+    #      - '443:443'
+    #      - '8080:8080'
+    #      - '5432:5432'
+    #    cap_add:
+    #      - NET_ADMIN
+    network_mode: 'service:wg-client'
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik:/etc/traefik/
+    labels:
+      traefik.enable: true
+      traefik.http.routers.traefik_https.rule: Host(`traefik.vps.dcotta.eu`)
+      traefik.http.routers.traefik_https.entrypoints: websecure
+      traefik.http.routers.traefik_https.tls: true
+      traefik.http.routers.traefik_https.tls.certResolver: lets-encrypt
+      traefik.http.routers.traefik_https.service: api@internal
+      traefik.http.routers.traefik_https.middlewares: auth@file
   whoami:
     image: traefik/whoami
     command:
       - --port=80
-#    ports:
-#      - '80:80'
-    network_mode: host
-#    networks:
+    networks: [backend]
 #      wg:
 #        ipv4_address: 10.8.1.101
     labels:
       traefik.enable: true
-      traefik.http.routers.whoami.rule: Host(`web.vps.dcotta.eu`) && PathPrefix(`/whoami`)
+      traefik.http.routers.whoami.rule: Host(`home.dcotta.eu`) && PathPrefix(`/whoami`)
       traefik.http.middlewares.whoami-stripprefix.stripprefix.prefixes: /whoami
       traefik.http.services.whoami.loadbalancer.server.port: 80
-      traefik.http.routers.whoami.middlewares: whoami-stripprefix,auth@file
-      traefik.http.routers.whoami.entrypoints: websecure
-      traefik.http.routers.whoami.tls: true
-
+      traefik.http.routers.whoami.middlewares: whoami-stripprefix
+      traefik.http.routers.whoami.entrypoints: web
+#      traefik.http.routers.whoami.tls: true

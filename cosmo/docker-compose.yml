@@ -192,6 +192,7 @@ services:
       GF_AUTH_ANONYMOUS_ORG_ROLE: "Viewer"
       GF_SERVER_ROOT_URL: https://web.vps.dcotta.eu/grafana
       GF_SERVER_SERVE_FROM_SUB_PATH: true
+      GF_SECURITY_ALLOW_EMBEDDING: true
     volumes:
       - ./grafana/data:/var/lib/grafana
       - ./grafana/datasources:/etc/grafana/provisioning/datasources
