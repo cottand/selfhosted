@@ -15,9 +15,9 @@ scrape_configs:
   - job_name: 'traefik'
     static_configs:
       - targets: [ 'traefik:8082' ]
-  - job_name: 'blocky-dns'
+  - job_name: 'blocky'
     static_configs:
-      - targets: [ 'blocky-dns:8082' ]
+      - targets: [ 'dns:4000' ]
   - job_name: 'node'
     static_configs:
       # node-metrics container

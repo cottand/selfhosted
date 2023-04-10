@@ -55,24 +55,24 @@ services:
       traefik.tcp.routers.db.tls.certResolver: lets-encrypt
 
 
-  jupyter:
-    image: jupyter/datascience-notebook:latest
-    container_name: jupyter
-    restart: unless-stopped
-    environment:
-      - JUPYTER_ENABLE_LAB=yes
-    volumes:
-      - ./notebooks:/home/jovyan/work
-    platform: "linux/amd64"
-    networks: [backend]
-    labels:
-      traefik.enable: false # TODO SECURE
-      traefik.http.routers.jupyter.rule: Host(`jupyter`) && Path(`/jupyter`)
-      traefik.http.services.jupyter.loadbalancer.server.port: 8888
-      traefik.http.middlewares.jupyter-stripprefix.stripprefix.prefixes: /jupyter
-      traefik.http.routers.jupyter.middlewares: whoami-stripprefix,vps-whitelist@file
-      traefik.http.routers.jupyter.entrypoints: websecure
-      traefik.http.routers.jupyter.tls: true
+#  jupyter:
+#    image: jupyter/datascience-notebook:latest
+#    container_name: jupyter
+#    restart: unless-stopped
+#    environment:
+#      - JUPYTER_ENABLE_LAB=yes
+#    volumes:
+#      - ./notebooks:/home/jovyan/work
+#    platform: "linux/amd64"
+#    networks: [backend]
+#    labels:
+#      traefik.enable: false # TODO SECURE
+#      traefik.http.routers.jupyter.rule: Host(`jupyter`) && Path(`/jupyter`)
+#      traefik.http.services.jupyter.loadbalancer.server.port: 8888
+#      traefik.http.middlewares.jupyter-stripprefix.stripprefix.prefixes: /jupyter
+#      traefik.http.routers.jupyter.middlewares: whoami-stripprefix,vps-whitelist@file
+#      traefik.http.routers.jupyter.entrypoints: websecure
+#      traefik.http.routers.jupyter.tls: true
 #    command:
 #      - jupyter --ip='*' --NotebookApp.token='' --NotebookApp.password=''
 
@@ -86,6 +86,8 @@ services:
       - '443:443'
 #      - '8080:8080'
       - '5432:5432'
+    cap_add:
+      - NET_ADMIN
     networks:
       backend:
       metrics:
@@ -234,7 +236,10 @@ services:
         iptables -A INPUT -p udp -m udp --dport 51820 -j ACCEPT;
         iptables -A FORWARD -i wg0 -j ACCEPT;
         iptables -A FORWARD -o wg0 -j ACCEPT;
-        iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o eth1 -j MASQUERADE;"
+        iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o eth1 -j MASQUERADE;
+
+        "
+#            iptables -t nat -A POSTROUTING -s 10.8.1.0/24 -d 10.8.1.0./24 -j MASQUERADE
     #        iptables -A FORWARD -i wg0 -d dns -j ACCEPT"
     volumes:
       - ./wg:/etc/wireguard
