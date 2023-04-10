@@ -1,9 +1,9 @@
 [tcp.routers]
 # Define a connection between requests and services
-    [tcp.routers.host-ssh]
+    [tcp.routers.hostSSH]
         rule = "HostSNI(`*`)"
         entrypoints = ["ssh"]
-        service = "host"
+        service = "HostSS"
 
 [tcp.services]
     [tcp.services.HostSSH]
