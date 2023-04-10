@@ -70,7 +70,7 @@ services:
 #      traefik.http.routers.jupyter.rule: Host(`jupyter`) && Path(`/jupyter`)
 #      traefik.http.services.jupyter.loadbalancer.server.port: 8888
 #      traefik.http.middlewares.jupyter-stripprefix.stripprefix.prefixes: /jupyter
-#      traefik.http.routers.jupyter.middlewares: whoami-stripprefix,vps-whitelist@file
+#      traefik.http.routers.jupyter.middlewares: whoami-stripprefix,vpn-whitelist@file
 #      traefik.http.routers.jupyter.entrypoints: websecure
 #      traefik.http.routers.jupyter.tls: true
 #    command:
@@ -81,19 +81,14 @@ services:
     container_name: traefik
     restart: unless-stopped
     secrets: [traefik-auth-users]
-    ports:
-      - '80:80'
-      - '443:443'
+#    ports:
+#      - '80:80'
+#      - '443:443'
 #      - '8080:8080'
-      - '5432:5432'
-    cap_add:
-      - NET_ADMIN
-    networks:
-      backend:
-      metrics:
-      wg:
-        # hardcoded in DNS
-        ipv4_address: 10.8.1.4
+#      - '5432:5432'
+#    cap_add:
+#      - NET_ADMIN
+    network_mode: 'service:wg-easy'
 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -124,6 +119,14 @@ services:
       # Optional to synchronize the log timestamp with host
       - /etc/localtime:/etc/localtime:ro
       - ./blocky-dns/config.yml:/app/config.yml
+    labels:
+      traefik.enable: true
+      traefik.udp.services.dns.loadbalancer.server.port: 53
+      traefik.tcp.services.dns.loadbalancer.server.port: 53
+#      traefik.http.routers.whoami.middlewares: whoami-stripprefix,auth@file
+      traefik.udp.routers.dns.entrypoints: dns-udp
+      traefik.tcp.routers.dns.entrypoints: dns-tcp
+#      traefik.tcp.routers.whoami.tls: true
 
   prometheus:
     image: prom/prometheus:v2.28.1
@@ -201,7 +204,7 @@ services:
       traefik.http.routers.grafana.entrypoints: websecure
       traefik.http.routers.grafana.tls: true
       traefik.http.routers.grafana.tls.certresolver: lets-encrypt
-      traefik.http.routers.grafana.middlewares: grafana-stripprefix,vps-whitelist@file
+      traefik.http.routers.grafana.middlewares: grafana-stripprefix,vpn-whitelist@file
 
   portainer:
     image: portainer/portainer-ce:latest
@@ -215,7 +218,7 @@ services:
       traefik.enable: true
       traefik.http.services.portainer.loadbalancer.server.port: 9000
       traefik.http.middlewares.portainer-stripprefix.stripprefix.prefixes: /portainer
-      traefik.http.routers.portainer.middlewares: portainer-stripprefix,vps-whitelist@file
+      traefik.http.routers.portainer.middlewares: portainer-stripprefix,vpn-whitelist@file
       traefik.http.routers.portainer.rule: Host(`web.vps.dcotta.eu`) && PathPrefix(`/portainer`)
       traefik.http.routers.portainer.entrypoints: websecure
       traefik.http.routers.portainer.tls: true
@@ -236,7 +239,7 @@ services:
         iptables -A INPUT -p udp -m udp --dport 51820 -j ACCEPT;
         iptables -A FORWARD -i wg0 -j ACCEPT;
         iptables -A FORWARD -o wg0 -j ACCEPT;
-        iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o eth1 -j MASQUERADE;
+        iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o eth2 -j MASQUERADE;
 
         "
 #            iptables -t nat -A POSTROUTING -s 10.8.1.0/24 -d 10.8.1.0./24 -j MASQUERADE
@@ -245,19 +248,24 @@ services:
       - ./wg:/etc/wireguard
     ports:
       # bypass traefik to reach this container that manages VPN
-      - "51820:51820/udp"
+      - "51820:51820/udp" # WG
+      - '80:80'           # HTTP
+      - '443:443'         # HTTPS
+      - '5432:5432'       # DB
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
     sysctls:
       net.ipv4.ip_forward: 1
       net.ipv4.conf.all.src_valid_mark: 1
+      # same as traefik's!
     networks:
       backend: {}
 #      traefik_public: {}
       # see https://github:com/WeeJeWel/wg-easy/wiki/Using-WireGuard-Easy-with-Pi-Hole:
       wg:
         ipv4_address: 10.8.1.2
+      metrics:
     # IP address of this will be the host
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -267,7 +275,7 @@ services:
       traefik.http.routers.wg-easy.tls: true
       traefik.http.routers.wg-easy.tls.certresolver: lets-encrypt
       traefik.http.routers.wg-easy.rule: Host(`web.vps.dcotta.eu`) && PathPrefix(`/wg-easy`)
-      traefik.http.routers.wg-easy.middlewares: wg-easy-stripprefix,auth@file,vps-whitelist@file
+      traefik.http.routers.wg-easy.middlewares: wg-easy-stripprefix,auth@file,vpn-whitelist@file
       traefik.http.middlewares.wg-easy-stripprefix.stripprefix.prefixes: /wg-easy
       traefik.http.middlewares.wg-easy-redirectslash.redirectregex.regex: (.*)/wg-easy
       traefik.http.middlewares.wg-easy-redirectslash.redirectregex.replacement: $$1/wg-easy/

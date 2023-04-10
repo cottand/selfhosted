@@ -11,13 +11,12 @@ upstream:
 customDNS:
   customTTL: 5m
   rewrite:
-#    web.vps.dcotta.eu: internal-web.vps
-    vps.dcotta.eu: internal-web.vps
-    internal-web.vps.dcotta.eu: internal-web.vps
+    vps.dcotta.eu: host.vps
+    web.vps.dcotta.eu: host.vps
   mapping:
-    # hardcoded in traefik container
-    internal-web.vps: 10.8.1.4
-    host.vps: 10.8.1.1
+    # address of traefik + wg network. Requests to this IP will hit the traefik proxy which will route
+    # containers appropriately
+    host.vps: 10.8.0.1
 
 blocking:
   blackLists:

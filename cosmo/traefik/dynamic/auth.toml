@@ -5,4 +5,10 @@
     # Middleware that only allows requests from inside the VPN
     # https://doc.traefik.io/traefik/middlewares/http/ipwhitelist/
     [http.middlewares.vps-whitelist.IPAllowList]
-        sourcerange = ['10.8.1.0/24']
+        sourcerange = [
+            '10.8.1.0/24', # containers on cosmo net
+        ]
+    [http.middlewares.vpn-whitelist.IPAllowList]
+        sourcerange = [
+            '10.8.0.0/24', # VPN clients
+        ]
