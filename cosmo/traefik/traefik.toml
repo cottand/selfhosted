@@ -1,6 +1,4 @@
 [entryPoints]
-  [entryPoints.ssh]
-    address = ":22"
   [entryPoints.db]
     address = ":5432"
   [entryPoints.web]
