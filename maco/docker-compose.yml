@@ -63,6 +63,7 @@ services:
       traefik.http.routers.traefik_https.tls.certResolver: lets-encrypt
       traefik.http.routers.traefik_https.service: api@internal
       traefik.http.routers.traefik_https.middlewares: auth@file
+
   whoami:
     image: traefik/whoami
     command:
