@@ -3,7 +3,7 @@
     [tcp.routers.hostSSH]
         rule = "HostSNI(`*`)"
         entrypoints = ["ssh"]
-        service = "HostSS"
+        service = "HostSSH"
 
 [tcp.services]
     [tcp.services.HostSSH]
