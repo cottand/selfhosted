@@ -7,9 +7,12 @@ networks:
     ipam:
       config:
         # subnet CIDR hardcoded in
-        # maco is reserved for addresses only above 10.8.1.100
         - subnet: 10.8.2.0/24
   backend:
+
+secrets:
+  traefik-auth-users:
+    file: secrets/traefik-auth-users
 
 services:
 #  cloudflared:
