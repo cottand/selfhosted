@@ -57,7 +57,7 @@ services:
       - ./traefik:/etc/traefik/
     labels:
       traefik.enable: true
-      traefik.http.routers.traefik_https.rule: Host(`traefik.vps.dcotta.eu`)
+      traefik.http.routers.traefik_https.rule: Host(`traefik.maco.vps`)
       traefik.http.routers.traefik_https.entrypoints: websecure
       traefik.http.routers.traefik_https.tls: true
       traefik.http.routers.traefik_https.tls.certResolver: lets-encrypt
@@ -72,7 +72,7 @@ services:
 #        ipv4_address: 10.8.1.101
     labels:
       traefik.enable: true
-      traefik.http.routers.whoami.rule: Host(`home.dcotta.eu`) && PathPrefix(`/whoami`)
+      traefik.http.routers.whoami.rule: Host(`maco.vps`) && PathPrefix(`/whoami`)
       traefik.http.middlewares.whoami-stripprefix.stripprefix.prefixes: /whoami
       traefik.http.services.whoami.loadbalancer.server.port: 80
       traefik.http.routers.whoami.middlewares: whoami-stripprefix
