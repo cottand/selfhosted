@@ -59,9 +59,9 @@ services:
     labels:
       traefik.enable: true
       traefik.http.routers.traefik_https.rule: Host(`traefik.maco.vps`)
-      traefik.http.routers.traefik_https.entrypoints: websecure
-      traefik.http.routers.traefik_https.tls: true
-      traefik.http.routers.traefik_https.tls.certResolver: lets-encrypt
+      traefik.http.routers.traefik_https.entrypoints: web
+#      traefik.http.routers.traefik_https.tls: true
+#      traefik.http.routers.traefik_https.tls.certResolver: lets-encrypt
       traefik.http.routers.traefik_https.service: api@internal
       traefik.http.routers.traefik_https.middlewares: auth@file
 
