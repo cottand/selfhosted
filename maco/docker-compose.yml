@@ -64,6 +64,7 @@ services:
 #      traefik.http.routers.traefik_https.tls.certResolver: lets-encrypt
       traefik.http.routers.traefik_https.service: api@internal
       traefik.http.routers.traefik_https.middlewares: auth@file
+      traefik.http.services.traefik.loadbalancer.server.port: 8080
 
   whoami:
     image: traefik/whoami
