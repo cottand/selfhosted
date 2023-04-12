@@ -30,6 +30,8 @@ secrets:
     file: secrets/pg_admin_password
   traefik-auth-users:
     file: secrets/traefik-auth-users
+  grafana-cloud-api-key:
+    file: secrets/grafana-cloud-puvlisher-api
 
 services:
   db:
@@ -272,6 +274,14 @@ services:
       - "host.docker.internal:host-gateway"
     labels:
       traefik.enable: true
+      traefik.http.routers.wg-maco.entrypoints: websecure
+#      traefik.http.routers.wg-maco.tls: false
+#      traefik.http.routers.wg-maco.tls.certresolver: lets-encrypt
+      traefik.http.routers.wg-maco.rule: Host(`10.8.1.2`)
+      traefik.http.routers.wg-maco.middlewares: vpn-whitelist@file
+      traefik.http.routers.wg-maco.service: wg-maco
+      traefik.http.services.wg-maco.loadbalancer.server.url: 'maco.vps:80'
+
       traefik.http.routers.wg-easy.entrypoints: websecure
       traefik.http.routers.wg-easy.tls: true
       traefik.http.routers.wg-easy.tls.certresolver: lets-encrypt
@@ -281,6 +291,7 @@ services:
       traefik.http.middlewares.wg-easy-redirectslash.redirectregex.regex: (.*)/wg-easy
       traefik.http.middlewares.wg-easy-redirectslash.redirectregex.replacement: $$1/wg-easy/
       traefik.http.services.wg-easy.loadbalancer.server.port: 51821
+      traefik.http.routers.wg-easy.service: wg-easy
 
 #  bytebase:
 #    image: bytebase/bytebase:1.15.0

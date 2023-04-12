@@ -9,7 +9,8 @@
 | [🐉 wg easy](web.vps.dcotta.eu/wg-easy/)      | VPM Management               |
 | [❔ Blocky DNS](web.vps.dcotta.eu/wg-easy/)    | DNS Management               |
 | [⛕  Traefik](web.vps.dcotta.eu/wg-easy/)      | Traffic & Routing Management |
-| [🪐 Jupyter](web.vps.dcotta.eu/wg-easy/)      | Python + Kotlin Notebooks    |
+
+[//]: # (| [🪐 Jupyter]&#40;web.vps.dcotta.eu/wg-easy/&#41;      | Python + Kotlin Notebooks    |)
 
 ## Features
 
