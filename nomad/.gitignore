@@ -1,0 +1,8 @@
+wg/
+
+
+nomad/alloc
+nomad/client-state
+nomad/data
+
+
