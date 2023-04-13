@@ -14,40 +14,40 @@ services:
       - ./volumes:/etc/nomad-volumes
 
 
-  temp-wireguard:
-    image: weejewel/wg-easy
-    container_name: wg-easy
-    restart: unless-stopped
-    environment:
-      WG_HOST: vps.dcotta.eu
-      WG_DEFAULT_DNS: 10.8.1.3
-      # see https://github.com/WeeJeWel/wg-easy/blob/master/src/config.js
-      #
-      # add 'eth1' interface to masquerade so stuff is forwarded to wg network
-      WG_POST_UP: "
-#        iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o eth0 -j MASQUERADE;
-#        iptables -A INPUT -p udp -m udp --dport 51820 -j ACCEPT;
-#        iptables -A FORWARD -i wg0 -j ACCEPT;
-#        iptables -A FORWARD -o wg0 -j ACCEPT;
-#        iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o eth2 -j MASQUERADE;
-        "
-    volumes:
-      - ./wg:/etc/wireguard
-#    ports:
-      # bypass traefik to reach this container that manages VPN
-#      - "51820:51820/udp" # WG
-#      - '80:80'           # HTTP
-#      - '443:443'         # HTTPS
-#      - '5432:5432'       # DB
-#      - '4646:4646' # nomad
-    cap_add:
-      - NET_ADMIN
-      - SYS_MODULE
-#    sysctls:
-#      net.ipv4.ip_forward: 1
-#      net.ipv4.conf.all.src_valid_mark: 1
-      # same as traefik's!
-    network_mode: host
-    # IP address of this will be the host
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+#  temp-wireguard:
+#    image: weejewel/wg-easy
+#    container_name: wg-easy
+#    restart: unless-stopped
+#    environment:
+#      WG_HOST: vps.dcotta.eu
+#      WG_DEFAULT_DNS: 10.8.1.3
+#      # see https://github.com/WeeJeWel/wg-easy/blob/master/src/config.js
+#      #
+#      # add 'eth1' interface to masquerade so stuff is forwarded to wg network
+#      WG_POST_UP: "
+##        iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o eth0 -j MASQUERADE;
+##        iptables -A INPUT -p udp -m udp --dport 51820 -j ACCEPT;
+##        iptables -A FORWARD -i wg0 -j ACCEPT;
+##        iptables -A FORWARD -o wg0 -j ACCEPT;
+##        iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o eth2 -j MASQUERADE;
+#        "
+#    volumes:
+#      - ./wg:/etc/wireguard
+##    ports:
+#      # bypass traefik to reach this container that manages VPN
+##      - "51820:51820/udp" # WG
+##      - '80:80'           # HTTP
+##      - '443:443'         # HTTPS
+##      - '5432:5432'       # DB
+##      - '4646:4646' # nomad
+#    cap_add:
+#      - NET_ADMIN
+#      - SYS_MODULE
+##    sysctls:
+##      net.ipv4.ip_forward: 1
+##      net.ipv4.conf.all.src_valid_mark: 1
+#      # same as traefik's!
+#    network_mode: host
+#    # IP address of this will be the host
+#    extra_hosts:
+#      - "host.docker.internal:host-gateway"
