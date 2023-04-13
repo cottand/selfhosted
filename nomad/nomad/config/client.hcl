@@ -15,7 +15,13 @@ client {
     reserved_ports = "22,80,443,51820"
   }
 
+  host_volume "wireguard" {
+    path = "/etc/nomad-volumes/wireguard"
+    read_only = false
+  }
+
   meta {
     box = "cosmo"
+    name = "cosmo"
   }
 }

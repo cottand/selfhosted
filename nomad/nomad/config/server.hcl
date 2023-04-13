@@ -5,7 +5,7 @@ server {
 
 data_dir  = "/var/lib/nomad"
 
-bind_addr = "0.0.0.0" # the default
+bind_addr = "10.8.0.1"
 
 advertise {
   # Defaults to the first private IP address.

@@ -11,6 +11,7 @@ services:
       - ./nomad/data:/var/lib/nomad
       - ./nomad/alloc:/var/lib/nomad-alloc
       - ./nomad/client-state:/var/lib/nomad-client-state
+      - ./volumes:/etc/nomad-volumes
 
 
   temp-wireguard:
