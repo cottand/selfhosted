@@ -4,7 +4,7 @@ client {
   alloc_dir = "/var/lib/nomad-alloc"
   state_dir = "/var/lib/nomad-client-state"
 
-  servers = ["127.0.0.1"]
+  servers = ["10.8.0.1"]
 
   options = {
     "driver.allowlist" = "docker"

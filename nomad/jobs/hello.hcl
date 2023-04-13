@@ -20,7 +20,7 @@ job "hello" {
           "-listen",
           ":5678",
           "-text",
-          "hello world",
+          "hello world!!",
         ]
       }
     }
