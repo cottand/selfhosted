@@ -25,18 +25,22 @@ job "cosmo" {
       read_only = false
       source    = "traefik-cert"
     }
+    volume "traefik-basic-auth" {
+      type      = "host"
+      read_only = true
+      source    = "traefik-basic-auth"
+    }
     service {
       name = "traefik"
       provider = "nomad"
       tags =  [
         "traefik.enable=true",
         "traefik.http.routers.traefik_https.rule=Host(`traefik.vps.dcotta.eu`)",
-        "traefik.http.routers.traefik_https.entrypoints=web,websecure",
+        "traefik.http.routers.traefik_https.entrypoints=websecure",
         "traefik.http.routers.traefik_https.tls=true",
         "traefik.http.routers.traefik_https.tls.certResolver=lets-encrypt",
         "traefik.http.routers.traefik_https.service=api@internal",
         "traefik.http.routers.traefik_https.middlewares=auth@file",
-        #        "traefik.http.services.wg-easy.loadbalancer.server.port=${NOMAD_PORT_}"
       ]
       port = "http-ui"
       check {
@@ -59,6 +63,11 @@ job "cosmo" {
         destination = "/etc/traefik-cert"
         read_only   = false
       }
+      volume_mount {
+        volume      = "traefik-basic-auth"
+        destination = "/etc/traefik-basic-auth"
+        read_only   = true
+      }
 
       config {
         image        = "traefik:v3.0"
@@ -67,11 +76,29 @@ job "cosmo" {
 
         volumes = [
           "local/traefik.toml:/etc/traefik/traefik.toml",
+          "local/traefik-dynamic.toml:/etc/traefik/dynamic/traefik-dynamic.toml",
         ]
       }
       constraint {
         attribute = "${meta.box}"
         value = "cosmo"
+      }
+
+      template {
+        data = <<EOF
+[http.middlewares]
+    # Middleware that only allows requests after the authentication with credentials specified in usersFile
+    [http.middlewares.auth.basicauth]
+        usersFile = "/etc/traefik-basic-auth/users"
+    # Middleware that only allows requests from inside the VPN
+    # https://doc.traefik.io/traefik/middlewares/http/ipwhitelist/
+    [http.middlewares.vpn-whitelist.IPAllowList]
+        sourcerange = [
+            '10.8.0.0/24', # VPN clients
+        ]
+
+EOF
+        destination = "local/traefik-dynamic.toml"
       }
 
       template {
@@ -114,9 +141,8 @@ job "cosmo" {
     address = "http://10.8.0.1:4646"
 
 
-#[providers.file]
-  # specified as docker secret, bound in compose file and under cosmo/secrets
-#  directory = "/etc/traefik/dynamic"
+[providers.file]
+  directory = "/etc/traefik/dynamic"
 
 EOF
         destination = "local/traefik.toml"
