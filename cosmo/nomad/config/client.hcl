@@ -19,6 +19,10 @@ client {
     path = "/root/selfhosted/cosmo/volumes/traefik-cert"
     read_only = "false"
   }
+  host_volume "traefik-basic-auth" {
+    path = "/root/selfhosted/cosmo/volumes/traefik-basic-auth"
+    read_only = "true"
+  }
 
   meta {
     box = "cosmo"
