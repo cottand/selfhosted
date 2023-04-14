@@ -1,7 +1,7 @@
 wg/
 
 
-nomad/alloc
+../cosmo/nomad/alloc/alloc
 nomad/client-state
 nomad/data
 

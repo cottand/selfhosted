@@ -1,13 +1,17 @@
 .idea/
 
-grafana-data
-data/*
+old-compose/grafana-data
+old-compose/data/*
 **/.DS_Store
 secrets/
-portainer-data/
-traefik/acme.json
+old-compose/portainer-data/
+old-compose/traefik/acme.json
 
-!data/pg_hba.conf
-!data/postgresql.conf
+!old-compose/data/pg_hba.conf
+!old-compose/data/postgresql.conf
 
-grafana/data/*
+old-compose/grafana/data/*
+
+nomad/alloc
+nomad/data
+nomad/client-state
