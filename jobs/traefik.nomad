@@ -1,5 +1,4 @@
-job "cosmo" {
-
+job "traefik" {
   datacenters = ["dc1"]
 
   group "traefik" {
@@ -18,7 +17,9 @@ job "cosmo" {
       port "db" {
         static = 5432
       }
-      port "metrics" {}
+      port "metrics" {
+        host_network = "vpn"
+      }
     }
     volume "traefik-cert" {
       type      = "host"
@@ -29,6 +30,18 @@ job "cosmo" {
       type      = "host"
       read_only = true
       source    = "traefik-basic-auth"
+    }
+    service {
+      name = "traefik-metrics"
+      provider = "nomad"
+      port = "metrics"
+      check {
+        name     = "alive"
+        type     = "tcp"
+        port     = "metrics"
+        interval = "20s"
+        timeout  = "2s"
+      }
     }
     service {
       name = "traefik"
