@@ -3,7 +3,7 @@ FROM debian:11-slim
 
 USER root
 
-RUN apt-get update && apt-get install -y curl gnupg2 iproute2 && apt install -y --reinstall software-properties-common
+RUN apt-get update && apt-get install -y curl gnupg2 iproute2 iptables && apt install -y --reinstall software-properties-common
 RUN curl -fsSL https://apt.releases.hashicorp.com/gpg | apt-key add - \
     && apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main" \
     && apt-get update \

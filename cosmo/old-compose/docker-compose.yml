@@ -264,7 +264,7 @@ services:
       # same as traefik's!
     networks:
       backend: {}
-#      traefik_public: {}
+#      tblraefik_public: {}
       # see https://github:com/WeeJeWel/wg-easy/wiki/Using-WireGuard-Easy-with-Pi-Hole:
       wg:
         ipv4_address: 10.8.1.2

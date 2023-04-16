@@ -23,6 +23,10 @@ client {
     path = "/root/selfhosted/cosmo/volumes/traefik-basic-auth"
     read_only = "true"
   }
+  host_volume "grafana" {
+    path = "/root/selfhosted/cosmo/volumes/grafana"
+    read_only = "false"
+  }
 
   meta {
     box = "cosmo"
