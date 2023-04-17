@@ -7,8 +7,10 @@ services:
     network_mode: host
     privileged: true
     restart: unless-stopped
+    depends_on: [temp-wireguard]
     volumes:
       - /var/run/:/var/run/:shared
+        #- /var/run/docker.sock:/var/run/docker.sock:shared
       - ./nomad/config:/etc/config
       - ./nomad/data:/var/lib/nomad
       - ./nomad/client-state:/var/lib/nomad-client-state

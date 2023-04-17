@@ -12,7 +12,7 @@ client {
 
   host_network "vpn" {
     cidr = "10.8.0.0/24"
-    reserved_ports = "22,80,443,51820"
+    reserved_ports = "51820"
   }
 
   host_volume "traefik-cert" {
