@@ -3,21 +3,33 @@ job "traefik" {
 
   group "traefik" {
     network {
-      mode = "host"
+      mode = "bridge"
       port "http-ui" {
         static = 8080
         host_network = "vpn"
       }
       port "http" {
         static = 80
+        host_network = "vpn"
       }
       port "https" {
         static = 443
+        host_network = "vpn"
+      }
+      port "http_public" {
+        static = 80
+        to = 8000
+      }
+      port "https_public" {
+        static = 443
+        to = 44300
       }
       port "db" {
         static = 5432
+        host_network = "vpn"
       }
       port "metrics" {
+        static = 31934 # hardcoded so that prometheus can find it after restart
         host_network = "vpn"
       }
     }
@@ -85,8 +97,6 @@ job "traefik" {
       config {
         image        = "traefik:v3.0"
         # needs to be in host wireguard network so that it can reach other VPN members
-        network_mode = "host"
-
         volumes = [
           "local/traefik.toml:/etc/traefik/traefik.toml",
           "local/traefik-dynamic.toml:/etc/traefik/dynamic/traefik-dynamic.toml",
@@ -107,7 +117,9 @@ job "traefik" {
     # https://doc.traefik.io/traefik/middlewares/http/ipwhitelist/
     [http.middlewares.vpn-whitelist.IPAllowList]
         sourcerange = [
-            '10.8.0.0/24', # VPN clients
+            '10.8.0.1/24', # VPN clients
+            '127.1.0.0/24', # VPN clients
+            '172.26.64.18/20', # containers
         ]
 
 EOF
@@ -124,9 +136,19 @@ EOF
     [entryPoints.web.http.redirections.entryPoint]
       to = "websecure"
       scheme = "https"
-#
   [entryPoints.websecure]
     address = ":{{ env "NOMAD_PORT_https" }}"
+
+
+  [entryPoints.web_public]
+    address = ":{{ env "NOMAD_PORT_http_public" }}"
+    [entryPoints.web_public.http.redirections.entryPoint]
+      to = "websecure_public"
+      scheme = "https"
+  [entryPoints.websecure_public]
+    address = ":{{ env "NOMAD_PORT_https_public" }}"
+
+
   [entryPoints.metrics]
     address = ":{{ env "NOMAD_PORT_metrics" }}"
 
@@ -144,7 +166,7 @@ EOF
 
   [certificatesResolvers.lets-encrypt.acme.httpChallenge]
     # let's encrypt has to be able to reach on this entrypoint for cert
-    entryPoint = "web"
+    entryPoint = "web_public"
 
 [providers.nomad]
   refreshInterval = "10s"

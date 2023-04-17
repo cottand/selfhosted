@@ -7,7 +7,7 @@ job "prometheus" {
 
     network {
       mode = "bridge"
-      port "prometheus_ui" {
+      port "http" {
         to = 9090
         host_network = "vpn"
       }
@@ -38,19 +38,19 @@ global:
   evaluation_interval: 30s
 
 scrape_configs:
-{{ range nomadService "traefik-metrics" }}
-  - job_name: 'traefik'
-    static_configs:
-      - targets: [ '{{ .Address }}:{{ .Port }}' ]
-{{ end }}
-{{ range nomadService "dns-metrics" }}
-  - job_name: 'blocky'
-    static_configs:
-      - targets: [ '{{ .Address }}:{{ .Port }}' ]
-{{ end }}
+#{{ range nomadService "traefik-metrics" }}
+#  - job_name: 'traefik'
+#    static_configs:
+#      - targets: [ '{{ .Address }}:{{ .Port }}' ]
+#{{ end }}
+#{{ range nomadService "dns-metrics" }}
+#  - job_name: 'blocky'
+#    static_configs:
+#      - targets: [ '{{ .Address }}:{{ .Port }}' ]
+#{{ end }}
   - job_name: 'nomad_metrics'
     nomad_sd_configs:
-    - server: 'http://{{ env "NOMAD_IP_prometheus_ui" }}:4646'
+    - server: 'http://{{ env "NOMAD_IP_http" }}:4646'
 #      services: ['nomad-client', 'nomad']
 
 #    relabel_configs:
@@ -74,22 +74,29 @@ EOH
           "local/prometheus.yml:/etc/prometheus/prometheus.yml",
         ]
 
-        ports = ["prometheus_ui"]
+        args = [
+          "--web.route-prefix=/",
+          "--web.external-url=https://web.vps.dcotta.eu/prometheus",
+          "--config.file=/etc/prometheus/prometheus.yml"
+        ]
+
+        ports = ["http"]
       }
 
       service {
         name = "prometheus"
         provider = "nomad"
-        tags = ["urlprefix-/"]
-        port = "prometheus_ui"
+        port = "http"
 
-        check {
-          name     = "prometheus_ui alive"
-          type     = "http"
-          path     = "/-/healthy"
-          interval = "10s"
-          timeout  = "2s"
-        }
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.middlewares.${NOMAD_TASK_NAME}-stripprefix.stripprefix.prefixes=/${NOMAD_TASK_NAME}",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`web.vps.dcotta.eu`) && PathPrefix(`/${NOMAD_TASK_NAME}`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=websecure",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls=true",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=${NOMAD_TASK_NAME}-stripprefix,vpn-whitelist@file",
+        ]
       }
     }
   }
