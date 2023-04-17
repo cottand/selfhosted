@@ -7,7 +7,7 @@ client {
   servers = ["10.8.0.1"]
 
   options = {
-    "driver.allowlist" = "docker"
+    "driver.allowlist" = "docker,raw_exec"
   }
 
   host_network "vpn" {

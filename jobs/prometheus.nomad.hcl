@@ -55,13 +55,19 @@ scrape_configs:
 
 #    relabel_configs:
 #    - source_labels: ['__meta_nomad_tags']
-#      regex: '(.*)http(.*)'
+#      regex: '(.*)web(.*)'
 #      action: keep
-
+#
 #    scrape_interval: 20s
 #    metrics_path: /v1/metrics
 #    params:
 #      format: ['prometheus']
+  - job_name: 'nomad_sys_metrics'
+    metrics_path: /v1/metrics
+    params:
+      format: ['prometheus']
+    static_configs:
+      - targets: [ '10.8.0.1:4646','10.8.0.5:4646' ]
 EOH
       }
 
