@@ -19,4 +19,9 @@ client {
     box = "maco"
     name = "maco"
   }
+  plugin "raw_exec" {
+    config {
+      enabled = true
+    }
+  }
 }

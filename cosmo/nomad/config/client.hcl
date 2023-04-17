@@ -32,4 +32,9 @@ client {
     box = "cosmo"
     name = "cosmo"
   }
+  plugin "raw_exec" {
+    config {
+      enabled = true
+    }
+  }
 }
