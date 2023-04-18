@@ -15,6 +15,11 @@ client {
     reserved_ports = "22,51820"
   }
 
+  host_volume "postgres" {
+    path = "/home/cottand/selfhosted/maco/volumes/postgres/"
+    read_only = "false"
+  }
+
   meta {
     box = "maco"
     name = "maco"
