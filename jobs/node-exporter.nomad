@@ -10,14 +10,17 @@ job "prometheus-node-exporter" {
             mode = "bridge"
             port "exporter" {
                 host_network = "vpn"
-                to = 9100
+                to           = 9100
             }
         }
 
         service {
-            name = "node-exporter"
-            tags = []
-            port = "exporter"
+            provider = "nomad"
+            name     = "node-exporter"
+            port     = "exporter"
+            tags     = [
+                "metrics",
+            ]
             check {
                 name     = "alive"
                 type     = "tcp"
@@ -31,13 +34,13 @@ job "prometheus-node-exporter" {
 
             config {
                 command = "local/node_exporter-0.18.1.linux-amd64/node_exporter"
-                args = [
+                args    = [
                     "--web.listen-address=:${NOMAD_PORT_exporter}"
                 ]
             }
 
             artifact {
-                source = "https://github.com/prometheus/node_exporter/releases/download/v0.18.1/node_exporter-0.18.1.linux-amd64.tar.gz"
+                source      = "https://github.com/prometheus/node_exporter/releases/download/v0.18.1/node_exporter-0.18.1.linux-amd64.tar.gz"
                 destination = "local"
                 options {
                     checksum = "sha256:b2503fd932f85f4e5baf161268854bf5d22001869b84f00fd2d1f57b51b72424"

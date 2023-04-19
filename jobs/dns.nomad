@@ -1,83 +1,61 @@
-#dns:
-#image: spx01/blocky
-#container_name: dns
-#restart: unless-stopped
-## Optional the instance hostname for logging purpose
-#hostname: dns
-#networks:
-#metrics: # on port 4000/tcp
-#wg:
-#ipv4_address: 10.8.1.3
-#ports:
-#- "53:53/tcp"
-#- "53:53/udp"
-#volumes:
-## Optional to synchronize the log timestamp with host
-#- /etc/localtime:/etc/localtime:ro
-#- ./blocky-dns/config.yml:/app/config.yml
-#labels:
-#traefik.enable: true
-#traefik.udp.services.dns.loadbalancer.server.port: 53
-#traefik.tcp.services.dns.loadbalancer.server.port: 53
-##      traefik.http.routers.whoami.middlewares: whoami-stripprefix,auth@file
-#traefik.udp.routers.dns.entrypoints: dns-udp
-#traefik.tcp.routers.dns.entrypoints: dns-tcp
-##      traefik.tcp.routers.whoami.tls: true
-
 job "dns" {
-  datacenters = ["dc1"]
-  group "blocky-dns" {
-    network {
-      port "dns" {
-        static       = 53
-        host_network = "vpn"
-      }
-      port "metrics" {
-        to           = 4000
-        host_network = "vpn"
-      }
-    }
+    datacenters = ["dc1"]
+    type        = "system"
+    group "blocky-dns" {
+        network {
+            #            mode = "bridge"
+            port "dns" {
+                static       = 53
+                host_network = "vpn"
+            }
+            #            port "dns-public" {
+            #                static = 53
+            #            }
+            port "metrics" {
+                to           = 4000
+                host_network = "vpn"
+            }
+        }
 
 
-    service {
-      name = "dns-metrics"
-      provider = "nomad"
-      port     = "metrics"
-    }
-    service {
-      name     = "dns"
-      provider = "nomad"
-      port     = "dns"
-      check {
-        name     = "alive"
-        type     = "tcp"
-        port     = "metrics"
-        interval = "20s"
-        timeout  = "2s"
-      }
-    }
-    task "blocy-dns" {
-      driver = "docker"
-      config {
-        image   = "spx01/blocky"
-        volumes = [
-          "local/config.yml:/app/config.yml",
-        ]
-        ports = ["dns", "metrics"]
-      }
-      env = {
-        "environment" = "TZ=Europe/Berlin"
-      }
-      constraint {
-        attribute = "${meta.box}"
-        value     = "cosmo"
-      }
-      resources {
-        cpu    = 100
-        memory = 128
-      }
-      template {
-        data        = <<EOF
+        service {
+            name     = "dns-metrics"
+            provider = "nomad"
+            port     = "metrics"
+            tags     = [
+                "metrics",
+            ]
+        }
+        service {
+            name     = "dns"
+            provider = "nomad"
+            port     = "dns"
+            check {
+                name     = "alive"
+                type     = "tcp"
+                port     = "metrics"
+                interval = "20s"
+                timeout  = "2s"
+            }
+        }
+        task "blocy-dns" {
+            driver = "docker"
+            config {
+                image   = "spx01/blocky"
+                volumes = [
+                    "local/config.yml:/app/config.yml",
+                ]
+                ports = ["dns", "metrics"]
+            }
+            env = {
+                "environment" = "TZ=Europe/Berlin"
+            }
+            resources {
+                cpu    = 80
+                memory = 80
+            }
+            template {
+                data        = <<EOF
 port: {{ env "NOMAD_PORT_dns"  }}
 httpPort: {{ env "NOMAD_PORT_metrics" }}
 upstream:
@@ -111,8 +89,8 @@ blocking:
 prometheus:
   enable: true
 EOF
-        destination = "local/config.yml"
-      }
+                destination = "local/config.yml"
+            }
+        }
     }
-  }
 }

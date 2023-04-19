@@ -38,25 +38,17 @@ global:
   evaluation_interval: 30s
 
 scrape_configs:
-#{{ range nomadService "traefik-metrics" }}
-#  - job_name: 'traefik'
-#    static_configs:
-#      - targets: [ '{{ .Address }}:{{ .Port }}' ]
-#{{ end }}
-#{{ range nomadService "dns-metrics" }}
-#  - job_name: 'blocky'
-#    static_configs:
-#      - targets: [ '{{ .Address }}:{{ .Port }}' ]
-#{{ end }}
   - job_name: 'nomad_metrics'
     nomad_sd_configs:
     - server: 'http://{{ env "NOMAD_IP_http" }}:4646'
-#      services: ['nomad-client', 'nomad']
-
-#    relabel_configs:
-#    - source_labels: ['__meta_nomad_tags']
-#      regex: '(.*)web(.*)'
-#      action: keep
+    relabel_configs:
+    - source_labels: ['__meta_nomad_tags']
+      regex: '(.*)metrics(.*)'
+      action: keep
+    - source_labels: ['__meta_nomad_service']
+      regex: '(.*)'
+      action: replace
+      target_label: nomad_service
 #
 #    scrape_interval: 20s
 #    metrics_path: /v1/metrics
@@ -95,6 +87,7 @@ EOH
         port = "http"
 
         tags = [
+          "metrics",
           "traefik.enable=true",
           "traefik.http.middlewares.${NOMAD_TASK_NAME}-stripprefix.stripprefix.prefixes=/${NOMAD_TASK_NAME}",
           "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`web.vps.dcotta.eu`) && PathPrefix(`/${NOMAD_TASK_NAME}`)",
