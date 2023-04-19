@@ -3,7 +3,6 @@ global:
 
 scrape_configs:
   - job_name: 'prometheus'
-    scrape_interval: 2m
     static_configs:
       - targets: ['localhost:9090']
   - job_name: 'db'
@@ -23,8 +22,8 @@ scrape_configs:
       # node-metrics container
       - targets: [ 'node-metrics:9100']
 
-#remote_write:
-#  - url: '<Your Prometheus remote_write endpoint>'
-#    basic_auth:
-#      username: '<Your Grafana Username>'
-#      password: '<Your Grafana API key>'
+remote_write:
+  - url: https://prometheus-prod-05-gb-south-0.grafana.net/api/prom/push
+    basic_auth:
+      username: 935213
+      password: 'eyJrIjoiNzFjMDA0YTMxY2MwOGJlNmZiYWUzZWM1ZTYwMjU2MTRhZjU0N2FhOCIsIm4iOiJwcm9tZXRoZXVzLW1hY28tMSIsImlkIjo4MzI3MTh9'

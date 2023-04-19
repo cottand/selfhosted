@@ -17,6 +17,7 @@ customDNS:
     # address of traefik + wg network. Requests to this IP will hit the traefik proxy which will route
     # containers appropriately
     host.vps: 10.8.0.1
+    maco.vps: 10.8.0.5
 
 blocking:
   blackLists:

@@ -1,83 +1,35 @@
-#file: noinspection SpellCheckingInspection
+#macofile: noinspection SpellCheckingInspection
 version: '3.9'
 
 name: maco
-networks:
-  wg:
-    ipam:
-      config:
-        # subnet CIDR hardcoded in
-        - subnet: 10.8.2.0/24
-  backend:
-
-secrets:
-  traefik-auth-users:
-    file: secrets/traefik-auth-users
 
 services:
-#  cloudflared:
-#    image: cloudflare/cloudflared:latest
-#    command: tunnel run --no-autoupdate
-#    env_file:
-#      - secrets/cloudflared.env
-
   wg-client:
     image: linuxserver/wireguard:alpine
     restart: unless-stopped
     extra_hosts: ['host_docker:172.18.0.1 ']
     volumes:
       - ./wg:/config
-    networks: [backend]
+    network_mode: host
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
     privileged: true
-#    sysctls:
-#      net.ipv4.ip_forward: 1
-#      net.ipv4.conf.all.src_valid_mark: 1
-#      net.ipv6.conf.all.disable_ipv6: 0
     environment:
       IPTABLES_MASQ: '0'
-
-  traefik:
-    image: traefik:v3.0
-    container_name: traefik
+  nomad:
+    build: nomad/image
+    network_mode: host
+    privileged: true
     restart: unless-stopped
-    secrets: [traefik-auth-users]
-    #    ports:
-    #      - '80:80'
-    #      - '443:443'
-    #      - '8080:8080'
-    #      - '5432:5432'
-    #    cap_add:
-    #      - NET_ADMIN
-    network_mode: 'service:wg-client'
-
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./traefik:/etc/traefik/
-    labels:
-      traefik.enable: true
-      traefik.http.routers.traefik_https.rule: Host(`traefik.maco.vps`)
-      traefik.http.routers.traefik_https.entrypoints: web
-#      traefik.http.routers.traefik_https.tls: true
-#      traefik.http.routers.traefik_https.tls.certResolver: lets-encrypt
-      traefik.http.routers.traefik_https.service: api@internal
-#      traefik.http.routers.traefik_https.middlewares: auth@file
-      traefik.http.services.traefik.loadbalancer.server.port: 8080
-
-  whoami:
-    image: traefik/whoami
-    command:
-      - --port=80
-    networks: [backend]
-#      wg:
-#        ipv4_address: 10.8.1.101
-    labels:
-      traefik.enable: true
-      traefik.http.routers.whoami.rule: Host(`maco.vps`) && PathPrefix(`/whoami`)
-      traefik.http.middlewares.whoami-stripprefix.stripprefix.prefixes: /whoami
-      traefik.http.services.whoami.loadbalancer.server.port: 80
-      traefik.http.routers.whoami.middlewares: whoami-stripprefix
-      traefik.http.routers.whoami.entrypoints: web
-#      traefik.http.routers.whoami.tls: true
+      #- /var/run/:/var/run/:shared
+      #- /var/run/docker.sock:/var/run/docker.sock:shared
+      - /var/run/docker/netns/:/var/run/docker/netns/:shared
+      - /var/run/docker.sock:/var/run/docker.sock:share
+      - ./nomad/config:/etc/config
+      - ./nomad/data:/var/lib/nomad
+      - ./nomad/client-state:/var/lib/nomad-client-state
+      # must be absolute paths because nomad mounts these itself
+      - /home/cottand/selfhosted/maco/volumes/:/home/cottand/selfhosted/maco/volumes/
+      - /home/cottand/selfhosted/maco/nomad/alloc/:/home/cottand/selfhosted/maco/nomad/alloc
