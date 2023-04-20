@@ -27,6 +27,10 @@ client {
     path = "/root/selfhosted/cosmo/volumes/grafana"
     read_only = "false"
   }
+  host_volume "docker-sock-ro" {
+    path = "/var/run/docker.sock"
+    read_only = true
+  }
 
   meta {
     box = "cosmo"
@@ -36,5 +40,11 @@ client {
 plugin "raw_exec" {
   config {
     enabled = true
+  }
+}
+plugin "docker" {
+  config {
+    # extra Docker labels to be set by Nomad on each Docker container with the appropriate value
+    extra_labels = ["job_name", "task_group_name", "task_name", "node_name"]
   }
 }

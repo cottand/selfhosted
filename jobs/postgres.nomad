@@ -59,7 +59,7 @@ job "postgres" {
                     "traefik.enable=true",
                     "traefik.tcp.routers.${NOMAD_TASK_NAME}.rule=HostSNI(`vps.dcotta.eu`)",
                     #                    "traefik.tcp.routers.${NOMAD_TASK_NAME}.entrypoints=postgres,postgres-public",
-                    "traefik.tcp.routers.${NOMAD_TASK_NAME}.entrypoints=postgres,postgres-public",
+                    "traefik.tcp.routers.${NOMAD_TASK_NAME}.entrypoints=postgres",
                     "traefik.tcp.routers.${NOMAD_TASK_NAME}.tls=true",
                     "traefik.tcp.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt",
                 ]
