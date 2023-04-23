@@ -1,7 +1,11 @@
+server {
+    enabled = true
+    bootstrap_expect = 2
+}
+
 data_dir  = "/var/lib/nomad"
 
 bind_addr = "10.8.0.5"
-#bind_addr = "127.0.0.1"
 
 advertise {
     #   Defaults to the first private IP address.

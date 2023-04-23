@@ -12,11 +12,15 @@ client {
 
   host_network "vpn" {
     cidr = "10.8.0.0/24"
-    reserved_ports = "22,51820"
+    reserved_ports = "22,51820" # wireguard, ssh reserved
   }
 
   host_volume "postgres" {
     path = "/home/cottand/selfhosted/maco/volumes/postgres/"
+    read_only = "false"
+  }
+  host_volume "loki" {
+    path = "/home/cottand/selfhosted/maco/volumes/loki/"
     read_only = "false"
   }
 
