@@ -1,6 +1,11 @@
 server {
   enabled = true
   bootstrap_expect = 2
+  server_join {
+    retry_join = [ "maco.vpn.dcotta.eu" ]
+    retry_max = 3
+    retry_interval = "15s"
+  }
 }
 
 data_dir  = "/var/lib/nomad"

@@ -3,7 +3,7 @@ server {
     bootstrap_expect = 2
 
     server_join {
-        retry_join = [ "10.8.0.1" ]
+        retry_join = [ "cosmo.vpn.dcotta.eu" ]
         retry_max = 3
         retry_interval = "15s"
     }
