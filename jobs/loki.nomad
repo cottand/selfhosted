@@ -22,6 +22,10 @@ job "loki" {
                 to           = 3100
                 host_network = "vpn"
             }
+            port "http-public" {
+                to = 3100
+                #                host_network = "vpn"
+            }
         }
         volume "loki" {
             type      = "host"
@@ -111,22 +115,22 @@ EOH
                 name     = "loki"
                 port     = "http"
                 provider = "nomad"
-                # TODO fix checks
-#                                                check {
-#                                                    name     = "Loki healthcheck"
-#                                                    port     = "http"
-#                                                    type     = "http"
-#                                                    path     = "/ready"
-#                                                    interval = "20s"
-#                                                    timeout  = "5s"
-#                                                    check_restart {
-#                                                        limit           = 3
-#                                                        grace           = "60s"
-#                                                        ignore_warnings = false
-#                                                    }
-#                                                }
-                tags     = [
-                    # TODO metrics?
+                # TODO fix checks in private net
+                check {
+                    name     = "Loki healthcheck"
+                    port     = "http-public"
+                    type     = "http"
+                    path     = "/ready"
+                    interval = "20s"
+                    timeout  = "5s"
+                    check_restart {
+                        limit           = 3
+                        grace           = "60s"
+                        ignore_warnings = false
+                    }
+                }
+                tags = [
+                    "metrics",
                     "traefik.enable=true",
                     "traefik.http.middlewares.${NOMAD_TASK_NAME}-stripprefix.stripprefix.prefixes=/${NOMAD_TASK_NAME}",
                     "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`web.vps.dcotta.eu`) && PathPrefix(`/${NOMAD_TASK_NAME}`)",

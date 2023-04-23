@@ -37,6 +37,7 @@ job "prometheus-node-exporter" {
                 args    = [
                     "--web.listen-address=:${NOMAD_PORT_exporter}"
                 ]
+#                ports = ["exporter"]
             }
 
             artifact {

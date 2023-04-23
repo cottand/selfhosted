@@ -8,6 +8,8 @@ server {
         retry_interval = "15s"
     }
 }
+# binaries shouldn't go in /var/lib
+plugin_dir = "/usr/lib/nomad/plugins"
 
 data_dir  = "/home/cottand/selfhosted/maco/nomad/data"
 

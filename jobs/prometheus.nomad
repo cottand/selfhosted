@@ -40,7 +40,7 @@ global:
 scrape_configs:
   - job_name: 'nomad_metrics'
     nomad_sd_configs:
-    - server: 'http://{{ env "NOMAD_IP_http" }}:4646'
+    - server: 'http://cosmo.vpn.dcotta.eu:4646'
     relabel_configs:
     - source_labels: ['__meta_nomad_tags']
       regex: '(.*)metrics(.*)'
