@@ -17,8 +17,10 @@ job "loki" {
             mode     = "delay"
         }
         network {
+            mode = "bridge"
             port "http" {
-                to = 3100
+                to           = 3100
+                host_network = "vpn"
             }
         }
         volume "loki" {
@@ -28,9 +30,12 @@ job "loki" {
         }
         task "loki" {
             driver = "docker"
+            user   = "root" // !! so it can access the container volume, must be user
+            // of folder in host
+
             config {
-                image = "grafana/loki:v2.8.0"
-                args = [
+                image = "grafana/loki:2.8.0"
+                args  = [
                     "-config.file",
                     "local/loki/local-config.yaml",
                 ]
@@ -42,13 +47,16 @@ job "loki" {
                 read_only   = false
             }
             template {
-                data = <<EOH
+                data        = <<EOH
 auth_enabled: false
 server:
-  http_listen_port: 3100
+  http_listen_port: {{ env "NOMAD_PORT_http" }}
 ingester:
+  wal:
+    dir: /loki/wal
   lifecycler:
-    address: {{ env "NOMAD_IP_http" }}"
+    # not sure it is needed but was in original guide
+    #address: 127.0.0.1
     ring:
       kvstore:
         store: inmemory
@@ -91,6 +99,7 @@ chunk_store_config:
 table_manager:
   retention_deletes_enabled: false
   retention_period: 0s
+# https://community.grafana.com/t/loki-error-on-port-9095-error-contacting-scheduler/67263
 EOH
                 destination = "local/loki/local-config.yaml"
             }
@@ -99,22 +108,25 @@ EOH
                 memory = 128
             }
             service {
-                name = "loki"
-                port = "loki"
-                check {
-                    name     = "Loki healthcheck"
-                    port     = "loki"
-                    type     = "http"
-                    path     = "/ready"
-                    interval = "20s"
-                    timeout  = "5s"
-                    check_restart {
-                        limit           = 3
-                        grace           = "60s"
-                        ignore_warnings = false
-                    }
-                }
-                tags = [
+                name     = "loki"
+                port     = "http"
+                provider = "nomad"
+                # TODO fix checks
+#                                                check {
+#                                                    name     = "Loki healthcheck"
+#                                                    port     = "http"
+#                                                    type     = "http"
+#                                                    path     = "/ready"
+#                                                    interval = "20s"
+#                                                    timeout  = "5s"
+#                                                    check_restart {
+#                                                        limit           = 3
+#                                                        grace           = "60s"
+#                                                        ignore_warnings = false
+#                                                    }
+#                                                }
+                tags     = [
+                    # TODO metrics?
                     "traefik.enable=true",
                     "traefik.http.middlewares.${NOMAD_TASK_NAME}-stripprefix.stripprefix.prefixes=/${NOMAD_TASK_NAME}",
                     "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`web.vps.dcotta.eu`) && PathPrefix(`/${NOMAD_TASK_NAME}`)",

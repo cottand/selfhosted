@@ -42,7 +42,7 @@ job "postgres" {
             }
             resources {
                 cpu    = 120
-                memory = 256
+                memory = 250
             }
             service {
                 name     = "postgres"
@@ -86,6 +86,10 @@ job "postgres" {
                 port     = "metrics"
                 provider = "nomad"
                 tags = ["metrics"]
+            }
+            resources {
+                cpu    = 90
+                memory = 100
             }
         }
     }
