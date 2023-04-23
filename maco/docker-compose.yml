@@ -7,7 +7,6 @@ services:
   wg-client:
     image: linuxserver/wireguard:alpine
     restart: unless-stopped
-    extra_hosts: ['host_docker:172.18.0.1 ']
     volumes:
       - ./wg:/config
     network_mode: host

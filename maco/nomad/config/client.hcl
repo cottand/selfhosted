@@ -2,7 +2,7 @@ client {
   enabled = true
 
   alloc_dir = "/home/cottand/selfhosted/maco/nomad/alloc/"
-  state_dir = "/var/lib/nomad-client-state"
+  state_dir = "/home/cottand/selfhosted/maco/nomad/client-state"
 
   servers = ["cosmo.vpn.dcotta.eu", "maco.vpn.dcotta.eu"]
 

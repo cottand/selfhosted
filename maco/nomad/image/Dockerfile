@@ -19,5 +19,4 @@ RUN curl -L -o cni-plugins.tgz "https://github.com/containernetworking/plugins/r
 # We need to be able to communicate with the Docker engine
 VOLUME ["/var/run/docker.sock"]
 
-#ENTRYPOINT nomad -v
 ENTRYPOINT nomad agent -config=/etc/config

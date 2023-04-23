@@ -9,7 +9,7 @@ server {
     }
 }
 
-data_dir  = "/var/lib/nomad"
+data_dir  = "/home/cottand/selfhosted/maco/nomad/data"
 
 bind_addr = "10.8.0.5"
 
