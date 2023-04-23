@@ -17,7 +17,7 @@ advertise {
     #   Defaults to the first private IP address.
     http = "10.8.0.5"
     rpc  = "10.8.0.5"
-    serf = "10.8.0.5:5648" # non-default ports may be specified
+    serf = "10.8.0.5" # non-default ports may be specified
 }
 
 log_rotate_bytes = 1024000
