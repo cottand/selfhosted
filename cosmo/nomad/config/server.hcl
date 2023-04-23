@@ -1,6 +1,6 @@
 server {
   enabled = true
-  bootstrap_expect = 1
+  bootstrap_expect = 2
 }
 
 data_dir  = "/var/lib/nomad"
