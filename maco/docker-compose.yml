@@ -16,20 +16,20 @@ services:
     privileged: true
     environment:
       IPTABLES_MASQ: '0'
-  nomad:
-    build: nomad/image
-    network_mode: host
-    privileged: true
-    restart: unless-stopped
-    volumes:
-#      #- /var/run/:/var/run/:shared
-#      #- /var/run/docker.sock:/var/run/docker.sock:shared
-      - /var/run/docker/netns/:/var/run/docker/netns/:shared
-      - /var/run/docker.sock:/var/run/docker.sock:share
-      # must be absolute paths because nomad mounts these itself
-      - /home/cottand/selfhosted/maco/:/home/cottand/selfhosted/maco/
-#      - ./nomad/config:/etc/config
-#      - ./nomad/data:/var/lib/nomad
-#      - ./nomad/client-state:/var/lib/nomad-client-state
-#      - /home/cottand/selfhosted/maco/volumes/:/home/cottand/selfhosted/maco/volumes/
-#      - /home/cottand/selfhosted/maco/nomad/alloc/:/home/cottand/selfhosted/maco/nomad/alloc
+#  nomad:
+#    build: nomad/image
+#    network_mode: host
+#    privileged: true
+#    restart: unless-stopped
+#    volumes:
+##      #- /var/run/:/var/run/:shared
+##      #- /var/run/docker.sock:/var/run/docker.sock:shared
+#      - /var/run/docker/netns/:/var/run/docker/netns/:shared
+#      - /var/run/docker.sock:/var/run/docker.sock:share
+#      # must be absolute paths because nomad mounts these itself
+#      - /home/cottand/selfhosted/maco/:/home/cottand/selfhosted/maco/
+##      - ./nomad/config:/etc/config
+##      - ./nomad/data:/var/lib/nomad
+##      - ./nomad/client-state:/var/lib/nomad-client-state
+##      - /home/cottand/selfhosted/maco/volumes/:/home/cottand/selfhosted/maco/volumes/
+##      - /home/cottand/selfhosted/maco/nomad/alloc/:/home/cottand/selfhosted/maco/nomad/alloc
