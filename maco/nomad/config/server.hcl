@@ -1,6 +1,12 @@
 server {
     enabled = true
     bootstrap_expect = 2
+
+    server_join {
+        retry_join = [ "10.8.0.1" ]
+        retry_max = 3
+        retry_interval = "15s"
+    }
 }
 
 data_dir  = "/var/lib/nomad"

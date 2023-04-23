@@ -4,7 +4,7 @@ client {
   alloc_dir = "/root/selfhosted/cosmo/nomad/alloc/"
   state_dir = "/var/lib/nomad-client-state"
 
-  servers = ["10.8.0.1"]
+  servers = ["10.8.0.1", "10.8.0.5"]
 
   options = {
     "driver.allowlist" = "docker,raw_exec"
