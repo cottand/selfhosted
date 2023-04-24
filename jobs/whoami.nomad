@@ -20,7 +20,7 @@ job "whoami" {
                 image = "traefik/whoami"
                 ports = ["http"]
                 args  = [
-                    "--port=80",
+                    "--port=${NOMAD_PORT_http}",
                 ]
             }
 

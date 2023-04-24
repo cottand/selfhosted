@@ -6,6 +6,7 @@ client {
 
   servers = ["cosmo.vpn.dcotta.eu", "maco.vpn.dcotta.eu"]
 
+  bridge_network_hairpin_mode = true
   options = {
     "driver.allowlist" = "docker,raw_exec"
   }
@@ -33,6 +34,7 @@ client {
     box = "maco"
     name = "maco"
   }
+
 }
 plugin "raw_exec" {
   config {

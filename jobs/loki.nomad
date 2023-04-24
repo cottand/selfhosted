@@ -17,14 +17,10 @@ job "loki" {
             mode     = "delay"
         }
         network {
-            mode = "bridge"
+#            mode = "bridge"
             port "http" {
                 to           = 3100
                 host_network = "vpn"
-            }
-            port "http-public" {
-                to = 3100
-                #                host_network = "vpn"
             }
         }
         volume "loki" {
@@ -115,10 +111,10 @@ EOH
                 name     = "loki"
                 port     = "http"
                 provider = "nomad"
-                # TODO fix checks in private net
+                # TODO fix checks in private net no working because of [2]
                 check {
                     name     = "Loki healthcheck"
-                    port     = "http-public"
+                    port     = "http"
                     type     = "http"
                     path     = "/ready"
                     interval = "20s"

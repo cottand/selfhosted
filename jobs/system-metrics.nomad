@@ -1,16 +1,15 @@
 # The Prometheus Node Exporter needs access to the proc filesystem which is not
 # mounted into the exec jail, so it requires the raw_exec driver to run.
 
-job "prometheus-node-exporter" {
+job "system-metrics" {
     datacenters = ["dc1"]
     type        = "system"
 
-    group "system" {
+    group "system-metrics" {
         network {
-            mode = "bridge"
+            # [2] no bridge networking on maco
             port "exporter" {
                 host_network = "vpn"
-                to           = 9100
             }
         }
 
@@ -37,7 +36,6 @@ job "prometheus-node-exporter" {
                 args    = [
                     "--web.listen-address=:${NOMAD_PORT_exporter}"
                 ]
-#                ports = ["exporter"]
             }
 
             artifact {
