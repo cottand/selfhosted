@@ -17,8 +17,9 @@ job "logs" {
             mode     = "fail"
         }
         network {
+            # [2] fix containers on maco unreachable in network mode bridge
+            mode = "host"
             port "http" {
-                to = 8686
                 host_network = "vpn"
             }
         }
@@ -37,6 +38,8 @@ job "logs" {
             config {
                 image = "timberio/vector:0.29.X-alpine"
                 ports = ["http"]
+                # [2] fix containers on maco unreachable in network mode bridge
+                network_mode = "host"
             }
             # docker socket volume mount
             volume_mount {
@@ -52,7 +55,9 @@ job "logs" {
             # resource limits are a good idea because you don't want your log collection to consume all resources available
             resources {
                 cpu    = 100
-                memory = 128
+                memory = 256
+                # Update the Scheduler Configuration to allow oversubscription.
+                memory_max = 1024
             }
             # template with Vector's configuration
             template {
@@ -82,22 +87,21 @@ job "logs" {
             healthcheck.enabled = true
             # since . is used by Vector to denote a parent-child relationship, and Nomad's Docker labels contain ".",
             # we need to escape them twice, once for TOML, once for Vector
-             labels.task = "{{ label.\"com.hashicorp.nomad.task_name\" }}"
-             labels.job = "{{ label.\"com.hashicorp.nomad.job_name\" }}"
-             labels.alloc = "{{ label.\"com.hashicorp.nomad.alloc_id\" }}"
-             labels.node = "{{ label.\"com.hashicorp.nomad.node_name\" }}"
+            labels.task  = "{{ label.\"com.hashicorp.nomad.task_name\" }}"
+            labels.job   = "{{ label.\"com.hashicorp.nomad.job_name\" }}"
+            labels.alloc = "{{ label.\"com.hashicorp.nomad.alloc_id\" }}"
+            labels.node  = "{{ label.\"com.hashicorp.nomad.node_name\" }}"
 #            labels.job = "{{ label.com\\.hashicorp\\.nomad\\.job_name }}"
 #            labels.group = "{{ label.com\\.hashicorp\\.nomad\\.task_group_name }}"
 #            labels.namespace = "{{ label.com\\.hashicorp\\.nomad\\.namespace }}"
 #            labels.node = "{{ label.com\\.hashicorp\\.nomad\\.node_name }}"
             # remove fields that have been converted to labels to avoid having the field twice
-#            remove_label_fields = true
+            remove_label_fields = true
         EOH
             }
-            service {
-                name = "vector"
-                provider = "nomad"
-                # TODO fix check on maco
+#            service {
+#                name = "vector"
+#                provider = "nomad"
 #                check {
 #                    port     = "http"
 #                    type     = "http"
@@ -105,8 +109,8 @@ job "logs" {
 #                    interval = "30s"
 #                    timeout  = "5s"
 #                }
-            }
-            kill_timeout = "30s"
+#            }
+#            kill_timeout = "30s"
         }
     }
 }

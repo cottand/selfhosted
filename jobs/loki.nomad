@@ -17,9 +17,9 @@ job "loki" {
             mode     = "delay"
         }
         network {
-#            mode = "bridge"
+            # [2] fix containers on maco unreachable in network mode bridge
+            mode = "host"
             port "http" {
-                to           = 3100
                 host_network = "vpn"
             }
         }
@@ -40,6 +40,8 @@ job "loki" {
                     "local/loki/local-config.yaml",
                 ]
                 ports = ["http"]
+                # [2] fix containers on maco unreachable in network mode bridge
+                network_mode = "host"
             }
             volume_mount {
                 volume      = "loki"
@@ -106,6 +108,7 @@ EOH
             resources {
                 cpu    = 256
                 memory = 128
+                memory_max = 512
             }
             service {
                 name     = "loki"
