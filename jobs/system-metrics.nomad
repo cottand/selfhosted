@@ -4,10 +4,11 @@
 job "system-metrics" {
     datacenters = ["dc1"]
     type        = "system"
+    priority    = 1
 
     group "system-metrics" {
         network {
-            # [2] no bridge networking on maco
+            mode = "bridge"
             port "exporter" {
                 host_network = "vpn"
             }

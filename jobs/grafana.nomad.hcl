@@ -1,6 +1,7 @@
 job "grafana" {
     datacenters = ["dc1"]
     type        = "service"
+    priority = 1
     group "grafana" {
         count = 1
 
@@ -52,6 +53,13 @@ job "grafana" {
                 name     = "grafana"
                 provider = "nomad"
                 port     = "http"
+
+                check {
+                    name     = "alive"
+                    type     = "tcp"
+                    interval = "10s"
+                    timeout  = "2s"
+                }
 
                 tags = [
                     "traefik.enable=true",
