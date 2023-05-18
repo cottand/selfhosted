@@ -33,17 +33,17 @@ job "system-metrics" {
             driver = "raw_exec"
 
             config {
-                command = "local/node_exporter-0.18.1.linux-amd64/node_exporter"
+                command = "local/node_exporter-1.5.0.linux-amd64/node_exporter"
                 args    = [
                     "--web.listen-address=:${NOMAD_PORT_exporter}"
                 ]
             }
 
             artifact {
-                source      = "https://github.com/prometheus/node_exporter/releases/download/v0.18.1/node_exporter-0.18.1.linux-amd64.tar.gz"
+                source      = "https://github.com/prometheus/node_exporter/releases/download/v1.5.0/node_exporter-1.5.0.linux-amd64.tar.gz"
                 destination = "local"
                 options {
-                    checksum = "sha256:b2503fd932f85f4e5baf161268854bf5d22001869b84f00fd2d1f57b51b72424"
+                    checksum = "sha256:af999fd31ab54ed3a34b9f0b10c28e9acee9ef5ac5a5d5edfdde85437db7acbb"
                 }
             }
 

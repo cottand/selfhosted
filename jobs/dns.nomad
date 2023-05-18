@@ -76,6 +76,7 @@ customDNS:
     # containers appropriately
     cosmo.vps: 10.8.0.1
     maco.vps: 10.8.0.5
+    ari.vps: 10.8.0.8
 
 blocking:
   blackLists:

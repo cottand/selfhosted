@@ -9,9 +9,18 @@
         # Enable Oh-my-zsh
         programs.zsh.ohMyZsh = {
           enable = true;
-          plugins = [ "git" "sudo" "docker" ];
+          theme = "fishy";
+          plugins = [ "git" "sudo" "docker" "systemadmin" ];
         };
 
+        users.users."cottand".openssh.authorizedKeys.keys = [
+          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGes99PbsDcHDl3Jwg4GYqYRkzd6tZPH4WX4/ThP//BN"
+          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPJ7FM2wEuWoUuxRkWnP6PNEtG+HOcwcZIt6Qg/Y1jhk nico.dc@outlook.com"
+          # content of authorized_keys file
+          # note: ssh-copy-id will add user@clientmachine after the public key
+          # but we can remove the "@clientmachine" part
+        ];
+        users.users.root.openssh.authorizedKeys.keys = users.users."cottand".openssh.authorizedKeys.keys;
 
       # Set your time zone.
       time.timeZone = "Europe/London";

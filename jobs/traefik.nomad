@@ -128,7 +128,20 @@ job "traefik" {
             '127.1.0.0/24', # VPN clients
             '172.26.64.18/20', # containers
         ]
-
+[http.routers]
+  [http.routers.nomad]
+    rule = "Host( `nomad.vps.dcotta.eu` )" # || PathPrefix(`/consul`) || HeadersRegexp(`referer`, `https://internal.in/nomad/.*`)"
+#    priority = 1000
+    service = "nomad"
+    entrypoints= "websecure"
+#    tls = true
+    tls.certresolver= "lets-encrypt"
+    middlewares = "vpn-whitelist@file"
+[http.services]
+  [http.services.nomad.loadBalancer]
+    [[http.services.nomad.loadBalancer.servers]]
+      url = "http://10.8.0.1:4646/"
+        # TODO [3] add other servers for load balancing
 EOF
                 destination = "local/traefik-dynamic.toml"
             }

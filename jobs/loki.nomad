@@ -17,8 +17,7 @@ job "loki" {
             mode     = "delay"
         }
         network {
-            # [2] fix containers on maco unreachable in network mode bridge
-            mode = "host"
+#            mode = "bridge" # no hairpin I think
             port "http" {
                 host_network = "vpn"
             }
@@ -107,14 +106,13 @@ EOH
             }
             resources {
                 cpu    = 256
-                memory = 128
-                memory_max = 512
+                memory = 512
+                memory_max = 1024
             }
             service {
                 name     = "loki"
                 port     = "http"
                 provider = "nomad"
-                # TODO fix checks in private net no working because of [2]
                 check {
                     name     = "Loki healthcheck"
                     port     = "http"
@@ -124,7 +122,7 @@ EOH
                     timeout  = "5s"
                     check_restart {
                         limit           = 3
-                        grace           = "60s"
+                        grace           = "120s"
                         ignore_warnings = false
                     }
                 }

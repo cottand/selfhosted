@@ -17,8 +17,7 @@ job "logs" {
             mode     = "fail"
         }
         network {
-            # [2] fix containers on maco unreachable in network mode bridge
-            mode = "host"
+            mode = "bridge"
             port "http" {
                 host_network = "vpn"
             }
@@ -68,17 +67,17 @@ job "logs" {
                 left_delimiter  = "[["
                 right_delimiter = "]]"
                 data            = <<EOH
-          data_dir = "alloc/data/vector/"
+        data_dir = "alloc/data/vector/"
           [api]
             enabled = true
             address = "0.0.0.0:[[ env "NOMAD_PORT_http" ]]"
             playground = true
           [sources.logs]
             type = "docker_logs"
-          [sinks.out]
-            type = "console"
-            inputs = [ "logs" ]
-            encoding.codec = "json"
+#          [sinks.out]
+#            type = "console"
+#            inputs = [ "logs" ]
+#            encoding.codec = "json"
           [sinks.loki]
             type = "loki"
             inputs = ["logs"]
