@@ -2,6 +2,7 @@ job "logs" {
     datacenters = ["dc1"]
     # system job, runs on all nodes
     type        = "system"
+    priority = 1
     update {
         min_healthy_time  = "10s"
         healthy_deadline  = "5m"
@@ -37,8 +38,6 @@ job "logs" {
             config {
                 image = "timberio/vector:0.29.X-alpine"
                 ports = ["http"]
-                # [2] fix containers on maco unreachable in network mode bridge
-                network_mode = "host"
             }
             # docker socket volume mount
             volume_mount {
@@ -61,8 +60,7 @@ job "logs" {
             # template with Vector's configuration
             template {
                 destination     = "local/vector.toml"
-                change_mode     = "signal"
-                change_signal   = "SIGHUP"
+                change_mode     = "restart"
                 # overriding the delimiters to [[ ]] to avoid conflicts with Vector's native templating, which also uses {{ }}
                 left_delimiter  = "[["
                 right_delimiter = "]]"
@@ -74,6 +72,14 @@ job "logs" {
             playground = true
           [sources.logs]
             type = "docker_logs"
+#          [sources.host_journald_logs]
+#            type = "journald"
+#            current_boot_only = true
+#            since_now = true
+#            include_units = []
+#             Warning and above
+#            include_matches.PRIORITY = [ "0", "1", "2", "3", "4" ]
+
 #          [sinks.out]
 #            type = "console"
 #            inputs = [ "logs" ]

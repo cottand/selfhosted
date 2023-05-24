@@ -14,6 +14,11 @@ job "prometheus" {
             }
         }
 
+        constraint {
+            attribute = "${attr.nomad.bridge.hairpin_mode}"
+            value = true
+        }
+
         restart {
             attempts = 2
             interval = "30m"
@@ -29,7 +34,7 @@ job "prometheus" {
 
         task "prometheus" {
             template {
-                change_mode = "noop"
+                change_mode = "restart"
                 destination = "local/prometheus.yml"
 
                 data = <<EOH

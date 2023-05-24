@@ -18,6 +18,16 @@ client {
         read_only = true
     }
 
+    # Used for host systemd logs
+    host_volume "journald-ro" {
+        path = "/var/log/journal"
+        read_only = true
+    }
+    host_volume "machineid-ro" {
+        path = "/etc/machine-id"
+        read_only = true
+    }
+
     meta {
         box = "ari"
         name = "ari"

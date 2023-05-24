@@ -1,6 +1,7 @@
 job "postgres" {
     datacenters = ["dc1"]
     type        = "service"
+    priority = 1
     group "postgres" {
         restart {
             attempts = 4
@@ -23,6 +24,10 @@ job "postgres" {
                 to           = 9187
                 host_network = "vpn"
             }
+#            port "http_bytebase" {
+#                to           = 8080
+#                host_network = "vpn"
+#            }
         }
         task "postgres" {
             driver = "docker"
@@ -66,6 +71,52 @@ job "postgres" {
             }
         }
 
+#        task "bytebase" {
+#            lifecycle {
+#                sidecar = true
+#                hook    = "poststart"
+#            }
+#            driver = "docker"
+#            config {
+#                image = "bytebase/bytebase:2.0.0"
+#                args  = [
+#                    "--data",
+#                    "/var/opt/bytebase",
+#                    "--port",
+#                    "8080",
+#                    "--external-url", "https://web.vps.dcotta.eu/${NOMAD_TASK_NAME}",
+#                ]
+#            }
+#
+#            service {
+#                name     = "bytebase"
+#                port     = "http_bytebase"
+#                provider = "nomad"
+#                #                tags = ["metrics"]
+#                tags     = [
+#                    "traefik.enable=true",
+#                    "traefik.http.middlewares.${NOMAD_TASK_NAME}-stripprefix.stripprefix.prefixes=/${NOMAD_TASK_NAME}",
+#                    "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`web.vps.dcotta.eu`) && PathPrefix(`/${NOMAD_TASK_NAME}`)",
+#                    "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=websecure",
+#                    "traefik.http.routers.${NOMAD_TASK_NAME}.tls=true",
+#                    "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt",
+#                    "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=${NOMAD_TASK_NAME}-stripprefix,vpn-whitelist@file",
+#                ]
+#
+#                check {
+#                    type     = "http"
+#                    interval = "5m"
+#                    timeout  = "60s"
+#                    path     = "/healthz"
+#                    #                    command  = "curl --fail http://localhost:5678/healthz || exit 1"
+#                }
+#            }
+#            resources {
+#                cpu    = 100
+#                memory = 256
+#            }
+#        }
+
         # metrics
         task "metrics" {
             lifecycle {
@@ -85,7 +136,7 @@ job "postgres" {
                 name     = "postgres-metrics"
                 port     = "metrics"
                 provider = "nomad"
-                tags = ["metrics"]
+                tags     = ["metrics"]
             }
             resources {
                 cpu    = 90
