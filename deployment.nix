@@ -2,8 +2,8 @@ let
   sources = import ./sources.nix;
 
   defaultArch = "x86_64-linux";
-  defaultPkgs = sources.nixos-unstable;
-  #  defaultPkgs = sources."nixos-20.11";
+  # defaultPkgs = sources.nixos-unstable;
+  defaultPkgs = sources.nixos-22-11;
 
   lib = import (defaultPkgs + "/lib");
 
