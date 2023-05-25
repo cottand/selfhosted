@@ -4,7 +4,7 @@ client {
   alloc_dir = "/home/cottand/selfhosted/maco/nomad/alloc/"
   state_dir = "/home/cottand/selfhosted/maco/nomad/client-state"
 
-  servers = ["cosmo.vpn.dcotta.eu", "maco.vpn.dcotta.eu"]
+  servers = ["10.8.0.1", "10.8.0.5", "10.8.0.8"]
 
   bridge_network_hairpin_mode = true
   options = {

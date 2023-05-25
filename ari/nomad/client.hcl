@@ -1,6 +1,6 @@
 client {
     enabled = true
-    servers = ["maco.vpn.dcotta.eu", "ari.vpn.dcotta.eu", "cosmo.vpn.dcotta.eu"]
+    servers = ["10.8.0.1", "10.8.0.5", "10.8.0.8"]
 
     options = {
         "driver.allowlist" = "docker,raw_exec"

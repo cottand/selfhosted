@@ -2,7 +2,7 @@ server {
   enabled = true
   bootstrap_expect = 3
   server_join {
-    retry_join = [ "maco.vpn.dcotta.eu", "ari.vpn.dcotta.eu" ]
+    retry_join = [ "10.8.0.1", "10.8.0.5" ]
     retry_max = 3
     retry_interval = "15s"
   }

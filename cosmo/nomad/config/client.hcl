@@ -4,7 +4,7 @@ client {
   alloc_dir = "/root/selfhosted/cosmo/nomad/alloc/"
   state_dir = "/var/lib/nomad-client-state"
 
-  servers = ["maco.vpn.dcotta.eu", "cosmo.vpn.dcotta.eu"]
+  servers = ["10.8.0.1", "10.8.0.5", "10.8.0.8"]
 
   options = {
     "driver.allowlist" = "docker,raw_exec"
