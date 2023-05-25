@@ -16,8 +16,8 @@ let
       #  "192.168.50.79" = {
       name = "ari";
       #      system = "aarch64-linux";
-      # packages = sources.nixos-unstable;
-      packages = sources.nixos-23-11-pre;
+      packages = sources.nixos-unstable;
+      # packages = sources.nixos-23-11-pre;
     };
   };
 
