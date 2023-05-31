@@ -65,7 +65,7 @@ scrape_configs:
     params:
       format: ['prometheus']
     static_configs:
-      - targets: [ 'maco.vpn.dcotta.eu:4646','cosmo.vpn.dcotta.eu:4646', 'ari.vpn.dcotta.eu:4646' ]
+      - targets: [ 'maco.vpn.dcotta.eu:4646','cosmo.vpn.dcotta.eu:4646', 'ari.vpn.dcotta.eu:4646', 'elvis.vpn.dcotta.eu:4646' ]
 EOH
             }
 

@@ -19,6 +19,11 @@ let
       packages = sources.nixos-unstable;
       # packages = sources.nixos-23-11-pre;
     };
+    "elvis.vpn.dcotta.eu" = {
+    # "192.168.50.184" = {
+      name = "elvis";
+      packages = sources.nixos-23-05-beta;
+    };
   };
 
   mkMachine = hostName: { name, system ? defaultArch, packages ? defaultPkgs }:
