@@ -28,6 +28,8 @@ client {
         read_only = true
     }
 
+    # TODO vaultwarden + pictures volumes?
+
     meta {
         box = "elvis"
         name = "elvis"
@@ -41,6 +43,8 @@ plugin "raw_exec" {
 }
 plugin "docker" {
     config {
+        # necessary for seaweed
+        allow_privileged = true
         # extra Docker labels to be set by Nomad on each Docker container with the appropriate value
         extra_labels = ["job_name", "task_group_name", "task_name", "node_name"]
     }
