@@ -27,10 +27,20 @@ client {
         path = "/etc/machine-id"
         read_only = true
     }
+    host_volume "seaweedfs-volume" {
+        path      = "/seaweed.d/volume"
+        read_only = false
+    }
+    host_volume "seaweedfs-filer" {
+        path      = "/seaweed.d/filer"
+        read_only = false
+    }
 
     meta {
         box = "ari"
         name = "ari"
+        seaweedfs_volume = true
+        docker_privileged = true
     }
 
 }

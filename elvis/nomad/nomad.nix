@@ -8,6 +8,10 @@
       text = (builtins.readFile ./server.hcl);
     };
   };
+  systemd.tmpfiles.rules = [
+    "d /seaweed.d/volume 1777 root root -"
+    "d /seaweed.d/filer 1777 root root -"
+  ];
   services.nomad = {
     enable = true;
     enableDocker = true;

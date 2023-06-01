@@ -27,13 +27,22 @@ client {
         path = "/etc/machine-id"
         read_only = true
     }
-
-    # TODO vaultwarden + pictures volumes?
+    host_volume "seaweedfs-volume" {
+        path      = "/seaweed.d/volume"
+        read_only = false
+    }
+    host_volume "seaweedfs-filer" {
+        path      = "/seaweed.d/filer"
+        read_only = false
+    }
 
     meta {
         box = "elvis"
         name = "elvis"
+        seaweedfs_volume = true
+        docker_privileged = true
     }
+    
 
 }
 plugin "raw_exec" {
