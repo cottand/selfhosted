@@ -14,13 +14,16 @@ job "seaweedfs" {
       value     = true
     }
     network {
-      mode = "host" # TODO can it be bridge?
+      # cannot be bridge because master uses port it to self-identify
+      mode = "host"
 
       port "http" {
+        static = 9333
         host_network = "vpn"
       }
 
       port "grpc" {
+        static = 19333
         host_network = "vpn"
       }
     }
