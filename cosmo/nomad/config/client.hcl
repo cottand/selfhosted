@@ -31,10 +31,15 @@ client {
     path      = "/var/run/docker.sock"
     read_only = true
   }
+  host_volume "seaweedfs-volume" {
+    path      = "/seaweed.d/volume"
+    read_only = false
+  }
 
   meta {
-    box  = "cosmo"
-    name = "cosmo"
+    box              = "cosmo"
+    name             = "cosmo"
+    seaweedfs_volume = true
   }
 }
 plugin "raw_exec" {
