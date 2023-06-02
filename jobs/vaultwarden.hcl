@@ -1,7 +1,6 @@
 job "vaultwarden" {
   datacenters = ["dc1"]
   type        = "service"
-  priority    = 1
 
   group "vaultwarden" {
     restart {
@@ -13,6 +12,9 @@ job "vaultwarden" {
     network {
       mode = "bridge"
       port "http" {
+        host_network = "vpn"
+      }
+      port "ws" {
         host_network = "vpn"
       }
     }
@@ -39,6 +41,15 @@ job "vaultwarden" {
       }
       env = {
         "ROCKET_PORT" = "${NOMAD_PORT_http}"
+        //   "WEBSOCKET_ENABLED"= true;
+        //   "WEBSOCKET_ADDRESS"= "0.0.0.0";
+        //   "WEBSOCKET_PORT"= ${NOMAD_PORT_ws};
+        //   "SIGNUPS_VERIFY"= true;
+        #    ADMIN_TOKEN"= (import /etc/nixos/secret/bitwarden.nix).ADMIN_TOKEN;
+        "DOMAIN" = "https://warden.vps.dcotta.eu" ;
+        #    YUBICO_CLIENT_ID"= (import /etc/nixos/secret/bitwarden.nix).YUBICO_CLIENT_ID;
+        #    YUBICO_SECRET_KEY"= (import /etc/nixos/secret/bitwarden.nix).YUBICO_SECRET_KEY;
+        "YUBICO_SERVER" = "https://api.yubico.com/wsapi/2.0/verify" ;
       }
       volume_mount {
         volume      = "vaultwarden"
@@ -61,12 +72,33 @@ job "vaultwarden" {
 
         tags = [
           "traefik.enable=true",
-          "traefik.http.middlewares.${NOMAD_TASK_NAME}-stripprefix.stripprefix.prefixes=/${NOMAD_TASK_NAME}",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`web.vps.dcotta.eu`) && PathPrefix(`/${NOMAD_TASK_NAME}`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`warden.vps.dcotta.eu`)",
           "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=websecure",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls=true",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=${NOMAD_TASK_NAME}-stripprefix,vpn-whitelist@file",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=vpn-whitelist@file",
+        ]
+      }
+      service {
+        name = "vaultwarden-ws"
+
+        provider = "nomad"
+        port     = "http"
+
+        check {
+          name     = "alive"
+          type     = "tcp"
+          interval = "10s"
+          timeout  = "2s"
+        }
+
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`warden.vps.dcotta.eu/ws`)  && Path(`/notifications/hub`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=websecure",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls=true",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=vpn-whitelist@file",
         ]
       }
     }

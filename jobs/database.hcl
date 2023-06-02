@@ -10,7 +10,7 @@ job "postgres" {
             mode     = "fail"
         }
         volume "postgres" {
-            type      = "host"
+            type      = "csi"
             read_only = false
             source    = "postgres"
         }
@@ -75,52 +75,6 @@ job "postgres" {
                 ]
             }
         }
-
-#        task "bytebase" {
-#            lifecycle {
-#                sidecar = true
-#                hook    = "poststart"
-#            }
-#            driver = "docker"
-#            config {
-#                image = "bytebase/bytebase:2.0.0"
-#                args  = [
-#                    "--data",
-#                    "/var/opt/bytebase",
-#                    "--port",
-#                    "8080",
-#                    "--external-url", "https://web.vps.dcotta.eu/${NOMAD_TASK_NAME}",
-#                ]
-#            }
-#
-#            service {
-#                name     = "bytebase"
-#                port     = "http_bytebase"
-#                provider = "nomad"
-#                #                tags = ["metrics"]
-#                tags     = [
-#                    "traefik.enable=true",
-#                    "traefik.http.middlewares.${NOMAD_TASK_NAME}-stripprefix.stripprefix.prefixes=/${NOMAD_TASK_NAME}",
-#                    "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`web.vps.dcotta.eu`) && PathPrefix(`/${NOMAD_TASK_NAME}`)",
-#                    "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=websecure",
-#                    "traefik.http.routers.${NOMAD_TASK_NAME}.tls=true",
-#                    "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt",
-#                    "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=${NOMAD_TASK_NAME}-stripprefix,vpn-whitelist@file",
-#                ]
-#
-#                check {
-#                    type     = "http"
-#                    interval = "5m"
-#                    timeout  = "60s"
-#                    path     = "/healthz"
-#                    #                    command  = "curl --fail http://localhost:5678/healthz || exit 1"
-#                }
-#            }
-#            resources {
-#                cpu    = 100
-#                memory = 256
-#            }
-#        }
 
         # metrics
         task "metrics" {

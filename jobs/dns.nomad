@@ -71,12 +71,14 @@ customDNS:
   rewrite:
     vps.dcotta.eu: cosmo.vps
     web.vps.dcotta.eu: cosmo.vps
+    seaweed-filer.vps.dcotta.eu: cosmo.vps
   mapping:
     # address of traefik + wg network. Requests to this IP will hit the traefik proxy which will route
     # containers appropriately
     cosmo.vps: 10.8.0.1
     maco.vps: 10.8.0.5
     ari.vps: 10.8.0.8
+    elvis.vps: 10.8.0.101
 
 blocking:
   blackLists:

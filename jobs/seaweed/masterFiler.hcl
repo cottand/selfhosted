@@ -26,23 +26,13 @@ job "seaweedfs" {
         static       = 19333
         host_network = "vpn"
       }
+      port "metrics" {
+        host_network = "vpn"
+      }
     }
 
-    // volume "seaweedfs-master" {
-    //     type      = "host"
-    //     read_only = false
-    //     source    = "seaweedfs-master"
-    // }
-
-
-    task "seaweed" {
+    task "seaweedfs-master" {
       driver = "docker"
-
-      //   volume_mount {
-      //     volume      = "seaweedfs-master"
-      //     destination = "/data"
-      //     read_only   = false
-      //   }
 
       config {
         image = "chrislusf/seaweedfs:3.51"
@@ -57,16 +47,23 @@ job "seaweedfs" {
           "-port=${NOMAD_PORT_http}",
           "-port.grpc=${NOMAD_PORT_grpc}",
           # no replication
-          "-defaultReplication=000"
+          "-defaultReplication=000",
+          "-metricsPort=${NOMAD_PORT_metrics}",
         ]
 
         // volumes = [
         // "config:/config"
         // ]
 
-        ports = ["http", "grpc"]
+        ports = ["http", "grpc", "metrics"]
 
         privileged = true
+      }
+      service {
+        provider = "nomad"
+        name     = "seaweedfs-master-metrics"
+        port     = "metrics"
+        tags     = ["metrics"]
       }
       service {
         provider = "nomad"
@@ -81,7 +78,7 @@ job "seaweedfs" {
           timeout  = "5s"
           check_restart {
             limit           = 3
-            grace           = "60s"
+            grace           = "10s"
             ignore_warnings = false
           }
         }
@@ -125,13 +122,16 @@ job "seaweedfs" {
       port "grpc" {
         host_network = "vpn"
       }
+      port "metrics" {
+        host_network = "vpn"
+      }
     }
     volume "seaweedfs-filer" {
       type      = "host"
       read_only = false
       source    = "seaweedfs-filer"
     }
-    task "seaweed" {
+    task "seaweedfs-filer" {
       service {
         name     = "seaweedfs-filer-http"
         port     = "http"
@@ -143,6 +143,14 @@ job "seaweedfs" {
           interval = "20s"
           timeout  = "2s"
         }
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`seaweed-filer.vps.dcotta.eu`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=websecure",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls=true",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=vpn-whitelist@file",
+        ]
       }
       service {
         name     = "seaweedfs-filer-grpc"
@@ -156,10 +164,21 @@ job "seaweedfs" {
           timeout  = "2s"
         }
       }
+      service {
+        provider = "nomad"
+        name     = "seaweedfs-filer-metrics"
+        port     = "metrics"
+        tags     = ["metrics"]
+      }
+      volume_mount {
+        volume      = "seaweedfs-filer"
+        destination = "/data"
+        read_only   = false
+      }
       driver = "docker"
       config {
         image = "chrislusf/seaweedfs:3.51"
-        ports = ["http", "grpc"]
+        ports = ["http", "grpc", "metrics"]
         args = [
           "-logtostderr",
           "filer",
@@ -167,12 +186,13 @@ job "seaweedfs" {
           "-ip.bind=0.0.0.0",
           "-master=${SEAWEEDFS_MASTER_IP_http}:${SEAWEEDFS_MASTER_PORT_http}.${SEAWEEDFS_MASTER_PORT_grpc}",
           "-port=${NOMAD_PORT_http}",
-          "-port.grpc=${NOMAD_PORT_grpc}"
+          "-port.grpc=${NOMAD_PORT_grpc}",
+          "-metricsPort=${NOMAD_PORT_metrics}",
         ]
       }
 
       template {
-        destination = "local/filer.toml.bu"
+        destination =  "/etc/seaweedfs/filer.toml"
         change_mode = "restart"
         data        = <<-EOF
         # A sample TOML config file for SeaweedFS filer store
@@ -191,7 +211,7 @@ recursive_delete = false
 # local on disk, mostly for simple single-machine setup, fairly scalable
 # faster than previous leveldb, recommended.
 enabled = true
-dir = "./filerldb2"                    # directory to store level db files
+dir = "/data"                    # directory to store level db files
 
 [sqlite]
 # local on disk, similar to leveldb

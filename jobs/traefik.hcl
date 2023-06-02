@@ -155,9 +155,9 @@ EOF
     address = ":{{ env "NOMAD_PORT_postgres_public" }}"
   [entryPoints.web]
     address = ":{{ env "NOMAD_PORT_http" }}"
-    [entryPoints.web.http.redirections.entryPoint]
-      to = "websecure"
-      scheme = "https"
+     [entryPoints.web.http.redirections.entryPoint]
+       to = "websecure"
+       scheme = "https"
   [entryPoints.websecure]
     address = ":{{ env "NOMAD_PORT_https" }}"
 
