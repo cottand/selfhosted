@@ -16,13 +16,13 @@ let
       #  "192.168.50.79" = {
       name = "ari";
       #      system = "aarch64-linux";
-      packages = sources.nixos-23-05-beta;
+      packages = sources.nixos-23-05-cottand-custom;
       # packages = sources.nixos-23-11-pre;
     };
     "elvis.vpn.dcotta.eu" = {
     # "192.168.50.184" = {
       name = "elvis";
-      packages = sources.nixos-23-05-beta;
+      packages = sources.nixos-23-05-cottand-custom;
     };
   };
 

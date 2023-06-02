@@ -10,6 +10,7 @@ job "seaweedfs-plugin" {
   }
 
   group "nodes" {
+    # does not need to run on a client with seaweed, only needs docker privileged
     task "plugin" {
       driver = "docker"
 
@@ -50,6 +51,10 @@ EOF
         id        = "seaweedfs"
         type      = "monolith"
         mount_dir = "/csi"
+      }
+      resources {
+        cpu    = 100
+        memory = 80
       }
     }
   }
