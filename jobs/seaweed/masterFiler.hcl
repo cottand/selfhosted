@@ -53,7 +53,7 @@ job "seaweedfs" {
           "-mdir=.",
           "-port=${NOMAD_PORT_http}",
           "-port.grpc=${NOMAD_PORT_grpc}",
-          //   "-defaultReplication=010"
+          "-defaultReplication=010"
         ]
 
         // volumes = [
@@ -95,10 +95,10 @@ job "seaweedfs" {
           timeout  = "2s"
         }
       }
-            resources {
-                cpu    = 100
-                memory = 80
-            }
+      resources {
+        cpu    = 100
+        memory = 80
+      }
     }
   }
 
