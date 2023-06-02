@@ -10,6 +10,11 @@ job "seaweedfs-plugin" {
   }
 
   group "nodes" {
+    ephemeral_disk {
+      migrate = false
+      size    = 5000
+      sticky  = false
+    }
     # does not need to run on a client with seaweed, only needs docker privileged
     task "plugin" {
       driver = "docker"
@@ -34,6 +39,7 @@ EOF
       }
 
       config {
+                network_mode = "host"
         image = "chrislusf/seaweedfs-csi-driver"
 
         args = [
@@ -54,7 +60,8 @@ EOF
       }
       resources {
         cpu    = 100
-        memory = 80
+        memory = 512
+        memory_max = 2048
       }
     }
   }

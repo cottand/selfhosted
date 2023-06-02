@@ -21,6 +21,10 @@ job "seaweedfs-volume" {
       port "grpc" {
         host_network = "vpn"
       }
+
+      port "metrics" {
+        host_network = "vpn"
+      }
     }
 
     volume "seaweedfs-volume" {
@@ -51,6 +55,12 @@ job "seaweedfs-volume" {
           }
         }
       }
+      service {
+        name     = "seaweedfs-volume-metrics"
+        port     = "metrics"
+        provider = "nomad"
+        tags     = ["metrics"]
+      }
 
       service {
         name     = "seaweedfs-volume"
@@ -78,14 +88,15 @@ job "seaweedfs-volume" {
           "-ip=${NOMAD_IP_http}",
           "-ip.bind=0.0.0.0",
           "-port=${NOMAD_PORT_http}",
-          "-port.grpc=${NOMAD_PORT_grpc}"
+          "-port.grpc=${NOMAD_PORT_grpc}",
+          "-metricsPort=${NOMAD_PORT_metrics}",
         ]
 
         volumes = [
           "config:/config"
         ]
 
-        ports = ["http", "grpc"]
+        ports = ["http", "grpc", "metrics"]
 
         privileged = true
       }
