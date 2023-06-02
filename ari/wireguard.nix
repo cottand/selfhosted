@@ -27,5 +27,15 @@
             }
           ];
         };
+        # to elvis
+        wg-local = {
+          privateKeyFile = "/root/secret/wg_local-private.key";
+
+              publicKey = "Nn6nM3ykE5TfYzRgnTCPAsiaVCV9QmKHvbscrPdhcms=";
+              presharedKey = "v/X4KYrjVsfqszt8Ae4ivM2OvjXQ2o6D1MjFBv1AbfQ=";
+              allowedIPs = [ "10.8.1.0/24" ];
+              endpoint = "192.168.50.184"; # TODO hardcode IP of elvis
+              persistentKeepalive = 25;
+        };
      };
 }
