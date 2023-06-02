@@ -18,12 +18,12 @@ job "seaweedfs" {
       mode = "host"
 
       port "http" {
-        static = 9333
+        static       = 9333
         host_network = "vpn"
       }
 
       port "grpc" {
-        static = 19333
+        static       = 19333
         host_network = "vpn"
       }
     }
@@ -56,7 +56,8 @@ job "seaweedfs" {
           "-mdir=.",
           "-port=${NOMAD_PORT_http}",
           "-port.grpc=${NOMAD_PORT_grpc}",
-          "-defaultReplication=010"
+          # no replication
+          "-defaultReplication=000"
         ]
 
         // volumes = [
@@ -84,6 +85,14 @@ job "seaweedfs" {
             ignore_warnings = false
           }
         }
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`seaweed.vps.dcotta.eu`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=websecure",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls=true",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=vpn-whitelist@file",
+        ]
       }
 
       service {

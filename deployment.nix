@@ -1,23 +1,16 @@
 let
   sources = import ./sources.nix;
 
-  defaultArch = "x86_64-linux";
-  # defaultPkgs = sources.nixos-unstable;
+  defaultArch = "x86_64-linux"; # alternative: "aarch64-linux";
   defaultPkgs = sources.nixos-22-11;
 
   lib = import (defaultPkgs + "/lib");
 
   machines = {
-    #    "maco.vpn.dcotta.eu" = {
-    #      system = "aarch64-linux"; darwin instead?
-    #      packages = sources.nixos-unstable;
-    #    };
     "ari.vpn.dcotta.eu" = {
       #  "192.168.50.79" = {
       name = "ari";
-      #      system = "aarch64-linux";
       packages = sources.nixos-23-05-cottand-custom;
-      # packages = sources.nixos-23-11-pre;
     };
     "elvis.vpn.dcotta.eu" = {
     # "192.168.50.184" = {
