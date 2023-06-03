@@ -1,6 +1,10 @@
 job "seaweedfs-plugin" {
   datacenters = ["dc1"]
   type = "system"
+  update {
+    max_parallel = 1
+    stagger = "60s"
+  }
 
   # only one plugin of a given type and ID should be deployed on
   # any given client node

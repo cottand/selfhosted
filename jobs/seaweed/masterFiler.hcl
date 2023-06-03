@@ -9,6 +9,9 @@ job "seaweedfs" {
   }
 
   group "master" {
+    migrate {
+      min_healthy_time = "1m"
+    }
     constraint {
       attribute = "${meta.docker_privileged}"
       value     = true
@@ -49,6 +52,10 @@ job "seaweedfs" {
           # no replication
           "-defaultReplication=000",
           "-metricsPort=${NOMAD_PORT_metrics}",
+          # 1GB max volume size
+          # lower=more volumes per box (easier replication)
+          # higher=less splitting of large files
+          "-volumeSizeLimitMB=1000",
         ]
 
         // volumes = [
@@ -112,17 +119,31 @@ job "seaweedfs" {
   }
 
   group "filer" {
+    // to make sure there is a single filer instance
+    constraint {
+      attribute = "${meta.box}"
+      value     = "elvis"
+    }
+    migrate {
+      min_healthy_time = "1m"
+    }
     network {
       mode = "host"
 
       port "http" {
+        static       = 8888
         host_network = "vpn"
       }
 
       port "grpc" {
+        static       = 18888
         host_network = "vpn"
       }
       port "metrics" {
+        host_network = "vpn"
+      }
+      port "webdav" {
+        static       = 17777
         host_network = "vpn"
       }
     }
@@ -132,6 +153,10 @@ job "seaweedfs" {
       source    = "seaweedfs-filer"
     }
     task "seaweedfs-filer" {
+      // lifecycle {
+      //   hook    = "poststart"
+      //   sidecar = true
+      // }
       service {
         name     = "seaweedfs-filer-http"
         port     = "http"
@@ -165,6 +190,26 @@ job "seaweedfs" {
         }
       }
       service {
+        name     = "seaweedfs-webdav"
+        port     = "webdav"
+        provider = "nomad"
+        check {
+          name     = "alive"
+          type     = "tcp"
+          port     = "webdav"
+          interval = "20s"
+          timeout  = "2s"
+        }
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.routers.webdav.rule=Host(`webdav.vps.dcotta.eu`)",
+          "traefik.http.routers.webdav.entrypoints=websecure",
+          "traefik.http.routers.webdav.tls=true",
+          "traefik.http.routers.webdav.tls.certresolver=lets-encrypt",
+          "traefik.http.routers.webdav.middlewares=vpn-whitelist@file",
+        ]
+      }
+      service {
         provider = "nomad"
         name     = "seaweedfs-filer-metrics"
         port     = "metrics"
@@ -178,7 +223,7 @@ job "seaweedfs" {
       driver = "docker"
       config {
         image = "chrislusf/seaweedfs:3.51"
-        ports = ["http", "grpc", "metrics"]
+        ports = ["http", "grpc", "metrics", "webdav"]
         args = [
           "-logtostderr",
           "filer",
@@ -188,11 +233,37 @@ job "seaweedfs" {
           "-port=${NOMAD_PORT_http}",
           "-port.grpc=${NOMAD_PORT_grpc}",
           "-metricsPort=${NOMAD_PORT_metrics}",
+          "-webdav",
+          "-webdav.collection=",
+          "-webdav.replication=010",
+          "-webdav.port=${NOMAD_PORT_webdav}",
+
         ]
+        // TODO:
+        //         -webdav
+        //     	whether to start webdav gateway
+        //   -webdav.cacheCapacityMB int
+        //     	local cache capacity in MB
+        //   -webdav.cacheDir string
+        //     	local cache directory for file chunks (default "/tmp")
+        //   -webdav.cert.file string
+        //     	path to the TLS certificate file
+        //   -webdav.collection string
+        //     	collection to create the files
+        //   -webdav.disk string
+        //     	[hdd|ssd|<tag>] hard drive or solid state drive or any tag
+        //   -webdav.filer.path string
+        //     	use this remote path from filer server (default "/")
+        //   -webdav.key.file string
+        //     	path to the TLS private key file
+        //   -webdav.port int
+        //     	webdav server http listen port (default 7333)
+        //   -webdav.replication string
+        //     	replication to create the files
       }
 
       template {
-        destination =  "/etc/seaweedfs/filer.toml"
+        destination = "/etc/seaweedfs/filer.toml"
         change_mode = "restart"
         data        = <<-EOF
         # A sample TOML config file for SeaweedFS filer store
