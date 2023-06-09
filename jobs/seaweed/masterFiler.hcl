@@ -200,14 +200,6 @@ job "seaweedfs" {
           interval = "20s"
           timeout  = "2s"
         }
-        tags = [
-          "traefik.enable=true",
-          "traefik.http.routers.webdav.rule=Host(`webdav.vps.dcotta.eu`)",
-          "traefik.http.routers.webdav.entrypoints=websecure",
-          "traefik.http.routers.webdav.tls=true",
-          "traefik.http.routers.webdav.tls.certresolver=lets-encrypt",
-          "traefik.http.routers.webdav.middlewares=vpn-whitelist@file",
-        ]
       }
       service {
         provider = "nomad"
@@ -239,27 +231,6 @@ job "seaweedfs" {
           "-webdav.port=${NOMAD_PORT_webdav}",
 
         ]
-        // TODO:
-        //         -webdav
-        //     	whether to start webdav gateway
-        //   -webdav.cacheCapacityMB int
-        //     	local cache capacity in MB
-        //   -webdav.cacheDir string
-        //     	local cache directory for file chunks (default "/tmp")
-        //   -webdav.cert.file string
-        //     	path to the TLS certificate file
-        //   -webdav.collection string
-        //     	collection to create the files
-        //   -webdav.disk string
-        //     	[hdd|ssd|<tag>] hard drive or solid state drive or any tag
-        //   -webdav.filer.path string
-        //     	use this remote path from filer server (default "/")
-        //   -webdav.key.file string
-        //     	path to the TLS private key file
-        //   -webdav.port int
-        //     	webdav server http listen port (default 7333)
-        //   -webdav.replication string
-        //     	replication to create the files
       }
 
       template {
