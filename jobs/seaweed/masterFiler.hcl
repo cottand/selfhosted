@@ -289,6 +289,7 @@ upsertQuery = """UPSERT INTO "%[1]s" (dirhash,name,directory,meta) VALUES($1,$2,
       template {
         destination = "config/.env"
         env         = true
+        change_mode = "restart"
         data        = <<-EOF
 {{ range $i, $s := nomadService "seaweedfs-master-http" }}
 {{- if eq $i 0 -}}
