@@ -72,6 +72,7 @@ customDNS:
     vps.dcotta.eu: cosmo.vps
     web.vps.dcotta.eu: cosmo.vps
     seaweed-filer.vps.dcotta.eu: cosmo.vps
+    l.dcotta.eu: cosmo.vps
   mapping:
     # address of traefik + wg network. Requests to this IP will hit the traefik proxy which will route
     # containers appropriately
@@ -79,6 +80,11 @@ customDNS:
     maco.vps: 10.8.0.5
     ari.vps: 10.8.0.8
     elvis.vps: 10.8.0.101
+    {{ range $i, $s := nomadService "seaweedfs-webdav" }}
+    {{- if eq $i 0 -}}
+    webdav.vps: {{ .Address }}
+    {{- end -}}
+    {{ end }}
 
 blocking:
   blackLists:

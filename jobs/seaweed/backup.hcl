@@ -4,6 +4,12 @@ job "seaweedfs-backup" {
 
   group "backup" {
     count = 1
+    restart {
+      interval = "10m"
+      attempts = 5
+      delay    = "15s"
+      mode     = "delay"
+    }
     task "backup" {
 
       driver = "docker"

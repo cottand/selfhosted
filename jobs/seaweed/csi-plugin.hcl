@@ -19,6 +19,12 @@ job "seaweedfs-plugin" {
       size    = 5000
       sticky  = false
     }
+    restart {
+      interval = "10m"
+      attempts = 5
+      delay    = "15s"
+      mode     = "delay"
+    }
     # does not need to run on a client with seaweed, only needs docker privileged
     task "plugin" {
       driver = "docker"

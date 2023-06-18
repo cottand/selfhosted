@@ -4,10 +4,9 @@ job "seaweedfs-volume" {
   datacenters = ["dc1"]
   type        = "system"
 
-
   update {
     max_parallel = 1
-    stagger = "60s"
+    stagger      = "60s"
   }
   constraint {
     attribute = "${meta.seaweedfs_volume}"
@@ -15,12 +14,19 @@ job "seaweedfs-volume" {
   }
 
   group "volumes" {
+    restart {
+      interval = "10m"
+      attempts = 6
+      delay    = "15s"
+      mode     = "delay"
+    }
+
     network {
       mode = "host"
 
       port "http" {
         host_network = "vpn"
-        static = 9876
+        static       = 9876
       }
 
       port "grpc" {

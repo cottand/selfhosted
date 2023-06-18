@@ -3,12 +3,13 @@ job "seaweedfs" {
   datacenters = ["dc1"]
   type        = "service"
 
-  constraint {
-    operator = "distinct_hosts"
-    value    = true
-  }
-
   group "master" {
+    restart {
+      interval = "10m"
+      attempts = 5
+      delay    = "15s"
+      mode     = "delay"
+    }
     migrate {
       min_healthy_time = "1m"
     }
@@ -119,6 +120,12 @@ job "seaweedfs" {
   }
 
   group "filer" {
+    restart {
+      interval = "10m"
+      attempts = 5
+      delay    = "15s"
+      mode     = "delay"
+    }
     // to make sure there is a single filer instance
     constraint {
       attribute = "${meta.box}"
@@ -304,6 +311,10 @@ SEAWEEDFS_MASTER_PORT_grpc={{ .Port }}
 {{- end -}}
 {{ end }}
 EOF
+      }
+      resources {
+        cpu    = 220
+        memory = 521
       }
     }
   }
