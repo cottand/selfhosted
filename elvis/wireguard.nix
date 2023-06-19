@@ -28,14 +28,14 @@
       ];
     };
     wg-local = {
-      privateKeyFile = "/root/secret/wg_local-private.key";
+      privateKeyFile = "/root/secret/wg-local/secret";
       listenPort = 51820;
       address = [ "10.8.1.101/24" ];
 
       peers = [
-        {
           # ari
-          publicKey = "";
+        {
+          publicKey = "tBWmnEM391TVidhOfkUunfWNDht42nO7LZeLvmeOXSc=";
           allowedIPs = [ "10.8.1.8/32" ];
 
         }
