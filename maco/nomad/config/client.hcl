@@ -12,27 +12,32 @@ client {
   }
 
   host_network "vpn" {
-    cidr = "10.8.0.0/24"
+    cidr           = "10.8.0.0/24"
     reserved_ports = "22,51820" # wireguard, ssh reserved
   }
 
   host_volume "postgres" {
-    path = "/home/cottand/selfhosted/maco/volumes/postgres/"
+    path      = "/home/cottand/selfhosted/maco/volumes/postgres/"
     read_only = "false"
   }
   host_volume "loki" {
-    path = "/home/cottand/selfhosted/maco/volumes/loki/"
+    path      = "/home/cottand/selfhosted/maco/volumes/loki/"
     read_only = "false"
   }
 
   host_volume "docker-sock-ro" {
-    path = "/var/run/docker.sock"
+    path      = "/var/run/docker.sock"
     read_only = true
+  }
+  host_volume "seaweedfs-volume" {
+    path      = "/seaweed.d/volume"
+    read_only = false
   }
 
   meta {
-    box = "maco"
-    name = "maco"
+    box              = "maco"
+    name             = "maco"
+    seaweedfs_volume = true
   }
 
 }

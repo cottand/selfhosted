@@ -4,22 +4,35 @@ job "seaweedfs-volume" {
   datacenters = ["dc1"]
   type        = "system"
 
-
+  update {
+    max_parallel = 1
+    stagger      = "60s"
+  }
   constraint {
     attribute = "${meta.seaweedfs_volume}"
     value     = true
   }
 
   group "volumes" {
+    restart {
+      interval = "10m"
+      attempts = 6
+      delay    = "15s"
+      mode     = "delay"
+    }
+
     network {
       mode = "host"
 
       port "http" {
         host_network = "vpn"
+        static       = 9876
       }
 
       port "grpc" {
         host_network = "vpn"
+        # gRPC needs to be http + 1_000
+        static = 19876
       }
 
       port "metrics" {
@@ -73,6 +86,10 @@ job "seaweedfs-volume" {
         read_only   = false
       }
 
+      resources {
+        cpu    = 256
+        memory = 256
+      }
       config {
         image = "chrislusf/seaweedfs:3.51"
 
@@ -90,6 +107,10 @@ job "seaweedfs-volume" {
           "-port=${NOMAD_PORT_http}",
           "-port.grpc=${NOMAD_PORT_grpc}",
           "-metricsPort=${NOMAD_PORT_metrics}",
+          # min free disk space. Low disk space will mark all volumes as ReadOnly.
+          "-minFreeSpace=10GiB",
+          # maximum numbers of volumes. If set to zero, the limit will be auto configured as free disk space divided by volume size. default "8"
+          "-max=0",
         ]
 
         volumes = [

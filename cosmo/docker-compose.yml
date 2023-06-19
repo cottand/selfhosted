@@ -10,13 +10,14 @@ services:
     depends_on: [temp-wireguard]
     volumes:
       - /var/run/docker/netns/:/var/run/docker/netns/:shared
-      - /var/run/docker.sock:/var/run/docker.sock:share
+      - /var/run/docker.sock:/var/run/docker.sock:shared
       - ./nomad/config:/etc/config
       - ./nomad/data:/var/lib/nomad
       - ./nomad/client-state:/var/lib/nomad-client-state
       # must be absolute paths because nomad mounts these itself
       - /root/selfhosted/cosmo/volumes/:/root/selfhosted/cosmo/volumes/
       - /root/selfhosted/cosmo/nomad/alloc/:/root/selfhosted/cosmo/nomad/alloc
+      - /seaweed.d/volume:/seaweed.d/volume:shared
 
   # bootstraps the network nomad is running in. Can't be a nomad job because it needs
   # to be up for the server to advertise itself in the network

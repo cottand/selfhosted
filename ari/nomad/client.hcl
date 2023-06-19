@@ -31,10 +31,11 @@ client {
         path      = "/seaweed.d/volume"
         read_only = false
     }
-    host_volume "seaweedfs-filer" {
-        path      = "/seaweed.d/filer"
-        read_only = false
-    }
+    // should be unique across the cluster!
+    // host_volume "seaweedfs-filer" {
+    //     path      = "/seaweed.d/filer"
+    //     read_only = false
+    // }
 
     meta {
         box = "ari"

@@ -165,7 +165,7 @@ EOF
   [entryPoints.web_public]
     address = ":{{ env "NOMAD_PORT_http_public" }}"
     [entryPoints.web_public.http.redirections.entryPoint]
-      to = "websecure_public"
+      to = "websecure"
       scheme = "https"
   [entryPoints.websecure_public]
     address = ":{{ env "NOMAD_PORT_https_public" }}"

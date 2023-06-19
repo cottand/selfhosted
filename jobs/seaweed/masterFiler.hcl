@@ -3,12 +3,16 @@ job "seaweedfs" {
   datacenters = ["dc1"]
   type        = "service"
 
-  constraint {
-    operator = "distinct_hosts"
-    value    = true
-  }
-
   group "master" {
+    restart {
+      interval = "10m"
+      attempts = 5
+      delay    = "15s"
+      mode     = "delay"
+    }
+    migrate {
+      min_healthy_time = "1m"
+    }
     constraint {
       attribute = "${meta.docker_privileged}"
       value     = true
@@ -49,6 +53,10 @@ job "seaweedfs" {
           # no replication
           "-defaultReplication=000",
           "-metricsPort=${NOMAD_PORT_metrics}",
+          # 1GB max volume size
+          # lower=more volumes per box (easier replication)
+          # higher=less splitting of large files
+          "-volumeSizeLimitMB=1000",
         ]
 
         // volumes = [
@@ -112,17 +120,37 @@ job "seaweedfs" {
   }
 
   group "filer" {
+    restart {
+      interval = "10m"
+      attempts = 5
+      delay    = "15s"
+      mode     = "delay"
+    }
+    // to make sure there is a single filer instance
+    constraint {
+      attribute = "${meta.box}"
+      value     = "elvis"
+    }
+    migrate {
+      min_healthy_time = "1m"
+    }
     network {
       mode = "host"
 
       port "http" {
+        static       = 8888
         host_network = "vpn"
       }
 
       port "grpc" {
+        static       = 18888
         host_network = "vpn"
       }
       port "metrics" {
+        host_network = "vpn"
+      }
+      port "webdav" {
+        static       = 17777
         host_network = "vpn"
       }
     }
@@ -132,6 +160,10 @@ job "seaweedfs" {
       source    = "seaweedfs-filer"
     }
     task "seaweedfs-filer" {
+      // lifecycle {
+      //   hook    = "poststart"
+      //   sidecar = true
+      // }
       service {
         name     = "seaweedfs-filer-http"
         port     = "http"
@@ -165,6 +197,18 @@ job "seaweedfs" {
         }
       }
       service {
+        name     = "seaweedfs-webdav"
+        port     = "webdav"
+        provider = "nomad"
+        check {
+          name     = "alive"
+          type     = "tcp"
+          port     = "webdav"
+          interval = "20s"
+          timeout  = "2s"
+        }
+      }
+      service {
         provider = "nomad"
         name     = "seaweedfs-filer-metrics"
         port     = "metrics"
@@ -178,7 +222,7 @@ job "seaweedfs" {
       driver = "docker"
       config {
         image = "chrislusf/seaweedfs:3.51"
-        ports = ["http", "grpc", "metrics"]
+        ports = ["http", "grpc", "metrics", "webdav"]
         args = [
           "-logtostderr",
           "filer",
@@ -188,11 +232,16 @@ job "seaweedfs" {
           "-port=${NOMAD_PORT_http}",
           "-port.grpc=${NOMAD_PORT_grpc}",
           "-metricsPort=${NOMAD_PORT_metrics}",
+          "-webdav",
+          "-webdav.collection=",
+          "-webdav.replication=010",
+          "-webdav.port=${NOMAD_PORT_webdav}",
+
         ]
       }
 
       template {
-        destination =  "/etc/seaweedfs/filer.toml"
+        destination = "/etc/seaweedfs/filer.toml"
         change_mode = "restart"
         data        = <<-EOF
         # A sample TOML config file for SeaweedFS filer store
@@ -247,6 +296,7 @@ upsertQuery = """UPSERT INTO "%[1]s" (dirhash,name,directory,meta) VALUES($1,$2,
       template {
         destination = "config/.env"
         env         = true
+        change_mode = "restart"
         data        = <<-EOF
 {{ range $i, $s := nomadService "seaweedfs-master-http" }}
 {{- if eq $i 0 -}}
@@ -261,6 +311,10 @@ SEAWEEDFS_MASTER_PORT_grpc={{ .Port }}
 {{- end -}}
 {{ end }}
 EOF
+      }
+      resources {
+        cpu    = 220
+        memory = 521
       }
     }
   }

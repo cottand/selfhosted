@@ -1,6 +1,10 @@
 job "seaweedfs-plugin" {
   datacenters = ["dc1"]
   type = "system"
+  update {
+    max_parallel = 1
+    stagger = "60s"
+  }
 
   # only one plugin of a given type and ID should be deployed on
   # any given client node
@@ -14,6 +18,12 @@ job "seaweedfs-plugin" {
       migrate = false
       size    = 5000
       sticky  = false
+    }
+    restart {
+      interval = "10m"
+      attempts = 5
+      delay    = "15s"
+      mode     = "delay"
     }
     # does not need to run on a client with seaweed, only needs docker privileged
     task "plugin" {
