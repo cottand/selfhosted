@@ -17,6 +17,14 @@ let
       name = "elvis";
       packages = sources.nixos-23-05-cottand-custom;
     };
+    "maco.vpn.dcotta.eu" = {
+      name = "maco";
+      packages = sources.nixos-23-05-cottand-custom;
+    };
+    "185.216.203.147" = {
+      name = "miki";
+      packages = sources.nixos-23-05-cottand-custom;
+    };
   };
 
   mkMachine = hostName: { name, system ? defaultArch, packages ? defaultPkgs }:
@@ -35,7 +43,7 @@ let
       nixpkgs.localSystem.system = system;
       deployment = {
         substituteOnDestination = true;
-        tags = [ system ];
+        tags = [ name system ];
       };
     };
 in
@@ -45,7 +53,7 @@ in
     description = "local";
 
     ordering = {
-      tags = [ "ari" ];
+      tags = [ "elvis" ];
     };
     evalConfig = machineName:
       (machines."${machineName}".packages or defaultPkgs) + "/nixos/lib/eval-config.nix";

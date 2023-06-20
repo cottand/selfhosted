@@ -2,18 +2,18 @@
 {
   # Enable WireGuard
   networking.wg-quick.interfaces = {
-    wg0 = {
-      address = [ "10.8.0.101/24" ];
+    wg-germany = {
+      address = [ "10.8.0.5/24" ];
       #listenPort = 51820; # to match firewall allowedUDPPorts (without this wg uses random port numbers)
 
-      privateKeyFile = "/root/secret/wg-private.key";
+      privateKeyFile = "/root/secret/wg-germany/private";
 
       dns = [ "10.8.0.1" ];
 
       peers = [
         {
           publicKey = "Nn6nM3ykE5TfYzRgnTCPAsiaVCV9QmKHvbscrPdhcms=";
-          presharedKey = "6/gaPS76xz+TWmxRkCBvNQPmKJD/Y2BAKnnmwlEEGDc=";
+          presharedKey = "2lF6fzhbDCKOI4gxNrnwCCabosImrCoMCQe2KH+FXH4=";
 
           # Forward all the traffic via VPN.
           #              allowedIPs = [ "0.0.0.0/0" ];
@@ -27,18 +27,19 @@
         }
       ];
     };
-    wg-local = {
-      privateKeyFile = "/root/secret/wg-local/private";
-      listenPort = 52820;
-      address = [ "10.8.1.101/24" ];
+  #   # to elvis
+  #   wg-local = {
+  #     privateKeyFile = "/root/secret/wg-local/private";
 
-      peers = [
-          # ari
-        {
-          publicKey = "tBWmnEM391TVidhOfkUunfWNDht42nO7LZeLvmeOXSc=";
-          allowedIPs = [ "10.8.1.8/32" ];
-        }
-      ];
-    };
+  #     address = [ "10.8.1.5/24" ];
+  #     dns = [ "10.8.0.1" ];
+  #     #elvis
+  #     peers = [{
+  #       publicKey = "XjVaA/NmTjm8E0WBLMx/0wHMmGKt/AllSgGowvUMnE0=";
+  #       allowedIPs = [ "10.8.1.0/24" ];
+  #       endpoint = "elvis.vps6.dcotta.eu:52820";
+  #       persistentKeepalive = 25;
+  #     }];
+  #   };
   };
 }

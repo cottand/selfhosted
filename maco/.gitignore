@@ -1,8 +1,0 @@
-.idea/
-
-**/.DS_Store
-secrets/
-
-nomad/alloc
-nomad/data
-nomad/client-state

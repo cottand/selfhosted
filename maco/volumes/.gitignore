@@ -1,3 +1,0 @@
-postgres/*
-!postgres/pg_hba.conf
-!postgres/postgresql.conf

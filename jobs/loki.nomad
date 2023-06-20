@@ -1,54 +1,49 @@
 job "loki" {
-    datacenters = ["dc1"]
-    type        = "service"
-    update {
-        max_parallel      = 1
-        health_check      = "checks"
-        min_healthy_time  = "10s"
-        healthy_deadline  = "3m"
-        progress_deadline = "5m"
+  datacenters = ["dc1"]
+  type        = "service"
+  update {
+    max_parallel      = 1
+    health_check      = "checks"
+    min_healthy_time  = "10s"
+    healthy_deadline  = "3m"
+    progress_deadline = "5m"
+  }
+  group "loki" {
+    ephemeral_disk {
+      migrate = true
+      size    = 5000
+      sticky  = true
     }
-    group "loki" {
-        count = 1
-        restart {
-            attempts = 3
-            interval = "5m"
-            delay    = "25s"
-            mode     = "delay"
-        }
-        network {
-#            mode = "bridge" # no hairpin I think
-            port "http" {
-                host_network = "vpn"
-            }
-        }
-        volume "loki" {
-            type      = "host"
-            read_only = false
-            source    = "loki"
-        }
-        task "loki" {
-            driver = "docker"
-            user   = "root" // !! so it can access the container volume, must be user
-            // of folder in host
+    count = 1
+    restart {
+      attempts = 3
+      interval = "5m"
+      delay    = "25s"
+      mode     = "delay"
+    }
+    network {
+      #            mode = "bridge" # no hairpin I think
+      port "http" {
+        host_network = "vpn"
+      }
+    }
+    task "loki" {
+      driver = "docker"
+      user   = "root" // !! so it can access the container volume, must be user
+      // of folder in host
 
-            config {
-                image = "grafana/loki:2.8.0"
-                args  = [
-                    "-config.file",
-                    "local/loki/local-config.yaml",
-                ]
-                ports = ["http"]
-                # [2] fix containers on maco unreachable in network mode bridge
-                network_mode = "host"
-            }
-            volume_mount {
-                volume      = "loki"
-                destination = "/loki"
-                read_only   = false
-            }
-            template {
-                data        = <<EOH
+      config {
+        image = "grafana/loki:2.8.0"
+        args = [
+          "-config.file",
+          "local/loki/local-config.yaml",
+        ]
+        ports = ["http"]
+        # [2] fix containers on maco unreachable in network mode bridge
+        network_mode = "host"
+      }
+      template {
+        data        = <<EOH
 auth_enabled: false
 server:
   http_listen_port: {{ env "NOMAD_PORT_http" }}
@@ -102,41 +97,41 @@ table_manager:
   retention_period: 0s
 # https://community.grafana.com/t/loki-error-on-port-9095-error-contacting-scheduler/67263
 EOH
-                destination = "local/loki/local-config.yaml"
-            }
-            resources {
-                cpu    = 256
-                memory = 512
-                memory_max = 1024
-            }
-            service {
-                name     = "loki"
-                port     = "http"
-                provider = "nomad"
-                check {
-                    name     = "Loki healthcheck"
-                    port     = "http"
-                    type     = "http"
-                    path     = "/ready"
-                    interval = "20s"
-                    timeout  = "5s"
-                    check_restart {
-                        limit           = 3
-                        grace           = "120s"
-                        ignore_warnings = false
-                    }
-                }
-                tags = [
-                    "metrics",
-                    "traefik.enable=true",
-                    "traefik.http.middlewares.${NOMAD_TASK_NAME}-stripprefix.stripprefix.prefixes=/${NOMAD_TASK_NAME}",
-                    "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`web.vps.dcotta.eu`) && PathPrefix(`/${NOMAD_TASK_NAME}`)",
-                    "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=websecure",
-                    "traefik.http.routers.${NOMAD_TASK_NAME}.tls=true",
-                    "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt",
-                    "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=${NOMAD_TASK_NAME}-stripprefix,vpn-whitelist@file",
-                ]
-            }
+        destination = "local/loki/local-config.yaml"
+      }
+      resources {
+        cpu        = 256
+        memory     = 512
+        memory_max = 1024
+      }
+      service {
+        name     = "loki"
+        port     = "http"
+        provider = "nomad"
+        check {
+          name     = "Loki healthcheck"
+          port     = "http"
+          type     = "http"
+          path     = "/ready"
+          interval = "20s"
+          timeout  = "5s"
+          check_restart {
+            limit           = 3
+            grace           = "120s"
+            ignore_warnings = false
+          }
         }
+        tags = [
+          "metrics",
+          "traefik.enable=true",
+          "traefik.http.middlewares.${NOMAD_TASK_NAME}-stripprefix.stripprefix.prefixes=/${NOMAD_TASK_NAME}",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`web.vps.dcotta.eu`) && PathPrefix(`/${NOMAD_TASK_NAME}`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=websecure",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls=true",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=${NOMAD_TASK_NAME}-stripprefix,vpn-whitelist@file",
+        ]
+      }
     }
+  }
 }
