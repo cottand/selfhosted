@@ -21,7 +21,7 @@ let
       name = "maco";
       packages = sources.nixos-23-05-cottand-custom;
     };
-    "185.216.203.147" = {
+    "cosmo.vps.dcotta.eu" = {
       name = "miki";
       packages = sources.nixos-23-05-cottand-custom;
     };

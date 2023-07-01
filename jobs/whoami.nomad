@@ -4,7 +4,7 @@ job "whoami" {
     group "whoami" {
         constraint {
             attribute = "${meta.box}"
-            value     = "ari"
+            value     = "cosmo"
         }
         network {
             mode = "bridge"
@@ -29,10 +29,10 @@ job "whoami" {
                 provider = "nomad"
                 tags     = [
                     "traefik.enable=true",
-                    "traefik.http.routers.whoami.rule=Host(`web.vps.dcotta.eu`) && PathPrefix(`/whoami`)",
+                    "traefik.http.routers.whoami.rule=PathPrefix(`/whoami`)",
                     "traefik.http.middlewares.whoami-stripprefix.stripprefix.prefixes=/whoami",
                     "traefik.http.routers.whoami.middlewares=whoami-stripprefix",
-                    "traefik.http.routers.whoami.entrypoints=websecure",
+                    "traefik.http.routers.whoami.entrypoints=websecure, websecure_public",
                     "traefik.http.routers.whoami.tls=true",
                     "traefik.http.routers.whoami.tls.certresolver=lets-encrypt"
                 ]

@@ -21,8 +21,22 @@
     # but we can remove the "@clientmachine" part
   ];
 
+  users.users.root.hell = pkgs.zsh;
+
   users.users.root.openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPJ7FM2wEuWoUuxRkWnP6PNEtG+HOcwcZIt6Qg/Y1jhk nico.dc@outlook.com" ];
 
+
+  environment.systemPackages = with pkgs; [ 
+    wireguard-tools
+    python3
+    seaweedfs # makes 'weed' bin available
+    # morph
+    usbutils
+    pciutils
+    iw
+    zsh
+    vim
+   ];
 
   # Set your time zone.
   time.timeZone = "Europe/London";

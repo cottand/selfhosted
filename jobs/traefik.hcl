@@ -24,14 +24,6 @@ job "traefik" {
                 static = 443
                 to     = 44300
             }
-            port "postgres" {
-                static       = 5432
-                host_network = "vpn"
-            }
-            port "postgres_public" {
-                static = 5432
-                to     = 54320
-            }
             port "metrics" {
                 static       = 31934 # hardcoded so that prometheus can find it after restart
                 host_network = "vpn"
@@ -67,12 +59,12 @@ job "traefik" {
             provider = "nomad"
             tags     = [
                 "traefik.enable=true",
-                "traefik.http.routers.traefik_https.rule=Host(`traefik.vps.dcotta.eu`)",
-                "traefik.http.routers.traefik_https.entrypoints=websecure",
-                "traefik.http.routers.traefik_https.tls=true",
-                "traefik.http.routers.traefik_https.tls.certResolver=lets-encrypt",
-                "traefik.http.routers.traefik_https.service=api@internal",
-                "traefik.http.routers.traefik_https.middlewares=auth@file",
+                "traefik.http.routers.traefik_dash.entrypoints=websecure",
+                "traefik.http.routers.traefik_dash.rule=Host(`traefik.vps.dcotta.eu`) || PathPrefix(`/dashboard`)",
+                "traefik.http.routers.traefik_dash.tls=true",
+                "traefik.http.routers.traefik_dash.tls.certResolver=lets-encrypt",
+                "traefik.http.routers.traefik_dash.service=api@internal",
+                // "traefik.http.routers.traefik_dash.middlewares=auth@file",
             ]
             port = "http-ui"
             check {
@@ -127,6 +119,7 @@ job "traefik" {
             '10.8.0.1/24', # VPN clients
             '127.1.0.0/24', # VPN clients
             '172.26.64.18/20', # containers
+            '185.216.203.147', # comsmo's public contabo IP (will be origin when using sshuttle)
         ]
 [http.routers]
   [http.routers.nomad]
@@ -149,10 +142,6 @@ EOF
             template {
                 data        = <<EOF
 [entryPoints]
-  [entryPoints.postgres]
-    address = ":{{ env "NOMAD_PORT_postgres" }}"
-  [entryPoints.postgres_public]
-    address = ":{{ env "NOMAD_PORT_postgres_public" }}"
   [entryPoints.web]
     address = ":{{ env "NOMAD_PORT_http" }}"
      [entryPoints.web.http.redirections.entryPoint]
@@ -162,13 +151,20 @@ EOF
     address = ":{{ env "NOMAD_PORT_https" }}"
 
 
+  # redirects 8000 (in container) to 443
   [entryPoints.web_public]
     address = ":{{ env "NOMAD_PORT_http_public" }}"
     [entryPoints.web_public.http.redirections.entryPoint]
       to = "websecure"
       scheme = "https"
+      
   [entryPoints.websecure_public]
     address = ":{{ env "NOMAD_PORT_https_public" }}"
+
+    # redirects 44300 (in container) to 443
+    [entryPoints.websecure_public.http.redirections.entryPoint]
+      to = "websecure"
+      scheme = "https"
 
 
   [entryPoints.metrics]
@@ -181,6 +177,7 @@ EOF
 
 [api]
   dashboard = true
+  insecure = true
 
 [certificatesResolvers.lets-encrypt.acme]
   email = "nico@dcotta.eu"
@@ -191,7 +188,7 @@ EOF
     entryPoint = "web_public"
 
 [providers.nomad]
-  refreshInterval = "10s"
+  refreshInterval = "5s"
   exposedByDefault = false
 
   [providers.nomad.endpoint]

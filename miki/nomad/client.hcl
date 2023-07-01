@@ -1,9 +1,6 @@
 client {
   enabled = true
 
-  alloc_dir = "/root/selfhosted/cosmo/nomad/alloc/"
-  state_dir = "/var/lib/nomad-client-state"
-
   servers = ["10.8.0.1", "10.8.0.5", "10.8.0.8"]
 
   options = {
@@ -15,16 +12,12 @@ client {
     reserved_ports = "51820"
   }
   host_volume "traefik-cert" {
-    path      = "/root/selfhosted/cosmo/volumes/traefik-cert"
+    path      = "/root/nomad-volumes/traefik-cert"
     read_only = "false"
   }
   host_volume "traefik-basic-auth" {
-    path      = "/root/selfhosted/cosmo/volumes/traefik-basic-auth"
+    path      = "/root/nomad-volumes/traefik-basic-auth"
     read_only = "true"
-  }
-  host_volume "grafana" {
-    path      = "/root/selfhosted/cosmo/volumes/grafana"
-    read_only = "false"
   }
   host_volume "docker-sock-ro" {
     path      = "/var/run/docker.sock"

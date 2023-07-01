@@ -129,7 +129,7 @@ job "seaweedfs" {
     // to make sure there is a single filer instance
     constraint {
       attribute = "${meta.box}"
-      value     = "elvis"
+      value     = "cosmo"
     }
     migrate {
       min_healthy_time = "1m"
@@ -236,7 +236,6 @@ job "seaweedfs" {
           "-webdav.collection=",
           "-webdav.replication=010",
           "-webdav.port=${NOMAD_PORT_webdav}",
-
         ]
       }
 
