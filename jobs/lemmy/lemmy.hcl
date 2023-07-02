@@ -1,3 +1,8 @@
+variable "lemmy_version" {
+  type    = string
+  default = "0.18.0"
+}
+
 job "lemmy" {
   datacenters = ["dc1"]
   type        = "service"
@@ -144,7 +149,7 @@ EOF
       driver = "docker"
 
       config {
-        image = "dessalines/lemmy-ui:0.17.4"
+        image = "dessalines/lemmy-ui:${var.lemmy_version}"
         ports = ["ui"]
       }
       env {
@@ -213,7 +218,7 @@ EOF
       driver = "docker"
 
       config {
-        image = "dessalines/lemmy:0.17.4"
+        image = "dessalines/lemmy:${var.lemmy_version}"
         volumes = [
           "local/lemmy.hjson:/etc/lemmy/lemmy.hjson",
         ]
