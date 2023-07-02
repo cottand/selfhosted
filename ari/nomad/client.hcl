@@ -6,7 +6,7 @@ client {
         "driver.allowlist" = "docker,raw_exec"
     }
 
-#    bridge_network_hairpin_mode = true only 1.5.+
+    bridge_network_hairpin_mode = true # only 1.5.+
 
     host_network "vpn" {
         cidr = "10.8.0.0/24"

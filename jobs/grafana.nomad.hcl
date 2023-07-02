@@ -7,7 +7,7 @@ job "grafana" {
     volume "grafana" {
       type            = "csi"
       read_only       = false
-      source          = "grafana-swfs"
+      source          = "grafana"
       access_mode     = "single-node-writer"
       attachment_mode = "file-system"
     }

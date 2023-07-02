@@ -2,7 +2,7 @@
   imports = [
     ./hardware-configuration.nix
     ./nomad/nomad.nix
-    ./udp2raw.nix
+    # ./udp2raw.nix
   ];
 
   boot.tmp.cleanOnBoot = true;
@@ -31,16 +31,17 @@
     allowedTCPPorts = [ 22 ];
   };
   # allow all from VPN
-  networking.firewall.interfaces.wg0 = {
-    allowedUDPPortRanges = [{
-      from = 0;
-      to = 65535;
-    }];
-    allowedTCPPortRanges = [{
-      from = 0;
-      to = 65535;
-    }];
-  };
+  networking.firewall.trustedInterfaces = [ "wg0" "nomad" "docker0" ];
+  # networking.firewall.interfaces.wg0 = {
+  #   allowedUDPPortRanges = [{
+  #     from = 0;
+  #     to = 65535;
+  #   }];
+  #   allowedTCPPortRanges = [{
+  #     from = 0;
+  #     to = 65535;
+  #   }];
+  # };
   # virtualisation.docker.enable = true;
   networking.firewall.checkReversePath = false;
   networking.nat = {

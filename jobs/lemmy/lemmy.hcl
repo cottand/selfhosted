@@ -246,16 +246,16 @@ EOF
         data        = <<EOH
 {
   database: {
-    {{ range nomadService "lemmy-db" }}
-    user: "lemmy"
     {{ with nomadVar "nomad/jobs/lemmy" }}
     password: "{{ .db_password }}"
     {{ end }}
+    {{ range nomadService "lemmy-db" }}
     host: "{{ .Address }}"
     port: {{ .Port }}
+    {{ end }}
+    user: "lemmy"
     database: "lemmy"
     pool_size: 5
-    {{ end }}
   }
   # replace with your domain
   hostname: r.dcotta.eu
@@ -298,12 +298,17 @@ EOH
       delay    = "20s"
       mode     = "fail"
     }
+    // volume "postgres" {
+    //   type            = "csi"
+    //   read_only       = false
+    //   source          = "postgres-lemmy"
+    //   access_mode     = "single-node-writer"
+    //   attachment_mode = "file-system"
+    // }
     volume "postgres" {
-      type            = "csi"
+      type            = "host"
       read_only       = false
-      source          = "postgres-lemmy-swfs"
-      access_mode     = "single-node-writer"
-      attachment_mode = "file-system"
+      source          = "lemmy-data"
     }
     network {
       mode = "bridge"

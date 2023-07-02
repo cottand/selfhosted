@@ -1,7 +1,7 @@
 # file docs: https://developer.hashicorp.com/nomad/docs/other-specifications/volume
 
-id        = "grafana-swfs"
-name      = "grafana-csi"
+id        = "grafana"
+name      = "grafana"
 type      = "csi"
 
 plugin_id = "seaweedfs"

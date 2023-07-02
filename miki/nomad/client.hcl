@@ -6,6 +6,8 @@ client {
   options = {
     "driver.allowlist" = "docker,raw_exec"
   }
+  
+  bridge_network_hairpin_mode = true # only 1.5.+
 
   host_network "vpn" {
     cidr           = "10.8.0.0/24"
@@ -25,6 +27,14 @@ client {
   }
   host_volume "seaweedfs-volume" {
     path      = "/seaweed.d/volume"
+    read_only = false
+  }
+  host_volume "seaweedfs-filer" {
+    path      = "/seaweed.d/filer"
+    read_only = false
+  }
+  host_volume "lemmy-data" {
+    path      = "/lemmy.d/data"
     read_only = false
   }
 

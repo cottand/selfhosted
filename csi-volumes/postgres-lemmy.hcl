@@ -1,7 +1,8 @@
 # file docs: https://developer.hashicorp.com/nomad/docs/other-specifications/volume
 
-id        = "postgres-lemmy-swfs"
-name      = "postgres-lemmy-csi"
+id        = "postgres-lemmy"
+name      = "postgres-lemmy"
+// name      = "postgres-lemmy-csi"
 type      = "csi"
 
 plugin_id = "seaweedfs"
@@ -22,6 +23,6 @@ mount_options {
 
 # documented at https://github.com/seaweedfs/seaweedfs-csi-driver
 parameters {
-  collection = ""
-  replication = "010"
+  collection = "postgres-lemmy"
+  replication = "000"
 }

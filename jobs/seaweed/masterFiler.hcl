@@ -200,13 +200,13 @@ job "seaweedfs" {
         name     = "seaweedfs-webdav"
         port     = "webdav"
         provider = "nomad"
-        check {
-          name     = "alive"
-          type     = "tcp"
-          port     = "webdav"
-          interval = "20s"
-          timeout  = "2s"
-        }
+        // check {
+        //   name     = "alive"
+        //   type     = "tcp"
+        //   port     = "webdav"
+        //   interval = "20s"
+        //   timeout  = "2s"
+        // }
       }
       service {
         provider = "nomad"
@@ -234,7 +234,7 @@ job "seaweedfs" {
           "-metricsPort=${NOMAD_PORT_metrics}",
           "-webdav",
           "-webdav.collection=",
-          "-webdav.replication=010",
+          "-webdav.replication=000",
           "-webdav.port=${NOMAD_PORT_webdav}",
         ]
       }
