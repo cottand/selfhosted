@@ -2,6 +2,7 @@
   imports = [
     ./hardware-configuration.nix
     ./nomad/nomad.nix
+    ./wg-easy.nix
     # ./udp2raw.nix
   ];
 
@@ -24,7 +25,6 @@
   ];
 
 
-  # networking.firewall.package = pkgs.iptables;
   networking.firewall.enable = true;
   networking.firewall = {
     allowedUDPPorts = [ 51820 ]; # 4647 4648 ];
@@ -32,16 +32,6 @@
   };
   # allow all from VPN
   networking.firewall.trustedInterfaces = [ "wg0" "nomad" "docker0" ];
-  # networking.firewall.interfaces.wg0 = {
-  #   allowedUDPPortRanges = [{
-  #     from = 0;
-  #     to = 65535;
-  #   }];
-  #   allowedTCPPortRanges = [{
-  #     from = 0;
-  #     to = 65535;
-  #   }];
-  # };
   # virtualisation.docker.enable = true;
   networking.firewall.checkReversePath = false;
   networking.nat = {

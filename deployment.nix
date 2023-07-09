@@ -10,20 +10,20 @@ let
     "ari.vpn.dcotta.eu" = {
       #  "192.168.50.79" = {
       name = "ari";
-      packages = sources.nixos-23-05-cottand-custom;
+      packages = sources.nixos-23-05-cottand-6;
     };
     "elvis.vpn.dcotta.eu" = {
     # "192.168.50.184" = {
       name = "elvis";
-      packages = sources.nixos-23-05-cottand-custom;
+      packages = sources.nixos-23-05-cottand-6;
     };
     "maco.vpn.dcotta.eu" = {
       name = "maco";
-      packages = sources.nixos-23-05-cottand-custom;
+      packages = sources.nixos-23-05-cottand-6;
     };
     "cosmo.vps.dcotta.eu" = {
       name = "miki";
-      packages = sources.nixos-23-05-cottand-custom;
+      packages = sources.nixos-23-05-cottand-6;
     };
   };
 

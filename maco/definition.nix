@@ -2,7 +2,8 @@
 
 {
   imports =
-    [ # Include the results of the hardware scan.
+    [
+      # Include the results of the hardware scan.
       ./hardware-configuration.nix
       ./wireguard.nix
       ./nomad/nomad.nix
@@ -13,7 +14,7 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.efi.efiSysMountPoint = "/boot/efi";
 
-  networking.hostName = "maco"; 
+  networking.hostName = "maco";
   networking.networkmanager.enable = true;
 
   users.users.cottand = {

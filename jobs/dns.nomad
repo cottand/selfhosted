@@ -80,10 +80,23 @@ customDNS:
     maco.vps: 10.8.0.5
     ari.vps: 10.8.0.8
     elvis.vps: 10.8.0.101
+    
     {{ range $i, $s := nomadService "seaweedfs-webdav" }}
-    {{- if eq $i 0 -}}
+    {{ if eq $i 0 }}
     webdav.vps: {{ .Address }}
-    {{- end -}}
+    {{ end }}
+    {{ end }}
+
+    {{ range $i, $s := nomadService "seaweedfs-master-http" }}
+    {{ if eq $i 0 }}
+    seaweedfs-master.vps: {{ .Address }}
+    {{ end }}
+    {{ end }}
+
+    {{ range $i, $s := nomadService "seaweedfs-filer-http" }}
+    {{ if eq $i 0 }}
+    seaweedfs-filer.vps: {{ .Address }}
+    {{ end }}
     {{ end }}
 
 blocking:

@@ -57,9 +57,16 @@ job "grafana" {
 
         check {
           name     = "alive"
-          type     = "tcp"
-          interval = "10s"
-          timeout  = "2s"
+          port     = "http"
+          type     = "http"
+          path     = "/api/health"
+          interval = "20s"
+          timeout  = "5s"
+          check_restart {
+            limit           = 3
+            grace           = "5s"
+            ignore_warnings = false
+          }
         }
 
         tags = [

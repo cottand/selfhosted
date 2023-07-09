@@ -1,6 +1,6 @@
 variable "lemmy_version" {
   type    = string
-  default = "0.18.0"
+  default = "0.18.1"
 }
 
 job "lemmy" {
@@ -270,9 +270,11 @@ EOF
     enabled: false
   }
   # remove this block if you don't require image hosting
-  #pictrs: {
-  #  url: "http://localhost:8080/"
-  #}
+  {{- range nomadService "lemmy-pictrs" }}
+  pictrs: {
+    url: "http://{{ .Address }}:{{ .Port }}/"
+  }
+  {{- end }}
   # Whether the site is available over TLS. Needs to be true for federation to work.
   #tls_enabled: true
   setup: {

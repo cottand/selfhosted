@@ -12,18 +12,9 @@
     "d /seaweed.d/volume 1777 root root -"
     "d /seaweed.d/filer 1777 root root -"
   ];
-  networking.firewall.interfaces.nomad = {
-    allowedUDPPortRanges = [{
-      from = 0;
-      to = 65535;
-    }];
-    allowedTCPPortRanges = [{
-      from = 0;
-      to = 65535;
-    }];
-  };
-  # allow all from nomad
   services.nomad = {
+    package = pkgs.nomad_1_6;
+
     enable = true;
     enableDocker = true;
     dropPrivileges = false;

@@ -33,6 +33,14 @@
   # networking.interfaces.enp0s20u1.useDHCP = lib.mkDefault true;
   # networking.interfaces.enp3s0f0.useDHCP = lib.mkDefault true;
 
+  # only applies to mac mini
+  # see https://superuser.com/questions/212434/how-to-reboot-after-power-failure-for-mac-mini-running-ubuntu
+  systemd.services.aut-reboot-pci = {
+    script = ''setpci -s 0:1f.0 0xa4.b=0'';
+    wantedBy = [ "sysinit.target" ];
+  };
+
+  
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
   # high-resolution display (deprecated according to morph)

@@ -13,6 +13,7 @@
     "d /seaweed.d/filer 1777 root root -"
   ];
   services.nomad = {
+    package = pkgs.nomad_1_6;
     enable = true;
     enableDocker = true;
     dropPrivileges = false;

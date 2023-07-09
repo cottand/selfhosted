@@ -39,7 +39,7 @@ job "seaweedfs" {
       driver = "docker"
 
       config {
-        image = "chrislusf/seaweedfs:3.51"
+        image = "chrislusf/seaweedfs:3.53"
 
         args = [
           "-logtostderr",
@@ -221,7 +221,7 @@ job "seaweedfs" {
       }
       driver = "docker"
       config {
-        image = "chrislusf/seaweedfs:3.51"
+        image = "chrislusf/seaweedfs:3.53"
         ports = ["http", "grpc", "metrics", "webdav"]
         args = [
           "-logtostderr",
