@@ -1,13 +1,13 @@
 
-id        = "lemmy-pictrs"
-name      = "lemmy-pictrs"
+id        = "lemmy-pictrs-sled"
+name      = "lemmy-pictrs-sled"
 type      = "csi"
 
 plugin_id = "seaweedfs"
 
 # dont try to set this to less than 1GiB
 capacity_min = "2GiB"
-capacity_max = "20GiB"
+capacity_max = "5GiB"
 
 capability {
   access_mode     = "single-node-writer"

@@ -53,9 +53,9 @@ job "lemmy" {
       }
 
       template {
-        destination   = "local/nginx.conf"
-        change_mode   = "restart"
-        data          = <<EOF
+        destination = "local/nginx.conf"
+        change_mode = "restart"
+        data        = <<EOF
 worker_processes 1;
 events {
     worker_connections 1024;
@@ -191,13 +191,9 @@ EOF
       }
       resources {
         cpu = 90
-        # docs say it should use about 150 MB
         memory = 90
       }
     }
-
-    # TODO PROXY
-
   }
 
   group "backend" {
@@ -211,6 +207,7 @@ EOF
     network {
       mode = "bridge"
       port "lemmy" { host_network = "vpn" }
+      port "metrics" { host_network = "vpn" }
       port "db" { host_network = "vpn" }
     }
 
@@ -243,6 +240,12 @@ EOF
             ignore_warnings = false
           }
         }
+      }
+      service {
+        name     = "lemmy-metrics"
+        port     = "metrics"
+        provider = "nomad"
+        tags = ["metrics"]
       }
       template {
 
@@ -277,6 +280,10 @@ EOF
   {{- end }}
   # Whether the site is available over TLS. Needs to be true for federation to work.
   #tls_enabled: true
+  prometheus: {
+    bind: "0.0.0.0"
+    port: {{ env "NOMAD_PORT_metrics" }}
+  }
   setup: {
     # Username for the admin user
     admin_username: "admin"
@@ -313,9 +320,9 @@ EOH
     //   attachment_mode = "file-system"
     // }
     volume "postgres" {
-      type            = "host"
-      read_only       = false
-      source          = "lemmy-data"
+      type      = "host"
+      read_only = false
+      source    = "lemmy-data"
     }
     network {
       mode = "bridge"
@@ -357,7 +364,7 @@ EOH
       }
       resources {
         cpu    = 120
-        memory = 250
+        memory = 300
       }
       service {
         name     = "lemmy-db"

@@ -1,8 +1,8 @@
 job "photos" {
   datacenters = ["dc1"]
   type        = "service"
-    group "immich" {
-        
+  group "immich" {
+
     network {
       mode = "bridge"
       port "http" {
@@ -12,5 +12,5 @@ job "photos" {
         host_network = "vpn"
       }
     }
-    }
+  }
 }

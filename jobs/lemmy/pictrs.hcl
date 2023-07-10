@@ -5,13 +5,13 @@ job "lemmy-pictures" {
 
 
   group "pictrs" {
-    // volume "pictrs" {
-    //   type            = "csi"
-    //   read_only       = false
-    //   source          = "lemmy-pictrs"
-    //   access_mode     = "single-node-writer"
-    //   attachment_mode = "file-system"
-    // }
+    volume "sled" {
+      type            = "csi"
+      read_only       = false
+      source          = "lemmy-pictrs-sled"
+      access_mode     = "single-node-writer"
+      attachment_mode = "file-system"
+    }
     network {
       mode = "bridge"
       port "http" {
@@ -168,7 +168,7 @@ max_area = 16384
 max_frame_count = 100
 
 
-# [repo]
+[repo]
 ## Optional: database backend to use
 # environment variable: PICTRS__REPO__TYPE
 # default: sled
@@ -179,7 +179,7 @@ max_frame_count = 100
 ## Optional: path to sled repository
 # environment variable: PICTRS__REPO__PATH
 # default: /mnt/sled-repo
-# path = '/mnt/sled-repo'
+path = '/mnt/sled-repo'
 
 ## Optional: in-memory cache capacity for sled data (in bytes)
 # environment variable: PICTRS__REPO__CACHE_CAPACITY
@@ -212,6 +212,11 @@ region = "us-east-005"
 # default: empty
 # session_token = 'SESSION_TOKEN'
         EOF
+      }
+      volume_mount {
+        volume      = "sled"
+        destination = "/mnt/sled-repo"
+        read_only   = false
       }
     }
   }

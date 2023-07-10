@@ -22,7 +22,7 @@ let
       packages = sources.nixos-23-05-cottand-6;
     };
     "cosmo.vps.dcotta.eu" = {
-      name = "miki";
+      name = "cosmo";
       packages = sources.nixos-23-05-cottand-6;
     };
   };

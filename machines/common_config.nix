@@ -1,6 +1,5 @@
 { config, pkgs, ... }:
 {
-
   nixpkgs.config.allowUnfree = true;
   services.openssh.enable = true;
   # Enable zsh
