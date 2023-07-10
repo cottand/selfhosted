@@ -21,8 +21,8 @@ job "lemmy-pictures" {
     }
     task "pictrs" {
       service {
-        name = "lemmy-pictrs"
-        port = "http"
+        name     = "lemmy-pictrs"
+        port     = "http"
         provider = "nomad"
         check {
           name     = "alive"
@@ -32,12 +32,7 @@ job "lemmy-pictures" {
           timeout  = "2s"
         }
       }
-      // volume_mount {
-      //   volume      = "pictrs"
-      //   destination = "/var/lib/pictrs"
-      //   read_only   = false
-      // }
-        driver = "docker"
+      driver = "docker"
       config {
         image = "asonix/pictrs:0.4.0-rc.14"
         ports = ["http"]
@@ -45,20 +40,19 @@ job "lemmy-pictures" {
           "pict-rs",
           "-c", "/etc/pict-rs.d/config.toml",
           "run",
-          // "object-storage",
         ]
-    mount {
-      type   = "bind"
-      source = "local/pict-rs.toml"
-      target = "/etc/pict-rs.d/config.toml"
-    }
+        mount {
+          type   = "bind"
+          source = "local/pict-rs.toml"
+          target = "/etc/pict-rs.d/config.toml"
+        }
       }
-    
+
 
       template {
         destination = "local/pict-rs.toml"
         change_mode = "restart"
-        data = <<EOF
+        data        = <<EOF
 [server]
 address = '0.0.0.0:8080'
 
