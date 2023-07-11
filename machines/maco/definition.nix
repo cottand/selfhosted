@@ -1,5 +1,4 @@
 { config, pkgs, ... }:
-
 {
   imports =
     [
@@ -28,15 +27,11 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-    iptables
     vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     wget
-    busybox
     usbutils
     pciutils
     iw
-    zsh
-    pkgs.nomad
   ];
 
   # List services that you want to enable

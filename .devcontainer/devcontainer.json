@@ -1,3 +1,7 @@
 {
     "build": { "dockerfile": "Dockerfile" },
+    "mounts": [
+        { "source": "dind-var-lib-docker", "target": "/var/lib/docker", "type": "volume" },
+        { "source": "~/.ssh/", "target": "/home/root/.ssh/", "type": "bind" }
+    ]
 } 

@@ -27,14 +27,11 @@
 
   environment.systemPackages = with pkgs; [ 
     wireguard-tools
-    python3
+    python3 # required for sshuttle
     seaweedfs # makes 'weed' bin available
-    # morph
-    usbutils
-    pciutils
     iw
-    zsh
     vim
+    htop
    ];
 
   # Set your time zone.

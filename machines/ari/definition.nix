@@ -6,9 +6,6 @@
       ./nomad/nomad.nix
       ./wireguard.nix
     ];
-  deployment.tags = [ "ari" ];
-
-
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
@@ -37,16 +34,12 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-    iptables
     vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     wget
-    # busybox
     usbutils
     pciutils
     iw
-    zsh
     pkgs.linuxKernel.packages.linux_5_15.rtl88xxau-aircrack
-    pkgs.nomad
   ];
 
   # List services that you want to enable
@@ -61,5 +54,4 @@
   #networking.firewall.allowedUDPPorts = [ 51820 4647 4648 ];
 
   system.stateVersion = "22.11";
-
 }
