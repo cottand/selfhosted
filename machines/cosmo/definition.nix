@@ -20,11 +20,6 @@
     shell = pkgs.zsh;
   };
 
-  users.users.root.openssh.authorizedKeys.keys = [
-    ''ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPJ7FM2wEuWoUuxRkWnP6PNEtG+HOcwcZIt6Qg/Y1jhk nico.dc@outlook.com''
-  ];
-
-
   networking.firewall.enable = true;
   networking.firewall = {
     allowedUDPPorts = [ 51820 ]; # 4647 4648 ];
