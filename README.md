@@ -5,7 +5,7 @@ This is the config-as-code of my personal machine cluster, which I use to self-h
 The fleet is made up of
 - 1 small server hosted Contabo, in Germany
 - 3 old machines in London, UK (2 in my living room, 1 in my bedroom)
-- 1 old laptop in Madrid, Spain (this on is in my mother's living room)
+- 1 old laptop in Madrid, Spain (this one is in my mother's living room)
 - Cloudlfare proxies my public HTTP traffic
 
 
