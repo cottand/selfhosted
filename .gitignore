@@ -3,3 +3,5 @@
 **/.DS_Store
 
 wg
+
+acl/acl_auth_method.json
