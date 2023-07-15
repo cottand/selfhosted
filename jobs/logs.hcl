@@ -1,84 +1,104 @@
 job "logs" {
-    datacenters = ["dc1"]
-    # system job, runs on all nodes
-    type        = "system"
-    priority = 1
-    update {
-        min_healthy_time  = "10s"
-        healthy_deadline  = "5m"
-        progress_deadline = "10m"
-        auto_revert       = true
+  datacenters = ["dc1"]
+  # system job, runs on all nodes
+  type     = "system"
+  priority = 1
+  update {
+    min_healthy_time  = "10s"
+    healthy_deadline  = "5m"
+    progress_deadline = "10m"
+    auto_revert       = true
+  }
+  group "vector" {
+    count = 1
+    restart {
+      attempts = 3
+      interval = "10m"
+      delay    = "30s"
+      mode     = "fail"
     }
-    group "vector" {
-        count = 1
-        restart {
-            attempts = 3
-            interval = "10m"
-            delay    = "30s"
-            mode     = "fail"
-        }
-        network {
-            mode = "bridge"
-            port "http" {
-                host_network = "vpn"
-            }
-        }
-        # docker socket volume
-        volume "docker-sock" {
-            type      = "host"
-            source    = "docker-sock-ro"
-            read_only = true
-        }
-        ephemeral_disk {
-            size   = 500
-            sticky = true
-        }
-        task "vector" {
-            driver = "docker"
-            config {
-                image = "timberio/vector:0.29.X-alpine"
-                ports = ["http"]
-            }
-            # docker socket volume mount
-            volume_mount {
-                volume      = "docker-sock"
-                destination = "/var/run/docker.sock"
-                read_only   = true
-            }
-            # Vector won't start unless the sinks(backends) configured are healthy
-            env {
-                VECTOR_CONFIG          = "local/vector.toml"
-                VECTOR_REQUIRE_HEALTHY = "true"
-            }
-            # resource limits are a good idea because you don't want your log collection to consume all resources available
-            resources {
-                cpu    = 100
-                memory = 256
-                # Update the Scheduler Configuration to allow oversubscription.
-                memory_max = 1024
-            }
-            # template with Vector's configuration
-            template {
-                destination     = "local/vector.toml"
-                change_mode     = "restart"
-                # overriding the delimiters to [[ ]] to avoid conflicts with Vector's native templating, which also uses {{ }}
-                left_delimiter  = "[["
-                right_delimiter = "]]"
-                data            = <<EOH
-        data_dir = "alloc/data/vector/"
+    network {
+      mode = "bridge"
+      port "http" {
+        host_network = "vpn"
+      }
+    }
+    # docker socket volume
+    volume "docker-sock" {
+      type      = "host"
+      source    = "docker-sock-ro"
+      read_only = true
+    }
+    // volume "journald" {
+    //   type      = "host"
+    //   source    = "journald-ro"
+    //   read_only = true
+    // }
+    // volume "machineid" {
+    //   type      = "host"
+    //   source    = "machineid-ro"
+    //   read_only = true
+    // }
+    ephemeral_disk {
+      size   = 500
+      sticky = true
+    }
+    task "vector" {
+      driver = "docker"
+      config {
+        image = "timberio/vector:0.31.0-debian"
+        ports = ["http"]
+      }
+      # docker socket volume mount
+      volume_mount {
+        volume      = "docker-sock"
+        destination = "/var/run/docker.sock"
+        read_only   = true
+      }
+    //   volume_mount {
+    //     volume      = "journald"
+    //     destination = "/var/log/journal"
+    //     read_only   = true
+    //   }
+    //   volume_mount {
+    //     volume      = "machineid"
+    //     destination = "/etc/machine-id"
+    //     read_only   = true
+    //   }
+      # Vector won't start unless the sinks(backends) configured are healthy
+      env {
+        VECTOR_CONFIG          = "local/vector.toml"
+        VECTOR_REQUIRE_HEALTHY = "true"
+      }
+      # resource limits are a good idea because you don't want your log collection to consume all resources available
+      resources {
+        cpu    = 200
+        memory = 256
+        # Update the Scheduler Configuration to allow oversubscription.
+        memory_max = 1024
+      }
+      # template with Vector's configuration
+      template {
+        destination = "local/vector.toml"
+        change_mode = "restart"
+        # overriding the delimiters to [[ ]] to avoid conflicts with Vector's native templating, which also uses {{ }}
+        left_delimiter  = "[["
+        right_delimiter = "]]"
+        data            = <<EOH
+        data_dir = "alloc/data/"
           [api]
             enabled = true
             address = "0.0.0.0:[[ env "NOMAD_PORT_http" ]]"
             playground = true
           [sources.logs]
             type = "docker_logs"
-#          [sources.host_journald_logs]
-#            type = "journald"
-#            current_boot_only = true
-#            since_now = true
-#            include_units = []
-#             Warning and above
-#            include_matches.PRIORITY = [ "0", "1", "2", "3", "4" ]
+        # [sources.host_journald_logs]
+        #   type = "journald"
+        #   current_boot_only = true
+        #   since_now = true
+        #   include_units = [ "nomad", "wg-quick-wg0" ]
+#       #     Warning and above
+        #    include_matches.PRIORITY = [ "0", "1", "2", "3", "4" ]
 
 #          [sinks.out]
 #            type = "console"
@@ -86,7 +106,8 @@ job "logs" {
 #            encoding.codec = "json"
           [sinks.loki]
             type = "loki"
-            inputs = ["logs"]
+    #       inputs = ["logs", "host_journald_logs"]
+           inputs = ["logs"]
             endpoint = "http://[[ range nomadService "loki" ]][[ .Address ]]:[[ .Port ]][[ end ]]"
             encoding.codec = "json"
             healthcheck.enabled = true
@@ -103,19 +124,19 @@ job "logs" {
             # remove fields that have been converted to labels to avoid having the field twice
             remove_label_fields = true
         EOH
-            }
-#            service {
-#                name = "vector"
-#                provider = "nomad"
-#                check {
-#                    port     = "http"
-#                    type     = "http"
-#                    path     = "/health"
-#                    interval = "30s"
-#                    timeout  = "5s"
-#                }
-#            }
-#            kill_timeout = "30s"
-        }
+      }
+      #            service {
+      #                name = "vector"
+      #                provider = "nomad"
+      #                check {
+      #                    port     = "http"
+      #                    type     = "http"
+      #                    path     = "/health"
+      #                    interval = "30s"
+      #                    timeout  = "5s"
+      #                }
+      #            }
+      #            kill_timeout = "30s"
     }
+  }
 }
