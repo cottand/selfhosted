@@ -1,3 +1,9 @@
+
+variable "immich_version" {
+  type    = string
+  default = "v1.66.1"
+}
+
 job "immich" {
   datacenters = ["<your-datacenter>"]
 
@@ -16,7 +22,7 @@ job "immich" {
 
       config {
         image = "ghcr.io/immich-app/immich-server:release"
-        command = ["start-server.sh"]
+        command = [ "start.sh", "immich" ]
         volumes = [
           "${UPLOAD_LOCATION}:/usr/src/app/upload"
         ]
