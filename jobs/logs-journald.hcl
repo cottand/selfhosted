@@ -29,6 +29,16 @@ job "logs" {
       source    = "docker-sock-ro"
       read_only = true
     }
+    volume "journald" {
+      type      = "host"
+      source    = "journald-ro"
+      read_only = true
+    }
+    volume "machineid" {
+      type      = "host"
+      source    = "machineid-ro"
+      read_only = true
+    }
     ephemeral_disk {
       size   = 500
       sticky = true
@@ -43,6 +53,16 @@ job "logs" {
       volume_mount {
         volume      = "docker-sock"
         destination = "/var/run/docker.sock"
+        read_only   = true
+      }
+      volume_mount {
+        volume      = "journald"
+        destination = "/var/log/journal"
+        read_only   = true
+      }
+      volume_mount {
+        volume      = "machineid"
+        destination = "/etc/machine-id"
         read_only   = true
       }
       # Vector won't start unless the sinks(backends) configured are healthy
@@ -72,13 +92,21 @@ job "logs" {
             playground = true
           [sources.logs]
             type = "docker_logs"
+          [sources.host_journald_logs]
+            type = "journald"
+            current_boot_only = true
+            since_now = true
+            include_units = [ "nomad", "wg-quick-wg0" ]
+#             Warning and above
+             include_matches.PRIORITY = [ "0", "1", "2", "3", "4" ]
+
 #          [sinks.out]
 #            type = "console"
 #            inputs = [ "logs" ]
 #            encoding.codec = "json"
           [sinks.loki]
             type = "loki"
-            inputs = ["logs"]
+            inputs = ["logs", "host_journald_logs"]
             endpoint = "http://[[ range nomadService "loki" ]][[ .Address ]]:[[ .Port ]][[ end ]]"
             encoding.codec = "json"
             healthcheck.enabled = true
