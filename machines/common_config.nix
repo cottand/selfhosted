@@ -32,6 +32,7 @@
     iw
     vim
     htop
+    s-tui
    ];
 
   # Set your time zone.

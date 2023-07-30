@@ -37,6 +37,10 @@ client {
     path      = "/lemmy.d/data"
     read_only = false
   }
+  // host_volume "grafana-cosmo" {
+    // path      = "/grafana.d"
+    // read_only = false
+  // }
 
   meta {
     box              = "cosmo"
