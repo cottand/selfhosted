@@ -1,7 +1,7 @@
 
 job "web-portfolio" {
   datacenters = ["dc1"]
-  priority    = 1
+  priority    = 50
   group "web-portfolio" {
     count = 2
     network {
@@ -38,7 +38,7 @@ job "web-portfolio" {
         tags = [
           "traefik.enable=true",
           "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`nico.dcotta.eu`)",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=websecure",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=websecure, websecure_public",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls=true",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt"
         ]
@@ -49,5 +49,8 @@ job "web-portfolio" {
         memory = 60
       }
     }
+  }
+  meta = {
+    "random" = "abcd"
   }
 }

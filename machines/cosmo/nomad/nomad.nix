@@ -11,6 +11,7 @@
   systemd.tmpfiles.rules = [
     "d /seaweed.d/volume 1777 root root -"
     "d /seaweed.d/filer 1777 root root -"
+    "d /grafana.d/ 1777 root root -"
   ];
   services.nomad = {
     package = pkgs.nomad_1_6;

@@ -51,7 +51,7 @@ job "seaweedfs" {
           "-port=${NOMAD_PORT_http}",
           "-port.grpc=${NOMAD_PORT_grpc}",
           # no replication
-          "-defaultReplication=000",
+          "-defaultReplication=010",
           "-metricsPort=${NOMAD_PORT_metrics}",
           # 1GB max volume size
           # lower=more volumes per box (easier replication)

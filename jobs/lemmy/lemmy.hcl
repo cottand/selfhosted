@@ -1,6 +1,6 @@
 variable "lemmy_version" {
   type    = string
-  default = "0.18.1"
+  default = "0.18.3"
 }
 
 job "lemmy" {
@@ -54,10 +54,10 @@ job "lemmy" {
         tags = [
           "traefik.enable=true",
           # for some reason only when there is a longer hostname this works
-           "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`r.dcotta.eu`) || Host(`lemmy.dcotta.eu`)",
-           "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=websecure_public,websecure,web_public,web",
-           "traefik.http.routers.${NOMAD_TASK_NAME}.tls=true",
-           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`r.dcotta.eu`) || Host(`lemmy.dcotta.eu`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=websecure_public,websecure,web_public,web",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls=true",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt",
         ]
       }
       template {
@@ -79,6 +79,12 @@ EOH
 
   group "backend" {
 
+    update {
+      min_healthy_time  = "10s"
+      healthy_deadline  = "5m"
+      progress_deadline = "10m"
+      auto_revert       = true
+    }
     restart {
       interval = "10m"
       attempts = 8
@@ -197,9 +203,9 @@ EOH
   group "postgres" {
     restart {
       attempts = 4
-      interval = "30m"
+      interval = "10m"
       delay    = "20s"
-      mode     = "fail"
+      mode     = "delay"
     }
     volume "postgres" {
       type      = "host"

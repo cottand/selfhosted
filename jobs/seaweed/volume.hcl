@@ -87,8 +87,8 @@ job "seaweedfs-volume" {
       }
 
       resources {
-        cpu    = 256
-        memory = 256
+        cpu    = 150
+        memory = 300
       }
       config {
         image = "chrislusf/seaweedfs:3.51"

@@ -20,8 +20,8 @@ job "seaweedfs-plugin" {
       sticky  = false
     }
     restart {
-      interval = "10m"
-      attempts = 5
+      interval = "5m"
+      attempts = 10
       delay    = "15s"
       mode     = "delay"
     }

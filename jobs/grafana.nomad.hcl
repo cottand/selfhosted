@@ -4,6 +4,11 @@ job "grafana" {
   priority    = 1
   group "grafana" {
     count = 1
+    // volume "grafana" {
+    //   type      = "host"
+    //   read_only = false
+    //   source    = "grafana-cosmo"
+    // }
     volume "grafana" {
       type            = "csi"
       read_only       = false
@@ -23,10 +28,10 @@ job "grafana" {
     }
 
     restart {
-      attempts = 2
-      interval = "30m"
+      attempts = 4
+      interval = "10m"
       delay    = "15s"
-      mode     = "fail"
+      mode     = "delay"
     }
 
     task "grafana" {
@@ -64,7 +69,7 @@ job "grafana" {
           timeout  = "5s"
           check_restart {
             limit           = 3
-            grace           = "5s"
+            grace           = "30s"
             ignore_warnings = false
           }
         }

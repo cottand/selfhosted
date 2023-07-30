@@ -1,19 +1,19 @@
 {
   meta = {
-    nixpkgs = (import ./sources.nix).nixos-23-05-cottand-6;
+    nixpkgs = (import ./sources.nix).nixos-23-05-cottand-7;
 
     nodeNixpkgs = {
       #   elvis = (import (import ./sources.nix).nixos-22-11);
     };
 
     # can be used for distributed builds instead of buildOnTraget
-    # machinesFile = ./machines.client-a;
+    # machinesFile = ./machines/remote-builders;
   };
 
   defaults = { pkgs, lib, ... }: {
     imports = [ ./machines/common_config.nix ];
-    nixpkgs.system = lib.mkDefault "x86_64-linux";
-    deployment.replaceUnknownProfiles = lib.mkDefault false;
+    nixpkgs.system = "x86_64-linux";
+    deployment.replaceUnknownProfiles = lib.mkDefault true;
     deployment.buildOnTarget = true;
   };
 
@@ -49,6 +49,5 @@
     networking.hostName = name;
     deployment.targetHost = "${name}.vpn.dcotta.eu";
     deployment.tags = [ "madrid" "nomad-client" ];
-    deployment.replaceUnknownProfiles = true;
   };
 }
