@@ -5,4 +5,6 @@ builtins.mapAttrs (name: value: import value) {
   nixos-23-05-cottand-6 = builtins.fetchTarball "https://github.com/Cottand/nixpkgs/archive/refs/tags/23.05-cottand-6.tar.gz";
   nixos-23-05-cottand-7 = builtins.fetchTarball "https://github.com/Cottand/nixpkgs/archive/refs/tags/23.05-cottand-7.tar.gz";
   nixos-local-dev = /Users/nico/dev/nixpkgs;
+
+  nixos-23-05-2 = builtins.fetchTarball "https://github.com/Cottand/nixpkgs/archive/refs/tags/23.05.2.tar.gz";
 }

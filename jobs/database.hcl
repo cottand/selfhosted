@@ -59,19 +59,18 @@ job "postgres" {
         #                    interval = "20s"
         #                    timeout  = "2s"
         #                }
-        tags = [
-          "traefik.enable=true",
-          "traefik.tcp.routers.${NOMAD_TASK_NAME}.rule=HostSNI(`vps.dcotta.eu`)",
-          #                    "traefik.tcp.routers.${NOMAD_TASK_NAME}.entrypoints=postgres,postgres-public",
-          "traefik.tcp.routers.${NOMAD_TASK_NAME}.entrypoints=postgres,postgres_public",
-          "traefik.tcp.routers.${NOMAD_TASK_NAME}.tls=true",
-          "traefik.tcp.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt",
+        // tags = [
+        //   "traefik.enable=true",
+        //   "traefik.tcp.routers.${NOMAD_TASK_NAME}.rule=HostSNI(`vps.dcotta.eu`)",
+        //   "traefik.tcp.routers.${NOMAD_TASK_NAME}.entrypoints=postgres,postgres_public",
+        //   "traefik.tcp.routers.${NOMAD_TASK_NAME}.tls=true",
+        //   "traefik.tcp.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt",
 
-          "traefik.tcp.routers.${NOMAD_TASK_NAME}-web.rule=HostSNI(`db.web.dcotta.eu`)",
-          "traefik.tcp.routers.${NOMAD_TASK_NAME}-web.entrypoints=web,websecure",
-          "traefik.tcp.routers.${NOMAD_TASK_NAME}-web.tls=true",
-          "traefik.tcp.routers.${NOMAD_TASK_NAME}-web.tls.certresolver=lets-encrypt",
-        ]
+        //   "traefik.tcp.routers.${NOMAD_TASK_NAME}-web.rule=HostSNI(`db.web.dcotta.eu`)",
+        //   "traefik.tcp.routers.${NOMAD_TASK_NAME}-web.entrypoints=web,websecure",
+        //   "traefik.tcp.routers.${NOMAD_TASK_NAME}-web.tls=true",
+        //   "traefik.tcp.routers.${NOMAD_TASK_NAME}-web.tls.certresolver=lets-encrypt",
+        // ]
       }
     }
 
