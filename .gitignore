@@ -5,3 +5,5 @@
 wg
 
 acl/acl_auth_method.json
+
+secret/

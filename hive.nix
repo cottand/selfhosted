@@ -18,25 +18,37 @@
   };
 
   cosmo = { name, nodes, ... }: {
-    imports = [ ./machines/${name}/definition.nix ];
+    imports = [
+      ./machines/${name}/definition.nix
+      ./machines/wg_mesh.nix
+    ];
     networking.hostName = name;
-    deployment.targetHost = "${name}.vpn.dcotta.eu";
+    deployment.targetHost = "${name}.vps.dcotta.eu";
     deployment.tags = [ "contabo" "nomad-server" ];
   };
   ari = { name, nodes, ... }: {
-    imports = [ ./machines/${name}/definition.nix ];
+    imports = [
+      ./machines/${name}/definition.nix
+      ./machines/wg_mesh.nix
+    ];
     networking.hostName = name;
     deployment.targetHost = "${name}.vpn.dcotta.eu";
     deployment.tags = [ "local" "nomad-server" ];
   };
   maco = { name, nodes, ... }: {
-    imports = [ ./machines/${name}/definition.nix ];
+    imports = [
+      ./machines/${name}/definition.nix
+      ./machines/wg_mesh.nix
+    ];
     networking.hostName = name;
     deployment.targetHost = "${name}.vpn.dcotta.eu";
     deployment.tags = [ "local" "nomad-server" ];
   };
   elvis = { name, nodes, ... }: {
-    imports = [ ./machines/${name}/definition.nix ];
+    imports = [
+      ./machines/${name}/definition.nix
+      ./machines/wg_mesh.nix
+    ];
     networking.hostName = name;
     deployment.targetHost = "${name}.vpn.dcotta.eu";
     deployment.tags = [ "local" "nomad-client" ];
