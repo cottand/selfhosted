@@ -1,6 +1,6 @@
 {
   meta = {
-    nixpkgs = (import ./sources.nix).nixos-23-05-cottand-7;
+    nixpkgs = (import ./sources.nix).nixos-23-05-2;
 
     nodeNixpkgs = {
       #   elvis = (import (import ./sources.nix).nixos-22-11);

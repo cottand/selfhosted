@@ -34,7 +34,7 @@ job "lemmy-pictures" {
       }
       driver = "docker"
       config {
-        image = "asonix/pictrs:0.4.0-rc.14"
+        image = "asonix/pictrs:0.4.1"
         ports = ["http"]
         entrypoint = [
           "pict-rs",

@@ -29,10 +29,11 @@
     wireguard-tools
     python3 # required for sshuttle
     seaweedfs # makes 'weed' bin available
+    pciutils # for setpci, lspci
     iw
     vim
     htop
-    s-tui
+    s-tui # power top
    ];
 
   # Set your time zone.

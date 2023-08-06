@@ -31,8 +31,13 @@ job "seaweedfs-plugin" {
 
       template {
         destination = "config/.env"
+        change_mode = "restart"
         env = true
         data = <<-EOF
+SEAWEEDFS_FILER_IP_http=''
+SEAWEEDFS_FILER_PORT_http=''
+SEAWEEDFS_FILER_IP_grpc=''
+SEAWEEDFS_FILER_PORT_grpc=''
 {{ range $i, $s := nomadService "seaweedfs-filer-http" }}
 {{- if eq $i 0 -}}
 SEAWEEDFS_FILER_IP_http={{ .Address }}
