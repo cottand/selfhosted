@@ -2,6 +2,7 @@
 {
   nixpkgs.config.allowUnfree = true;
   services.openssh.enable = true;
+  networking.enableIPv6 = true;
   # Enable zsh
   programs.zsh.enable = true;
 
@@ -30,6 +31,7 @@
     python3 # required for sshuttle
     seaweedfs # makes 'weed' bin available
     pciutils # for setpci, lspci
+    dig
     iw
     vim
     htop
