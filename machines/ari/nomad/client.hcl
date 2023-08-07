@@ -1,6 +1,6 @@
 client {
     enabled = true
-    servers = ["10.8.0.1", "10.8.0.5", "10.8.0.8"]
+    servers = ["10.10.0.1", "10.10.2.1", "10.10.3.1"]
 
     options = {
         "driver.allowlist" = "docker,raw_exec"
@@ -11,6 +11,11 @@ client {
     host_network "vpn" {
         cidr = "10.8.0.0/24"
         reserved_ports = "51820"
+    }
+
+    host_network "wg-mesh" {
+        cidr = "10.10.0.0/16"
+        reserved_ports = "22,55820"
     }
 
     host_volume "docker-sock-ro" {
