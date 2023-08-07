@@ -8,7 +8,7 @@
 
       privateKeyFile = "/root/secret/wg-private.key";
 
-      dns = [ "10.8.0.1" ];
+      dns = [ "1.1.1.1" ];
 
       peers = [
         {
@@ -27,18 +27,18 @@
         }
       ];
     };
-    wg-local = {
-      privateKeyFile = "/root/secret/wg-local/private";
-      listenPort = 52820;
-      address = [ "10.8.1.101/24" ];
+    # wg-local = {
+    #   privateKeyFile = "/root/secret/wg-local/private";
+    #   listenPort = 52820;
+    #   address = [ "10.8.1.101/24" ];
 
-      peers = [
-          # ari
-        {
-          publicKey = "tBWmnEM391TVidhOfkUunfWNDht42nO7LZeLvmeOXSc=";
-          allowedIPs = [ "10.8.1.8/32" ];
-        }
-      ];
-    };
+    #   peers = [
+    #       # ari
+    #     {
+    #       publicKey = "tBWmnEM391TVidhOfkUunfWNDht42nO7LZeLvmeOXSc=";
+    #       allowedIPs = [ "10.8.1.8/32" ];
+    #     }
+    #   ];
+    # };
   };
 }

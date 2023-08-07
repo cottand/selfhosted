@@ -1,23 +1,31 @@
 server {
-  enabled = true
-  bootstrap_expect = 3
+  enabled          = true
+  bootstrap_expect = 2
   server_join {
-    retry_join = [ "10.8.0.1", "10.8.0.5" ]
-    retry_max = 3
+    retry_join = [
+      "maco.mesh.dcotta.eu"
+    ]
+    retry_max      = 3
     retry_interval = "15s"
   }
 }
 
-data_dir  = "/var/lib/nomad"
+# binaries shouldn't go in /var/lib
+plugin_dir = "/usr/lib/nomad/plugins"
+data_dir   = "/var/lib/nomad"
 
-bind_addr = "10.8.0.1"
+# bind_addr = "10.10.0.1"
+bind_addr = "0.0.0.0"
 #bind_addr = "127.0.0.1"
 
 advertise {
-#   Defaults to the first private IP address.
-  http = "10.8.0.1"
-  rpc  = "10.8.0.1"
-  serf = "10.8.0.1" # non-default ports may be specified
+  http = "{{GetInterfaceIP \"wg-mesh\"}}"
+  rpc  = "{{GetInterfaceIP \"wg-mesh\"}}"
+  serf = "{{GetInterfaceIP \"wg-mesh\"}}"
+  #   Defaults to the first private IP address.
+  // http = "10.10.0.1"
+  // rpc  = "10.10.0.1"
+  // serf = "10.10.0.1" # non-default ports may be specified
 }
 
 log_rotate_bytes = 1024000
@@ -29,13 +37,13 @@ ports {
 }
 
 telemetry {
-  collection_interval = "5s"
-  disable_hostname = true
-  prometheus_metrics = true
+  collection_interval        = "5s"
+  disable_hostname           = true
+  prometheus_metrics         = true
   publish_allocation_metrics = true
-  publish_node_metrics = true
+  publish_node_metrics       = true
 }
 
 acl {
-    // enabled = true
+  // enabled = true
 }

@@ -2,7 +2,7 @@ server {
     enabled = false
     bootstrap_expect = 3
     server_join {
-        retry_join = [ "10.8.0.1", "10.8.0.5" ]
+        retry_join = [ "10.10.0.1", "10.10.2.1" ]
         retry_max = 3
         retry_interval = "15s"
     }
@@ -10,13 +10,13 @@ server {
 
 data_dir  = "/var/lib/nomad"
 
-bind_addr = "10.8.0.101"
+bind_addr = "10.10.1.1"
 
 advertise {
     #   Defaults to the first private IP address.
-    http = "10.8.0.101"
-    rpc  = "10.8.0.101"
-    serf = "10.8.0.101" # non-default ports may be specified
+    http = "10.10.1.1"
+    rpc  = "10.10.1.1"
+    serf = "10.10.1.1" # non-default ports may be specified
 }
 
 log_rotate_bytes = 1024000

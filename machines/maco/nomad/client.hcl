@@ -4,7 +4,7 @@ client {
   alloc_dir = "/home/cottand/selfhosted/maco/nomad/alloc/"
   state_dir = "/home/cottand/selfhosted/maco/nomad/client-state"
 
-  servers = ["10.8.0.1", "10.8.0.5", "10.8.0.8"]
+  servers = ["10.10.0.1", "10.10.2.1", "10.10.3.1"]
 
   bridge_network_hairpin_mode = true
   options = {
@@ -15,7 +15,10 @@ client {
     cidr           = "10.8.0.0/24"
     reserved_ports = "22,51820" # wireguard, ssh reserved
   }
-
+  host_network "wg-mesh" {
+    cidr           = "10.10.0.0/16"
+    reserved_ports = "22,55820"
+  }
   host_volume "docker-sock-ro" {
     path      = "/var/run/docker.sock"
     read_only = true

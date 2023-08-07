@@ -1,24 +1,34 @@
 server {
   enabled          = true
-  bootstrap_expect = 3
+  bootstrap_expect = 2
   server_join {
-    retry_join     = ["10.8.0.1", "10.8.0.5"]
+    retry_join     = [
+      // "10.10.0.1",
+      "cosmo.mesh.dcotta.eu"
+    //  "10.10.3.1"
+     ]
     retry_max      = 3
     retry_interval = "15s"
   }
 }
 # binaries shouldn't go in /var/lib
 plugin_dir = "/usr/lib/nomad/plugins"
+data_dir = "/var/lib/nomad"
 
-data_dir = "/home/cottand/selfhosted/maco/nomad/data"
-
-bind_addr = "10.8.0.5"
+// bind_addr = "10.10.2.1"
+bind_addr = "0.0.0.0"
 
 advertise {
   #   Defaults to the first private IP address.
-  http = "10.8.0.5"
-  rpc  = "10.8.0.5"
-  serf = "10.8.0.5" # non-default ports may be specified
+  // http = "10.10.2.1"
+  // rpc  = "10.10.2.1"
+  // serf = "10.10.2.1" # non-default ports may be specified
+  http = "{{GetInterfaceIP \"wg-mesh\"}}"
+  rpc  = "{{GetInterfaceIP \"wg-mesh\"}}"
+  serf = "{{GetInterfaceIP \"wg-mesh\"}}"
+  // http = "10.10.2.1"
+  // rpc  = "10.10.2.1"
+  // serf = "10.10.2.1" # non-default ports may be specified
 }
 
 log_rotate_bytes = 1024000

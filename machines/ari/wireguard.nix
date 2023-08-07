@@ -8,7 +8,7 @@
 
       privateKeyFile = "/root/secret/wg-private.key";
 
-      dns = [ "10.8.0.1" ];
+      dns = [ "1.1.1.1" ];
 
       peers = [
         {
@@ -26,20 +26,6 @@
           persistentKeepalive = 25;
         }
       ];
-    };
-    # to elvis
-    wg-local = {
-      privateKeyFile = "/root/secret/wg-local/private";
-
-      address = [ "10.8.1.8/24" ];
-      dns = [ "10.8.0.1" ];
-      #elvis
-      peers = [{
-        publicKey = "XjVaA/NmTjm8E0WBLMx/0wHMmGKt/AllSgGowvUMnE0=";
-        allowedIPs = [ "10.8.1.0/24" ];
-        endpoint = "elvis.vps6.dcotta.eu:52820";
-        persistentKeepalive = 25;
-      }];
     };
   };
 }
