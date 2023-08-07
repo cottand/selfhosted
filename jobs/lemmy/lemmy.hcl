@@ -93,9 +93,9 @@ EOH
     }
     network {
       mode = "bridge"
-      port "lemmy" { host_network = "vpn" }
-      port "metrics" { host_network = "vpn" }
-      port "db" { host_network = "vpn" }
+      port "lemmy" { host_network = "wg-mesh" }
+      port "metrics" { host_network = "wg-mesh" }
+      port "db" { host_network = "wg-mesh" }
     }
 
     task "lemmy-be" {
@@ -216,11 +216,11 @@ EOH
       mode = "bridge"
       port "postgres" {
         to           = 5432
-        host_network = "vpn"
+        host_network = "wg-mesh"
       }
       port "metrics" {
         to           = 9187
-        host_network = "vpn"
+        host_network = "wg-mesh"
       }
     }
     task "postgres" {

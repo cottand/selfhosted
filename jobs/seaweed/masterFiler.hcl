@@ -234,7 +234,7 @@ job "seaweedfs" {
           "-metricsPort=${NOMAD_PORT_metrics}",
           "-webdav",
           "-webdav.collection=",
-          "-webdav.replication=000",
+          "-webdav.replication=020",
           "-webdav.port=${NOMAD_PORT_webdav}",
         ]
       }
