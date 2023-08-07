@@ -80,7 +80,6 @@ job "traefik" {
             driver = "docker"
             env    = {
                 "WG_HOST"        = "web.vps.dcotta.eu"
-                "WG_DEFAULT_DNS" = "10.8.1.3"
             }
             volume_mount {
                 volume      = "traefik-cert"
@@ -117,6 +116,7 @@ job "traefik" {
     [http.middlewares.vpn-whitelist.IPAllowList]
         sourcerange = [
             '10.8.0.1/24', # VPN clients
+            '10.10.0.1/16', # WG mesh
             '127.1.0.0/24', # VPN clients
             '172.26.64.18/20', # containers
             '185.216.203.147', # comsmo's public contabo IP (will be origin when using sshuttle)

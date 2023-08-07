@@ -3,14 +3,18 @@ job "dns" {
     type        = "system"
     group "blocky-dns" {
         network {
-            #            mode = "bridge"
+            mode = "bridge"
             port "dns" {
                 static       = 53
                 host_network = "vpn"
             }
-            #            port "dns-public" {
-            #                static = 53
-            #            }
+            port "dns-mesh" {
+                static       = 53
+                host_network = "wg-mesh"
+            }
+                        // port "dns-public" {
+                        //     static = 53
+                        // }
             port "metrics" {
                 to           = 4000
                 host_network = "vpn"
@@ -30,6 +34,18 @@ job "dns" {
             name     = "dns"
             provider = "nomad"
             port     = "dns"
+            check {
+                name     = "alive"
+                type     = "tcp"
+                port     = "metrics"
+                interval = "20s"
+                timeout  = "2s"
+            }
+        }
+        service {
+            name     = "dns-mesh"
+            provider = "nomad"
+            port     = "dns-mesh"
             check {
                 name     = "alive"
                 type     = "tcp"
