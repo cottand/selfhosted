@@ -23,15 +23,15 @@ job "seaweedfs" {
 
       port "http" {
         static       = 9333
-        host_network = "vpn"
+        host_network = "wg-mesh"
       }
 
       port "grpc" {
         static       = 19333
-        host_network = "vpn"
+        host_network = "wg-mesh"
       }
       port "metrics" {
-        host_network = "vpn"
+        host_network = "wg-mesh"
       }
     }
 
@@ -39,7 +39,7 @@ job "seaweedfs" {
       driver = "docker"
 
       config {
-        image = "chrislusf/seaweedfs:3.53"
+        image = "chrislusf/seaweedfs:3.55"
 
         args = [
           "-logtostderr",
@@ -135,21 +135,25 @@ job "seaweedfs" {
       min_healthy_time = "1m"
     }
     network {
-      mode = "host"
+      mode = "bridge"
 
       port "http" {
         static       = 8888
-        host_network = "vpn"
+        host_network = "wg-mesh"
       }
 
       port "grpc" {
         static       = 18888
-        host_network = "vpn"
+        host_network = "wg-mesh"
       }
       port "metrics" {
-        host_network = "vpn"
+        host_network = "wg-mesh"
       }
       port "webdav" {
+        static       = 17777
+        host_network = "wg-mesh"
+      }
+      port "webdav-vpn" {
         static       = 17777
         host_network = "vpn"
       }
@@ -221,7 +225,7 @@ job "seaweedfs" {
       }
       driver = "docker"
       config {
-        image = "chrislusf/seaweedfs:3.53"
+        image = "chrislusf/seaweedfs:3.55"
         ports = ["http", "grpc", "metrics", "webdav"]
         args = [
           "-logtostderr",

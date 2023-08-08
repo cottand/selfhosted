@@ -15,7 +15,7 @@ job "lemmy" {
     network {
       mode = "bridge"
       port "http" {
-        host_network = "vpn"
+        host_network = "wg-mesh"
         to           = 80
       }
     }
@@ -25,7 +25,7 @@ job "lemmy" {
 
       config {
         image = "dessalines/lemmy-ui:${var.lemmy_version}"
-        ports = ["ui"]
+        ports = ["http"]
       }
       env {
         # this needs to match the hostname defined in the lemmy service

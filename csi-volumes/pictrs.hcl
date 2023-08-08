@@ -21,5 +21,5 @@ mount_options {
 
 # documented at https://github.com/seaweedfs/seaweedfs-csi-driver
 parameters {
-  replication = "000"
+  replication = "010"
 }

@@ -1,16 +1,16 @@
 job "seaweedfs-plugin" {
   datacenters = ["dc1"]
-  type = "system"
+  type        = "system"
   update {
     max_parallel = 1
-    stagger = "60s"
+    stagger      = "60s"
   }
 
   # only one plugin of a given type and ID should be deployed on
   # any given client node
   constraint {
     operator = "distinct_hosts"
-    value = true
+    value    = true
   }
 
   group "nodes" {
@@ -32,12 +32,8 @@ job "seaweedfs-plugin" {
       template {
         destination = "config/.env"
         change_mode = "restart"
-        env = true
-        data = <<-EOF
-SEAWEEDFS_FILER_IP_http=''
-SEAWEEDFS_FILER_PORT_http=''
-SEAWEEDFS_FILER_IP_grpc=''
-SEAWEEDFS_FILER_PORT_grpc=''
+        env         = true
+        data        = <<-EOF
 {{ range $i, $s := nomadService "seaweedfs-filer-http" }}
 {{- if eq $i 0 -}}
 SEAWEEDFS_FILER_IP_http={{ .Address }}
@@ -54,15 +50,18 @@ EOF
       }
 
       config {
-                network_mode = "host"
-        image = "chrislusf/seaweedfs-csi-driver"
+        network_mode = "host"
+        image        = "chrislusf/seaweedfs-csi-driver:v1.1.5"
+        force_pull   = "true"
 
         args = [
+          // "--controller",
+          // "--node",
           "--endpoint=unix://csi/csi.sock",
           "--filer=${SEAWEEDFS_FILER_IP_http}:${SEAWEEDFS_FILER_PORT_http}.${SEAWEEDFS_FILER_PORT_grpc}",
           "--nodeid=${node.unique.name}",
           "--cacheCapacityMB=1000",
-          "--cacheDir=/tmp",
+          "--cacheDir=${NOMAD_TASK_DIR}/cache_dir",
         ]
 
         privileged = true
@@ -74,8 +73,8 @@ EOF
         mount_dir = "/csi"
       }
       resources {
-        cpu    = 100
-        memory = 512
+        cpu        = 100
+        memory     = 512
         memory_max = 2048
       }
     }

@@ -57,6 +57,7 @@
     imports = [
       ./machines/${name}/definition.nix
       ./machines/laptop_config.nix
+      ./machines/wg_mesh.nix
     ];
     networking.hostName = name;
     deployment.targetHost = "${name}.vpn.dcotta.eu";
