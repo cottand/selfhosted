@@ -36,6 +36,8 @@
     vim
     htop
     s-tui # power top
+    nmap
+    traceroute
    ];
 
   # Set your time zone.

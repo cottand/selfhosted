@@ -25,12 +25,12 @@ job "seaweedfs-volume" {
       mode = "host"
 
       port "http" {
-        host_network = "vpn"
+        host_network = "wg-mesh"
         static       = 9876
       }
 
       port "grpc" {
-        host_network = "vpn"
+        host_network = "wg-mesh"
         # gRPC needs to be http + 1_000
         static = 19876
       }
@@ -91,7 +91,7 @@ job "seaweedfs-volume" {
         memory = 300
       }
       config {
-        image = "chrislusf/seaweedfs:3.51"
+        image = "chrislusf/seaweedfs:3.55"
 
         args = [
           "-logtostderr",

@@ -10,7 +10,7 @@ job "lemmy-proxy" {
     network {
       mode = "bridge"
       port "http" {
-        host_network = "vpn"
+        host_network = "wg-mesh"
         to           = 80
       }
     }

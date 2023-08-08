@@ -33,6 +33,7 @@ job "lemmy-pictures" {
         }
       }
       driver = "docker"
+      user = "root"
       config {
         image = "asonix/pictrs:0.4.1"
         ports = ["http"]

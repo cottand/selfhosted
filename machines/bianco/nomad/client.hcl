@@ -1,12 +1,15 @@
 client {
   enabled = true
-  servers = ["10.8.0.1", "10.8.0.5", "10.8.0.8"]
+  servers = [
+    "cosmo.mesh.dcotta.eu",
+    "maco.mesh.dcotta.eu",
+  ]
 
   options = {
     "driver.allowlist" = "docker,raw_exec"
   }
 
-  #    bridge_network_hairpin_mode = true only 1.5.+
+  bridge_network_hairpin_mode = true
 
   host_network "vpn" {
     cidr           = "10.8.0.0/24"
@@ -67,13 +70,12 @@ telemetry {
   publish_allocation_metrics = true
   publish_node_metrics       = true
 }
-bind_addr = "10.8.0.102"
+bind_addr = "0.0.0.0"
 
 advertise {
-  #   Defaults to the first private IP address.
-  http = "10.8.0.102"
-  rpc  = "10.8.0.102"
-  serf = "10.8.0.102"
+  http = "{{GetInterfaceIP \"wg-mesh\"}}"
+  rpc  = "{{GetInterfaceIP \"wg-mesh\"}}"
+  serf = "{{GetInterfaceIP \"wg-mesh\"}}"
 }
 
 log_rotate_bytes = 1024000
