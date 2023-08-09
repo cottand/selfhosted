@@ -51,7 +51,7 @@ job "seaweedfs" {
           "-port=${NOMAD_PORT_http}",
           "-port.grpc=${NOMAD_PORT_grpc}",
           # no replication
-          "-defaultReplication=010",
+          "-defaultReplication=020",
           "-metricsPort=${NOMAD_PORT_metrics}",
           # 1GB max volume size
           # lower=more volumes per box (easier replication)
@@ -141,7 +141,6 @@ job "seaweedfs" {
         static       = 8888
         host_network = "wg-mesh"
       }
-
       port "grpc" {
         static       = 18888
         host_network = "wg-mesh"
@@ -156,6 +155,9 @@ job "seaweedfs" {
       port "webdav-vpn" {
         static       = 17777
         host_network = "vpn"
+      }
+      port "s3" {
+        host_network = "wg-mesh"
       }
     }
     volume "seaweedfs-filer" {
@@ -218,6 +220,11 @@ job "seaweedfs" {
         port     = "metrics"
         tags     = ["metrics"]
       }
+      service {
+        provider = "nomad"
+        name     = "seaweedfs-filer-s3"
+        port     = "s3"
+      }
       volume_mount {
         volume      = "seaweedfs-filer"
         destination = "/data"
@@ -240,6 +247,8 @@ job "seaweedfs" {
           "-webdav.collection=",
           "-webdav.replication=020",
           "-webdav.port=${NOMAD_PORT_webdav}",
+          "-s3",
+          "-s3.port=${NOMAD_PORT_s3}"
         ]
       }
 
