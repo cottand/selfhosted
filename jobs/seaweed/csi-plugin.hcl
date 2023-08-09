@@ -14,6 +14,15 @@ job "seaweedfs-plugin" {
   }
 
   group "nodes" {
+    network {
+      dns {
+        servers = [
+          "10.8.0.1",
+          "10.10.2.1",
+          "10.10.1.1",
+        ]
+      }
+    }
     ephemeral_disk {
       migrate = false
       size    = 5000
@@ -58,7 +67,8 @@ EOF
           // "--controller",
           // "--node",
           "--endpoint=unix://csi/csi.sock",
-          "--filer=${SEAWEEDFS_FILER_IP_http}:${SEAWEEDFS_FILER_PORT_http}.${SEAWEEDFS_FILER_PORT_grpc}",
+          // hardcoded ports and IP so that this does not get restarted when master does
+          "--filer=seaweedfs-filer.vps:8888.18888",
           "--nodeid=${node.unique.name}",
           "--cacheCapacityMB=1000",
           "--cacheDir=${NOMAD_TASK_DIR}/cache_dir",

@@ -4,26 +4,30 @@ job "grafana" {
   priority    = 1
   group "grafana" {
     count = 1
-    // volume "grafana" {
-    //   type      = "host"
-    //   read_only = false
-    //   source    = "grafana-cosmo"
-    // }
     volume "grafana" {
-      type            = "csi"
-      read_only       = false
-      source          = "grafana"
-      access_mode     = "single-node-writer"
-      attachment_mode = "file-system"
+      type      = "host"
+      read_only = false
+      source    = "grafana-cosmo"
     }
+    // volume "grafana" {
+    //   type            = "csi"
+    //   read_only       = false
+    //   source          = "grafana"
+    //   access_mode     = "single-node-writer"
+    //   attachment_mode = "file-system"
+    // }
     network {
       mode = "bridge"
       dns {
-        servers = ["10.8.0.1"]
+        servers = [
+          "10.8.0.1",
+          "10.10.2.1",
+          "10.10.1.1",
+        ]
       }
       port "http" {
         to           = 3000
-        host_network = "vpn"
+        host_network = "wg-mesh"
       }
     }
 

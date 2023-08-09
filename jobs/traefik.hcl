@@ -59,7 +59,7 @@ job "traefik" {
             provider = "nomad"
             tags     = [
                 "traefik.enable=true",
-                "traefik.http.routers.traefik_dash.entrypoints=websecure",
+                "traefik.http.routers.traefik_dash.entrypoints=web,websecure",
                 "traefik.http.routers.traefik_dash.rule=Host(`traefik.vps.dcotta.eu`) || PathPrefix(`/dashboard`)",
                 "traefik.http.routers.traefik_dash.tls=true",
                 "traefik.http.routers.traefik_dash.tls.certResolver=lets-encrypt",
@@ -93,7 +93,7 @@ job "traefik" {
             }
 
             config {
-                image   = "traefik:v3.0"
+                image   = "traefik:3.0.0-beta3"
                 # needs to be in host wireguard network so that it can reach other VPN members
                 volumes = [
                     "local/traefik.toml:/etc/traefik/traefik.toml",
@@ -126,7 +126,7 @@ job "traefik" {
     rule = "Host( `nomad.vps.dcotta.eu` )" # || PathPrefix(`/consul`) || HeadersRegexp(`referer`, `https://internal.in/nomad/.*`)"
 #    priority = 1000
     service = "nomad"
-    entrypoints= "websecure"
+    entrypoints= "web,websecure"
 #    tls = true
     tls.certresolver= "lets-encrypt"
     middlewares = "vpn-whitelist@file"
@@ -137,6 +137,7 @@ job "traefik" {
         # TODO [3] add other servers for load balancing
 EOF
                 destination = "local/traefik-dynamic.toml"
+                change_mode = "signal"
             }
 
             template {
@@ -144,9 +145,9 @@ EOF
 [entryPoints]
   [entryPoints.web]
     address = ":{{ env "NOMAD_PORT_http" }}"
-     [entryPoints.web.http.redirections.entryPoint]
-       to = "websecure"
-       scheme = "https"
+    #  [entryPoints.web.http.redirections.entryPoint]
+    #    to = "websecure"
+    #    scheme = "https"
   [entryPoints.websecure]
     address = ":{{ env "NOMAD_PORT_https" }}"
 
@@ -185,7 +186,7 @@ EOF
 
   [certificatesResolvers.lets-encrypt.acme.httpChallenge]
     # let's encrypt has to be able to reach on this entrypoint for cert
-    entryPoint = "web_public"
+   entryPoint = "web_public"
 
 [providers.nomad]
   refreshInterval = "5s"

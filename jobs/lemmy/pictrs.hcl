@@ -15,7 +15,7 @@ job "lemmy-pictures" {
     network {
       mode = "bridge"
       port "http" {
-        host_network = "vpn"
+        host_network = "wg-mesh"
         to           = 8080
       }
     }
@@ -182,6 +182,9 @@ path = '/mnt/sled-repo'
 # cache_capacity = 67108864
 
 
+{{ range $i, $s := nomadService "seaweedfs-filer-s3" }}
+{{- if eq $i 0 -}}
+
 [store]
 # default: filesystem
 # available options: filesystem, object_storage
@@ -192,17 +195,13 @@ type = 'object_storage'
 # Set to true when using minio
 use_path_style = true
 
-bucket_name = 'dcotta-lemmy-pictrs'
-{{ with nomadVar "secret/buckets/dcotta-lemmy-pictrs" }}
-access_key = "{{ .keyId }}"
-secret_key = "{{ .secretAccessKey }}"     # if empty, loads from the shared credentials file (~/.aws/credentials).
-# bucket = "{{ .bucketName }}"
-# examples:
-# - `http://localhost:9000` # minio
-# - `https://s3.dualstack.eu-west-1.amazonaws.com` # s3
-endpoint = "https://{{ .endpoint }}"
+bucket_name = 'lemmy-pictrs'
+access_key = 'any'
+secret_key = 'any'
+region = 'us-east-1'
+endpoint = "http://{{ .Address}}:{{ .Port }}"
+{{- end -}}
 {{ end }}
-region = "us-east-005"
 
 # default: empty
 # session_token = 'SESSION_TOKEN'
