@@ -1,3 +1,7 @@
+variable "docker_tag" {
+  type    = string
+  default = "latest"
+}
 
 job "web-portfolio" {
   datacenters = ["dc1"]
@@ -8,14 +12,14 @@ job "web-portfolio" {
       mode = "bridge"
       port "http" {
         to           = "80"
-        host_network = "vpn"
+        host_network = "wg-mesh"
       }
     }
     task "web" {
       driver = "docker"
 
       config {
-        image = "ghcr.io/cottand/web-portfolio:latest"
+        image = "ghcr.io/cottand/web-portfolio:${var.docker_tag}"
         ports = ["http"]
       }
 
@@ -38,7 +42,7 @@ job "web-portfolio" {
         tags = [
           "traefik.enable=true",
           "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`nico.dcotta.eu`)",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=websecure, websecure_public",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=web, web_public, websecure, websecure_public",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls=true",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt"
         ]
@@ -49,8 +53,5 @@ job "web-portfolio" {
         memory = 60
       }
     }
-  }
-  meta = {
-    "random" = "abcd"
   }
 }
