@@ -1,15 +1,10 @@
-job "dns" {
+job "dns2" {
   datacenters = ["dc1"]
   type        = "system"
   group "blocky-dns" {
     network {
       mode = "bridge"
-      port "dns" {
-        static       = 53
-        host_network = "vpn"
-      }
       port "dns-mesh" {
-        static       = 53
         host_network = "wg-mesh"
       }
       // port "dns-public" {
@@ -21,26 +16,8 @@ job "dns" {
       }
     }
 
-
     service {
-      name     = "dns-metrics"
-      provider = "nomad"
-      port     = "metrics"
-    }
-    service {
-      name     = "dns"
-      provider = "nomad"
-      port     = "dns"
-      check {
-        name     = "alive"
-        type     = "tcp"
-        port     = "metrics"
-        interval = "20s"
-        timeout  = "2s"
-      }
-    }
-    service {
-      name     = "dns-mesh"
+      name     = "dns2-mesh"
       provider = "nomad"
       port     = "dns-mesh"
       check {
@@ -63,9 +40,6 @@ job "dns" {
           "local/config.toml:/config.toml",
         ]
         ports = ["dns", "metrics"]
-      }
-      env = {
-        "environment" = "TZ=Europe/Berlin"
       }
       resources {
         cpu    = 80
@@ -107,7 +81,7 @@ apidebug = false
 dashboard = true
 
 # address to bind to for the DNS server
-bind = "0.0.0.0:{{ env "NOMAD_PORT_dns"  }}"
+bind = "0.0.0.0:{{ env "NOMAD_PORT_dns2_mesh"  }}"
 
 # address to bind to for the API server
 api = "0.0.0.0:{{ env "NOMAD_PORT_metrics"  }}"
@@ -148,28 +122,9 @@ customdnsrecords = [
     # CNAME is not flattened - see https://github.com/looterz/grimd/issues/113
     "web.vps.dcotta.eu.     3600      IN  A   10.8.0.1  ",
 
-    "nomad.vps.dcotta.eu.   3600      IN  CNAME   web.vps  ",
-    "traefik.vps.dcotta.eu. 3600      IN  CNAME   web.vps  ",
-
-    "web.vps.               3600      IN  CNAME   cosmo.vpn.dcotta.eu.  ",
-
-    {{ range $i, $s := nomadService "seaweedfs-webdav" }}
-    "webdav.vps            3600  IN  A   {{ .Address }}",
-    {{ end }}
-
-    {{ range $i, $s := nomadService "seaweedfs-master-http" }}
-    "seaweedfs-master.vps  3600 IN  A   {{ .Address }}",
-    {{ end }}
-
-    {{ range $i, $s := nomadService "seaweedfs-filer-http" }}
-    "seaweedfs-filer.vps   3600 IN A {{ .Address }}",
-    {{ end }}
-
-
     {{ $rr_a := sprig_list -}}
     {{- $rr_srv := sprig_list -}}
     {{- $base_domain := ".nomad" -}} {{- /* Change this field for a diferent tld! */ -}}
-    {{- $ttl := 3600 -}}             {{- /* Change this field for a diferent ttl! */ -}}
 
     {{- /* Iterate over all of the registered Nomad services */ -}}
     {{- range nomadServices -}}
@@ -192,15 +147,14 @@ customdnsrecords = [
 
     {{- /* Iterate over lists and print everything */ -}}
 
-    {{- /* Only the latest record will get returned - see https://github.com/looterz/grimd/issues/114 */ -}}
-    {{ range $rr_srv -}}
-    "{{ printf "%-45s %s %s %d %d %6d %s" (sprig_nospace (sprig_cat (index . 0) $base_domain ".srv")) "IN" "SRV" 0 0 (index . 1) (sprig_nospace (sprig_cat (index . 2) $base_domain )) }}",
-    {{ end -}}
 
     {{- range $rr_a | sprig_uniq -}}
-    "{{ printf "%-45s %4d %s %4s %s" (sprig_nospace (sprig_cat (index . 0) $base_domain)) $ttl "IN" "A" (sprig_last . ) }}",
+    "{{ printf "%-45s %s %4s %-10s" (sprig_nospace (sprig_cat (index . 0) $base_domain)) "IN" "A" (sprig_last . ) }}",
     {{ end }}
 
+    {{ range $rr_srv -}}
+    "{{ printf "%-45s %s %s %d %d %6d %-10s" (sprig_nospace (sprig_cat (index . 0) $base_domain)) "IN" "SRV" 0 0 (index . 1) (index . 2) }}",
+    {{ end -}}
 ]
 
 # When this string is queried, toggle grimd on and off

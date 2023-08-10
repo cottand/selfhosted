@@ -51,7 +51,7 @@ job "seaweedfs-volume" {
       driver = "docker"
 
       service {
-        name     = "seaweedfs-volume"
+        name     = "seaweedfs-volume-http"
         port     = "http"
         provider = "nomad"
         check {
@@ -76,7 +76,7 @@ job "seaweedfs-volume" {
       }
 
       service {
-        name     = "seaweedfs-volume"
+        name     = "seaweedfs-volume-grpc"
         port     = "grpc"
         provider = "nomad"
       }

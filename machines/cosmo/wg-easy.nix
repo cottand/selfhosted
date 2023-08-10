@@ -20,4 +20,13 @@
       ];
     };
   };
+
+
+  deployment.keys."wg0.json" = {
+    text = (builtins.readFile ../../secret/wg-easy/wg0.json);
+    destDir = "/root/secret/wg-easy/";
+    uploadAt = "pre-activation";
+  };
+
+  systemd.services.docker-wg-easy.partOf = [ "w0.json-key.service" ];
 }
