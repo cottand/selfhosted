@@ -197,7 +197,7 @@ EOF
   refreshInterval = "5s"
   exposedByDefault = false
 
-  defaultRule = "Host(`{{ .Name }}.traefik`)"
+  defaultRule = "Host(`{{"{{ .Name }}"}}.traefik`)"
 
   [providers.nomad.endpoint]
     address = "http://10.8.0.1:4646"
