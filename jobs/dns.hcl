@@ -160,9 +160,11 @@ customdnsrecords = [
     {{ range $i, $s := nomadService "seaweedfs-master-http" }}
     "seaweedfs-master.vps  3600 IN  A   {{ .Address }}",
     {{ end }}
+    "seaweed-master.vps.dcotta.eu  3600 IN  A   10.8.0.1",
 
     {{ range $i, $s := nomadService "seaweedfs-filer-http" }}
     "seaweedfs-filer.vps   3600 IN A {{ .Address }}",
+    "seaweed-filer.vps.dcotta.eu   3600 IN  A   10.8.0.1",
     {{ end }}
 
 
@@ -199,6 +201,8 @@ customdnsrecords = [
 
     {{- range $rr_a | sprig_uniq -}}
     "{{ printf "%-45s %4d %s %4s %s" (sprig_nospace (sprig_cat (index . 0) $base_domain)) $ttl "IN" "A" (sprig_last . ) }}",
+    {{- /* A records to proxy: */ -}}
+    "{{ printf "%-45s %4d %s %4s %s" (sprig_nospace (sprig_cat (index . 0) ".traefik")) $ttl "IN" "A" "10.8.0.1" }}",
     {{ end }}
 
 ]

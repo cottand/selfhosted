@@ -1,112 +1,112 @@
 job "traefik" {
-    datacenters = ["dc1"]
+  datacenters = ["dc1"]
 
-    group "traefik" {
-        network {
-            mode = "bridge"
-            port "http-ui" {
-                static       = 8080
-                host_network = "vpn"
-            }
-            port "http" {
-                static       = 80
-                host_network = "vpn"
-            }
-            port "https" {
-                static       = 443
-                host_network = "vpn"
-            }
-            port "http_public" {
-                static = 80
-                to     = 8000
-            }
-            port "https_public" {
-                static = 443
-                to     = 44300
-            }
-            port "metrics" {
-                static       = 31934 # hardcoded so that prometheus can find it after restart
-                host_network = "vpn"
-            }
-        }
-        volume "traefik-cert" {
-            type      = "host"
-            read_only = false
-            source    = "traefik-cert"
-        }
-        volume "traefik-basic-auth" {
-            type      = "host"
-            read_only = true
-            source    = "traefik-basic-auth"
-        }
-        service {
-            name     = "traefik-metrics"
-            provider = "nomad"
-            port     = "metrics"
-            tags     = [
-                "metrics",
-            ]
-            check {
-                name     = "alive"
-                type     = "tcp"
-                port     = "metrics"
-                interval = "20s"
-                timeout  = "2s"
-            }
-        }
-        service {
-            name     = "traefik"
-            provider = "nomad"
-            tags     = [
-                "traefik.enable=true",
-                "traefik.http.routers.traefik_dash.entrypoints=web,websecure",
-                "traefik.http.routers.traefik_dash.rule=Host(`traefik.vps.dcotta.eu`) || PathPrefix(`/dashboard`)",
-                "traefik.http.routers.traefik_dash.tls=true",
-                "traefik.http.routers.traefik_dash.tls.certResolver=lets-encrypt",
-                "traefik.http.routers.traefik_dash.service=api@internal",
-                // "traefik.http.routers.traefik_dash.middlewares=auth@file",
-            ]
-            port = "http-ui"
-            check {
-                name     = "alive"
-                type     = "tcp"
-                port     = "http"
-                interval = "20s"
-                timeout  = "2s"
-            }
-        }
+  group "traefik" {
+    network {
+      mode = "bridge"
+      port "http-ui" {
+        static       = 8080
+        host_network = "vpn"
+      }
+      port "http" {
+        static       = 80
+        host_network = "vpn"
+      }
+      port "https" {
+        static       = 443
+        host_network = "vpn"
+      }
+      port "http_public" {
+        static = 80
+        to     = 8000
+      }
+      port "https_public" {
+        static = 443
+        to     = 44300
+      }
+      port "metrics" {
+        static       = 31934 # hardcoded so that prometheus can find it after restart
+        host_network = "vpn"
+      }
+    }
+    volume "traefik-cert" {
+      type      = "host"
+      read_only = false
+      source    = "traefik-cert"
+    }
+    volume "traefik-basic-auth" {
+      type      = "host"
+      read_only = true
+      source    = "traefik-basic-auth"
+    }
+    service {
+      name     = "traefik-metrics"
+      provider = "nomad"
+      port     = "metrics"
+      tags = [
+        "metrics",
+      ]
+      check {
+        name     = "alive"
+        type     = "tcp"
+        port     = "metrics"
+        interval = "20s"
+        timeout  = "2s"
+      }
+    }
+    service {
+      name     = "traefik"
+      provider = "nomad"
+      tags = [
+        "traefik.enable=true",
+        "traefik.http.routers.traefik_dash.entrypoints=web,websecure",
+        "traefik.http.routers.traefik_dash.rule=Host(`traefik.vps.dcotta.eu`) || PathPrefix(`/dashboard`)",
+        "traefik.http.routers.traefik_dash.tls=true",
+        "traefik.http.routers.traefik_dash.tls.certResolver=lets-encrypt",
+        "traefik.http.routers.traefik_dash.service=api@internal",
+        // "traefik.http.routers.traefik_dash.middlewares=auth@file",
+      ]
+      port = "http-ui"
+      check {
+        name     = "alive"
+        type     = "tcp"
+        port     = "http"
+        interval = "20s"
+        timeout  = "2s"
+      }
+    }
 
-        task "traefik" {
-            driver = "docker"
-            env    = {
-                "WG_HOST"        = "web.vps.dcotta.eu"
-            }
-            volume_mount {
-                volume      = "traefik-cert"
-                destination = "/etc/traefik-cert"
-                read_only   = false
-            }
-            volume_mount {
-                volume      = "traefik-basic-auth"
-                destination = "/etc/traefik-basic-auth"
-                read_only   = true
-            }
+    task "traefik" {
+      driver = "docker"
+      env = {
+        "WG_HOST" = "web.vps.dcotta.eu"
+      }
+      volume_mount {
+        volume      = "traefik-cert"
+        destination = "/etc/traefik-cert"
+        read_only   = false
+      }
+      volume_mount {
+        volume      = "traefik-basic-auth"
+        destination = "/etc/traefik-basic-auth"
+        read_only   = true
+      }
 
-            config {
-                image   = "traefik:3.0.0-beta3"
-                # needs to be in host wireguard network so that it can reach other VPN members
-                volumes = [
-                    "local/traefik.toml:/etc/traefik/traefik.toml",
-                    "local/traefik-dynamic.toml:/etc/traefik/dynamic/traefik-dynamic.toml",
-                ]
-            }
-            constraint {
-                attribute = "${meta.box}"
-                value     = "cosmo"
-            }
+      config {
+        image = "traefik:3.0.0-beta3"
+        # needs to be in host wireguard network so that it can reach other VPN members
+        volumes = [
+          "local/traefik.toml:/etc/traefik/traefik.toml",
+          "local/traefik-dynamic.toml:/etc/traefik/dynamic/traefik-dynamic.toml",
+        ]
+      }
+      constraint {
+        attribute = "${meta.box}"
+        value     = "cosmo"
+      }
 
-            template {
-                data        = <<EOF
+      template {
+        data        = <<EOF
 [http.middlewares]
     # Middleware that only allows requests after the authentication with credentials specified in usersFile
     [http.middlewares.auth.basicauth]
@@ -136,20 +136,23 @@ job "traefik" {
       url = "http://10.8.0.1:4646/"
         # TODO [3] add other servers for load balancing
 EOF
-                destination = "local/traefik-dynamic.toml"
-                change_mode = "signal"
-            }
+        destination = "local/traefik-dynamic.toml"
+        change_mode = "signal"
+      }
 
-            template {
-                data        = <<EOF
+      template {
+        data        = <<EOF
 [entryPoints]
   [entryPoints.web]
+
     address = ":{{ env "NOMAD_PORT_http" }}"
     #  [entryPoints.web.http.redirections.entryPoint]
     #    to = "websecure"
     #    scheme = "https"
   [entryPoints.websecure]
     address = ":{{ env "NOMAD_PORT_https" }}"
+    [entryPoints.websecure.http3]
+      advertisedPort = 443
 
 
   # redirects 8000 (in container) to 443
@@ -162,6 +165,8 @@ EOF
   [entryPoints.websecure_public]
     address = ":{{ env "NOMAD_PORT_https_public" }}"
 
+    [entryPoints.websecure_public.http3]
+      advertisedPort = 443
     # redirects 44300 (in container) to 443
     [entryPoints.websecure_public.http.redirections.entryPoint]
       to = "websecure"
@@ -192,6 +197,8 @@ EOF
   refreshInterval = "5s"
   exposedByDefault = false
 
+  defaultRule = "Host(`{{ .Name }}.traefik`)"
+
   [providers.nomad.endpoint]
     address = "http://10.8.0.1:4646"
 
@@ -200,14 +207,14 @@ EOF
   directory = "/etc/traefik/dynamic"
 
 EOF
-                change_mode = "restart"
-                destination = "local/traefik.toml"
-            }
+        change_mode = "restart"
+        destination = "local/traefik.toml"
+      }
 
-            resources {
-                cpu    = 120
-                memory = 128
-            }
-        }
+      resources {
+        cpu    = 120
+        memory = 128
+      }
     }
+  }
 }
