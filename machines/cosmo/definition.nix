@@ -3,6 +3,7 @@
     ./hardware-configuration.nix
     ./nomad/nomad.nix
     ./wg-easy.nix
+    ./wg-ci.nix
     ./ipv6.nix
     # ./udp2raw.nix
   ];

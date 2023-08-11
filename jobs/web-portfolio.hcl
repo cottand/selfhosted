@@ -6,6 +6,14 @@ variable "docker_tag" {
 job "web-portfolio" {
   datacenters = ["dc1"]
   priority    = 50
+
+  update {
+    max_parallel = 3
+    auto_revert  = true
+    auto_promote = true
+    canary       = 1
+  }
+
   group "web-portfolio" {
     count = 2
     network {
