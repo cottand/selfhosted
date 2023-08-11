@@ -18,16 +18,17 @@
       ((import lib/make-wireguard.nix) { interface = "wg-mesh"; confPath = secret/wg-mesh/${name}.conf; port = 55820; })
     ];
     nixpkgs.system = "x86_64-linux";
+    networking.hostName = lib.mkDefault name;
+
     deployment.replaceUnknownProfiles = lib.mkDefault true;
     deployment.buildOnTarget = lib.mkDefault true;
-
+    deployment.targetHost = lib.mkDefault "${name}.vpn.dcotta.eu";
   };
 
   cosmo = { name, nodes, ... }: {
     imports = [
       ./machines/${name}/definition.nix
     ];
-    networking.hostName = name;
     deployment.targetHost = "${name}.vps.dcotta.eu";
     deployment.tags = [ "contabo" "nomad-server" ];
   };
@@ -36,23 +37,18 @@
   #     ./machines/${name}/definition.nix
   #   ];
   #   networking.hostName = name;
-  #   deployment.targetHost = "${name}.vpn.dcotta.eu";
   #   deployment.tags = [ "local" "nomad-server" ];
   # };
   maco = { name, nodes, ... }: {
     imports = [
       ./machines/${name}/definition.nix
     ];
-    networking.hostName = name;
-    deployment.targetHost = "${name}.vpn.dcotta.eu";
     deployment.tags = [ "local" "nomad-server" ];
   };
   elvis = { name, nodes, ... }: {
     imports = [
       ./machines/${name}/definition.nix
     ];
-    networking.hostName = name;
-    deployment.targetHost = "${name}.vpn.dcotta.eu";
     deployment.tags = [ "local" "nomad-client" ];
   };
   bianco = { name, nodes, ... }: {
@@ -60,8 +56,6 @@
       ./machines/${name}/definition.nix
       ./machines/laptop_config.nix
     ];
-    networking.hostName = name;
-    deployment.targetHost = "${name}.vpn.dcotta.eu";
     deployment.tags = [ "madrid" "nomad-client" ];
   };
 }
