@@ -1,9 +1,5 @@
-let
-  interface = "wg-ci";
-  confPath = ../../secret/wg-ci/wg-ci.conf;
-  port = 55726;
-in
-{ config, pkgs, name, ... }: {
+# returns a module
+{interface, confPath, port} : { ... }: {
   # see https://colmena.cli.rs/unstable/features/keys.html
   deployment.keys."${interface}.conf" = {
     text = (builtins.readFile confPath);

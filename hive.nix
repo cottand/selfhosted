@@ -10,35 +10,38 @@
     # machinesFile = ./machines/remote-builders;
   };
 
-  defaults = { pkgs, lib, ... }: {
-    imports = [ ./machines/common_config.nix ];
+  defaults = { pkgs, lib, name, ... }: {
+    imports = [
+      ./machines/common_config.nix
+      # make wireguard interface for mesh for all services
+      # this will break if there is no corresponding config under secret/wg-mesh
+      ((import lib/make-wireguard.nix) { interface = "wg-mesh"; confPath = secret/wg-mesh/${name}.conf; port = 55820; })
+    ];
     nixpkgs.system = "x86_64-linux";
     deployment.replaceUnknownProfiles = lib.mkDefault true;
-    deployment.buildOnTarget = true;
+    deployment.buildOnTarget = lib.mkDefault true;
+
   };
 
   cosmo = { name, nodes, ... }: {
     imports = [
       ./machines/${name}/definition.nix
-      ./machines/wg_mesh.nix
     ];
     networking.hostName = name;
     deployment.targetHost = "${name}.vps.dcotta.eu";
     deployment.tags = [ "contabo" "nomad-server" ];
   };
-  ari = { name, nodes, ... }: {
-    imports = [
-      ./machines/${name}/definition.nix
-      ./machines/wg_mesh.nix
-    ];
-    networking.hostName = name;
-    deployment.targetHost = "${name}.vpn.dcotta.eu";
-    deployment.tags = [ "local" "nomad-server" ];
-  };
+  # ari = { name, nodes, ... }: {
+  #   imports = [
+  #     ./machines/${name}/definition.nix
+  #   ];
+  #   networking.hostName = name;
+  #   deployment.targetHost = "${name}.vpn.dcotta.eu";
+  #   deployment.tags = [ "local" "nomad-server" ];
+  # };
   maco = { name, nodes, ... }: {
     imports = [
       ./machines/${name}/definition.nix
-      ./machines/wg_mesh.nix
     ];
     networking.hostName = name;
     deployment.targetHost = "${name}.vpn.dcotta.eu";
@@ -47,7 +50,6 @@
   elvis = { name, nodes, ... }: {
     imports = [
       ./machines/${name}/definition.nix
-      ./machines/wg_mesh.nix
     ];
     networking.hostName = name;
     deployment.targetHost = "${name}.vpn.dcotta.eu";
@@ -57,7 +59,6 @@
     imports = [
       ./machines/${name}/definition.nix
       ./machines/laptop_config.nix
-      ./machines/wg_mesh.nix
     ];
     networking.hostName = name;
     deployment.targetHost = "${name}.vpn.dcotta.eu";
