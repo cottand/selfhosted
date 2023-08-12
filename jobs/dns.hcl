@@ -205,6 +205,9 @@ customdnsrecords = [
     "{{ printf "%-45s %4d %s %4s %s" (sprig_nospace (sprig_cat (index . 0) ".traefik")) $ttl "IN" "A" "10.8.0.1" }}",
     {{ end }}
 
+      # "*.traefik  3600 IN  A   10.8.0.1", does not work?
+ 
+
 ]
 
 # When this string is queried, toggle grimd on and off

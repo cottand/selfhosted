@@ -8,7 +8,7 @@ job "web-portfolio" {
   priority    = 50
 
   update {
-    max_parallel = 3
+    max_parallel = 1
     auto_revert  = true
     auto_promote = true
     canary       = 1
@@ -49,10 +49,21 @@ job "web-portfolio" {
         }
         tags = [
           "traefik.enable=true",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`nico.dcotta.eu`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`nico.dcotta.eu`) && !PathPrefix(`/nginx_status`)",
           "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=web, web_public, websecure, websecure_public",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls=true",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt"
+        ]
+        port = "http"
+      }
+      service {
+        name     = "web-portfolio-status"
+        provider = "nomad"
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.routers.${NOMAD_TASK_NAME}-status.rule=Host(`web-portfolio-status.traefik`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}-status.entrypoints=web",
+          "traefik.http.routers.${NOMAD_TASK_NAME}-status.middlewares=vpn-whitelist@file",
         ]
         port = "http"
       }

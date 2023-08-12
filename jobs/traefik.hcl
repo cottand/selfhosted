@@ -206,6 +206,21 @@ EOF
 [providers.file]
   directory = "/etc/traefik/dynamic"
 
+[tracing]
+   [tracing.jaeger]
+   {{ range nomadService "tempo-jaeger-ingest" -}}
+    samplingServerURL = "http://{{ .Address}}:{{ .Port }}/api/sampling"
+   {{ end -}}
+   {{ range nomadService "tempo-jaeger-thrift-compact" -}}
+    localAgentHostPort = "{{ .Address }}:{{ .Port }}" 
+   {{ end -}}
+# 
+# [tracing]
+#  [tracing.zipkin]
+#{{ range nomadService "tempo-zipkin" -}}
+#    httpEndpoint = "http://{{ .Address }}:{{ .Port }}/api/v2/spans"
+#{{ end -}}
+
 EOF
         change_mode = "restart"
         destination = "local/traefik.toml"
