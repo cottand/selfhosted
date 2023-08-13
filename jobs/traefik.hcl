@@ -207,13 +207,21 @@ EOF
   directory = "/etc/traefik/dynamic"
 
 [tracing]
-   [tracing.jaeger]
-   {{ range nomadService "tempo-jaeger-ingest" -}}
-    samplingServerURL = "http://{{ .Address}}:{{ .Port }}/api/sampling"
-   {{ end -}}
-   {{ range nomadService "tempo-jaeger-thrift-compact" -}}
-    localAgentHostPort = "{{ .Address }}:{{ .Port }}" 
-   {{ end -}}
+#   [tracing.jaeger]
+#   {{ range nomadService "tempo-jaeger-ingest" -}}
+#    samplingServerURL = "http://{{ .Address}}:{{ .Port }}/api/sampling"
+#   {{ end -}}
+#   {{ range nomadService "tempo-jaeger-thrift-compact" -}}
+#    localAgentHostPort = "{{ .Address }}:{{ .Port }}" 
+#   {{ end -}}
+
+    {{ range nomadService "tempo-otlp-grpc" -}}
+    [tracing]
+        [tracing.openTelemetry]
+        address = "{{ .Address }}:{{ .Port }}"
+        insecure = true
+            [tracing.openTelemetry.grpc]
+    {{ end -}}
 # 
 # [tracing]
 #  [tracing.zipkin]

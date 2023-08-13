@@ -65,8 +65,8 @@ job "web-portfolio" {
         change_mode = "restart"
         env         = true
         data        = <<-EOF
-{{ range nomadService "tempo-oltp-grpc" }}
-OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://{{ .Address }}:{{ Port }}
+{{ range nomadService "tempo-otlp-grpc" }}
+OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://{{ .Address }}:{{ .Port }}
 {{ end }}
 EOF
       }

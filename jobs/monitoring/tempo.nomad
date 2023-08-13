@@ -29,6 +29,9 @@ job "tempo" {
       port "grpc" {
         host_network = "wg-mesh"
       }
+      port "otlp-grpc" {
+        host_network = "wg-mesh"
+      }
       # see https://www.jaegertracing.io/docs/1.47/deployment/#collector
       port "jaeger-thrift-compact" {
         to           = 6831
@@ -53,6 +56,7 @@ job "tempo" {
         ]
         ports = [
           "http",
+          "grpc-otlp",
           "jaeger-ingest",
           "jaeger-http-sampling",
           "jaeger-thrift-compact",
@@ -75,6 +79,11 @@ distributor:
           endpoint: 0.0.0.0:{{ env "NOMAD_PORT_jaeger_ingest" }}
         thrift_compact: # UDP
           endpoint: 0.0.0.0:{{ env "NOMAD_PORT_jaeger_thrift_compact" }}
+    otlp:
+      protocols:
+          grpc:
+            endpoint: 0.0.0.0:{{ env "NOMAD_PORT_otlp_grpc" }}
+          #http:
 
 ingester:
   max_block_duration: 5m               # cut the headblock when this much time passes. this is being set for demo purposes and should probably be left alone normally
@@ -88,12 +97,16 @@ metrics_generator:
     external_labels:
       source: tempo
       cluster: docker-compose
+  processor:
+    service_graphs:
+    span_metrics:
+
+
   storage:
     path: /tmp/tempo/generator/wal
     remote_write:
       - url: http://prometheus.traefik/api/v1/write
         send_exemplars: true
-
 storage:
   trace:
     backend: local                     # backend configuration to use
@@ -142,19 +155,13 @@ EOH
         provider = "nomad"
       }
       service {
-        name     = "tempo-jaeger-http-sampling"
-        port     = "jaeger-http-sampling"
-        provider = "nomad"
-      }
-      # see https://www.jaegertracing.io/docs/1.47/deployment/#collector
-      service {
         name     = "tempo-jaeger-ingest"
         port     = "jaeger-ingest"
         provider = "nomad"
       }
       service {
-        name     = "tempo-zipkin"
-        port     = "zipkin"
+        name     = "tempo-otlp-grpc"
+        port     = "otlp-grpc"
         provider = "nomad"
       }
     }
