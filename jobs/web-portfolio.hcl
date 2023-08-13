@@ -49,27 +49,26 @@ job "web-portfolio" {
         }
         tags = [
           "traefik.enable=true",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`nico.dcotta.eu`) && !PathPrefix(`/nginx_status`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`nico.dcotta.eu`)",
           "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=web, web_public, websecure, websecure_public",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls=true",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt"
         ]
         port = "http"
       }
-      service {
-        name     = "web-portfolio-status"
-        provider = "nomad"
-        tags = [
-          "traefik.enable=true",
-          "traefik.http.routers.${NOMAD_TASK_NAME}-status.rule=Host(`web-portfolio-status.traefik`)",
-          "traefik.http.routers.${NOMAD_TASK_NAME}-status.entrypoints=web",
-          "traefik.http.routers.${NOMAD_TASK_NAME}-status.middlewares=vpn-whitelist@file",
-        ]
-        port = "http"
-      }
       resources {
         cpu    = 100
         memory = 60
+      }
+      template {
+        destination = "config/.env"
+        change_mode = "restart"
+        env         = true
+        data        = <<-EOF
+{{ range nomadService "tempo-oltp-grpc" }}
+OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://{{ .Address }}:{{ Port }}
+{{ end }}
+EOF
       }
     }
   }
