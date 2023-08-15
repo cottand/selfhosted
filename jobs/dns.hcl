@@ -201,7 +201,7 @@ customdnsrecords = [
 
     {{- range $rr_a | sprig_uniq -}}
     "{{ printf "%-45s %4d %s %4s %s" (sprig_nospace (sprig_cat (index . 0) $base_domain)) $ttl "IN" "A" (sprig_last . ) }}",
-    {{- /* A records to proxy: */ -}}
+    {{- /* A records to proxy: */ }}
     "{{ printf "%-45s %4d %s %4s %s" (sprig_nospace (sprig_cat (index . 0) ".traefik")) $ttl "IN" "A" "10.8.0.1" }}",
     {{ end }}
 

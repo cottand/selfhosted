@@ -2,7 +2,10 @@ server {
     enabled = true
     bootstrap_expect = 3
     server_join {
-        retry_join = ["10.10.0.1", "10.10.2.1"]
+        retry_join = [
+      "maco.mesh.dcotta.eu",
+      "cosmo.mesh.dcotta.eu",
+        ]
         retry_max = 3
         retry_interval = "15s"
     }

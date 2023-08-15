@@ -63,6 +63,7 @@ job "tempo" {
         ]
       }
       template {
+        destination = "local/tempo/local-config.yaml"
         data        = <<EOH
 auth_enabled: false
 server:
@@ -96,14 +97,14 @@ metrics_generator:
   registry:
     external_labels:
       source: tempo
-      cluster: docker-compose
+      cluster: nomad
   processor:
     service_graphs:
     span_metrics:
 
 
   storage:
-    path: /tmp/tempo/generator/wal
+    path: /alloc/data/tempo/generator/wal
     remote_write:
       - url: http://prometheus.traefik/api/v1/write
         send_exemplars: true
@@ -111,14 +112,13 @@ storage:
   trace:
     backend: local                     # backend configuration to use
     wal:
-      path: /tmp/tempo/wal             # where to store the the wal locally
+      path: /alloc/data/tempo/wal             # where to store the the wal locally
     local:
-      path: /tmp/tempo/blocks
+      path: /alloc/data/tempo/blocks
 
 overrides:
   metrics_generator_processors: [service-graphs, span-metrics] # enables metrics generator
 EOH
-        destination = "local/tempo/local-config.yaml"
       }
       resources {
         cpu        = 256

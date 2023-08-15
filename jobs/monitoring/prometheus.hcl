@@ -64,7 +64,7 @@ scrape_configs:
     params:
       format: ['prometheus']
     static_configs:
-      - targets: [ 'maco.mesh.dcotta.eu:4646','cosmo.mesh.dcotta.eu:4646', 'bianco.mesh.dcotta.eu:4646', 'elvis.mesh.dcotta.eu:4646' ]
+      - targets: [ 'maco.mesh.dcotta.eu:4646','cosmo.mesh.dcotta.eu:4646', 'bianco.mesh.dcotta.eu:4646', 'elvis.mesh.dcotta.eu:4646', 'ari.mesh.dcotta.eu:4646' ]
 EOH
       }
 
@@ -80,7 +80,9 @@ EOH
         args = [
           "--web.route-prefix=/",
           "--web.external-url=http://prometheus.traefik",
-          "--config.file=/etc/prometheus/prometheus.yml"
+          "--config.file=/etc/prometheus/prometheus.yml",
+          "--web.enable-remote-write-receiver",
+          "--enable-feature=exemplar-storage"
         ]
 
         ports = ["http"]

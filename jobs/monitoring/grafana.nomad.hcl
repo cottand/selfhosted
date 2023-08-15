@@ -41,7 +41,7 @@ job "grafana" {
     task "grafana" {
       driver = "docker"
       config {
-        image = "grafana/grafana:9.4.7"
+        image = "grafana/grafana:10.0.3"
         ports = ["http"]
       }
       user = "root:root"
@@ -50,9 +50,11 @@ job "grafana" {
         "GF_AUTH_DISABLE_LOGIN_FORM"    = false
         "GF_AUTH_ANONYMOUS_ENABLED"     = true
         "GF_AUTH_ANONYMOUS_ORG_ROLE"    = "Viewer"
-        "GF_SERVER_ROOT_URL"            = "https://web.vps.dcotta.eu/grafana"
+        "GF_SERVER_ROOT_URL"            = "http://grafana.traefik"
         "GF_SERVER_SERVE_FROM_SUB_PATH" = true
         "GF_SECURITY_ALLOW_EMBEDDING"   = true
+        "GF_FEATURE_TOGGLES_ENABLE"     = "traceToMetrics"
+
       }
       volume_mount {
         volume      = "grafana"
@@ -80,12 +82,8 @@ job "grafana" {
 
         tags = [
           "traefik.enable=true",
-          "traefik.http.middlewares.${NOMAD_TASK_NAME}-stripprefix.stripprefix.prefixes=/${NOMAD_TASK_NAME}",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`web.vps.dcotta.eu`) && PathPrefix(`/${NOMAD_TASK_NAME}`)",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=websecure",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls=true",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=${NOMAD_TASK_NAME}-stripprefix,vpn-whitelist@file",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=web",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=vpn-whitelist@file",
         ]
       }
     }
