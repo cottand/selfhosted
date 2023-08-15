@@ -151,8 +151,6 @@ EOF
     #    scheme = "https"
   [entryPoints.websecure]
     address = ":{{ env "NOMAD_PORT_https" }}"
-    [entryPoints.websecure.http3]
-      advertisedPort = 443
 
 
   # redirects 8000 (in container) to 443
@@ -165,8 +163,6 @@ EOF
   [entryPoints.websecure_public]
     address = ":{{ env "NOMAD_PORT_https_public" }}"
 
-    [entryPoints.websecure_public.http3]
-      advertisedPort = 443
     # redirects 44300 (in container) to 443
     [entryPoints.websecure_public.http.redirections.entryPoint]
       to = "websecure"
