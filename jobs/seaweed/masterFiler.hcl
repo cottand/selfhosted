@@ -224,6 +224,11 @@ job "seaweedfs" {
         provider = "nomad"
         name     = "seaweedfs-filer-s3"
         port     = "s3"
+        // tags = [
+        //   "traefik.enable=true",
+        //   "traefik.http.routers.${NOMAD_TASK_NAME}-s3.entrypoints=web,websecure",
+        //   "traefik.http.routers.${NOMAD_TASK_NAME}-s3.middlewares=vpn-whitelist@file",
+        // ]
       }
       volume_mount {
         volume      = "seaweedfs-filer"

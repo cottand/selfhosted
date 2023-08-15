@@ -1,6 +1,6 @@
 variable "lemmy_version" {
   type    = string
-  default = "0.18.3"
+  default = "0.18.4"
 }
 
 job "lemmy" {
@@ -65,7 +65,7 @@ job "lemmy" {
         env         = true
         change_mode = "restart"
         data        = <<EOH
-{{ range $i, $s := nomadService "lemmy-be" }}
+{{ nomadService "lemmy-be" }}
 LEMMY_UI_LEMMY_INTERNAL_HOST = {{ .Address }}:{{ .Port }}
 {{ end }}
 EOH

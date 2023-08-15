@@ -1,6 +1,9 @@
 client {
     enabled = true
-    servers = ["10.10.0.1", "10.10.2.1", "10.10.3.1"]
+    servers = [
+      "maco.mesh.dcotta.eu",
+      "cosmo.mesh.dcotta.eu",
+    ]
 
     options = {
         "driver.allowlist" = "docker,raw_exec"

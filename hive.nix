@@ -32,13 +32,13 @@
     deployment.targetHost = "${name}.vps.dcotta.eu";
     deployment.tags = [ "contabo" "nomad-server" ];
   };
-  # ari = { name, nodes, ... }: {
-  #   imports = [
-  #     ./machines/${name}/definition.nix
-  #   ];
-  #   networking.hostName = name;
-  #   deployment.tags = [ "local" "nomad-server" ];
-  # };
+  ari = { name, nodes, ... }: {
+    imports = [
+      ./machines/${name}/definition.nix
+    ];
+    networking.hostName = name;
+    deployment.tags = [ "local" "nomad-server" ];
+  };
   maco = { name, nodes, ... }: {
     imports = [
       ./machines/${name}/definition.nix

@@ -22,15 +22,14 @@ job "loki" {
       mode     = "delay"
     }
     network {
-      #            mode = "bridge" # no hairpin I think
+      mode = "bridge"
       port "http" {
-        host_network = "vpn"
+        host_network = "wg-mesh"
       }
     }
     task "loki" {
       driver = "docker"
-      user   = "root" // !! so it can access the container volume, must be user
-      // of folder in host
+      user   = "root" 
 
       config {
         image = "grafana/loki:2.8.0"
@@ -39,8 +38,6 @@ job "loki" {
           "local/loki/local-config.yaml",
         ]
         ports = ["http"]
-        # [2] fix containers on maco unreachable in network mode bridge
-        network_mode = "host"
       }
       template {
         data        = <<EOH
