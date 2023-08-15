@@ -42,6 +42,7 @@ job "mimir" {
         ports = ["http", "memberlist"]
       }
       template {
+        change_mode = "signal"
         data        = <<EOH
 server:
   http_listen_port: {{ env "NOMAD_PORT_http" }}

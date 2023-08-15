@@ -8,6 +8,13 @@ job "prometheus" {
 
     network {
       mode = "bridge"
+      dns {
+        servers = [
+          "10.8.0.1",
+          "10.10.2.1",
+          "10.10.1.1",
+        ]
+      }
       port "http" {
         to           = 9090
         host_network = "wg-mesh"
@@ -65,6 +72,9 @@ scrape_configs:
       format: ['prometheus']
     static_configs:
       - targets: [ 'maco.mesh.dcotta.eu:4646','cosmo.mesh.dcotta.eu:4646', 'bianco.mesh.dcotta.eu:4646', 'elvis.mesh.dcotta.eu:4646', 'ari.mesh.dcotta.eu:4646' ]
+remote_write:
+- url: http://mimir.traefik/api/v1/push
+  send_exemplars: true
 EOH
       }
 

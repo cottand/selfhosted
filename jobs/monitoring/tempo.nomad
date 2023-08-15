@@ -23,6 +23,13 @@ job "tempo" {
     }
     network {
       mode = "bridge"
+      dns {
+        servers = [
+          "10.8.0.1",
+          "10.10.2.1",
+          "10.10.1.1",
+        ]
+      }
       port "http" {
         host_network = "wg-mesh"
       }
@@ -98,16 +105,12 @@ metrics_generator:
     external_labels:
       source: tempo
       cluster: nomad
-  processor:
-    service_graphs:
-    span_metrics:
-
-
   storage:
     path: /alloc/data/tempo/generator/wal
     remote_write:
-      - url: http://prometheus.traefik/api/v1/write
+      - url: http://mimir.traefik/api/v1/push
         send_exemplars: true
+  
 storage:
   trace:
     backend: local                     # backend configuration to use
@@ -122,7 +125,7 @@ EOH
       }
       resources {
         cpu        = 256
-        memory     = 512
+        memory     = 256
         memory_max = 1024
       }
       service {
