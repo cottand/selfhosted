@@ -67,6 +67,7 @@ job "web-portfolio" {
         data        = <<-EOF
 {{ range nomadService "tempo-otlp-grpc" }}
 OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://{{ .Address }}:{{ .Port }}
+OTEL_SERVICE_NAME="web-portfolio"
 {{ end }}
 EOF
       }
