@@ -71,6 +71,9 @@ ingester:
 store_gateway:
   sharding_ring:
     replication_factor: 1
+
+limits:
+  compactor_blocks_retention_period: 7d
 EOH
         destination = "local/mimir/local-config.yaml"
       }

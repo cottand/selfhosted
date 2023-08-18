@@ -1,15 +1,15 @@
 client {
   enabled = true
   servers = [
-    "maco.mesh.dcotta.eu"
-    "cosmo.mesh.dcotta.eu"
+    "maco.mesh.dcotta.eu",
+    "cosmo.mesh.dcotta.eu",
   ]
 
   options = {
-    "driver.allowlist" = "docker,raw_exec"
+    "driver.allowlist"       = "docker,raw_exec"
   }
 
-   bridge_network_hairpin_mode = true 
+  bridge_network_hairpin_mode = true
 
   host_network "vpn" {
     cidr           = "10.8.0.0/24"
@@ -50,7 +50,6 @@ client {
     docker_privileged = true
   }
 
-
 }
 plugin "raw_exec" {
   config {
@@ -63,5 +62,8 @@ plugin "docker" {
     allow_privileged = true
     # extra Docker labels to be set by Nomad on each Docker container with the appropriate value
     extra_labels = ["job_name", "task_group_name", "task_name", "node_name"]
+    volumes {
+      enabled = true
+    }
   }
 }
