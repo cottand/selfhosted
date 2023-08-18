@@ -65,5 +65,8 @@ plugin "docker" {
     allow_privileged = true
     # extra Docker labels to be set by Nomad on each Docker container with the appropriate value
     extra_labels = ["job_name", "task_group_name", "task_name", "node_name"]
+    volumes {
+      enabled = true
+    }
   }
 }

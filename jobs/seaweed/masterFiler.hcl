@@ -92,11 +92,7 @@ job "seaweedfs" {
         }
         tags = [
           "traefik.enable=true",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`seaweed.vps.dcotta.eu`)",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=websecure",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls=true",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=vpn-whitelist@file",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=web,websecure",
         ]
       }
 
