@@ -1,4 +1,17 @@
 // modified original from https://github.com/watsonian/seaweedfs-nomad
+variable "seaweedfs_version" {
+  type    = string
+  default = "3.55"
+}
+variable "master_port_http" {
+  type    = number
+  default = 9333
+}
+variable "master_port_grpc" {
+  type    = number
+  default = 19333
+}
+
 job "seaweedfs" {
   datacenters = ["dc1"]
   type        = "service"
@@ -22,12 +35,12 @@ job "seaweedfs" {
       mode = "host"
 
       port "http" {
-        static       = 9333
+        static       = var.master_port_http
         host_network = "wg-mesh"
       }
 
       port "grpc" {
-        static       = 19333
+        static       = var.master_port_grpc
         host_network = "wg-mesh"
       }
       port "metrics" {
@@ -39,7 +52,7 @@ job "seaweedfs" {
       driver = "docker"
 
       config {
-        image = "chrislusf/seaweedfs:3.55"
+        image = "chrislusf/seaweedfs:${var.seaweedfs_version}"
 
         args = [
           "-logtostderr",
@@ -132,6 +145,13 @@ job "seaweedfs" {
     }
     network {
       mode = "bridge"
+      dns {
+        servers = [
+          "10.8.0.1",
+          "10.10.2.1",
+          "10.10.1.1",
+        ]
+      }
 
       port "http" {
         static       = 8888
@@ -233,14 +253,15 @@ job "seaweedfs" {
       }
       driver = "docker"
       config {
-        image = "chrislusf/seaweedfs:3.55"
+        image = "chrislusf/seaweedfs:${var.seaweedfs_version}"
         ports = ["http", "grpc", "metrics", "webdav"]
         args = [
           "-logtostderr",
           "filer",
           "-ip=${NOMAD_IP_http}",
           "-ip.bind=0.0.0.0",
-          "-master=${SEAWEEDFS_MASTER_IP_http}:${SEAWEEDFS_MASTER_PORT_http}.${SEAWEEDFS_MASTER_PORT_grpc}",
+          // "-master=${SEAWEEDFS_MASTER_IP_http}:${SEAWEEDFS_MASTER_PORT_http}.${SEAWEEDFS_MASTER_PORT_grpc}",
+          "-master=seaweedfs-master-http.nomad:${var.master_port_http}.${var.master_port_grpc}",
           "-port=${NOMAD_PORT_http}",
           "-port.grpc=${NOMAD_PORT_grpc}",
           "-metricsPort=${NOMAD_PORT_metrics}",
@@ -305,25 +326,6 @@ connection_max_lifetime_seconds = 0
 enableUpsert = true
 upsertQuery = """UPSERT INTO "%[1]s" (dirhash,name,directory,meta) VALUES($1,$2,$3,$4)"""
         EOF
-      }
-      template {
-        destination = "config/.env"
-        env         = true
-        change_mode = "restart"
-        data        = <<-EOF
-{{ range $i, $s := nomadService "seaweedfs-master-http" }}
-{{- if eq $i 0 -}}
-SEAWEEDFS_MASTER_IP_http={{ .Address }}
-SEAWEEDFS_MASTER_PORT_http={{ .Port }}
-{{- end -}}
-{{ end }}
-{{ range $i, $s := nomadService "seaweedfs-master-grpc" }}
-{{- if eq $i 0 -}}
-SEAWEEDFS_MASTER_IP_grpc={{ .Address }}
-SEAWEEDFS_MASTER_PORT_grpc={{ .Port }}
-{{- end -}}
-{{ end }}
-EOF
       }
       resources {
         cpu    = 220
