@@ -20,7 +20,7 @@ job "logs" {
     network {
       mode = "bridge"
       port "http" {
-        host_network = "vpn"
+        host_network = "wg-mesh"
       }
     }
     # docker socket volume
@@ -36,7 +36,7 @@ job "logs" {
     task "vector" {
       driver = "docker"
       config {
-        image = "timberio/vector:0.31.0-debian"
+        image = "timberio/vector:0.32.X-debian"
         ports = ["http"]
       }
       # docker socket volume mount
@@ -52,7 +52,7 @@ job "logs" {
       }
       # resource limits are a good idea because you don't want your log collection to consume all resources available
       resources {
-        cpu    = 200
+        cpu    = 100
         memory = 256
         # Update the Scheduler Configuration to allow oversubscription.
         memory_max = 1024

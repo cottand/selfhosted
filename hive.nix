@@ -22,7 +22,7 @@
 
     deployment.replaceUnknownProfiles = lib.mkDefault true;
     deployment.buildOnTarget = lib.mkDefault true;
-    deployment.targetHost = lib.mkDefault "${name}.vpn.dcotta.eu";
+    deployment.targetHost = lib.mkDefault "${name}.mesh.dcotta.eu";
   };
 
   cosmo = { name, nodes, ... }: {
@@ -32,6 +32,16 @@
     deployment.targetHost = "${name}.vps.dcotta.eu";
     deployment.tags = [ "contabo" "nomad-server" ];
   };
+
+  miki = { name, nodes, lib, ... }: {
+    imports = [
+      ./machines/${name}/definition.nix
+    ];
+    deployment.targetHost = "${name}.vps.dcotta.eu";
+    nixpkgs.system = lib.mkForce "aarch64-linux";
+    deployment.tags = [ "hetzner" ];
+  };
+
   ari = { name, nodes, ... }: {
     imports = [
       ./machines/${name}/definition.nix
@@ -39,18 +49,21 @@
     networking.hostName = name;
     deployment.tags = [ "local" "nomad-server" ];
   };
+
   maco = { name, nodes, ... }: {
     imports = [
       ./machines/${name}/definition.nix
     ];
     deployment.tags = [ "local" "nomad-server" ];
   };
+
   elvis = { name, nodes, ... }: {
     imports = [
       ./machines/${name}/definition.nix
     ];
     deployment.tags = [ "local" "nomad-client" ];
   };
+
   bianco = { name, nodes, ... }: {
     imports = [
       ./machines/${name}/definition.nix

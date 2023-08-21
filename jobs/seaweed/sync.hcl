@@ -18,26 +18,8 @@ job "seaweedfs-sync" {
         args = [
           "-logtostderr",
           "filer.remote.sync", "-dir=/buckets",
-          "-filer=${SEAWEEDFS_FILER_IP_http}:${SEAWEEDFS_FILER_PORT_http}",
+          "-filer=seaweedfs-filer-http.nomad:8888",
         ]
-      }
-      template {
-        destination = "config/.env"
-        env         = true
-        data        = <<-EOF
-{{ range $i, $s := nomadService "seaweedfs-filer-http" }}
-{{- if eq $i 0 -}}
-SEAWEEDFS_FILER_IP_http={{ .Address }}
-SEAWEEDFS_FILER_PORT_http={{ .Port }}
-{{- end -}}
-{{ end }}
-{{ range $i, $s := nomadService "seaweedfs-filer-grpc" }}
-{{- if eq $i 0 -}}
-SEAWEEDFS_FILER_IP_grpc={{ .Address }}
-SEAWEEDFS_FILER_PORT_grpc={{ .Port }}
-{{- end -}}
-{{ end }}
-EOF
       }
       resources {
         cpu    = 100
@@ -52,26 +34,8 @@ EOF
         args = [
           "-logtostderr",
           "filer.remote.sync", "-dir=/documents/",
-          "-filer=${SEAWEEDFS_FILER_IP_http}:${SEAWEEDFS_FILER_PORT_http}",
+          "-filer=seaweedfs-filer-http.nomad:8888",
         ]
-      }
-      template {
-        destination = "config/.env"
-        env         = true
-        data        = <<-EOF
-{{ range $i, $s := nomadService "seaweedfs-filer-http" }}
-{{- if eq $i 0 -}}
-SEAWEEDFS_FILER_IP_http={{ .Address }}
-SEAWEEDFS_FILER_PORT_http={{ .Port }}
-{{- end -}}
-{{ end }}
-{{ range $i, $s := nomadService "seaweedfs-filer-grpc" }}
-{{- if eq $i 0 -}}
-SEAWEEDFS_FILER_IP_grpc={{ .Address }}
-SEAWEEDFS_FILER_PORT_grpc={{ .Port }}
-{{- end -}}
-{{ end }}
-EOF
       }
       resources {
         cpu    = 100
