@@ -16,6 +16,18 @@ job "traefik" {
         static       = 443
         host_network = "vpn"
       }
+      port "http-ui-mesh" {
+        static       = 8080
+        host_network = "wg-mesh"
+      }
+      port "http-mesh" {
+        static       = 80
+        host_network = "wg-mesh"
+      }
+      port "https-mesh" {
+        static       = 443
+        host_network = "wg-mesh"
+      }
       port "http_public" {
         static = 80
         to     = 8000
@@ -116,6 +128,13 @@ job "traefik" {
     [http.middlewares.vpn-whitelist.IPAllowList]
         sourcerange = [
             '10.8.0.1/24', # VPN clients
+            '10.10.0.1/16', # WG mesh
+            '127.1.0.0/24', # VPN clients
+            '172.26.64.18/20', # containers
+            '185.216.203.147', # comsmo's public contabo IP (will be origin when using sshuttle)
+        ]
+    [http.middlewares.mesh-whitelist.IPAllowList]
+        sourcerange = [
             '10.10.0.1/16', # WG mesh
             '127.1.0.0/24', # VPN clients
             '172.26.64.18/20', # containers

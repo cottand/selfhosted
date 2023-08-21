@@ -63,7 +63,6 @@ job "seaweedfs" {
           "-mdir=.",
           "-port=${NOMAD_PORT_http}",
           "-port.grpc=${NOMAD_PORT_grpc}",
-          # no replication
           "-defaultReplication=020",
           "-metricsPort=${NOMAD_PORT_metrics}",
           # 1GB max volume size
@@ -124,6 +123,41 @@ job "seaweedfs" {
       resources {
         cpu    = 100
         memory = 80
+      }
+      template {
+        destination = "/etc/seaweedfs/master.toml"
+        data = <<-EOF
+[master.maintenance]
+# periodically run these scripts are the same as running them from 'weed shell'
+scripts = """
+  lock
+  volume.deleteEmpty -quietFor=24h -force
+  volume.balance -force
+  volume.fix.replication
+  s3.clean.uploads -timeAgo=24h
+  unlock
+"""
+sleep_minutes = 30          # sleep minutes between each script execution
+
+[master.sequencer]
+type = "raft"     # Choose [raft|snowflake] type for storing the file id sequence
+# when sequencer.type = snowflake, the snowflake id must be different from other masters
+sequencer_snowflake_id = 0     # any number between 1~1023
+
+
+# create this number of logical volumes if no more writable volumes
+# count_x means how many copies of data.
+# e.g.:
+#   000 has only one copy, copy_1
+#   010 and 001 has two copies, copy_2
+#   011 has only 3 copies, copy_3
+# [master.volume_growth]
+# copy_1 = 7                # create 1 x 7 = 7 actual volumes
+# copy_2 = 6                # create 2 x 6 = 12 actual volumes
+# copy_3 = 3                # create 3 x 3 = 9 actual volumes
+# copy_other = 1            # create n x 1 = n actual volumes
+EOF
+
       }
     }
   }

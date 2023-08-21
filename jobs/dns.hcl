@@ -1,7 +1,7 @@
 job "dns" {
   datacenters = ["dc1"]
   type        = "system"
-  group "blocky-dns" {
+  group "grimd-dns" {
     network {
       mode = "bridge"
       port "dns" {
@@ -152,6 +152,7 @@ customdnsrecords = [
     "traefik.vps.dcotta.eu. 3600      IN  CNAME   web.vps  ",
 
     "web.vps.               3600      IN  CNAME   cosmo.vpn.dcotta.eu.  ",
+    "_http._tcp.seaweedfs-master.nomad IN SRV 0 0 80 seaweed-master.vps.dcotta.eu",
 
     {{ range $i, $s := nomadService "seaweedfs-webdav" }}
     "webdav.vps            3600  IN  A   {{ .Address }}",
@@ -201,8 +202,9 @@ customdnsrecords = [
 
     {{- range $rr_a | sprig_uniq -}}
     "{{ printf "%-45s %4d %s %4s %s" (sprig_nospace (sprig_cat (index . 0) $base_domain)) $ttl "IN" "A" (sprig_last . ) }}",
-    {{- /* A records to proxy: */ }}
-    "{{ printf "%-45s %4d %s %4s %s" (sprig_nospace (sprig_cat (index . 0) ".traefik")) $ttl "IN" "A" "10.8.0.1" }}",
+
+    {{- /* A records to proxy: */ -}}
+    "{{ printf "%-45s %4d %s %4s %s" (sprig_nospace (sprig_cat (index . 0) ".traefik")) $ttl "IN" "A" "10.10.0.1" }}",
     {{ end }}
 
       # "*.traefik  3600 IN  A   10.8.0.1", does not work?

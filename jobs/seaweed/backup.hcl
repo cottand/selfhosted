@@ -19,7 +19,7 @@ job "seaweedfs-backup" {
         args = [
           "-logtostderr",
           "filer.backup",
-          "-filer=${SEAWEEDFS_FILER_IP_http}:${SEAWEEDFS_FILER_PORT_http}",
+          "-filer=seaweedfs-filer-http.nomad:8888",
         ]
         mount {
           type   = "bind"
@@ -42,24 +42,6 @@ endpoint = "https://{{ .endpoint }}"
 region = "us-east-005"
 directory = "/snapshot/"    # destination directory - snapshot := non incremental
 is_incremental = false 
-EOF
-      }
-      template {
-        destination = "config/.env"
-        env         = true
-        data        = <<-EOF
-{{ range $i, $s := nomadService "seaweedfs-filer-http" }}
-{{- if eq $i 0 -}}
-SEAWEEDFS_FILER_IP_http={{ .Address }}
-SEAWEEDFS_FILER_PORT_http={{ .Port }}
-{{- end -}}
-{{ end }}
-{{ range $i, $s := nomadService "seaweedfs-filer-grpc" }}
-{{- if eq $i 0 -}}
-SEAWEEDFS_FILER_IP_grpc={{ .Address }}
-SEAWEEDFS_FILER_PORT_grpc={{ .Port }}
-{{- end -}}
-{{ end }}
 EOF
       }
       resources {

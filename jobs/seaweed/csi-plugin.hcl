@@ -38,26 +38,6 @@ job "seaweedfs-plugin" {
     task "plugin" {
       driver = "docker"
 
-      template {
-        destination = "config/.env"
-        change_mode = "restart"
-        env         = true
-        data        = <<-EOF
-{{ range $i, $s := nomadService "seaweedfs-filer-http" }}
-{{- if eq $i 0 -}}
-SEAWEEDFS_FILER_IP_http={{ .Address }}
-SEAWEEDFS_FILER_PORT_http={{ .Port }}
-{{- end -}}
-{{ end }}
-{{ range $i, $s := nomadService "seaweedfs-filer-grpc" }}
-{{- if eq $i 0 -}}
-SEAWEEDFS_FILER_IP_grpc={{ .Address }}
-SEAWEEDFS_FILER_PORT_grpc={{ .Port }}
-{{- end -}}
-{{ end }}
-EOF
-      }
-
       config {
         network_mode = "host"
         image        = "chrislusf/seaweedfs-csi-driver:v1.1.5"
@@ -68,7 +48,7 @@ EOF
           // "--node",
           "--endpoint=unix://csi/csi.sock",
           // hardcoded ports and IP so that this does not get restarted when master does
-          "--filer=seaweedfs-filer.vps:8888.18888",
+          "--filer=seaweedfs-filer-http.nomad:8888.18888",
           "--nodeid=${node.unique.name}",
           "--cacheCapacityMB=1000",
           "--cacheDir=${NOMAD_TASK_DIR}/cache_dir",
