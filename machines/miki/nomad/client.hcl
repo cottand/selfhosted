@@ -11,7 +11,7 @@ client {
     "driver.allowlist" = "docker"
   }
 
-  cpu_total_compute = 12000 # see https://github.com/hashicorp/nomad/issues/18272
+ cpu_total_compute = 10000 # see https://github.com/hashicorp/nomad/issues/18272
 
   bridge_network_hairpin_mode = true # only 1.5.+
 

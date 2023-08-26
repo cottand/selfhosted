@@ -17,7 +17,7 @@ job "seaweedfs-plugin" {
     network {
       dns {
         servers = [
-          "10.8.0.1",
+          "10.10.0.1",
           "10.10.2.1",
           "10.10.1.1",
         ]

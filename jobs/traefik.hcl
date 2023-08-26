@@ -142,13 +142,12 @@ job "traefik" {
         ]
 [http.routers]
   [http.routers.nomad]
-    rule = "Host( `nomad.vps.dcotta.eu` )" # || PathPrefix(`/consul`) || HeadersRegexp(`referer`, `https://internal.in/nomad/.*`)"
-#    priority = 1000
+    rule = "Host( `nomad.vps.dcotta.eu` ) || Host( `nomad.traefik` )"
     service = "nomad"
     entrypoints= "web,websecure"
 #    tls = true
-    tls.certresolver= "lets-encrypt"
-    middlewares = "vpn-whitelist@file"
+#    tls.certresolver= "lets-encrypt"
+#    middlewares = "vpn-whitelist@file"
 [http.services]
   [http.services.nomad.loadBalancer]
     [[http.services.nomad.loadBalancer.servers]]
@@ -215,20 +214,11 @@ EOF
   defaultRule = "Host(`{{"{{ .Name }}"}}.traefik`)"
 
   [providers.nomad.endpoint]
-    address = "http://10.8.0.1:4646"
+    address = "http://10.10.0.1:4646"
 
 
 [providers.file]
   directory = "/etc/traefik/dynamic"
-
-[tracing]
-#   [tracing.jaeger]
-#   {{ range nomadService "tempo-jaeger-ingest" -}}
-#    samplingServerURL = "http://{{ .Address}}:{{ .Port }}/api/sampling"
-#   {{ end -}}
-#   {{ range nomadService "tempo-jaeger-thrift-compact" -}}
-#    localAgentHostPort = "{{ .Address }}:{{ .Port }}" 
-#   {{ end -}}
 
     {{ range nomadService "tempo-otlp-grpc" -}}
     [tracing]
@@ -237,12 +227,6 @@ EOF
         insecure = true
             [tracing.openTelemetry.grpc]
     {{ end -}}
-# 
-# [tracing]
-#  [tracing.zipkin]
-#{{ range nomadService "tempo-zipkin" -}}
-#    httpEndpoint = "http://{{ .Address }}:{{ .Port }}/api/v2/spans"
-#{{ end -}}
 
 EOF
         change_mode = "restart"

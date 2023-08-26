@@ -27,7 +27,7 @@
   users.users.root.openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPJ7FM2wEuWoUuxRkWnP6PNEtG+HOcwcZIt6Qg/Y1jhk nico.dc@outlook.com" ];
 
 
-  environment.systemPackages = with pkgs; [ 
+  environment.systemPackages = with pkgs; [
     wireguard-tools
     python3 # required for sshuttle
     seaweedfs # makes 'weed' bin available
@@ -39,7 +39,7 @@
     s-tui # power top
     nmap
     traceroute
-   ];
+  ];
 
   # Set your time zone.
   time.timeZone = lib.mkDefault "Europe/London";
@@ -67,4 +67,21 @@
 
   # Configure console keymap
   console.keyMap = "uk";
+
+  # see https://blog.thalheim.io/2022/12/31/nix-ld-a-clean-solution-for-issues-with-pre-compiled-executables-on-nixos/
+  programs.nix-ld = {
+    enable = true;
+    libraries = with pkgs; [
+      stdenv.cc.cc
+      zlib
+      fuse3
+      icu
+      zlib
+      nss
+      openssl
+      curl
+      expat
+      # ...
+    ];
+  };
 }
