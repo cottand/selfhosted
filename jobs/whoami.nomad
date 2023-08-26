@@ -2,10 +2,10 @@ job "whoami" {
     datacenters = ["dc1"]
     priority = 1
     group "whoami" {
-        // constraint {
-        //     attribute = "${meta.box}"
-        //     value     = "cosmo"
-        // }
+        constraint {
+            attribute = "${meta.box}"
+            value     = "ari"
+        }
         network {
             mode = "bridge"
             port "http" {

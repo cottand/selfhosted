@@ -6,10 +6,6 @@ job "dns" {
       mode = "bridge"
       port "dns" {
         static       = 53
-        host_network = "vpn"
-      }
-      port "dns-mesh" {
-        static       = 53
         host_network = "wg-mesh"
       }
       // port "dns-public" {
@@ -17,7 +13,7 @@ job "dns" {
       // }
       port "metrics" {
         to           = 4000
-        host_network = "vpn"
+        host_network = "wg-mesh"
       }
     }
 
@@ -39,22 +35,10 @@ job "dns" {
         timeout  = "2s"
       }
     }
-    service {
-      name     = "dns-mesh"
-      provider = "nomad"
-      port     = "dns-mesh"
-      check {
-        name     = "alive"
-        type     = "tcp"
-        port     = "metrics"
-        interval = "20s"
-        timeout  = "2s"
-      }
-    }
     task "grimd-dns" {
       driver = "docker"
       config {
-        image = "ghcr.io/looterz/grimd:latest"
+        image = "ghcr.io/cottand/grimd:v2.0.1"
         args = [
           "--config", "/config.toml",
           "--update",
@@ -146,12 +130,13 @@ whitelist = [
 # manual custom dns entries
 customdnsrecords = [
     # CNAME is not flattened - see https://github.com/looterz/grimd/issues/113
-    "web.vps.dcotta.eu.     3600      IN  A   10.8.0.1  ",
+    "web.vps.dcotta.eu.     3600      IN  A   10.10.0.1  ",
 
-    "nomad.vps.dcotta.eu.   3600      IN  CNAME   web.vps  ",
-    "traefik.vps.dcotta.eu. 3600      IN  CNAME   web.vps  ",
+    "nomad.vps.dcotta.eu.   3600      IN  CNAME   cosmo.mesh.dcotta.eu  ",
+    "nomad.traefik.         3600      IN  CNAME   cosmo.mesh.dcotta.eu  ",
+    "traefik.vps.dcotta.eu. 3600      IN  CNAME   cosmo.mesh.dcotta.eu  ",
 
-    "web.vps.               3600      IN  CNAME   cosmo.vpn.dcotta.eu.  ",
+    "web.vps.               3600      IN  CNAME   cosmo.mesh.dcotta.eu.  ",
     "_http._tcp.seaweedfs-master.nomad IN SRV 0 0 80 seaweed-master.vps.dcotta.eu",
 
     {{ range $i, $s := nomadService "seaweedfs-webdav" }}
@@ -161,11 +146,11 @@ customdnsrecords = [
     {{ range $i, $s := nomadService "seaweedfs-master-http" }}
     "seaweedfs-master.vps  3600 IN  A   {{ .Address }}",
     {{ end }}
-    "seaweed-master.vps.dcotta.eu  3600 IN  A   10.8.0.1",
+    "seaweed-master.vps.dcotta.eu  3600 IN  A   10.10.0.1",
 
     {{ range $i, $s := nomadService "seaweedfs-filer-http" }}
     "seaweedfs-filer.vps   3600 IN A {{ .Address }}",
-    "seaweed-filer.vps.dcotta.eu   3600 IN  A   10.8.0.1",
+    "seaweed-filer.vps.dcotta.eu   3600 IN  A   10.10.0.1",
     {{ end }}
 
 

@@ -20,7 +20,7 @@ job "grafana" {
       mode = "bridge"
       dns {
         servers = [
-          "10.8.0.1",
+          "10.10.0.1",
           "10.10.2.1",
           "10.10.1.1",
         ]
@@ -41,7 +41,7 @@ job "grafana" {
     task "grafana" {
       driver = "docker"
       config {
-        image = "grafana/grafana:10.0.3"
+        image = "grafana/grafana:10.1.0"
         ports = ["http"]
       }
       user = "root:root"

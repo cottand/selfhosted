@@ -36,7 +36,7 @@ job "seaweedfs-volume" {
       }
 
       port "metrics" {
-        host_network = "vpn"
+        host_network = "wg-mesh"
       }
     }
 

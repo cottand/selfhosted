@@ -10,7 +10,7 @@ job "prometheus" {
       mode = "bridge"
       dns {
         servers = [
-          "10.8.0.1",
+          "10.10.0.1",
           "10.10.2.1",
           "10.10.1.1",
         ]
@@ -34,7 +34,7 @@ job "prometheus" {
     }
 
     ephemeral_disk {
-      size    = 128 # MB
+      size    = 256 # MB
       migrate = true
       sticky  = true
     }
@@ -71,7 +71,7 @@ scrape_configs:
     params:
       format: ['prometheus']
     static_configs:
-      - targets: [ 'maco.mesh.dcotta.eu:4646','cosmo.mesh.dcotta.eu:4646', 'bianco.mesh.dcotta.eu:4646', 'elvis.mesh.dcotta.eu:4646', 'ari.mesh.dcotta.eu:4646' ]
+      - targets: [ 'maco.mesh.dcotta.eu:4646','cosmo.mesh.dcotta.eu:4646', 'bianco.mesh.dcotta.eu:4646', 'elvis.mesh.dcotta.eu:4646', 'ari.mesh.dcotta.eu:4646', 'miki.mesh.dcotta.eu:4646' ]
 remote_write:
 - url: http://mimir.traefik/api/v1/push
   send_exemplars: true
@@ -91,6 +91,7 @@ EOH
           "--web.route-prefix=/",
           "--web.external-url=http://prometheus.traefik",
           "--config.file=/etc/prometheus/prometheus.yml",
+          "--enable-feature=agent",
           "--web.enable-remote-write-receiver",
           "--enable-feature=exemplar-storage"
         ]

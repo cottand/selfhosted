@@ -4,6 +4,7 @@
 
     nodeNixpkgs = {
       #   elvis = (import (import ./sources.nix).nixos-22-11);
+        # miki = (import ./sources.nix).nixos-local-dev;
     };
 
     # can be used for distributed builds instead of buildOnTraget

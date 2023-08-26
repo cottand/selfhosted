@@ -31,4 +31,7 @@
       };
     };
   };
+
+   environment.systemPackages = with pkgs; [ dmidecode ];
+  
 }
