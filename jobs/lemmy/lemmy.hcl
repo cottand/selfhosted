@@ -54,7 +54,7 @@ job "lemmy" {
         tags = [
           "traefik.enable=true",
           # for some reason only when there is a longer hostname this works
-          "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`r.dcotta.eu`) || Host(`lemmy.dcotta.eu`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`classic.r.dcotta.eu`) || Host(`lemmy.dcotta.eu`)",
           "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=websecure_public,websecure,web_public,web",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls=true",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt",

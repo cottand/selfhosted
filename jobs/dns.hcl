@@ -22,6 +22,7 @@ job "dns" {
       name     = "dns-metrics"
       provider = "nomad"
       port     = "metrics"
+      tags     = ["metrics"]
     }
     service {
       name     = "dns"
@@ -38,7 +39,7 @@ job "dns" {
     task "grimd-dns" {
       driver = "docker"
       config {
-        image = "ghcr.io/cottand/grimd:v2.0.1"
+        image = "ghcr.io/cottand/grimd:sha-b32cc5f"
         args = [
           "--config", "/config.toml",
           "--update",
@@ -86,9 +87,6 @@ logconfig = "stderr@1"
 
 # apidebug enables the debug mode of the http api library
 apidebug = false
-
-# enable the web interface by default
-dashboard = true
 
 # address to bind to for the DNS server
 bind = "0.0.0.0:{{ env "NOMAD_PORT_dns"  }}"

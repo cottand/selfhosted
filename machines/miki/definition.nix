@@ -27,9 +27,11 @@
   networking.firewall = {
     # WG whitelisted in lib/make-wireguard
     allowedTCPPorts = [ 22 ];
+    # for wg-ui VPN
+    allowedUDPPorts = [ 51825 ];
   };
 
-  networking.firewall.trustedInterfaces = [ "nomad" "docker0" ];
+  networking.firewall.trustedInterfaces = [ "nomad" "docker0"  ];
   virtualisation.docker.enable = true;
   networking.firewall.checkReversePath = false;
 
