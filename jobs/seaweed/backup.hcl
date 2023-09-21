@@ -3,6 +3,15 @@ job "seaweedfs-backup" {
   datacenters = ["dc1"]
 
   group "backup" {
+    network {
+      dns {
+        servers = [
+          "10.10.0.1",
+          "10.10.2.1",
+          "10.10.1.1",
+        ]
+      }
+    }
     count = 1
     restart {
       interval = "10m"

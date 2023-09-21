@@ -21,6 +21,7 @@ job "miki-vpn" {
         image      = "embarkstudios/wireguard-ui:latest"
         privileged = true
         ports      = ["http", "wg"]
+        cap_add =  ["NET_ADMIN", "SYS_MODULE" ]
       }
       env {
         // WG_HOST                 = "vpn-guest.dcotta.eu"

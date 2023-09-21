@@ -3,6 +3,7 @@
     ./hardware-configuration.nix
     ./network-configuration.nix # generated at runtime by nixos-infect
     ./nomad/nomad.nix
+    ./wg-easy.nix
   ];
 
   boot.tmp.cleanOnBoot = true;

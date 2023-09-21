@@ -128,13 +128,13 @@ whitelist = [
 # manual custom dns entries
 customdnsrecords = [
     # CNAME is not flattened - see https://github.com/looterz/grimd/issues/113
-    "web.vps.dcotta.eu.     3600      IN  A   10.10.0.1  ",
+    "web.vps.dcotta.eu.     3600      IN  A   10.10.4.1  ",
 
-    "nomad.vps.dcotta.eu.   3600      IN  CNAME   cosmo.mesh.dcotta.eu  ",
-    "nomad.traefik.         3600      IN  CNAME   cosmo.mesh.dcotta.eu  ",
-    "traefik.vps.dcotta.eu. 3600      IN  CNAME   cosmo.mesh.dcotta.eu  ",
+    "nomad.vps.dcotta.eu.   3600      IN  CNAME   miki.mesh.dcotta.eu  ",
+    "nomad.traefik.         3600      IN  CNAME   miki.mesh.dcotta.eu  ",
+    "traefik.vps.dcotta.eu. 3600      IN  CNAME   miki.mesh.dcotta.eu  ",
 
-    "web.vps.               3600      IN  CNAME   cosmo.mesh.dcotta.eu.  ",
+    "web.vps.               3600      IN  CNAME   miki.mesh.dcotta.eu.  ",
     "_http._tcp.seaweedfs-master.nomad IN SRV 0 0 80 seaweed-master.vps.dcotta.eu",
 
     {{ range $i, $s := nomadService "seaweedfs-webdav" }}
@@ -187,11 +187,9 @@ customdnsrecords = [
     "{{ printf "%-45s %4d %s %4s %s" (sprig_nospace (sprig_cat (index . 0) $base_domain)) $ttl "IN" "A" (sprig_last . ) }}",
 
     {{- /* A records to proxy: */ -}}
-    "{{ printf "%-45s %4d %s %4s %s" (sprig_nospace (sprig_cat (index . 0) ".traefik")) $ttl "IN" "A" "10.10.0.1" }}",
+    "{{ printf "%-45s %4d %s %4s %s" (sprig_nospace (sprig_cat (index . 0) ".traefik")) $ttl "IN" "A" "10.10.4.1" }}",
     {{ end }}
 
-      # "*.traefik  3600 IN  A   10.8.0.1", does not work?
- 
 
 ]
 
