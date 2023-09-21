@@ -202,10 +202,10 @@ EOF
         static       = 17777
         host_network = "wg-mesh"
       }
-      port "webdav-vpn" {
-        static       = 17777
-        host_network = "vpn"
-      }
+      // port "webdav-vpn" {
+      //   static       = 17777
+      //   host_network = "vpn"
+      // }
       port "s3" {
         host_network = "wg-mesh"
       }
@@ -233,11 +233,11 @@ EOF
         }
         tags = [
           "traefik.enable=true",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`seaweed-filer.vps.dcotta.eu`)",
+          // "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`seaweed-filer.vps.dcotta.eu`)",
           "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=web,websecure",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls=true",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=vpn-whitelist@file",
+          // "traefik.http.routers.${NOMAD_TASK_NAME}.tls=true",
+          // "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=mesh-whitelist@file",
         ]
       }
       service {
@@ -256,13 +256,13 @@ EOF
         name     = "seaweedfs-webdav"
         port     = "webdav"
         provider = "nomad"
-        // check {
-        //   name     = "alive"
-        //   type     = "tcp"
-        //   port     = "webdav"
-        //   interval = "20s"
-        //   timeout  = "2s"
-        // }
+        check {
+          name     = "alive"
+          type     = "tcp"
+          port     = "webdav"
+          interval = "20s"
+          timeout  = "2s"
+        }
       }
       service {
         provider = "nomad"

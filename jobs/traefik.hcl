@@ -4,19 +4,15 @@ job "traefik" {
   group "traefik" {
     network {
       mode = "bridge"
+      // port "http" {
+      //   static       = 80
+      //   host_network = "vpn"
+      // }
+      // port "https" {
+      //   static       = 443
+      //   host_network = "vpn"
+      // }
       port "http-ui" {
-        static       = 8080
-        host_network = "vpn"
-      }
-      port "http" {
-        static       = 80
-        host_network = "vpn"
-      }
-      port "https" {
-        static       = 443
-        host_network = "vpn"
-      }
-      port "http-ui-mesh" {
         static       = 8080
         host_network = "wg-mesh"
       }
@@ -38,18 +34,15 @@ job "traefik" {
       }
       port "metrics" {
         static       = 31934 # hardcoded so that prometheus can find it after restart
-        host_network = "vpn"
+        host_network = "wg-mesh"
       }
     }
     volume "traefik-cert" {
-      type      = "host"
+      type      = "csi"
       read_only = false
       source    = "traefik-cert"
-    }
-    volume "traefik-basic-auth" {
-      type      = "host"
-      read_only = true
-      source    = "traefik-basic-auth"
+      access_mode     = "single-node-writer"
+      attachment_mode = "file-system"
     }
     service {
       name     = "traefik-metrics"
@@ -82,7 +75,6 @@ job "traefik" {
       check {
         name     = "alive"
         type     = "tcp"
-        port     = "http"
         interval = "20s"
         timeout  = "2s"
       }
@@ -98,12 +90,6 @@ job "traefik" {
         destination = "/etc/traefik-cert"
         read_only   = false
       }
-      volume_mount {
-        volume      = "traefik-basic-auth"
-        destination = "/etc/traefik-basic-auth"
-        read_only   = true
-      }
-
       config {
         image = "traefik:3.0.0-beta3"
         # needs to be in host wireguard network so that it can reach other VPN members
@@ -114,7 +100,7 @@ job "traefik" {
       }
       constraint {
         attribute = "${meta.box}"
-        value     = "cosmo"
+        value     = "miki"
       }
 
       template {
@@ -122,6 +108,12 @@ job "traefik" {
 [http.middlewares]
     # Middleware that only allows requests after the authentication with credentials specified in usersFile
     [http.middlewares.auth.basicauth]
+        users = [
+          # see https://doc.traefik.io/traefik/middlewares/http/basicauth/
+          {{ with nomadVar "secret/buckets/seaweedfs-bu" -}}
+          "{{ .basicAuth_cottand }}"
+          {{- end }}
+        ]
         usersFile = "/etc/traefik-basic-auth/users"
     # Middleware that only allows requests from inside the VPN
     # https://doc.traefik.io/traefik/middlewares/http/ipwhitelist/
@@ -151,7 +143,7 @@ job "traefik" {
 [http.services]
   [http.services.nomad.loadBalancer]
     [[http.services.nomad.loadBalancer.servers]]
-      url = "http://10.8.0.1:4646/"
+      url = "http://10.10.0.1:4646/"
         # TODO [3] add other servers for load balancing
 EOF
         destination = "local/traefik-dynamic.toml"
@@ -163,12 +155,12 @@ EOF
 [entryPoints]
   [entryPoints.web]
 
-    address = ":{{ env "NOMAD_PORT_http" }}"
+    address = ":{{ env "NOMAD_PORT_http_mesh" }}"
     #  [entryPoints.web.http.redirections.entryPoint]
     #    to = "websecure"
     #    scheme = "https"
   [entryPoints.websecure]
-    address = ":{{ env "NOMAD_PORT_https" }}"
+    address = ":{{ env "NOMAD_PORT_https_mesh" }}"
 
 
   # redirects 8000 (in container) to 443

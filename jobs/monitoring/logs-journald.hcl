@@ -20,7 +20,7 @@ job "logs" {
     network {
       mode = "bridge"
       port "http" {
-        host_network = "vpn"
+        host_network = "wg-mesh"
       }
     }
     # docker socket volume

@@ -2,7 +2,7 @@ client {
   enabled = true
 
   servers = ["10.10.0.1", "10.10.2.1"
-  // , "10.10.3.1"
+    // , "10.10.3.1"
   ]
 
   options = {
@@ -52,6 +52,7 @@ client {
     box              = "cosmo"
     name             = "cosmo"
     seaweedfs_volume = true
+    public_network   = true
   }
 }
 plugin "raw_exec" {
