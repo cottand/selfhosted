@@ -12,7 +12,7 @@ job "prometheus" {
         servers = [
           "10.10.0.1",
           "10.10.2.1",
-          "10.10.1.1",
+          "10.10.4.1",
         ]
       }
       port "http" {
@@ -53,7 +53,7 @@ global:
 scrape_configs:
   - job_name: 'nomad_metrics'
     nomad_sd_configs:
-    - server: 'http://cosmo.vpn.dcotta.eu:4646'
+    - server: 'http://cosmo.mesh.dcotta.eu:4646'
     relabel_configs:
     - source_labels: ['__meta_nomad_tags']
       regex: '(.*)metrics(.*)'

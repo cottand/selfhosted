@@ -22,6 +22,17 @@
   };
 
 
+  systemd.services.weed_mount = {
+    enable = true;
+    description = "Mounts the weed fs";
+    preStart = "mkdir -p /mnt/weed";
+    serviceConfig = {
+      ExecStart = "${pkgs.seaweedfs}/bin/weed mount -filer=10.10.0.1:8888 -dir=/mnt/weed";
+    };
+    before = [ "docker-wg-easy.service" ];
+    wantedBy = [ "docker-wg-easy.service" ];
+  };
+
   # deployment.keys."wg0.json" = {
   #   text = (builtins.readFile ../../secret/wg-easy/wg0.json);
   #   destDir = "/root/secret/wg-easy/";
