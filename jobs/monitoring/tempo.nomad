@@ -27,6 +27,7 @@ job "tempo" {
         servers = [
           "10.10.0.1",
           "10.10.2.1",
+          "10.10.4.1",
           "10.10.1.1",
         ]
       }
@@ -56,7 +57,7 @@ job "tempo" {
       // of folder in host
 
       config {
-        image = "grafana/tempo:2.2.0"
+        image = "grafana/tempo:2.2.3"
         args = [
           "-config.file",
           "local/tempo/local-config.yaml",

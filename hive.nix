@@ -1,6 +1,6 @@
 {
   meta = {
-    nixpkgs = (import ./sources.nix).nixos-23-05-2;
+    nixpkgs = (import ./sources.nix).nixos-23-05-3;
 
     nodeNixpkgs = {
       #   elvis = (import (import ./sources.nix).nixos-22-11);
@@ -40,7 +40,7 @@
     ];
     deployment.targetHost = "${name}.vps.dcotta.eu";
     nixpkgs.system = lib.mkForce "aarch64-linux";
-    deployment.tags = [ "hetzner" ];
+    deployment.tags = [ "hetzner" "nomad-client" ];
   };
 
   ari = { name, nodes, ... }: {
