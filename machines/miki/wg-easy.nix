@@ -9,9 +9,10 @@
         WG_HOST = "vpn.dcotta.eu";
         WG_PERSISTENT_KEEPALIVE = "25";
         WG_DEFAULT_ADDRESS = "10.2.0.x";
+        WG_DEFAULT_DNS = "10.2.0.1";
       };
 
-      # volumes = [ "/root/secret/wg-easy:/etc/wireguard" ];
+      volumes = [ "/mnt/weed/buckets/vpn-de/:/etc/wireguard" ];
       extraOptions = [
         "--privileged"
         "--network=host"
@@ -24,8 +25,8 @@
 
   systemd.services.weed_mount = {
     enable = true;
-    description = "Mounts the weed fs";
-    preStart = "mkdir -p /mnt/weed";
+    description = "Mount weed fs";
+    # preStart = "mkdir -p /mnt/weed";
     serviceConfig = {
       ExecStart = "${pkgs.seaweedfs}/bin/weed mount -filer=10.10.0.1:8888 -dir=/mnt/weed";
     };

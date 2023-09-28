@@ -8,9 +8,9 @@ job "dns" {
         static       = 53
         host_network = "wg-mesh"
       }
-      // port "dns-public" {
-      //     static = 53
-      // }
+      port "dns-public" {
+          static = 53
+      }
       port "metrics" {
         to           = 4000
         host_network = "wg-mesh"
