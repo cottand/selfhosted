@@ -64,9 +64,9 @@ job "tempo" {
         ]
         ports = [
           "http",
-          "grpc-otlp",
+          "grpc",
+          "otlp-grpc",
           "jaeger-ingest",
-          "jaeger-http-sampling",
           "jaeger-thrift-compact",
         ]
       }
