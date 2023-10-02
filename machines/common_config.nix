@@ -17,14 +17,16 @@
   users.users."cottand".openssh.authorizedKeys.keys = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGes99PbsDcHDl3Jwg4GYqYRkzd6tZPH4WX4/ThP//BN"
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPJ7FM2wEuWoUuxRkWnP6PNEtG+HOcwcZIt6Qg/Y1jhk nico.dc@outlook.com"
-    # content of authorized_keys file
-    # note: ssh-copy-id will add user@clientmachine after the public key
-    # but we can remove the "@clientmachine" part
+    # nico-xps key
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF3AKGuE56RZiMURZ4ygV/BrSwrq6Ozp46VVm30PouPQ"
   ];
 
   users.users.root.shell = pkgs.zsh;
 
-  users.users.root.openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPJ7FM2wEuWoUuxRkWnP6PNEtG+HOcwcZIt6Qg/Y1jhk nico.dc@outlook.com" ];
+  users.users.root.openssh.authorizedKeys.keys = [ 
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPJ7FM2wEuWoUuxRkWnP6PNEtG+HOcwcZIt6Qg/Y1jhk nico.dc@outlook.com"
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF3AKGuE56RZiMURZ4ygV/BrSwrq6Ozp46VVm30PouPQ"
+  ];
 
 
   environment.systemPackages = with pkgs; [
@@ -81,7 +83,6 @@
       openssl
       curl
       expat
-      # ...
     ];
   };
 }
