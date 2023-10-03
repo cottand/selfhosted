@@ -4,22 +4,25 @@
 { config, lib, pkgs, modulesPath, ... }:
 
 {
-  imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
+  imports =
+    [
+      (modulesPath + "/installer/scan/not-detected.nix")
+    ];
 
-  boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "usb_storage" "sd_mod" "sdhci_pci" ];
+  boot.initrd.availableKernelModules = [ "xhci_pci" "nvme" "usb_storage" "sd_mod" "rtsx_pci_sdmmc" ];
   boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ "kvm-intel" "wl" ];
-  boot.extraModulePackages = [ config.boot.kernelPackages.broadcom_sta ];
+  boot.kernelModules = [ "kvm-intel" ];
+  boot.extraModulePackages = [ ];
 
   fileSystems."/" =
     {
-      device = "/dev/disk/by-uuid/05847019-5d81-4035-ac46-df572645e30d";
+      device = "/dev/disk/by-uuid/498a405a-e94a-467e-b4e8-2348d4aa569a";
       fsType = "ext4";
     };
 
   fileSystems."/boot/efi" =
     {
-      device = "/dev/disk/by-uuid/2860-11F4";
+      device = "/dev/disk/by-uuid/7C90-D8C6";
       fsType = "vfat";
     };
 
@@ -30,17 +33,9 @@
   # still possible to use this option, but it's recommended to use it in conjunction
   # with explicit per-interface declarations with `networking.interfaces.<interface>.useDHCP`.
   networking.useDHCP = lib.mkDefault true;
-  # networking.interfaces.enp0s20u1.useDHCP = lib.mkDefault true;
-  # networking.interfaces.enp3s0f0.useDHCP = lib.mkDefault true;
-
-  # only applies to mac mini
-  # see https://superuser.com/questions/212434/how-to-reboot-after-power-failure-for-mac-mini-running-ubuntu
-  systemd.services.aut-reboot-pci = {
-    script = ''${pkgs.pciutils}/bin/setpci -s 0:1f.0 0xa4.b=0'';
-    wantedBy = [ "sysinit.target" ];
-  };
-
+  # networking.interfaces.wlp0s20f3.useDHCP = lib.mkDefault true;
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
+  powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
   hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 }

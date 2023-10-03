@@ -1,5 +1,5 @@
 # returns a module
-{interface, confPath, port} : { ... }: {
+{ interface, confPath, port }: { ... }: {
   # see https://colmena.cli.rs/unstable/features/keys.html
   deployment.keys."${interface}.conf" = {
     text = (builtins.readFile confPath);

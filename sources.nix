@@ -8,4 +8,5 @@ builtins.mapAttrs (name: value: import value) {
 
   nixos-23-05-2 = builtins.fetchTarball "https://github.com/Cottand/nixpkgs/archive/refs/tags/23.05.2.tar.gz";
   nixos-23-05-3 = builtins.fetchTarball "https://github.com/Cottand/nixpkgs/archive/refs/tags/23.05.3.tar.gz";
+  nixos-23-05-5 = builtins.fetchTarball "https://github.com/Cottand/nixpkgs/archive/refs/tags/23.05.5.tar.gz";
 }
