@@ -10,7 +10,7 @@ The fleet is made up of
 
 
 The technologies I use include
-- [Wireguard](https://www.wireguard.com/) for the connection between nodes, so _all_ cluster communication everything is private and secure
+- [Wireguard](https://www.wireguard.com/) for the connection between nodes, so _all_ cluster communication is private and secure
 - [Nomad](https://www.nomadproject.io/) for orchestrating containers
 - [NixOS](https://nixos.org/) for managing the bare-metal (and [Colmena](https://github.com/zhaofengli/colmena) for deploying the remote config to each node)
 - [SeaweedFS](https://github.com/seaweedfs/seaweedfs) as a distributed filesystem to manage highly available persistent storage
