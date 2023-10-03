@@ -1,3 +1,3 @@
-{...}: {
-    services.logind.lidSwitch = "ignore";
+{ ... }: {
+  services.logind.lidSwitch = "ignore";
 }

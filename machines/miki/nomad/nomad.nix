@@ -32,6 +32,6 @@
     };
   };
 
-   environment.systemPackages = with pkgs; [ dmidecode ];
-  
+  environment.systemPackages = with pkgs; [ dmidecode ];
+
 }

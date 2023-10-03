@@ -32,7 +32,7 @@
     allowedUDPPorts = [ 51825 ];
   };
 
-  networking.firewall.trustedInterfaces = [ "nomad" "docker0"  ];
+  networking.firewall.trustedInterfaces = [ "nomad" "docker0" ];
   virtualisation.docker.enable = true;
   networking.firewall.checkReversePath = false;
 
