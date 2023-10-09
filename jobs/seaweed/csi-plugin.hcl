@@ -40,7 +40,7 @@ job "seaweedfs-plugin" {
 
       config {
         network_mode = "host"
-        image        = "chrislusf/seaweedfs-csi-driver:v1.1.5"
+        image        = "chrislusf/seaweedfs-csi-driver:v1.1.8"
         force_pull   = "true"
 
         args = [

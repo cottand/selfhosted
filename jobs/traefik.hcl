@@ -12,6 +12,9 @@ job "traefik" {
       //   static       = 443
       //   host_network = "vpn"
       // }
+      port "dns-mesh" {
+        static       = 53
+      }
       port "http-ui" {
         static       = 8080
         host_network = "wg-mesh"
@@ -121,6 +124,7 @@ job "traefik" {
         sourcerange = [
             '10.8.0.1/24', # VPN clients
             '10.10.0.1/16', # WG mesh
+            '10.2.0.1/16', # VPN guests
             '127.1.0.0/24', # VPN clients
             '172.26.64.18/20', # containers
             '185.216.203.147', # comsmo's public contabo IP (will be origin when using sshuttle)
@@ -153,8 +157,11 @@ EOF
       template {
         data        = <<EOF
 [entryPoints]
-  [entryPoints.web]
+  [entryPoints.dns]
+        address = ":{{ env "NOMAD_PORT_dns_mesh" }}/udp"
 
+
+  [entrypoints.web]
     address = ":{{ env "NOMAD_PORT_http_mesh" }}"
     #  [entryPoints.web.http.redirections.entryPoint]
     #    to = "websecure"
