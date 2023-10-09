@@ -57,7 +57,7 @@ job "wg-easy" {
         memory = 90
       }
       service {
-        name     = "vpn-wg-ui"
+        name     = "wg-easy-ui"
         provider = "nomad"
         port     = "http"
         check {
