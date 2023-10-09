@@ -50,6 +50,13 @@ client {
 // }
 plugin "docker" {
   config {
+    allow_caps = [
+      "audit_write", "chown", "dac_override", "fowner", "fsetid", "kill", "mknod",
+      "net_bind_service", "setfcap", "setgid", "setpcap", "setuid", "sys_chroot",
+      "net_raw", "sys_time",
+      "net_admin", "sys_module",
+    ]
+
     # necessary for seaweed
     allow_privileged = true
     # extra Docker labels to be set by Nomad on each Docker container with the appropriate value
