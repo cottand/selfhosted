@@ -13,7 +13,7 @@ job "traefik" {
       //   host_network = "vpn"
       // }
       port "dns-mesh" {
-        static       = 53
+        static = 53
       }
       port "http-ui" {
         static       = 8080
@@ -41,9 +41,9 @@ job "traefik" {
       }
     }
     volume "traefik-cert" {
-      type      = "csi"
-      read_only = false
-      source    = "traefik-cert"
+      type            = "csi"
+      read_only       = false
+      source          = "traefik-cert"
       access_mode     = "single-node-writer"
       attachment_mode = "file-system"
     }
