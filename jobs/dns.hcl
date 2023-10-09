@@ -9,7 +9,7 @@ job "dns" {
         host_network = "wg-mesh"
       }
       port "dns-public" {
-          static = 53
+        // static = 53
       }
       port "metrics" {
         to           = 4000
@@ -28,13 +28,12 @@ job "dns" {
       name     = "dns"
       provider = "nomad"
       port     = "dns"
-      check {
-        name     = "alive"
-        type     = "tcp"
-        port     = "metrics"
-        interval = "20s"
-        timeout  = "2s"
-      }
+      tags = [
+        "traefik.enable=true",
+        "traefik.udp.routers.${NOMAD_TASK_NAME}.entrypoints=dns",
+        // can't filter UDP
+        // "traefik.udp.routers.${NOMAD_TASK_NAME}.middlewares=vpn-whitelist@file",
+      ]
     }
     task "grimd-dns" {
       driver = "docker"

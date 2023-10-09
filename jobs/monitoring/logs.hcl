@@ -79,7 +79,7 @@ job "logs" {
           [sinks.loki]
             type = "loki"
             inputs = ["logs"]
-            endpoint = "http://[[ range nomadService "loki" ]][[ .Address ]]:[[ .Port ]][[ end ]]"
+            endpoint = "http://loki.nomad:[[ range nomadService "loki" ]][[ :[[ .Port ]][[ end ]]"
             encoding.codec = "json"
             healthcheck.enabled = true
             # since . is used by Vector to denote a parent-child relationship, and Nomad's Docker labels contain ".",
