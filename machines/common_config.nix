@@ -82,6 +82,7 @@
       nss
       openssl
       curl
+      wget
       expat
     ];
   };

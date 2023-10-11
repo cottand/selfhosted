@@ -13,7 +13,7 @@ job "seaweedfs-plugin" {
     value    = true
   }
 
-  group "nodes" {
+  group "plugin" {
     network {
       dns {
         servers = [
@@ -63,9 +63,9 @@ job "seaweedfs-plugin" {
         mount_dir = "/csi"
       }
       resources {
-        cpu        = 100
-        memory     = 512
-        memory_max = 2048
+        cpu        = 50
+        memory     = 256
+        memory_max = 1024
       }
     }
   }

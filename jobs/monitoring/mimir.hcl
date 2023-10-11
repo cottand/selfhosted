@@ -74,6 +74,10 @@ store_gateway:
 
 limits:
   compactor_blocks_retention_period: 7d
+
+ruler_storage:
+  s3:
+    bucket_name: mimir-ruler
 EOH
         destination = "local/mimir/local-config.yaml"
       }

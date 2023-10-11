@@ -50,22 +50,46 @@ global:
   scrape_interval:     30s
   evaluation_interval: 30s
 
+
 scrape_configs:
   - job_name: 'nomad_metrics'
+    # Labels assigned to all metrics scraped from the targets.
+    static_configs:
+      - labels: {'cluster': 'dcotta'}
     nomad_sd_configs:
-    - server: 'http://cosmo.mesh.dcotta.eu:4646'
+    - server: 'http://miki.mesh.dcotta.eu:4646'
+
     relabel_configs:
     - source_labels: ['__meta_nomad_tags']
       regex: '(.*)metrics(.*)'
       action: keep
+
     - source_labels: ['__meta_nomad_service']
       regex: '(.*)'
       action: replace
       target_label: nomad_service
+
+    - source_labels: ['__meta_nomad_namespace']
+      action: replace
+      regex: '(.*)'
+      target_label: namespace
+
+    - source_labels: ['__meta_nomad_service_id']
+      action: replace
+      regex: '(.*)'
+      target_label: service_id
+
+    - source_labels: ['__meta_nomad_node_id']
+      action: replace
+      regex: '(.*)'
+      target_label: nomad_node_id
+
+
 #    scrape_interval: 20s
 #    metrics_path: /v1/metrics
 #    params:
 #      format: ['prometheus']
+
   - job_name: 'nomad_sys_metrics'
     metrics_path: /v1/metrics
     params:

@@ -193,9 +193,9 @@ EOH
 EOH
       }
       resources {
-        cpu = 100
+        cpu = 200
         # docs say it should use about 150 MB
-        memory = 200
+        memory = 150
       }
     }
 
@@ -251,8 +251,8 @@ EOH
         read_only   = false
       }
       resources {
-        cpu    = 120
-        memory = 512
+        cpu    = 256
+        memory = 750
       }
       service {
         name     = "lemmy-db"
