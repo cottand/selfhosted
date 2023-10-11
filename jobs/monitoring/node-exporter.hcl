@@ -24,8 +24,8 @@ job "node-exporter" {
       }
 
       resources {
-        cpu    = 256
-        memory = 128
+        cpu    = 100
+        memory = 60
       }
       service {
         provider = "nomad"

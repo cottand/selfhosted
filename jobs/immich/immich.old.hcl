@@ -1,13 +1,28 @@
 
-variable "immich_version" {
+variable "version" {
   type    = string
-  default = "v1.66.1"
+  default = "v1.81.1"
 }
 
 job "immich" {
-  datacenters = ["<your-datacenter>"]
+  // datacenters = ["<your-datacenter>"]
 
-  group "immich-server" {
+  group "immich" {
+
+    network {
+      mode = "bridge"
+      port "http" {
+        static       = 80
+        host_network = "vpn"
+      }
+    }
+    volume "immich_photos" {
+      type            = "csi"
+      read_only       = false
+      source          = "immich_photos"
+      access_mode     = "single-node-writer"
+      attachment_mode = "file-system"
+    }
     count = 1
 
     restart {
@@ -21,27 +36,40 @@ job "immich" {
       driver = "docker"
 
       config {
-        image = "ghcr.io/immich-app/immich-server:release"
+        image = "ghcr.io/immich-app/immich-server:${var.version}"
         command = [ "start.sh", "immich" ]
-        volumes = [
-          "${UPLOAD_LOCATION}:/usr/src/app/upload"
-        ]
         env {
+          # https://immich.app/docs/install/environment-variables
           ENV_FILE = "/path/to/.env"
+          IMMICH_CONFIG_FILE = "/etc/immich/config"
+          REVERSE_GEOCODING_DUMP_DIRECTORY = TODO
+          SERVER_PORT = ${env.}
         }
+        volumes = [
+          "local/config:/etc/immich/config",
+        ] 
+      }
+      volume_mount {
+        volume      = "immich_photos"
+        destination = "/usr/src/app/upload"
+        read_only   = false
       }
 
-      resources {
-        cpu    = 500
-        memory = 512
+      resources { # TODO!
+        cpu    = 100
+        memory = 256
       }
 
       service {
         name = "immich-server"
         port = 8080
       }
-
-      depends_on = ["redis", "database", "typesense"]
+      template {
+        data        = <<EOF
+EOF
+        destination = "local/config"
+        change_mode = "signal"
+      }
     }
   }
 

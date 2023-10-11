@@ -57,7 +57,7 @@ job "web-portfolio" {
         port = "http"
       }
       resources {
-        cpu    = 100
+        cpu    = 70
         memory = 60
       }
       template {
