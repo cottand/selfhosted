@@ -35,7 +35,10 @@ client {
     path      = "/seaweed.d/filer"
     read_only = false
   }
-
+  host_volume "immich-db" {
+    path      = "/volumes/immich-db/"
+    read_only = false
+  }
   meta {
     box              = "miki"
     name             = "miki"

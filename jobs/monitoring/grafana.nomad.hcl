@@ -41,7 +41,7 @@ job "grafana" {
     task "grafana" {
       driver = "docker"
       config {
-        image = "grafana/grafana:10.1.0"
+        image = "grafana/grafana:10.1.5"
         ports = ["http"]
       }
       user = "root:root"
@@ -53,7 +53,7 @@ job "grafana" {
         "GF_SERVER_ROOT_URL"            = "http://grafana.traefik"
         "GF_SERVER_SERVE_FROM_SUB_PATH" = true
         "GF_SECURITY_ALLOW_EMBEDDING"   = true
-        "GF_FEATURE_TOGGLES_ENABLE"     = "traceToMetrics"
+        "GF_FEATURE_TOGGLES_ENABLE"     = "traceToMetrics logsExploreTableVisualisation"
 
       }
       volume_mount {
