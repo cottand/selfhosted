@@ -1,17 +1,17 @@
 
 
-id        = "immich-pictures"
-name      = "immich-pictures"
+id        = "immich-typesense"
+name      = "immich-typesense"
 type      = "csi"
 
 plugin_id = "seaweedfs"
 
 # dont try to set this to less than 1GiB
-capacity_min = "200GiB"
-capacity_max = "200GiB"
+capacity_min = "2GiB"
+capacity_max = "10GiB"
 
 capability {
-  access_mode     = "multi-node-multi-writer"
+  access_mode     = "single-node-writer"
   attachment_mode = "file-system"
 }
 
