@@ -23,7 +23,7 @@ job "seaweedfs-backup" {
 
       driver = "docker"
       config {
-        image = "chrislusf/seaweedfs:3.51"
+        image = "chrislusf/seaweedfs:3.57"
 
         args = [
           "-logtostderr",

@@ -44,6 +44,7 @@ client {
     name             = "miki"
     seaweedfs_volume = true
     public_network   = true
+    docker_privileged = true
   }
 }
 // plugin "raw_exec" {

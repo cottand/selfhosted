@@ -98,7 +98,7 @@ scrape_configs:
       - targets: [ 'maco.mesh.dcotta.eu:4646','cosmo.mesh.dcotta.eu:4646', 'bianco.mesh.dcotta.eu:4646', 'elvis.mesh.dcotta.eu:4646', 'ari.mesh.dcotta.eu:4646', 'miki.mesh.dcotta.eu:4646' ]
 remote_write:
 - url: http://mimir.traefik/api/v1/push
-  send_exemplars: true
+  send_native_histograms: true
 EOH
       }
 

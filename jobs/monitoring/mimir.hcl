@@ -16,6 +16,11 @@ job "mimir" {
       delay    = "25s"
       mode     = "delay"
     }
+    ephemeral_disk {
+      size    = 1024 # MB
+      migrate = true
+      sticky  = true
+    }
     network {
       mode = "bridge"
       port "http" {
@@ -28,41 +33,68 @@ job "mimir" {
     }
     task "mimir" {
       driver = "docker"
-      // user   = "root" // !! so it can access the container volume, must be user
-      // of folder in host
-
+      # so that blocks can be flushed
+      kill_timeout = "5m"
       config {
         image = "grafana/mimir:2.9.0"
         args = [
           "-config.file",
-          "local/mimir/local-config.yaml",
+          "/local/config.yaml",
           "-target=all",
           "-auth.multitenancy-enabled=false",
+          "-query-frontend.parallelize-shardable-queries=true",
         ]
         ports = ["http", "memberlist"]
       }
       template {
-        change_mode = "signal"
+        change_mode = "restart"
         data        = <<EOH
+        # https://github.com/grafana/mimir/blob/main/development/mimir-monolithic-mode/config/mimir.yaml
+
+        
 server:
   http_listen_port: {{ env "NOMAD_PORT_http" }}
 common:
   storage:
     backend: s3
     s3:
-      {{ range $i, $s := nomadService "seaweedfs-filer-s3" }}
-      {{- if eq $i 0 -}}
+      {{ range nomadService "seaweedfs-filer-s3" }}
       endpoint: {{ .Address}}:{{ .Port }}
-      insecure: true
-      {{- end -}}
       {{ end }}
+      insecure: true
       region: us-east
       bucket_name: mimir
   
 blocks_storage:
   storage_prefix: blocks
   tsdb:
+    flush_blocks_on_shutdown: true
     dir: /data/ingester
+    # (advanced) If TSDB has not received any data for this duration, and all
+    # blocks from TSDB have been shipped, TSDB is closed and deleted from local
+    # disk. If set to positive value, this value should be equal or higher than
+    # -querier.query-ingesters-within flag to make sure that TSDB is not closed
+    # prematurely, which could cause partial query results. 0 or negative value
+    # disables closing of idle TSDB.
+    # close_idle_tsdb_timeout: 3h #| default = 13h
+
+    # TSDB blocks retention in the ingester before a block is removed. If shipping
+    # is enabled, the retention will be relative to the time when the block was
+    # uploaded to storage. If shipping is disabled then its relative to the
+    # creation time of the block. This should be larger than the
+    # -blocks-storage.tsdb.block-ranges-period, -querier.query-store-after and
+    # large enough to give store-gateways and queriers enough time to discover
+    # newly uploaded blocks.
+    retention_period: 3h # default = 13h
+    block_ranges_period: [ 2h ]
+    ship_interval: 1m
+  bucket_store:
+    # Directory to store synchronized TSDB index headers. This directory is not
+    # required to be persisted between restarts, but it's highly recommended in
+    # order to improve the store-gateway startup time.
+    sync_dir: /data/tsdb-sync
+
+
 
 ingester:
   ring:
@@ -73,13 +105,19 @@ store_gateway:
     replication_factor: 1
 
 limits:
-  compactor_blocks_retention_period: 7d
+  compactor_blocks_retention_period: 30d
+  # (advanced) Maximum lookback beyond which queries are not sent to ingester
+  # query_ingesters_within: 3h # default = 13h
+  native_histograms_ingestion_enabled: true
+
+querier:
+  query_store_after: 2h
 
 ruler_storage:
   s3:
     bucket_name: mimir-ruler
 EOH
-        destination = "local/mimir/local-config.yaml"
+        destination = "local/config.yaml"
       }
       resources {
         cpu        = 256
