@@ -2,18 +2,19 @@ server {
   enabled          = true
   bootstrap_expect = 2
   server_join {
-    retry_join     = [
+    retry_join = [
       // "10.10.0.1",
-      "cosmo.mesh.dcotta.eu"
-    //  "10.10.3.1"
-     ]
+      "cosmo.mesh.dcotta.eu",
+      // "ari.mesh.dcotta.eu",
+      //  "10.10.3.1"
+    ]
     retry_max      = 3
     retry_interval = "15s"
   }
 }
 # binaries shouldn't go in /var/lib
-plugin_dir = "/usr/lib/nomad/plugins"
-data_dir = "/var/lib/nomad"
+plugin_dir = "/nomad.d/plugins"
+data_dir   = "/nomad.d/data"
 
 // bind_addr = "10.10.2.1"
 bind_addr = "0.0.0.0"

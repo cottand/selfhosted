@@ -76,7 +76,9 @@
       ./machines/${name}/definition.nix
       ((import lib/make-wireguard.nix) { interface = "wg-mesh"; confPath = secret/wg-mesh/${name}.conf; port = 55820; })
     ];
-    deployment.tags = [ "local" "nomad-server" ];
+    deployment.tags = [ "contabo" "nomad-server" ];
+    # TODO CHANGE
+    deployment.targetHost = "184.174.35.184";
   };
 
   elvis = { name, nodes, ... }: {
