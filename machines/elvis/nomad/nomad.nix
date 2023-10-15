@@ -17,7 +17,7 @@
     enable = true;
     enableDocker = true;
     dropPrivileges = false;
-    extraPackages = with pkgs; [ cni-plugins getent wget curl ];
+    extraPackages = with pkgs; [ cni-plugins getent wget curl];
     extraSettingsPlugins = [ pkgs.nomad-driver-podman ];
     extraSettingsPaths = [
       "/etc/nomad/config/server.hcl"
