@@ -128,6 +128,7 @@ job "traefik" {
             '127.1.0.0/24', # VPN clients
             '172.26.64.18/20', # containers
             '185.216.203.147', # comsmo's public contabo IP (will be origin when using sshuttle)
+            '138.201.153.245', # miki's public contabo IP (will be origin when using sshuttle or VPN guest)
         ]
     [http.middlewares.mesh-whitelist.IPAllowList]
         sourcerange = [

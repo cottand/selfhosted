@@ -16,6 +16,14 @@ job "dns" {
         host_network = "wg-mesh"
       }
     }
+    update {
+      max_parallel     = 1
+      canary           = 1
+      min_healthy_time = "30s"
+      healthy_deadline = "5m"
+      auto_revert      = true
+      auto_promote     = true
+    }
 
 
     service {
@@ -38,7 +46,7 @@ job "dns" {
     task "grimd-dns" {
       driver = "docker"
       config {
-        image = "ghcr.io/cottand/grimd:sha-b32cc5f"
+        image = "ghcr.io/cottand/grimd:sha-e2cb74a"
         args = [
           "--config", "/config.toml",
           "--update",
@@ -57,6 +65,7 @@ job "dns" {
       }
       template {
         destination = "local/config.toml"
+        change_mode = "restart"
         # see https://github.com/miekg/dns/blob/master/doc.go#L23C24-L23C58
         data = <<EOF
 version = "1.0.9"
@@ -128,6 +137,7 @@ whitelist = [
 customdnsrecords = [
     # CNAME is not flattened - see https://github.com/looterz/grimd/issues/113
     "web.vps.dcotta.eu.     3600      IN  A   10.10.4.1  ",
+    "immich.vps.dcotta.eu.  3600      IN  A   10.10.4.1  ",
 
     "nomad.vps.dcotta.eu.   3600      IN  CNAME   miki.mesh.dcotta.eu  ",
     "nomad.traefik.         3600      IN  CNAME   miki.mesh.dcotta.eu  ",

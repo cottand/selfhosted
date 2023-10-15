@@ -5,7 +5,7 @@ variable "version" {
 }
 variable "domain" {
   type    = string
-  default = "immich.traefik"
+  default = "immich.vps.dcotta.eu"
 }
 
 job "immich" {
@@ -41,8 +41,13 @@ job "immich" {
         port     = "http"
         tags = [
           "traefik.enable=true",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=web",
           "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`${var.domain}`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=web, web_public, websecure, websecure_public",
+
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls=true",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt",
+          # expose but for now only when on VPN
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=vpn-whitelist@file",
         ]
         check {
           name     = "alive"
@@ -242,10 +247,15 @@ job "immich" {
         port     = "server"
         tags = [
           "traefik.enable=true",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=web",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`${var.domain}`) && Pathprefix(`/api`)",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=${NOMAD_TASK_NAME}-strip",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=web, web_public, websecure, websecure_public",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`${var.domain}`) && PathPrefix(`/api`)",
           "traefik.http.middlewares.${NOMAD_TASK_NAME}-strip.stripprefix.prefixes=/api",
+          // "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=${NOMAD_TASK_NAME}-strip",
+
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls=true",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt",
+          # expose but for now only when on VPN - and can use a single middlewares= at a time
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=${NOMAD_TASK_NAME}-strip,vpn-whitelist@file",
         ]
         check {
           name     = "alive"
@@ -375,12 +385,17 @@ job "immich" {
         to           = 3003
       }
     }
-    volume "immich-ml-cache" {
-      type            = "csi"
-      read_only       = false
-      source          = "immich-ml-cache"
-      access_mode     = "single-node-writer"
-      attachment_mode = "file-system"
+    // volume "immich-ml-cache" {
+    //   type            = "csi"
+    //   read_only       = false
+    //   source          = "immich-ml-cache"
+    //   access_mode     = "single-node-writer"
+    //   attachment_mode = "file-system"
+    // }
+    ephemeral_disk {
+      size    = 5000 # MB
+      migrate = true
+      sticky  = true
     }
     restart {
       attempts = 4
@@ -391,11 +406,11 @@ job "immich" {
     task "immich-ml" {
       driver = "docker"
 
-      volume_mount {
-        volume      = "immich-ml-cache"
-        destination = "/cache"
-        read_only   = false
-      }
+      // volume_mount {
+      //   volume      = "immich-ml-cache"
+      //   destination = "/cache"
+      //   read_only   = false
+      // }
       resources {
         memory_max = 1024
         memory     = 512
@@ -405,6 +420,7 @@ job "immich" {
       env {
         # see https://immich.app/docs/install/environment-variables#machine-learning
         MACHINE_LEARNING_REQUEST_THREADS = 3
+        MACHINE_LEARNING_CACHE_FOLDER	= "/data"
       }
 
       config {

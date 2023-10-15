@@ -33,6 +33,7 @@ client {
     box              = "maco"
     name             = "maco"
     seaweedfs_volume = true
+    docker_privileged = true
   }
 
 }

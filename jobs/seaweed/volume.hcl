@@ -22,6 +22,9 @@ job "seaweedfs-volume" {
     }
 
     network {
+      dns {
+        servers = ["10.10.0.1", "10.10.1.1", "10.10.2.1", "10.10.4.1" ]
+      }
       mode = "host"
 
       port "http" {
@@ -87,17 +90,18 @@ job "seaweedfs-volume" {
       }
 
       resources {
-        cpu    = 150
-        memory = 300
-        memory_max = 1024
+        cpu        = 200
+        memory     = 512
+        memory_max = 1500
       }
       config {
-        image = "chrislusf/seaweedfs:3.55"
+        image = "chrislusf/seaweedfs:3.57"
 
         args = [
           "-logtostderr",
           "volume",
-          "-mserver=${SEAWEEDFS_MASTER_IP_http}:${SEAWEEDFS_MASTER_PORT_http}.${SEAWEEDFS_MASTER_PORT_grpc}",
+          # from master DNS and well-known ports so that job is not reset
+          "-mserver=seaweedfs-master-http.nomad:9333.19333",
           //   "-dir=/data/${node.unique.name}",
           "-dir=/data",
           "-max=0",
@@ -121,26 +125,6 @@ job "seaweedfs-volume" {
         ports = ["http", "grpc", "metrics"]
 
         privileged = true
-      }
-      template {
-        destination = "config/.env"
-        change_mode = "restart"
-        env         = true
-        data        = <<-EOF
-_IGNORE=1
-{{ range $i, $s := nomadService "seaweedfs-master-http" }}
-{{- if eq $i 0 -}}
-SEAWEEDFS_MASTER_IP_http={{ .Address }}
-SEAWEEDFS_MASTER_PORT_http={{ .Port }}
-{{- end -}}
-{{ end }}
-{{ range $i, $s := nomadService "seaweedfs-master-grpc" }}
-{{- if eq $i 0 -}}
-SEAWEEDFS_MASTER_IP_grpc={{ .Address }}
-SEAWEEDFS_MASTER_PORT_grpc={{ .Port }}
-{{- end -}}
-{{ end }}
-EOF
       }
     }
   }

@@ -13,7 +13,7 @@ job "seaweedfs-sync" {
     task "sync-buckets" {
       driver = "docker"
       config {
-        image = "chrislusf/seaweedfs:3.53"
+        image = "chrislusf/seaweedfs:3.57"
 
         args = [
           "-logtostderr",
