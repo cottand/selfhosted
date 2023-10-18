@@ -2,7 +2,7 @@
   imports = [
     ./hardware-configuration.nix
     ./network-configuration.nix # generated at runtime by nixos-infect
-    ./nomad/nomad.nix
+    ./nomad.nix
     ./wg-easy.nix
   ];
 
