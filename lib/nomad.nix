@@ -1,3 +1,9 @@
+
+# sets up a Nomad node with options to run specifically in the mesh.dcotta.eu fleet
+# binds specifically to wg-mesh interface
+
+# TODO add assertion for checking for wg-mesh
+
 { pkgs, lib, config, ... }:
 with lib;
 let
@@ -50,9 +56,9 @@ in
     ];
 
     systemd.services.nomad.restartTriggers = [
-      config.environment.etc."nomad/config/client.hcl".source
-      config.environment.etc."nomad/config/server.hcl".source
-      config.environment.etc."nomad/config/extraSettings.hcl".source
+      config.environment.etc."nomad/config/client.hcl".text
+      config.environment.etc."nomad/config/server.hcl".text
+      config.environment.etc."nomad/config/extraSettings.hcl".text
     ];
 
 
