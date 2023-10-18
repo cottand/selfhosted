@@ -4,20 +4,13 @@
     [
       # Include the results of the hardware scan.
       ./hardware-configuration.nix
-      # ./wireguard.nix
-      ./nomad/nomad.nix
       ./ipv6.nix
     ];
 
   boot.tmp.cleanOnBoot = true;
   zramSwap.enable = true;
-  # Bootloader.
-  # boot.loader.systemd-boot.enable = true;
-  # boot.loader.efi.canTouchEfiVariables = true;
-  # boot.loader.efi.efiSysMountPoint = "/boot/efi";
 
   networking.hostName = "maco";
-  # networking.networkmanager.enable = true;
 
   users.users.cottand = {
     isNormalUser = true;
@@ -43,7 +36,35 @@
     allowedUDPPorts = [ 51825 ];
   };
 
-  networking.firewall.trustedInterfaces = [ "nomad" "docker0" ];
+  nomadNode = {
+    enable = true;
+    enableSeaweedFsVolume = true;
+    extraSettingsText = ''
+      client {
+        meta {
+          box = "maco"
+          name = "maco"
+        }
+        alloc_dir = "/nomad.d/alloc/"
+        state_dir = "/nomad.d/client-state"
+      }
+      server {
+        enabled          = true
+        bootstrap_expect = 2
+        server_join {
+          retry_join = [
+            "cosmo.mesh.dcotta.eu",
+          ]
+          retry_max      = 3
+          retry_interval = "15s"
+        }
+      }
+      # binaries shouldn't go in /var/lib
+      plugin_dir = "/nomad.d/plugins"
+      data_dir   = "/nomad.d/data"
+    '';
+  };
+
   virtualisation.docker.enable = true;
   networking.firewall.checkReversePath = false;
 

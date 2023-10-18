@@ -323,7 +323,8 @@ job "seaweedfs" {
           "-webdav.replication=020",
           "-webdav.port=${NOMAD_PORT_webdav}",
           "-s3",
-          "-s3.port=${NOMAD_PORT_s3}"
+          "-s3.port=${NOMAD_PORT_s3}",
+          "-s3.allowEmptyFolder=false",
         ]
       }
 
@@ -341,7 +342,7 @@ job "seaweedfs" {
 [filer.options]
 # with http DELETE, by default the filer would check whether a folder is empty.
 # recursive_delete will delete all sub folders and files, similar to "rm -Rf"
-recursive_delete = false
+recursive_delete = true
 
 [leveldb2]
 # local on disk, mostly for simple single-machine setup, fairly scalable

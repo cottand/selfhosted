@@ -78,7 +78,7 @@
     ];
     deployment.tags = [ "contabo" "nomad-server" ];
     # TODO CHANGE
-    deployment.targetHost = "184.174.35.184";
+    deployment.targetHost = "maco.vps6.dcotta.eu";
   };
 
   elvis = { name, nodes, ... }: {
@@ -86,7 +86,17 @@
       ./machines/${name}/definition.nix
       ((import lib/make-wireguard.nix) { interface = "wg-mesh"; confPath = secret/wg-mesh/${name}.conf; port = 55820; })
     ];
+    deployment.targetHost = "elvis.vps6.dcotta.eu";
     deployment.tags = [ "local" "nomad-client" ];
+  };
+
+  ziggy = { name, nodes, ... }: {
+    imports = [
+      ./machines/${name}/definition.nix
+      ((import lib/make-wireguard.nix) { interface = "wg-mesh"; confPath = secret/wg-mesh/${name}.conf; port = 55820; })
+    ];
+    deployment.tags = [ "local" "nomad-client" ];
+    deployment.targetHost = "ziggy.vps6.dcotta.eu"; # TODO CHANGE
   };
 
   bianco = { name, nodes, ... }: {

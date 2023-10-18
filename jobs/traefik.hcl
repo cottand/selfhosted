@@ -148,7 +148,7 @@ job "traefik" {
 [http.services]
   [http.services.nomad.loadBalancer]
     [[http.services.nomad.loadBalancer.servers]]
-      url = "http://10.10.0.1:4646/"
+      url = "http://10.10.4.1:4646/"
         # TODO [3] add other servers for load balancing
 EOF
         destination = "local/traefik-dynamic.toml"
@@ -214,7 +214,7 @@ EOF
   defaultRule = "Host(`{{"{{ .Name }}"}}.traefik`)"
 
   [providers.nomad.endpoint]
-    address = "http://10.10.0.1:4646"
+    address = "http://10.10.4.1:4646"
 
 
 [providers.file]
