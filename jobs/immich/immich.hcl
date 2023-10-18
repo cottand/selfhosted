@@ -320,7 +320,7 @@ job "immich" {
         read_only   = false
       }
 
-      resources { # TODO!
+      resources {
         cpu        = 512
         memory     = 1024
         memory_max = 1500
@@ -398,7 +398,7 @@ job "immich" {
       sticky  = true
     }
     restart {
-      attempts = 4
+      attempts = 6
       interval = "10m"
       delay    = "20s"
       mode     = "delay"
@@ -412,9 +412,9 @@ job "immich" {
       //   read_only   = false
       // }
       resources {
-        memory_max = 1024
-        memory     = 512
-        cpu        = 100
+        memory_max = 2058
+        memory     = 1024
+        cpu        = 200
       }
 
       env {
@@ -466,8 +466,8 @@ job "immich" {
       attachment_mode = "file-system"
     }
     restart {
-      attempts = 4
-      interval = "10m"
+      attempts = 10
+      interval = "4m"
       delay    = "20s"
       mode     = "delay"
     }
@@ -481,7 +481,7 @@ job "immich" {
       }
 
       env = {
-        TYPESENSE_DATA_DIR = "/data"
+        TYPESENSE_DATA_DIR = "/alloc/data"
         TYPESENSE_API_PORT = "${NOMAD_PORT_http}"
         GLOG_minloglevel   = 1
       }

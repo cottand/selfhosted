@@ -1,38 +1,41 @@
 client {
   enabled = true
-
-  alloc_dir = "/nomad.d/alloc/"
-  state_dir = "/nomad.d/client-state"
-
   servers = [
-    "10.10.0.1",
-    "10.10.2.1",
-    // "10.10.3.1",
+    "maco.mesh.dcotta.eu",
+    "cosmo.mesh.dcotta.eu",
   ]
 
-  bridge_network_hairpin_mode = true
   options = {
-    "driver.allowlist"       = "docker,raw_exec"
-    "docker.volumes.enabled" = true
+    "driver.allowlist" = "docker,raw_exec"
   }
+
+  bridge_network_hairpin_mode = true
 
   host_network "wg-mesh" {
     cidr           = "10.10.0.0/16"
     reserved_ports = "22,55820"
   }
+
   host_volume "docker-sock-ro" {
     path      = "/var/run/docker.sock"
     read_only = true
   }
-  host_volume "seaweedfs-volume" {
-    path      = "/seaweed.d/volume"
-    read_only = false
+
+  # Used for host systemd logs
+  host_volume "journald-ro" {
+    path      = "/var/log/journal"
+    read_only = true
   }
+  host_volume "machineid-ro" {
+    path      = "/etc/machine-id"
+    read_only = true
+  }
+
   meta {
-    box               = "maco"
-    name              = "maco"
-    docker_privileged = true
+    box               = "elvis"
+    name              = "elvis"
     seaweedfs_volume  = true
+    docker_privileged = true
   }
 
 }

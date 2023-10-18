@@ -18,8 +18,9 @@ job "seaweedfs-plugin" {
       dns {
         servers = [
           "10.10.0.1",
-          "10.10.2.1",
           "10.10.1.1",
+          "10.10.2.1",
+          "10.10.4.1",
         ]
       }
     }
@@ -50,8 +51,8 @@ job "seaweedfs-plugin" {
           // hardcoded ports and IP so that this does not get restarted when master does
           "--filer=seaweedfs-filer-http.nomad:8888.18888",
           "--nodeid=${node.unique.name}",
-          "--cacheCapacityMB=1000",
-          "--cacheDir=${NOMAD_TASK_DIR}/cache_dir",
+          "--cacheCapacityMB=2000",
+          "--cacheDir=/data/cache_dir",
         ]
 
         privileged = true
@@ -63,8 +64,8 @@ job "seaweedfs-plugin" {
         mount_dir = "/csi"
       }
       resources {
-        cpu        = 50
-        memory     = 256
+        cpu        = 512
+        memory     = 512
         memory_max = 1024
       }
     }

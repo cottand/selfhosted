@@ -1,5 +1,8 @@
 { config, pkgs, lib, ... }:
 {
+  imports = [
+    ../lib/nomad.nix
+  ];
   nixpkgs.config.allowUnfree = true;
   services.openssh.enable = true;
   services.sshguard.enable = true;
@@ -23,11 +26,10 @@
 
   users.users.root.shell = pkgs.zsh;
 
-  users.users.root.openssh.authorizedKeys.keys = [ 
+  users.users.root.openssh.authorizedKeys.keys = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPJ7FM2wEuWoUuxRkWnP6PNEtG+HOcwcZIt6Qg/Y1jhk nico.dc@outlook.com"
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF3AKGuE56RZiMURZ4ygV/BrSwrq6Ozp46VVm30PouPQ"
   ];
-
 
   environment.systemPackages = with pkgs; [
     wireguard-tools

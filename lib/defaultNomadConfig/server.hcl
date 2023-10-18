@@ -1,18 +1,11 @@
+data_dir = "/var/lib/nomad"
 
-// bind_addr = "10.10.2.1"
 bind_addr = "{{GetInterfaceIP \"wg-mesh\"}}"
 
 advertise {
-  #   Defaults to the first private IP address.
-  // http = "10.10.2.1"
-  // rpc  = "10.10.2.1"
-  // serf = "10.10.2.1" # non-default ports may be specified
   http = "{{GetInterfaceIP \"wg-mesh\"}}"
   rpc  = "{{GetInterfaceIP \"wg-mesh\"}}"
   serf = "{{GetInterfaceIP \"wg-mesh\"}}"
-  // http = "10.10.2.1"
-  // rpc  = "10.10.2.1"
-  // serf = "10.10.2.1" # non-default ports may be specified
 }
 
 log_rotate_bytes = 1024000
