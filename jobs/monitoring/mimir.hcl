@@ -45,11 +45,11 @@ job "mimir" {
           "/local/config.yaml",
           "-target=all",
           "-auth.multitenancy-enabled=false",
-          "-query-frontend.parallelize-shardable-queries=true",
-          "-query-frontend.query-sharding-total-shards=4",
-          "-query-frontend.query-sharding-max-sharded-queries=12",
-          "-query-frontend.split-queries-by-interval=6h",
-          " -server.grpc.keepalive.min-time-between-pings=10s",
+          // "-query-frontend.parallelize-shardable-queries=true",
+          // "-query-frontend.query-sharding-total-shards=4",
+          // "-query-frontend.query-sharding-max-sharded-queries=12",
+          // "-query-frontend.split-queries-by-interval=6h",
+          "-server.grpc.keepalive.min-time-between-pings=10s",
         ]
         ports = ["http", "memberlist"]
       }
@@ -66,12 +66,19 @@ common:
   storage:
     backend: s3
     s3:
-      {{ range nomadService "seaweedfs-filer-s3" }}
-      endpoint: {{ .Address}}:{{ .Port }}
+      # {{ range nomadService "seaweedfs-filer-s3" }}
+      # endpoint: {{ .Address}}:{{ .Port }}
+      # {{ end }}
+      # insecure: true
+      # region: us-east
+      # bucket_name: mimir
+      bucket_name: mimir-long-term
+      endpoint: s3.us-east-005.backblazeb2.com
+      region: us-east-005
+      {{ with nomadVar "secret/buckets/backblaze-all" }}
+      secret_access_key: {{ .secretAccessKey }}
+      access_key_id: {{ .keyId }}
       {{ end }}
-      insecure: true
-      region: us-east
-      bucket_name: mimir
 
 blocks_storage:
   storage_prefix: blocks
@@ -122,9 +129,9 @@ querier:
   # query_store_after: 4h
   max_concurrent: 10 # default 20
 
-ruler_storage:
-  s3:
-    bucket_name: mimir-ruler
+# ruler_storage:
+#   s3:
+#     bucket_name: mimir-ruler
 EOH
         destination = "local/config.yaml"
       }

@@ -65,10 +65,10 @@ job "lemmy" {
         env         = true
         change_mode = "restart"
         data        = <<EOH
-{{ range nomadService "lemmy-be" }}
-LEMMY_UI_LEMMY_INTERNAL_HOST={{ .Address }}:{{ .Port }}
-{{ end }}
-EOH
+          {{ range nomadService "lemmy-be" }}
+          LEMMY_UI_LEMMY_INTERNAL_HOST={{ .Address }}:{{ .Port }}
+          {{ end }}
+          EOH
       }
       resources {
         cpu    = 90
