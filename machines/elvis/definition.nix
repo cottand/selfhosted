@@ -5,7 +5,7 @@
     [
       # Include the results of the hardware scan.
       ./hardware-configuration.nix
-      ./nomad/nomad.nix
+      ./nomad.nix
     ];
 
   # Bootloader.
