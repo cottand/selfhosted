@@ -237,8 +237,9 @@ job "immich" {
       }
 
       resources { # TODO!
-        cpu    = 100
-        memory = 256
+        cpu    = 200
+        memory = 512
+        memory_max = 1024
       }
 
       service {
