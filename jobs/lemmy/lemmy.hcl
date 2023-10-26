@@ -3,6 +3,13 @@ variable "lemmy_version" {
   default = "0.18.4"
 }
 
+variable "image" {
+  type    = string
+  // default = "dessalines/lemmy"
+  // this one is in GHCR and supports ARM:
+  default = "ghcr.io/cottand/lemmy"
+}
+
 job "lemmy" {
   update {
     max_parallel = 1
@@ -24,7 +31,7 @@ job "lemmy" {
       driver = "docker"
 
       config {
-        image = "dessalines/lemmy-ui:${var.lemmy_version}"
+        image = "${var.image}-ui:${var.lemmy_version}"
         ports = ["http"]
       }
       env {
@@ -102,7 +109,7 @@ job "lemmy" {
       driver = "docker"
 
       config {
-        image = "dessalines/lemmy:${var.lemmy_version}"
+        image = "${var.image}:${var.lemmy_version}"
         volumes = [
           "local/lemmy.hjson:/etc/lemmy/lemmy.hjson",
         ]
