@@ -10,6 +10,7 @@
       s = "status";
       ps = "push";
       pl = "pull";
+      yolo = "commit --ammend -a --no-edit";
     };
   };
   home.stateVersion = "22.11";
