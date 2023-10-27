@@ -9,6 +9,7 @@
     [
       # Include the results of the hardware scan.
       ./hardware-configuration.nix
+      ./builders.nix
       ./vscode.nix
       ./hidpi.nix
       "${builtins.fetchGit { url = "https://github.com/NixOS/nixos-hardware.git"; }}/dell/xps/13-9300"
