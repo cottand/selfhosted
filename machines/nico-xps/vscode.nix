@@ -12,6 +12,7 @@
         ms-vscode-remote.remote-ssh
         vscodevim.vim
         jnoortheen.nix-ide
+        hashicorp.terraform
 
       ] ++ pkgs.vscode-utils.extensionsFromVscodeMarketplace [
         {
