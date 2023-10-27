@@ -95,6 +95,7 @@
     gh
     git
     colmena
+    nomad_1_6
   ];
 
   # List services that you want to enable:
