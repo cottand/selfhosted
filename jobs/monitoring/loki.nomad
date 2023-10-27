@@ -46,7 +46,7 @@ server:
   http_listen_port: {{ env "NOMAD_PORT_http" }}
 ingester:
   wal:
-    dir: /loki/wal
+    dir: /alloca/data/wal
   lifecycler:
     # not sure it is needed but was in original guide
     #address: 127.0.0.1
@@ -75,12 +75,12 @@ schema_config:
         period: 24h
 storage_config:
   boltdb_shipper:
-    active_index_directory: /loki/boltdb-shipper-active
-    cache_location: /loki/boltdb-shipper-cache
+    active_index_directory: /alloc/data/boltdb-shipper-active
+    cache_location: /alloca/data/boltdb-shipper-cache
     cache_ttl: 24h         # Can be increased for faster performance over longer query periods, uses more disk space
     shared_store: filesystem
   filesystem:
-    directory: /loki/chunks
+    directory: /alloc/data/chunks
 compactor:
   working_directory: /tmp/loki/boltdb-shipper-compactor
   shared_store: filesystem
