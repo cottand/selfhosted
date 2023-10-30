@@ -1,7 +1,7 @@
 
 variable "version" {
   type    = string
-  default = "v1.81.1"
+  default = "v1.83.0"
 }
 variable "domain" {
   type    = string
