@@ -46,7 +46,7 @@ server:
   http_listen_port: {{ env "NOMAD_PORT_http" }}
 ingester:
   wal:
-    dir: /alloca/data/wal
+    dir: /alloc/data/wal
   lifecycler:
     # not sure it is needed but was in original guide
     #address: 127.0.0.1
