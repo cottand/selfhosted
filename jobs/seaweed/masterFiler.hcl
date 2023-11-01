@@ -239,7 +239,7 @@ job "seaweedfs" {
       //   hook    = "poststart"
       //   sidecar = true
       // }
-      service {
+      service { # TODO implement http healthcheck https://github.com/seaweedfs/seaweedfs/pull/4899/files
         name     = "seaweedfs-filer-http"
         port     = "http"
         provider = "nomad"
