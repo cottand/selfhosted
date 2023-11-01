@@ -137,6 +137,9 @@ job "traefik" {
             '172.26.64.18/20', # containers
             '185.216.203.147', # comsmo's public contabo IP (will be origin when using sshuttle)
         ]
+    [http.middlewares.replace-enc.replacePathRegex]
+      regex = "/___enc_/(.*)"
+      replacement = ""
 [http.routers]
   [http.routers.nomad]
     rule = "Host( `nomad.vps.dcotta.eu` ) || Host( `nomad.traefik` )"

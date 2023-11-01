@@ -47,7 +47,7 @@ job "logs" {
       }
       # Vector won't start unless the sinks(backends) configured are healthy
       env {
-        VECTOR_CONFIG          = "local/vector.toml"
+        VECTOR_CONFIG          = "/local/vector.toml"
         VECTOR_REQUIRE_HEALTHY = "true"
       }
       # resource limits are a good idea because you don't want your log collection to consume all resources available
@@ -65,7 +65,7 @@ job "logs" {
         left_delimiter  = "[["
         right_delimiter = "]]"
         data            = <<EOH
-        data_dir = "alloc/data/"
+        data_dir = "/alloc/data/"
           [api]
             enabled = true
             address = "0.0.0.0:[[ env "NOMAD_PORT_http" ]]"
@@ -79,7 +79,7 @@ job "logs" {
           [sinks.loki]
             type = "loki"
             inputs = ["logs"]
-            endpoint = "http://loki.nomad:[[ range nomadService "loki" ]][[ :[[ .Port ]][[ end ]]"
+            endpoint = "http://[[ range nomadService "loki" ]][[ .Address ]]:[[ .Port ]][[ end ]]"
             encoding.codec = "json"
             healthcheck.enabled = true
             # since . is used by Vector to denote a parent-child relationship, and Nomad's Docker labels contain ".",
@@ -87,7 +87,8 @@ job "logs" {
             labels.task  = "{{ label.\"com.hashicorp.nomad.task_name\" }}"
             labels.job   = "{{ label.\"com.hashicorp.nomad.job_name\" }}"
             labels.alloc = "{{ label.\"com.hashicorp.nomad.alloc_id\" }}"
-            labels.node  = "{{ label.\"com.hashicorp.nomad.node_name\" }}"
+            labels.node  =      "{{ label.\"com.hashicorp.nomad.node_name\" }}"
+            labels.task_group = "{{ label.\"com.hashicorp.nomad.task_group_name\" }}"
 #            labels.group = "{{ label.com\\.hashicorp\\.nomad\\.task_group_name }}"
 #            labels.namespace = "{{ label.com\\.hashicorp\\.nomad\\.namespace }}"
             # remove fields that have been converted to labels to avoid having the field twice
