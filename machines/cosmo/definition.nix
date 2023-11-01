@@ -5,7 +5,6 @@
     ./nomad/nomad.nix
     ./wg-easy.nix
     ./ipv6.nix
-    ((import ./../../lib/make-wireguard.nix) { interface = "wg-ci"; confPath = ../../secret/wg-ci/wg-ci.conf; port = 55726; })
   ];
 
   boot.tmp.cleanOnBoot = true;
@@ -35,6 +34,12 @@
     enable = true;
     externalInterface = "ens18";
     internalInterfaces = [ "wg0" ];
+  };
+
+  custom.wireguard."wg-ci" = {
+    enable = true;
+    confPath = ../../secret/wg-ci/wg-ci.conf;
+    port = 55726;
   };
 
 

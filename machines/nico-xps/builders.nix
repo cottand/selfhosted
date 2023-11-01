@@ -2,9 +2,9 @@
 
 {
 	nix.buildMachines = [ {
-	 hostName = "builder";
+	 hostName = "root@cosmo.vps.dcotta.eu";
 	 system = "x86_64-linux";
-         protocol = "ssh-ng";
+     protocol = "ssh-ng";
 	 # if the builder supports building for multiple architectures, 
 	 # replace the previous line by, e.g.,
 	 # systems = ["x86_64-linux" "aarch64-linux"];
