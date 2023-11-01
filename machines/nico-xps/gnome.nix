@@ -33,4 +33,6 @@
     atomix # puzzle game
   ]);
 
+  environment.systemPackages = [ (pkgs.makeAutostartItem { name = "guake"; package = pkgs.guake; }) ];
+  environment.sessionVariables."GUAKE_ENABLE_WAYLAND" = "true";
 }

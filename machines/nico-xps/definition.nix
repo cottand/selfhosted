@@ -16,6 +16,7 @@
       ./gnome.nix
       (import "${(builtins.fetchTarball { url = "https://github.com/nix-community/home-manager/archive/release-23.05.tar.gz"; })}/nixos")
       # <home-manager/nixos>
+      ./ides.nix
     ];
 
   home-manager.users.cottand = (import ./home);
@@ -71,15 +72,17 @@
   users.users.cottand = {
     isNormalUser = true;
     description = "Nico";
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [ "networkmanager" "wheel" "adbusers" "docker" ];
     packages = with pkgs; [
       chromium
       spotify
-      #  thunderbird
+      stremio
     ];
     shell = pkgs.zsh;
 
   };
+
+   programs.adb.enable = true;
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
@@ -97,25 +100,20 @@
     git
     colmena
     nomad_1_6
+    scrcpy       # android screen sharing
+    gnome3.gnome-tweaks
   ];
+
+  virtualisation.docker.enable = true;
 
   # List services that you want to enable:
 
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
 
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
+  networking.firewall.enable = true;
+  networking.firewall.allowedTCPPorts = [ 22 ];
 
-  # This value determines the NixOS release from which the default
-  # settings for stateful data, like file locations and database versions
-  # on your system were taken. It‘s perfectly fine and recommended to leave
-  # this value at the release version of the first install of this system.
-  # Before changing this value read the documentation for this option
-  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "22.11"; # Did you read the comment?
 
 }

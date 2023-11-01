@@ -13,6 +13,7 @@
         vscodevim.vim
         jnoortheen.nix-ide
         hashicorp.terraform
+        hashicorp.hcl
 
       ] ++ pkgs.vscode-utils.extensionsFromVscodeMarketplace [
         {
