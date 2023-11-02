@@ -1,8 +1,5 @@
 { config, pkgs, lib, ... }:
 {
-  imports = [
-    ../lib/nomad.nix
-  ];
   nixpkgs.config.allowUnfree = true;
   services.openssh.enable = true;
   services.sshguard.enable = true;

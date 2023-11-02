@@ -1,7 +1,7 @@
 
 variable "seaweedfs_version" {
   type    = string
-  default = "3.58"
+  default = "dev"
 }
 
 

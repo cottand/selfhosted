@@ -37,7 +37,7 @@ job "postgres" {
         "POSTGRES_USER"     = "postgres"
         "POSTGRES_PASSWORD" = "yolo"
         "POSTGRES_DB"       = "postgres"
-        "PGDATA" = "/var/lib/postgresql/data_mount"
+        "PGDATA"            = "/var/lib/postgresql/data_mount"
       }
       volume_mount {
         volume      = "postgres"
