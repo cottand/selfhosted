@@ -1,6 +1,8 @@
 {
   meta = {
-    nixpkgs = (import ./sources.nix).nixos-23-05-3;
+    nixpkgs = (import ./sources.nix).nixos-23-05-3 {
+      # overlays = [ (import ./overlays.nix) ];
+    };
 
     nodeNixpkgs = {
       #   elvis = (import (import ./sources.nix).nixos-22-11);
@@ -86,8 +88,6 @@
   };
 
   elvis = { name, nodes, ... }: {
-    imports = [
-    ];
     deployment.targetHost = "elvis.vps6.dcotta.eu";
     deployment.tags = [ "local" "nomad-client" ];
     custom.wireguard."wg-mesh" = {
@@ -98,8 +98,7 @@
   };
 
   ziggy = { name, nodes, ... }: {
-    imports = [
-    ];
+    imports = [];
     deployment.tags = [ "local" "nomad-client" ];
     deployment.targetHost = "ziggy.vps6.dcotta.eu"; # TODO CHANGE
     custom.wireguard."wg-mesh" = {
