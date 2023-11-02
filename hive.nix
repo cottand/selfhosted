@@ -11,6 +11,7 @@
 
   defaults = { pkgs, lib, name, nodes, ... }: {
     imports = [
+      ./machines/${name}/definition.nix
       ./machines/common_config.nix
       ./modules
     ];
@@ -27,10 +28,6 @@
   };
 
   nico-xps = { name, nodes, ... }: {
-    imports = [
-      ./machines/${name}/definition.nix
-    ];
-
     deployment = {
       # Allow local deployment with `colmena apply-local`
       allowLocalDeployment = true;
@@ -43,9 +40,6 @@
 
 
   cosmo = { name, nodes, ... }: {
-    imports = [
-      ./machines/${name}/definition.nix
-    ];
     deployment.targetHost = "${name}.vps.dcotta.eu";
     deployment.tags = [ "contabo" "nomad-server" ];
     custom.wireguard."wg-mesh" = {
@@ -57,9 +51,6 @@
 
 
   miki = { name, nodes, lib, ... }: {
-    imports = [
-      ./machines/${name}/definition.nix
-    ];
     deployment.targetHost = "${name}.vps.dcotta.eu";
     nixpkgs.system = lib.mkForce "aarch64-linux";
     deployment.tags = [ "hetzner" "nomad-client" ];
@@ -84,9 +75,6 @@
   # };
 
   maco = { name, nodes, ... }: {
-    imports = [
-      ./machines/${name}/definition.nix
-    ];
     deployment.tags = [ "contabo" "nomad-server" ];
     # TODO CHANGE
     deployment.targetHost = "maco.vps6.dcotta.eu";
@@ -99,7 +87,6 @@
 
   elvis = { name, nodes, ... }: {
     imports = [
-      ./machines/${name}/definition.nix
     ];
     deployment.targetHost = "elvis.vps6.dcotta.eu";
     deployment.tags = [ "local" "nomad-client" ];
@@ -112,7 +99,6 @@
 
   ziggy = { name, nodes, ... }: {
     imports = [
-      ./machines/${name}/definition.nix
     ];
     deployment.tags = [ "local" "nomad-client" ];
     deployment.targetHost = "ziggy.vps6.dcotta.eu"; # TODO CHANGE
@@ -125,7 +111,6 @@
 
   bianco = { name, nodes, ... }: {
     imports = [
-      ./machines/${name}/definition.nix
       ./machines/laptop_config.nix
     ];
     deployment.tags = [ "madrid" "nomad-client" ];
