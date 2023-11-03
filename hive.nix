@@ -37,7 +37,6 @@ in
     };
   };
 
-
   cosmo = { name, nodes, ... }: {
     deployment.targetHost = "${name}.vps.dcotta.eu";
     deployment.tags = [ "contabo" "nomad-server" ];
