@@ -1,13 +1,13 @@
+let
+  nixos-23-05-channel = import (builtins.fetchTarball "https://github.com/NixOS/nixpkgs/archive/nixos-23.05.tar.gz");
+  nixos-23-05-pinned = import (builtins.fetchTarball "https://github.com/NixOS/nixpkgs/archive/4d4a531350f3d41fc9065a14ff5bf3a1c41d1a83.tar.gz");
+in
 {
   meta = {
-    nixpkgs = (import ./sources.nix).nixos-23-05-3 {
-      # overlays = [ (import ./overlays.nix) ];
-    };
+    nixpkgs = nixos-23-05-pinned;
 
     nodeNixpkgs = {
-      #   elvis = (import (import ./sources.nix).nixos-22-11);
-      # miki = (import ./sources.nix).nixos-local-dev;
-      nico-xps = (import ./sources.nix).nixos-23-05-5;
+      nico-xps = nixos-23-05-channel;
     };
   };
 
@@ -17,16 +17,13 @@
       ./machines/common_config.nix
       ./modules
     ];
+    nixpkgs.overlays = [ (import ./overlays.nix) ];
     nixpkgs.system = "x86_64-linux";
     networking.hostName = lib.mkDefault name;
 
     deployment.replaceUnknownProfiles = lib.mkDefault true;
     deployment.buildOnTarget = lib.mkDefault true;
     deployment.targetHost = lib.mkDefault "${name}.mesh.dcotta.eu";
-
-    # custom.wireguard = lib.mkIf (!nodes."${name}".config.deployment.allowLocalDeployment) {
-      
-    # };
   };
 
   nico-xps = { name, nodes, ... }: {
@@ -78,8 +75,7 @@
 
   maco = { name, nodes, ... }: {
     deployment.tags = [ "contabo" "nomad-server" ];
-    # TODO CHANGE
-    deployment.targetHost = "maco.vps6.dcotta.eu";
+    deployment.targetHost = "maco.mesh.dcotta.eu";
     custom.wireguard."wg-mesh" = {
       enable = true;
       confPath = secret/wg-mesh/${name}.conf;
@@ -98,7 +94,7 @@
   };
 
   ziggy = { name, nodes, ... }: {
-    imports = [];
+    imports = [ ];
     deployment.tags = [ "local" "nomad-client" ];
     deployment.targetHost = "ziggy.vps6.dcotta.eu"; # TODO CHANGE
     custom.wireguard."wg-mesh" = {
