@@ -1,6 +1,6 @@
 let
-  nixos-23-05-channel = import (builtins.fetchTarball "https://github.com/NixOS/nixpkgs/archive/nixos-23.05.tar.gz");
-  nixos-23-05-pinned = import (builtins.fetchTarball "https://github.com/NixOS/nixpkgs/archive/4d4a531350f3d41fc9065a14ff5bf3a1c41d1a83.tar.gz");
+  nixos-23-05-channel = import (builtins.fetchTarball "https://api.github.com/repos/nixos/nixpkgs/tarball/nixos-23.05");
+  nixos-23-05-pinned = import (builtins.fetchTarball"https://api.github.com/repos/nixos/nixpkgs/tarball/4d4a531350f3d41fc9065a14ff5bf3a1c41d1a83");
 in
 {
   meta = {
