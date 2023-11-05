@@ -46,7 +46,7 @@ job "dns" {
     task "grimd-dns" {
       driver = "docker"
       config {
-        image = "ghcr.io/cottand/grimd:sha-e2cb74a"
+        image = "ghcr.io/cottand/grimd:sha-5c697d2"
         args = [
           "--config", "/config.toml",
           "--update",
@@ -68,7 +68,7 @@ job "dns" {
         change_mode = "restart"
         # see https://github.com/miekg/dns/blob/master/doc.go#L23C24-L23C58
         data = <<EOF
-version = "1.0.9"
+# version = "1.0.9"
 
 # list of sources to pull blocklists from, stores them in ./sources
 sources = [
@@ -121,21 +121,11 @@ maxcount = 0
 questioncachecap = 5000
 # manual blocklist entries
 blocklist = []
-# Drbl related settings
-usedrbl = 0
-drblpeersfilename = "drblpeers.yaml"
-drblblockweight = 128
-drbltimeout = 30
-drbldebug = 0
-# manual whitelist entries
-whitelist = [
-	"getsentry.com",
-	"www.getsentry.com"
-]
 
 # manual custom dns entries
 customdnsrecords = [
     # CNAME is not flattened - see https://github.com/looterz/grimd/issues/113
+
     "web.vps.dcotta.eu.     3600      IN  A   10.10.4.1  ",
     "immich.vps.dcotta.eu.  3600      IN  A   10.10.4.1  ",
 
@@ -209,8 +199,9 @@ togglename = ""
 # having been turned off.
 reactivationdelay = 300
 
-#Dns over HTTPS provider to use.
+# Dns over HTTPS provider to use.
 DoH = "https://cloudflare-dns.com/dns-query"
+
 EOF
       }
     }

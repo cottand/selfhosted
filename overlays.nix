@@ -2,7 +2,7 @@ final: prev:
 # https://nixos.wiki/wiki/Overlays
 let
   master = import (builtins.fetchTarball "https://api.github.com/repos/nixos/nixpkgs/tarball/master") pkgs-config;
-  unstable = import (builtins.fetchTarball "https://api.github.com/repos/nixos/nixpkgs/tarball/unstable") pkgs-config;
+  unstable = import (builtins.fetchTarball "https://api.github.com/repos/nixos/nixpkgs/tarball/nixos-unstable") pkgs-config;
   pkgs-config = {
     config.allowUnfree = true;
     system = prev.system;
@@ -14,4 +14,7 @@ in
 
   # nix language server
   nixd = unstable.nixd;
+
+  # jetbrains IDEs
+  jetbrains = unstable.jetbrains;
 }
