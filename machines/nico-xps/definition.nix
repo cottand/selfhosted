@@ -71,7 +71,7 @@
 
   users.users.cottand = {
     isNormalUser = true;
-    description = "Nico";
+    description = "Nico"; #                  android
     extraGroups = [ "networkmanager" "wheel" "adbusers" "docker" ];
     packages = with pkgs; [
       chromium
@@ -82,7 +82,7 @@
 
   };
 
-   programs.adb.enable = true;
+  programs.adb.enable = true;
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
@@ -100,7 +100,7 @@
     git
     colmena
     nomad_1_6
-    scrcpy       # android screen sharing
+    scrcpy # android screen sharing
     gnome3.gnome-tweaks
   ];
 

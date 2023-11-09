@@ -1,10 +1,14 @@
 { config, pkgs, lib, ... }:
 {
+
+
+  nix.gc.automatic = true;
+  nix.gc.options = "--delete-older-than 30d"; 
+
   nixpkgs.config.allowUnfree = true;
   services.openssh.enable = true;
   services.sshguard.enable = true;
   networking.enableIPv6 = true;
-  # Enable zsh
   programs.zsh.enable = true;
 
   # Enable Oh-my-zsh

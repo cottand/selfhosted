@@ -18,7 +18,7 @@
     gnome-photos
     gnome-tour
   ]) ++ (with pkgs.gnome; [
-     cheese # webcam tool
+    cheese # webcam tool
     gnome-music
     # gnome-terminal
     # gedit # text editor
@@ -32,7 +32,21 @@
     hitori # sudoku game
     atomix # puzzle game
   ]);
+  services.udev.extraRules = ''
+    KERNEL=="i2c-[0-9]*", GROUP="i2c", MODE="0660"
+  '';
+  hardware.i2c.enable = true;
 
-  environment.systemPackages = [ (pkgs.makeAutostartItem { name = "guake"; package = pkgs.guake; }) ];
+  # missing extensions not installed from NixOS https://extensions.gnome.org/extension/4652/adjust-display-brightness/
+  environment.systemPackages = with pkgs; [
+    # monitor control
+    ddcutil
+
+    (makeAutostartItem { name = "guake"; package = guake; })
+    gnomeExtensions.vitals
+    # gnomeExtensions.useless-gaps
+    gnomeExtensions.wireless-hid
+
+  ];
   environment.sessionVariables."GUAKE_ENABLE_WAYLAND" = "true";
 }

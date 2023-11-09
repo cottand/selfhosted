@@ -15,6 +15,9 @@ job "dns" {
         to           = 4000
         host_network = "wg-mesh"
       }
+      port "http_doh" {
+        host_network = "wg-mesh"
+      }
     }
     update {
       max_parallel     = 1
@@ -43,10 +46,25 @@ job "dns" {
         // "traefik.udp.routers.${NOMAD_TASK_NAME}.middlewares=vpn-whitelist@file",
       ]
     }
+    service {
+      name     = "doh"
+      provider = "nomad"
+      port     = "http_doh"
+      tags = [
+        "traefik.enable=true",
+        "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`dns.vps.dcotta.eu`) ", //" || ( Host(`138.201.153.245`) && PathPrefix(`/dns-query`) )",
+        "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=web, web_public, websecure, websecure_public",
+
+        "traefik.http.routers.${NOMAD_TASK_NAME}.tls=true",
+        "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt",
+        # expose but for now only when on VPN
+        // "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=vpn-whitelist@file",
+      ]
+    }
     task "grimd-dns" {
       driver = "docker"
       config {
-        image = "ghcr.io/cottand/grimd:sha-5c697d2"
+        image = "ghcr.io/cottand/grimd:latest"
         args = [
           "--config", "/config.toml",
           "--update",
@@ -83,44 +101,35 @@ sources = [
 # list of locations to recursively read blocklists from (warning, every file found is assumed to be a hosts-file or domain list)
 sourcedirs = ["sources"]
 
-# log configuration
-# format: comma separated list of options, where options is one of 
-#   file:<filename>@<loglevel>
-#   stderr>@<loglevel>
-#   syslog@<loglevel>
-# loglevel: 0 = errors and important operations, 1 = dns queries, 2 = debug
-# e.g. logconfig = "file:grimd.log@2,syslog@1,stderr@2"
-# logconfig = "file:grimd.log@2,stderr@2"
 logconfig = "stderr@1"
-
-# apidebug enables the debug mode of the http api library
-apidebug = false
 
 # address to bind to for the DNS server
 bind = "0.0.0.0:{{ env "NOMAD_PORT_dns"  }}"
 
 # address to bind to for the API server
 api = "0.0.0.0:{{ env "NOMAD_PORT_metrics"  }}"
-# response to blocked queries with a NXDOMAIN
-nxdomain = false
-# ipv4 address to forward blocked queries to
-nullroute = "0.0.0.0"
-# ipv6 address to forward blocked queries to
-nullroutev6 = "0:0:0:0:0:0:0:0"
-# nameservers to forward queries to
+
 nameservers = ["1.1.1.1:53", "1.0.0.1:53"]
+
 # concurrency interval for lookups in miliseconds
 interval = 200
+
 # query timeout for dns lookups in seconds
 timeout = 5
+
 # cache entry lifespan in seconds
 expire = 600
+
 # cache capacity, 0 for infinite
 maxcount = 0
+
 # question cache capacity, 0 for infinite but not recommended (this is used for storing logs)
 questioncachecap = 5000
+
 # manual blocklist entries
 blocklist = []
+
+metrics.enabled = true
 
 # manual custom dns entries
 customdnsrecords = [
@@ -201,6 +210,14 @@ reactivationdelay = 300
 
 # Dns over HTTPS provider to use.
 DoH = "https://cloudflare-dns.com/dns-query"
+
+[DnsOverHttpServer]
+	enabled = true
+	bind = "0.0.0.0:{{ env "NOMAD_PORT_http_doh" }}"
+	timeoutMs = 5000
+
+	[DnsOverHttpServer.TLS]
+		enabled = false
 
 EOF
       }
