@@ -14,6 +14,18 @@
     layout = "gb";
     xkbVariant = "";
   };
+
+  # pipewire
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+    # If you want to use JACK applications, uncomment this
+    #jack.enable = true;
+  };
+
   environment.gnome.excludePackages = (with pkgs; [
     gnome-photos
     gnome-tour
@@ -47,6 +59,8 @@
     # gnomeExtensions.useless-gaps
     gnomeExtensions.wireless-hid
 
+    # sound
+    pavucontrol
   ];
   environment.sessionVariables."GUAKE_ENABLE_WAYLAND" = "true";
 }
