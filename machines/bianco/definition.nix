@@ -21,12 +21,11 @@
     isNormalUser = true;
     description = "Nico";
     extraGroups = [ "networkmanager" "wheel" ];
-    packages = with pkgs; [ ];
+    packages = [ ];
   };
 
   networking.firewall.enable = false;
+  services.logind.lidSwitch = "ignore";
 
   system.stateVersion = "22.11";
-
-
 }
