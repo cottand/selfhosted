@@ -1,7 +1,7 @@
 job "dns" {
   datacenters = ["dc1"]
   type        = "system"
-  group "grimd-dns" {
+  group "leng-dns" {
     network {
       mode = "bridge"
       port "dns" {
@@ -61,10 +61,10 @@ job "dns" {
         // "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=vpn-whitelist@file",
       ]
     }
-    task "grimd-dns" {
+    task "leng-dns" {
       driver = "docker"
       config {
-        image = "ghcr.io/cottand/grimd:latest"
+        image = "ghcr.io/cottand/leng:sha-6b2e265"
         args = [
           "--config", "/config.toml",
           "--update",
@@ -86,21 +86,6 @@ job "dns" {
         change_mode = "restart"
         # see https://github.com/miekg/dns/blob/master/doc.go#L23C24-L23C58
         data = <<EOF
-# version = "1.0.9"
-
-# list of sources to pull blocklists from, stores them in ./sources
-sources = [
-    "https://mirror1.malwaredomains.com/files/justdomains",
-    "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts",
-    "https://sysctl.org/cameleon/hosts",
-    "https://s3.amazonaws.com/lists.disconnect.me/simple_tracking.txt",
-    "https://s3.amazonaws.com/lists.disconnect.me/simple_ad.txt",
-    "https://gitlab.com/quidsup/notrack-blocklists/raw/master/notrack-blocklist.txt"
-]
-
-# list of locations to recursively read blocklists from (warning, every file found is assumed to be a hosts-file or domain list)
-sourcedirs = ["sources"]
-
 logconfig = "stderr@1"
 
 # address to bind to for the DNS server
@@ -109,25 +94,12 @@ bind = "0.0.0.0:{{ env "NOMAD_PORT_dns"  }}"
 # address to bind to for the API server
 api = "0.0.0.0:{{ env "NOMAD_PORT_metrics"  }}"
 
-nameservers = ["1.1.1.1:53", "1.0.0.1:53"]
-
 # concurrency interval for lookups in miliseconds
 interval = 200
 
-# query timeout for dns lookups in seconds
-timeout = 5
-
-# cache entry lifespan in seconds
-expire = 600
-
-# cache capacity, 0 for infinite
-maxcount = 0
 
 # question cache capacity, 0 for infinite but not recommended (this is used for storing logs)
 questioncachecap = 5000
-
-# manual blocklist entries
-blocklist = []
 
 metrics.enabled = true
 
@@ -201,15 +173,17 @@ customdnsrecords = [
 
 ]
 
-# When this string is queried, toggle grimd on and off
-togglename = ""
-
-# If not zero, the delay in seconds before grimd automaticall reactivates after
-# having been turned off.
-reactivationdelay = 300
-
-# Dns over HTTPS provider to use.
-DoH = "https://cloudflare-dns.com/dns-query"
+[Upstream]
+  nameservers = ["1.1.1.1:53", "1.0.0.1:53"]
+  # query timeout for dns lookups in seconds
+  timeout = 5
+  # cache entry lifespan in seconds
+  expire = 600
+  # cache capacity, 0 for infinite
+  maxcount = 0
+  # manual blocklist entries
+  # Dns over HTTPS provider to use.
+  DoH = "https://cloudflare-dns.com/dns-query"
 
 [DnsOverHttpServer]
 	enabled = true
