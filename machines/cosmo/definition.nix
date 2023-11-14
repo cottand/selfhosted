@@ -3,7 +3,6 @@
   imports = [
     ./hardware-configuration.nix
     ./nomad/nomad.nix
-    ./wg-easy.nix
     ./ipv6.nix
   ];
 
@@ -36,7 +35,7 @@
     internalInterfaces = [ "wg0" ];
   };
 
-  custom.wireguard."wg-ci" = {
+  custom.wireguard."wg-gha-ci" = {
     enable = true;
     confPath = ../../secret/wg-ci/wg-ci.conf;
     port = 55726;

@@ -1,5 +1,6 @@
 let
   nixos-23-05-channel = import (builtins.fetchTarball "https://api.github.com/repos/nixos/nixpkgs/tarball/nixos-23.05");
+  # nixos-unstable-channel = import (builtins.fetchTarball "https://api.github.com/repos/nixos/nixpkgs/tarball/nixos-unstable");
   nixos-23-05-pinned = import (builtins.fetchTarball"https://api.github.com/repos/nixos/nixpkgs/tarball/4d4a531350f3d41fc9065a14ff5bf3a1c41d1a83");
 in
 {
@@ -59,18 +60,19 @@ in
     };
   };
 
-  # ari = { name, nodes, ... }: {
-  #   imports = [
-  #     ./machines/${name}/definition.nix
-  #   ];
-  #   networking.hostName = name;
-  #   deployment.tags = [ "local" "nomad-server" ];
-  #   custom.wireguard."wg-mesh" = {
-  #     enable = true;
-  #     confPath = secret/wg-mesh/${name}.conf;
-  #     port = 55820;
-  #   };
-  # };
+  ari = { name, nodes, ... }: {
+    imports = [
+      ./machines/${name}/definition.nix
+    ];
+    networking.hostName = name;
+    deployment.tags = [ "local" "nomad-server" ];
+    custom.wireguard."wg-mesh" = {
+      enable = true;
+      confPath = secret/wg-mesh/${name}.conf;
+      port = 55820;
+    };
+    deployment.targetHost = "192.168.1.44";
+  };
 
   maco = { name, nodes, ... }: {
     deployment.tags = [ "contabo" "nomad-server" ];

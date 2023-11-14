@@ -48,9 +48,9 @@ in
   # https://gist.github.com/udf/4d9301bdc02ab38439fd64fbda06ea43#planet-status-h4xed
   # doing this top-level is a nightmare
   config = {
-    deployment = flip concatMapAttrs cfg
+    deployment.keys = flip concatMapAttrs cfg
       (interface: opts: mkIf opts.enable {
-        keys."${interface}.conf" = {
+        "${interface}.conf" = {
           text = (builtins.readFile opts.confPath);
 
           destDir = "/etc/wireguard";
@@ -71,3 +71,6 @@ in
     });
   };
 }
+
+
+# TODO fix wg-ci

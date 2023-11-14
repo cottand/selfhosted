@@ -15,7 +15,8 @@
       s = "status";
       ps = "push";
       pl = "pull";
-      yolo = "commit --ammend -a --no-edit";
+      d = "diff";
+      yolo = "commit --amend -a --no-edit";
     };
   };
 

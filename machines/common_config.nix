@@ -4,6 +4,7 @@
 
   nix.gc.automatic = true;
   nix.gc.options = "--delete-older-than 30d"; 
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
   nixpkgs.config.allowUnfree = true;
   services.openssh.enable = true;
