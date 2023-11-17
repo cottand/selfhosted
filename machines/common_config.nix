@@ -3,8 +3,13 @@
 
 
   nix.gc.automatic = true;
-  nix.gc.options = "--delete-older-than 30d"; 
+  nix.gc.options = "--delete-older-than 30d";
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
+
+  swapDevices = [{
+    device = "/var/lib/swapfile";
+    size = 1 * 1024;
+  }];
 
   nixpkgs.config.allowUnfree = true;
   services.openssh.enable = true;

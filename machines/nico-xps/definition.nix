@@ -81,6 +81,10 @@
     shell = pkgs.zsh;
 
   };
+  services.clamav = {
+    daemon.enable = true;
+    updater.enable = true;
+  };
 
   programs.adb.enable = true;
 

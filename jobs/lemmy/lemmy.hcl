@@ -1,13 +1,13 @@
 variable "lemmy_version" {
   type    = string
-  default = "0.18.4"
+  default = "0.18.5"
 }
 
 variable "image" {
   type    = string
   // default = "dessalines/lemmy"
   // this one is in GHCR and supports ARM:
-  default = "ghcr.io/cottand/lemmy"
+  default = "ghcr.io/ubergeek77/lemmy"
 }
 
 job "lemmy" {

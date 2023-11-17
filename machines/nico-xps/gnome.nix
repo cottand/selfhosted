@@ -59,6 +59,8 @@
     # gnomeExtensions.useless-gaps
     gnomeExtensions.wireless-hid
 
+    gnomeExtensions.unite
+
     # sound
     pavucontrol
   ];
