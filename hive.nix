@@ -2,6 +2,7 @@ let
   nixos-23-05-channel = import (builtins.fetchTarball "https://api.github.com/repos/nixos/nixpkgs/tarball/nixos-23.05");
   nixos-unstable-channel = import (builtins.fetchTarball "https://api.github.com/repos/nixos/nixpkgs/tarball/nixos-unstable");
   nixos-23-05-pinned = import (builtins.fetchTarball"https://api.github.com/repos/nixos/nixpkgs/tarball/4d4a531350f3d41fc9065a14ff5bf3a1c41d1a83");
+  overlay =  (builtins.getFlake "github:cottand/home-nix").overlay;
 in
 {
   meta = {
@@ -19,7 +20,7 @@ in
       ./machines/common_config.nix
       ./modules
     ];
-    nixpkgs.overlays = [ (import ./overlays.nix) ];
+    nixpkgs.overlays = [ overlay ];
     nixpkgs.system = "x86_64-linux";
     networking.hostName = lib.mkDefault name;
 
