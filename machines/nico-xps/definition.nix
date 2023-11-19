@@ -15,11 +15,11 @@
       "${builtins.fetchGit { url = "https://github.com/NixOS/nixos-hardware.git"; }}/dell/xps/13-9300"
       ./gnome.nix
       (import "${(builtins.fetchTarball { url = "https://github.com/nix-community/home-manager/archive/release-23.05.tar.gz"; })}/nixos")
-      # <home-manager/nixos>
       ./ides.nix
     ];
 
-  home-manager.users.cottand = (import ./home);
+  # TEMP?
+  home-manager.users.cottand = (builtins.getFlake "github:cottand/home-nix").home;
 
   # Wayland support for electron apps
   environment.sessionVariables.NIXOS_OZONE_WL = "1";

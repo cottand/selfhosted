@@ -105,8 +105,6 @@ metrics.enabled = true
 
 # manual custom dns entries
 customdnsrecords = [
-    # CNAME is not flattened - see https://github.com/looterz/grimd/issues/113
-
     "web.vps.dcotta.eu.     3600      IN  A   10.10.4.1  ",
     "immich.vps.dcotta.eu.  3600      IN  A   10.10.4.1  ",
 
