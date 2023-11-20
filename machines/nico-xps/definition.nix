@@ -19,7 +19,11 @@
     ];
 
   # TEMP?
-  home-manager.users.cottand = (builtins.getFlake "github:cottand/home-nix").home;
+  home-manager = {
+    useUserPackages = true;
+    useGlobalPkgs = true;
+    users.cottand = (builtins.getFlake "github:cottand/home-nix/62f19c4").home;
+  };
 
   # Wayland support for electron apps
   environment.sessionVariables.NIXOS_OZONE_WL = "1";
