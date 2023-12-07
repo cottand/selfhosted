@@ -5,7 +5,7 @@
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     cottand = {
       url = "github:cottand/home-nix";
-      inputs.nixpgs-unstable.follows = "nixpkgs-unstable";
+      inputs.nixpkgs-unstable.follows = "nixpkgs-unstable";
     };
     home-manager = {
       url = "github:nix-community/home-manager/release-23.11";
