@@ -1,7 +1,7 @@
 
 // modified original from https://github.com/watsonian/seaweedfs-nomad
 job "seaweedfs-volume" {
-  datacenters = ["dc1"]
+  datacenters = ["*"]
   type        = "system"
 
   update {

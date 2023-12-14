@@ -3,6 +3,7 @@
     enable = true;
     enableSeaweedFsVolume = true;
     extraSettingsText = ''
+      datacenter = "nuremberg-hetzner"
       client {
         meta {
           box = "miki"

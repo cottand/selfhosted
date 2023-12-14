@@ -13,7 +13,7 @@ variable "master_port_grpc" {
 }
 
 job "seaweedfs" {
-  datacenters = ["dc1"]
+  datacenters = ["*"]
   type        = "service"
 
   group "master" {

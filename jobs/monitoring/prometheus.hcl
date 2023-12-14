@@ -1,5 +1,5 @@
 job "prometheus" {
-  datacenters = ["dc1"]
+  datacenters = ["*"]
   type        = "service"
   priority    = 1
 

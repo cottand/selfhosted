@@ -1,5 +1,5 @@
 job "mimir" {
-  datacenters = ["dc1"]
+  datacenters = ["*"]
   type        = "service"
   update {
     max_parallel      = 1

@@ -1,6 +1,4 @@
 job "traefik" {
-  datacenters = ["dc1"]
-
   group "traefik" {
     network {
       mode = "bridge"

@@ -1,5 +1,5 @@
 job "seaweedfs-plugin" {
-  datacenters = ["dc1"]
+  datacenters = ["*"]
   type        = "system"
   update {
     max_parallel = 1
