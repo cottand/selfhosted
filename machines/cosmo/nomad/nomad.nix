@@ -1,34 +1,48 @@
 { config, pkgs, ... }:
 {
-  environment.etc = {
-    "nomad/config/client.hcl" = {
-      text = (builtins.readFile ./client.hcl);
-    };
-    "nomad/config/server.hcl" = {
-      text = (builtins.readFile ./server.hcl);
-    };
-  };
-  systemd.tmpfiles.rules = [
-    "d /seaweed.d/volume 1777 root root -"
-    "d /seaweed.d/filer 1777 root root -"
-    "d /grafana.d/ 1777 root root -"
-  ];
-  services.nomad = {
-    package = pkgs.nomad_1_6;
+  systemd.tmpfiles.rules = [ "d /grafana.d/ 1777 root root -" ];
 
+  nomadNode = {
     enable = true;
-    enableDocker = true;
-    dropPrivileges = false;
-    extraPackages = with pkgs; [ cni-plugins getent wget curl ];
-    extraSettingsPlugins = [ pkgs.nomad-driver-podman ];
-    extraSettingsPaths = [
-      "/etc/nomad/config/server.hcl"
-      "/etc/nomad/config/client.hcl"
-    ];
-    settings = {
-      client = {
-        cni_path = "${pkgs.cni-plugins}/bin";
-      };
-    };
+    enableSeaweedFsVolume = true;
+    extraSettingsText = ''
+      client {
+        meta {
+          box              = "cosmo"
+          name             = "cosmo"
+          seaweedfs_volume = true
+          public_network   = true
+          docker_privileged = true
+        }
+
+
+        host_volume "seaweedfs-filer" {
+          path      = "/seaweed.d/filer"
+          read_only = false
+        }
+        host_volume "lemmy-data" {
+          path      = "/lemmy.d/data"
+          read_only = false
+        }
+        host_volume "grafana-cosmo" {
+          path      = "/grafana.d"
+          read_only = false
+        }
+      }
+      plugin_dir = "/usr/lib/nomad/plugins"
+      data_dir   = "/var/lib/nomad"
+      server {
+        enabled          = true
+        bootstrap_expect = 0
+        server_join {
+          retry_join = [
+            "maco.mesh.dcotta.eu"
+          ]
+          retry_max      = 3
+          retry_interval = "15s"
+          }
+      }
+      bind_addr = "0.0.0.0"
+    '';
   };
 }
