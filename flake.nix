@@ -26,7 +26,7 @@
     {
       colmena = {
         meta = {
-          nixpkgs = import nixpkgs23-05-pinned {
+          nixpkgs = import nixpkgs23-11 {
             system = "x86_64-linux";
           };
 
@@ -47,10 +47,11 @@
           nixpkgs.overlays = [ overlay ];
           nixpkgs.system = "x86_64-linux";
           networking.hostName = lib.mkDefault name;
-
-          deployment.replaceUnknownProfiles = lib.mkDefault true;
-          deployment.buildOnTarget = lib.mkDefault true;
-          deployment.targetHost = lib.mkDefault "${name}.mesh.dcotta.eu";
+          deployment = {
+            replaceUnknownProfiles = lib.mkDefault true;
+            buildOnTarget = lib.mkDefault false;
+            targetHost = lib.mkDefault "${name}.mesh.dcotta.eu";
+          };
         };
 
         nico-xps = { name, nodes, ... }: {
@@ -135,7 +136,7 @@
         ziggy = { name, nodes, ... }: {
           imports = [ ];
           deployment.tags = [ "local" "nomad-client" ];
-          deployment.targetHost = "ziggy.vps6.dcotta.eu"; # TODO CHANGE
+          deployment.targetHost = "${name}.vps6.dcotta.eu"; # TODO CHANGE
           custom.wireguard."wg-mesh" = {
             enable = true;
             confPath = secretPath + "wg-mesh/${name}.conf";
@@ -144,9 +145,7 @@
         };
 
         bianco = { name, nodes, ... }: {
-          imports = [
-            ./machines/laptop_config.nix
-          ];
+          imports = [];
           deployment.tags = [ "madrid" "nomad-client" ];
           custom.wireguard."wg-mesh" = {
             enable = true;
