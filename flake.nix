@@ -2,7 +2,8 @@
   inputs = {
     nixpkgs23-11.url = "github:NixOS/nixpkgs/nixos-23.11";
     nixpkgs23-05-pinned.url = "github:NixOS/nixpkgs/d2e4de209881b38392933fabf303cde3454b0b4c";
-    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
+    # nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs-unstable.url = "github:cottand/nixpkgs/nomad-172";
     cottand = {
       url = "github:cottand/home-nix";
       inputs.nixpkgs-unstable.follows = "nixpkgs-unstable";
@@ -12,11 +13,15 @@
       inputs.nixpkgs.follows = "nixpkgs23-11";
     };
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+
+    leng.url = "github:cottand/leng/nixos-module";
+    leng.inputs.nixpkgs.follows = "nixpkgs23-11";
   };
 
-  outputs = inputs@{ nixpkgs23-11, nixpkgs23-05-pinned, cottand, home-manager, nixos-hardware, ... }:
+  outputs = inputs@{ nixpkgs23-11, nixpkgs23-05-pinned, cottand, home-manager, nixos-hardware, leng, ... }:
     let
       overlay = cottand.overlay;
+      secretPath = "/home/cottand/dev/selfhosted/secret/";
     in
     {
       colmena = {
@@ -52,6 +57,7 @@
           imports = [
             home-manager.nixosModules.home-manager
             nixos-hardware.nixosModules.dell-xps-13-9300
+            # leng.nixosModules.default
           ];
           # TEMP?
           home-manager = {
@@ -75,7 +81,7 @@
           deployment.tags = [ "contabo" "nomad-server" ];
           custom.wireguard."wg-mesh" = {
             enable = true;
-            confPath = secret/wg-mesh/${name}.conf;
+            confPath = secretPath + "wg-mesh/${name}.conf";
             port = 55820;
           };
         };
@@ -87,31 +93,31 @@
           deployment.tags = [ "hetzner" "nomad-client" ];
           custom.wireguard."wg-mesh" = {
             enable = true;
-            confPath = secret/wg-mesh/${name}.conf;
+            confPath = secretPath + "wg-mesh/${name}.conf";
             port = 55820;
           };
         };
 
-        ari = { name, nodes, ... }: {
-          imports = [
-            ./machines/${name}/definition.nix
-          ];
-          networking.hostName = name;
-          deployment.tags = [ "local" "nomad-server" ];
-          custom.wireguard."wg-mesh" = {
-            enable = true;
-            confPath = secret/wg-mesh/${name}.conf;
-            port = 55820;
-          };
-          deployment.targetHost = "192.168.1.44";
-        };
+        # ari = { name, nodes, ... }: {
+        #   imports = [
+        #     ./machines/${name}/definition.nix
+        #   ];
+        #   networking.hostName = name;
+        #   deployment.tags = [ "local" "nomad-server" ];
+        #   custom.wireguard."wg-mesh" = {
+        #     enable = true;
+        #     confPath = secretPath + "wg-mesh/${name}.conf";
+        #     port = 55820;
+        #   };
+        #   deployment.targetHost = "192.168.1.44";
+        # };
 
         maco = { name, nodes, ... }: {
           deployment.tags = [ "contabo" "nomad-server" ];
           deployment.targetHost = "maco.mesh.dcotta.eu";
           custom.wireguard."wg-mesh" = {
             enable = true;
-            confPath = secret/wg-mesh/${name}.conf;
+            confPath = secretPath + "wg-mesh/${name}.conf";
             port = 55820;
           };
         };
@@ -121,7 +127,7 @@
           deployment.tags = [ "local" "nomad-client" ];
           custom.wireguard."wg-mesh" = {
             enable = true;
-            confPath = secret/wg-mesh/${name}.conf;
+            confPath = secretPath + "wg-mesh/${name}.conf";
             port = 55820;
           };
         };
@@ -132,7 +138,7 @@
           deployment.targetHost = "ziggy.vps6.dcotta.eu"; # TODO CHANGE
           custom.wireguard."wg-mesh" = {
             enable = true;
-            confPath = secret/wg-mesh/${name}.conf;
+            confPath = secretPath + "wg-mesh/${name}.conf";
             port = 55820;
           };
         };
@@ -144,7 +150,7 @@
           deployment.tags = [ "madrid" "nomad-client" ];
           custom.wireguard."wg-mesh" = {
             enable = true;
-            confPath = secret/wg-mesh/${name}.conf;
+            confPath = secretPath + "wg-mesh/${name}.conf";
             port = 55820;
           };
         };

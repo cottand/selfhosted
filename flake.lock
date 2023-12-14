@@ -7,16 +7,34 @@
         ]
       },
       "locked": {
-        "lastModified": 1701980766,
-        "narHash": "sha256-bae6xSlzZ8PNsIrKqdLT1PdDte4lWvuqG9TkU7Ylu/M=",
+        "lastModified": 1702475311,
+        "narHash": "sha256-heSdWrlKBOlDUPdGwL3Iwna9mSq2Yn3vnq1XipEEW00=",
         "owner": "cottand",
         "repo": "home-nix",
-        "rev": "50effe2aa8febf2468580faabfd033d84d074c0c",
+        "rev": "adbdde47fa348f3f860bb70eec60f0851f43fae7",
         "type": "github"
       },
       "original": {
         "owner": "cottand",
         "repo": "home-nix",
+        "type": "github"
+      }
+    },
+    "flake-utils": {
+      "inputs": {
+        "systems": "systems"
+      },
+      "locked": {
+        "lastModified": 1701680307,
+        "narHash": "sha256-kAuep2h5ajznlPMD9rnQyffWG8EM/C73lejGofXvdM8=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "4022d587cbbfd70fe950c1e2083a02621806a725",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
         "type": "github"
       }
     },
@@ -27,11 +45,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1700814205,
-        "narHash": "sha256-lWqDPKHRbQfi+zNIivf031BUeyciVOtwCwTjyrhDB5g=",
+        "lastModified": 1702195709,
+        "narHash": "sha256-+zRjWkm5rKqQ57PuLZ3JF3xi3vPMiOJzItb1m/43Cq4=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "aeb2232d7a32530d3448318790534d196bf9427a",
+        "rev": "6761b8188b860f374b457eddfdb05c82eef9752f",
         "type": "github"
       },
       "original": {
@@ -41,13 +59,35 @@
         "type": "github"
       }
     },
+    "leng": {
+      "inputs": {
+        "flake-utils": "flake-utils",
+        "nixpkgs": [
+          "nixpkgs23-11"
+        ]
+      },
+      "locked": {
+        "lastModified": 1702222322,
+        "narHash": "sha256-PMCeHhWzeMJqqpIJTMo80Pt4Y0A2lFqMI1lKO0s7XYg=",
+        "owner": "cottand",
+        "repo": "leng",
+        "rev": "7342505c189e83775354954ab10bf7062e38ddae",
+        "type": "github"
+      },
+      "original": {
+        "owner": "cottand",
+        "ref": "nixos-module",
+        "repo": "leng",
+        "type": "github"
+      }
+    },
     "nixos-hardware": {
       "locked": {
-        "lastModified": 1701656485,
-        "narHash": "sha256-xDFormrGCKKGqngHa2Bz1GTeKlFMMjLnHhTDRdMJ1hs=",
+        "lastModified": 1702453208,
+        "narHash": "sha256-0wRi9SposfE2wHqjuKt8WO2izKB/ASDOV91URunIqgo=",
         "owner": "NixOS",
         "repo": "nixos-hardware",
-        "rev": "fa194fc484fd7270ab324bb985593f71102e84d1",
+        "rev": "7763c6fd1f299cb9361ff2abf755ed9619ef01d6",
         "type": "github"
       },
       "original": {
@@ -59,16 +99,16 @@
     },
     "nixpkgs-unstable": {
       "locked": {
-        "lastModified": 1701718080,
-        "narHash": "sha256-6ovz0pG76dE0P170pmmZex1wWcQoeiomUZGggfH9XPs=",
-        "owner": "NixOS",
+        "lastModified": 1702558615,
+        "narHash": "sha256-CE7L9b4hlFv0whZbII88karZfMIEfZInVTBQbVA1YBE=",
+        "owner": "cottand",
         "repo": "nixpkgs",
-        "rev": "2c7f3c0fb7c08a0814627611d9d7d45ab6d75335",
+        "rev": "6f5c010faf2dc3109de15092c82583c0aef0f0d1",
         "type": "github"
       },
       "original": {
-        "owner": "NixOS",
-        "ref": "nixos-unstable",
+        "owner": "cottand",
+        "ref": "nomad-172",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -91,11 +131,11 @@
     },
     "nixpkgs23-11": {
       "locked": {
-        "lastModified": 1701802827,
-        "narHash": "sha256-wTn0lpV75Uv6tU6haEypNsmnJJPb0hpaMIy/4uf5AiQ=",
+        "lastModified": 1702346276,
+        "narHash": "sha256-eAQgwIWApFQ40ipeOjVSoK4TEHVd6nbSd9fApiHIw5A=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "a804fc878d7ba1558b960b4c64b0903da426ac41",
+        "rev": "cf28ee258fd5f9a52de6b9865cdb93a1f96d09b7",
         "type": "github"
       },
       "original": {
@@ -109,10 +149,26 @@
       "inputs": {
         "cottand": "cottand",
         "home-manager": "home-manager",
+        "leng": "leng",
         "nixos-hardware": "nixos-hardware",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "nixpkgs23-05-pinned": "nixpkgs23-05-pinned",
         "nixpkgs23-11": "nixpkgs23-11"
+      }
+    },
+    "systems": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
       }
     }
   },

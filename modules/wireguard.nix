@@ -28,7 +28,7 @@ let
         description = "Whether to enable the interface";
       };
       confPath = mkOption {
-        type = types.path;
+        type = types.str;
       };
 
       port = mkOption {
@@ -51,7 +51,8 @@ in
     deployment.keys = flip concatMapAttrs cfg
       (interface: opts: mkIf opts.enable {
         "${interface}.conf" = {
-          text = (builtins.readFile opts.confPath);
+          keyFile = opts.confPath;
+          # text = (builtins.readFile opts.confPath);
 
           destDir = "/etc/wireguard";
 

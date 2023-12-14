@@ -106,6 +106,10 @@
     gnome3.gnome-tweaks
   ];
 
+  fonts.packages = with pkgs; [
+    (nerdfonts.override { fonts = [ "FiraCode" "DroidSansMono" ]; })
+  ];
+
   virtualisation.docker.enable = true;
 
   # List services that you want to enable:
