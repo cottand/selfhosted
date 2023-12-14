@@ -60,6 +60,9 @@ in
       config.environment.etc."nomad/config/server.hcl".text
       config.environment.etc."nomad/config/extraSettings.hcl".text
     ];
+    systemd.services.nomad.after = [
+      "wg-quick-wg-mesh.service"
+    ];
 
 
     networking.firewall.trustedInterfaces = [ "nomad" "docker0" ];
