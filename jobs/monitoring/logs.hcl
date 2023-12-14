@@ -1,5 +1,5 @@
 job "logs" {
-  datacenters = ["dc1"]
+  datacenters = ["*"]
   # system job, runs on all nodes
   type     = "system"
   priority = 1

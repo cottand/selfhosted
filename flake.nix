@@ -1,9 +1,10 @@
 {
   inputs = {
     nixpkgs23-11.url = "github:NixOS/nixpkgs/nixos-23.11";
-    nixpkgs23-05-pinned.url = "github:NixOS/nixpkgs/d2e4de209881b38392933fabf303cde3454b0b4c";
     # nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgs-unstable.url = "github:cottand/nixpkgs/nomad-172";
+    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+
     cottand = {
       url = "github:cottand/home-nix";
       inputs.nixpkgs-unstable.follows = "nixpkgs-unstable";
@@ -12,13 +13,14 @@
       url = "github:nix-community/home-manager/release-23.11";
       inputs.nixpkgs.follows = "nixpkgs23-11";
     };
-    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
 
-    leng.url = "github:cottand/leng/nixos-module";
-    leng.inputs.nixpkgs.follows = "nixpkgs23-11";
+    leng = {
+      url = "github:cottand/leng/nixos-module";
+      inputs.nixpkgs.follows = "nixpkgs23-11";
+    };
   };
 
-  outputs = inputs@{ nixpkgs23-11, nixpkgs23-05-pinned, cottand, home-manager, nixos-hardware, leng, ... }:
+  outputs = { nixpkgs23-11, cottand, home-manager, nixos-hardware, leng, ... }:
     let
       overlay = cottand.overlay;
       secretPath = "/home/cottand/dev/selfhosted/secret/";
@@ -145,7 +147,7 @@
         };
 
         bianco = { name, nodes, ... }: {
-          imports = [];
+          imports = [ ];
           deployment.tags = [ "madrid" "nomad-client" ];
           custom.wireguard."wg-mesh" = {
             enable = true;

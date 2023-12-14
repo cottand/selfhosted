@@ -30,14 +30,6 @@ client {
     path      = "/etc/machine-id"
     read_only = true
   }
-
-  meta {
-    box               = "elvis"
-    name              = "elvis"
-    seaweedfs_volume  = true
-    docker_privileged = true
-  }
-
 }
 plugin "raw_exec" {
   config {

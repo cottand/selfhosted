@@ -1,5 +1,5 @@
 job "grafana" {
-  datacenters = ["dc1"]
+  datacenters = ["*"]
   type        = "service"
   priority    = 1
   group "grafana" {

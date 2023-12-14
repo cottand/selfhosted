@@ -1,6 +1,5 @@
 
 job "lemmy-pictures" {
-  datacenters = ["dc1"]
   type        = "service"
 
 

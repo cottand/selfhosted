@@ -4,7 +4,6 @@ variable "docker_tag" {
 }
 
 job "web-portfolio" {
-  datacenters = ["dc1"]
   priority    = 50
 
   update {

@@ -1,6 +1,6 @@
 
 job "seaweedfs-backup" {
-  datacenters = ["dc1"]
+  datacenters = ["*"]
 
   group "backup" {
     network {

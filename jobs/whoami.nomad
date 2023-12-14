@@ -1,5 +1,5 @@
 job "whoami" {
-    datacenters = ["dc1"]
+    datacenters = ["*"]
     priority = 1
     group "whoami" {
         constraint {

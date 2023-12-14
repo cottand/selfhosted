@@ -1,5 +1,5 @@
 job "vaultwarden" {
-  datacenters = ["dc1"]
+  datacenters = ["*"]
   type        = "service"
 
   group "vaultwarden" {

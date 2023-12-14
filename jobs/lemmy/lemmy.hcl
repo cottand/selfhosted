@@ -15,7 +15,7 @@ job "lemmy" {
     max_parallel = 1
     stagger      = "10s"
   }
-  datacenters = ["dc1"]
+  datacenters = ["*"]
   type        = "service"
   group "frontend" {
     count = 2

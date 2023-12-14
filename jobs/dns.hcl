@@ -1,5 +1,4 @@
 job "dns" {
-  datacenters = ["dc1"]
   type        = "system"
   group "leng-dns" {
     network {

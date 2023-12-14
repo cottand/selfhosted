@@ -6,6 +6,7 @@
     enable = true;
     enableSeaweedFsVolume = true;
     extraSettingsText = ''
+      datacenter = "dusseldorf-contabo"
       client {
         meta {
           box              = "cosmo"

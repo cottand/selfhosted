@@ -4,7 +4,7 @@ variable "seaweedfs_version" {
   default = "3.57"
 }
 job "seaweedfs-sync" {
-  datacenters = ["dc1"]
+  datacenters = ["*"]
 
   group "sync" {
     network {
