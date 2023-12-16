@@ -10,12 +10,10 @@
       # Include the results of the hardware scan.
       ./hardware-configuration.nix
       ./builders.nix
-      # ./vscode.nix
       ./hidpi.nix
-      # "${builtins.fetchGit { url = "https://github.com/NixOS/nixos-hardware.git"; }}/dell/xps/13-9300"
       ./gnome.nix
-      # (import "${(builtins.fetchTarball { url = "https://github.com/nix-community/home-manager/archive/release-23.11.tar.gz"; })}/nixos")
       ./ides.nix
+      ./mixxx.nix
     ];
 
 
