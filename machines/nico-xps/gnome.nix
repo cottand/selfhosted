@@ -1,6 +1,21 @@
 { config, pkgs, ... }:
 {
 
+  # nixpkgs.overlays = [
+  #   (self: super: {
+  #     gnome = super.gnome.overrideScope' (pself: psuper: {
+  #       mutter = psuper.mutter.overrideAttrs (oldAttrs: {
+  #         patches = (oldAttrs.patches or [ ]) ++ [
+  #           (super.fetchpatch {
+  #             url = "https://gitlab.gnome.org/GNOME/mutter/-/merge_requests/1441.patch";
+  #             hash = "sha256-5r4UP4njxrfRebItzQBPrTKaPUzkWA+9727YdWgBCpA=";
+  #             # revert = true;
+  #           })
+  #         ];
+  #       });
+  #     });
+  #   })
+  # ];
 
   # Enable the X11 windowing system.
   services.xserver.enable = true;
@@ -48,11 +63,15 @@
     KERNEL=="i2c-[0-9]*", GROUP="i2c", MODE="0660"
   '';
   hardware.i2c.enable = true;
+  services.udev.packages = with pkgs; [ gnome.gnome-settings-daemon ];
+
 
   # missing extensions not installed from NixOS https://extensions.gnome.org/extension/4652/adjust-display-brightness/
   environment.systemPackages = with pkgs; [
     # monitor control
     ddcutil
+
+    gnome.dconf-editor
 
     (makeAutostartItem { name = "guake"; package = guake; })
     gnomeExtensions.vitals

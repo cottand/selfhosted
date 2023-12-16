@@ -66,7 +66,9 @@
           home-manager = {
             useUserPackages = true;
             useGlobalPkgs = true;
-            users.cottand = cottand.home;
+            users.cottand = {...}: {
+              imports = [cottand.home];
+            };
           };
 
           deployment = {
