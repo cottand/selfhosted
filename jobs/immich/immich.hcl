@@ -1,7 +1,7 @@
 
 variable "version" {
   type    = string
-  default = "v1.88.0"
+  default = "v1.91.1"
 }
 variable "domain" {
   type    = string
@@ -470,7 +470,8 @@ job "immich" {
     task "postgres" {
       driver = "docker"
       config {
-        image = "postgres:15.2"
+        // image = "postgres:15.2"
+        image = "tensorchord/pgvecto-rs:pg15-v0.1.11"
         ports = ["postgres"]
       }
       env = {
