@@ -146,6 +146,13 @@ job "seaweedfs" {
         # periodically run these scripts are the same as running them from 'weed shell'
         scripts = """
           lock
+
+          ec.encode -fullPercent=95 -quietFor=1h -collection="immich-pictures"
+          volume.configure.replication -collectionPattern immich-pictures -replication 010
+
+          ec.rebuild -force
+          ec.balance -force
+
           volume.deleteEmpty -quietFor=24h -force
           volume.balance -force
           volume.fix.replication

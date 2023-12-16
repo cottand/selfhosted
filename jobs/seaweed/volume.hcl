@@ -113,7 +113,7 @@ job "seaweedfs-volume" {
           "-port.grpc=${NOMAD_PORT_grpc}",
           "-metricsPort=${NOMAD_PORT_metrics}",
           # min free disk space. Low disk space will mark all volumes as ReadOnly.
-          "-minFreeSpace=10GiB",
+          "-minFreeSpace=20GiB",
           # maximum numbers of volumes. If set to zero, the limit will be auto configured as free disk space divided by volume size. default "8"
           "-max=0",
         ]
