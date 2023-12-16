@@ -30,6 +30,9 @@ client {
     path      = "/etc/machine-id"
     read_only = true
   }
+  meta {
+    docker_privileged = true
+  }
 }
 plugin "raw_exec" {
   config {

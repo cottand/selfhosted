@@ -1,7 +1,7 @@
 
 variable "version" {
   type    = string
-  default = "v1.86.0"
+  default = "v1.88.0"
 }
 variable "domain" {
   type    = string
@@ -9,73 +9,6 @@ variable "domain" {
 }
 
 job "immich" {
-  group "immich-frontend" {
-    network {
-      dns {
-        servers = ["10.10.0.1", "10.10.2.1", "10.10.4.1"]
-      }
-      mode = "bridge"
-      port "http" { host_network = "wg-mesh" }
-    }
-    task "immich-web" {
-      driver = "docker"
-      config {
-        image = "ghcr.io/immich-app/immich-web:${var.version}"
-      }
-      env {
-        PORT = "${NOMAD_PORT_http}"
-        # forwards via traefik so no need for service discovery
-        // PUBLIC_IMMICH_SERVER_URL = "http://immich.traefik"
-        // IMMICH_SERVER_URL = "http://immich.traefik"
-        NODE_ENV = "production"
-        // IMMICH_API_URL_EXTERNAL	= "/api"
-      }
-
-      resources {
-        cpu    = 200
-        memory = 128
-      }
-      service {
-        name     = "immich" # grimd inferred from here for immich.traefik
-        provider = "nomad"
-        port     = "http"
-        tags = [
-          "traefik.enable=true",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`${var.domain}`)",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=web, web_public, websecure, websecure_public",
-
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls=true",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt",
-          # expose but for now only when on VPN
-          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=vpn-whitelist@file",
-        ]
-        check {
-          name     = "alive"
-          type     = "tcp"
-          interval = "20s"
-          timeout  = "2s"
-          check_restart {
-            limit           = 3
-            grace           = "30s"
-            ignore_warnings = false
-          }
-        }
-      }
-      template {
-        destination = "config/.env"
-        env         = true
-        change_mode = "restart"
-        data        = <<EOH
-        {{ range nomadService "immich-server" }}
-        PUBLIC_IMMICH_SERVER_URL=http://{{ .Address }}:{{ .Port }}
-        IMMICH_SERVER_URL=http://{{ .Address }}:{{ .Port }}
-        {{ end }}
-        EOH
-      }
-      #"http://immich-server.traefik"
-    }
-  }
-
   group "immich_backend" {
     count = 1
 
@@ -249,13 +182,15 @@ job "immich" {
         tags = [
           "traefik.enable=true",
           "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=web, web_public, websecure, websecure_public",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`${var.domain}`) && PathPrefix(`/api`)",
-          "traefik.http.middlewares.${NOMAD_TASK_NAME}-strip.stripprefix.prefixes=/api",
+          // "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`${var.domain}`) && PathPrefix(`/api`)",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`${var.domain}`)", #" && PathPrefix(`/api`)",
+          // "traefik.http.middlewares.${NOMAD_TASK_NAME}-strip.stripprefix.prefixes=/api",
           // "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=${NOMAD_TASK_NAME}-strip",
 
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls=true",
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt",
           # expose but for now only when on VPN - and can use a single middlewares= at a time
+          // "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=${NOMAD_TASK_NAME}-strip,vpn-whitelist@file",
           "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=${NOMAD_TASK_NAME}-strip,vpn-whitelist@file",
         ]
         check {
@@ -270,6 +205,33 @@ job "immich" {
           }
         }
       }
+      # TODO FIXME WEB from .88^
+      // service {
+      //   name     = "immich" # web: leng inferred from here for immich.traefik
+      //   provider = "nomad"
+      //   port     = "http"
+      //   tags = [
+      //     "traefik.enable=true",
+      //     "traefik.http.routers.${NOMAD_TASK_NAME}-web.rule=Host(`${var.domain}`)",
+      //     "traefik.http.routers.${NOMAD_TASK_NAME}-web.entrypoints=web, web_public, websecure, websecure_public",
+
+      //     "traefik.http.routers.${NOMAD_TASK_NAME}-web.tls=true",
+      //     "traefik.http.routers.${NOMAD_TASK_NAME}-web.tls.certresolver=lets-encrypt",
+      //     # expose but for now only when on VPN
+      //     "traefik.http.routers.${NOMAD_TASK_NAME}-web.middlewares=vpn-whitelist@file",
+      //   ]
+      //   check {
+      //     name     = "alive"
+      //     type     = "tcp"
+      //     interval = "20s"
+      //     timeout  = "2s"
+      //     check_restart {
+      //       limit           = 3
+      //       grace           = "30s"
+      //       ignore_warnings = false
+      //     }
+      //   }
+      // }
       template {
         destination = "config/.env"
         env         = true
@@ -293,7 +255,7 @@ job "immich" {
         IMMICH_SERVER_URL=http://{{ env "NOMAD_IP_server" }}:{{ env "NOMAD_HOST_PORT_server" }}
 
         {{ range nomadService "immich-typesense" -}}
-        ENABLE_TYPESENSE="true"
+        ENABLE_TYPESENSE="false"
         TYPESENSE_HOST={{ .Address }}
         TYPESENSE_PORT={{ .Port }}
         {{- end }}
@@ -366,7 +328,7 @@ job "immich" {
         IMMICH_SERVER_URL=http://{{ env "NOMAD_IP_server" }}:{{ env "NOMAD_HOST_PORT_server" }}
 
         {{ range nomadService "immich-typesense" -}}
-        ENABLE_TYPESENSE="true"
+        ENABLE_TYPESENSE="false"
         TYPESENSE_HOST={{ .Address }}
         TYPESENSE_PORT={{ .Port }}
         {{- end }}
@@ -436,77 +398,6 @@ job "immich" {
           "traefik.enable=true",
           "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=web",
         ]
-        check {
-          name     = "alive"
-          type     = "tcp"
-          interval = "20s"
-          timeout  = "2s"
-          check_restart {
-            limit           = 3
-            grace           = "40s"
-            ignore_warnings = false
-          }
-        }
-      }
-    }
-  }
-
-
-  group "immich-typesense" {
-    network {
-      mode = "bridge"
-      port "http" {
-        host_network = "wg-mesh"
-      }
-    }
-    volume "immich-typesense" {
-      type            = "csi"
-      read_only       = false
-      source          = "immich-typesense"
-      access_mode     = "multi-node-multi-writer"
-      attachment_mode = "file-system"
-    }
-    restart {
-      attempts = 10
-      interval = "4m"
-      delay    = "20s"
-      mode     = "delay"
-    }
-    task "immich-typesense" {
-      driver = "docker"
-
-      resources {
-        memory_max = 512
-        memory     = 100
-        cpu        = 100
-      }
-
-      env = {
-        TYPESENSE_DATA_DIR = "/alloc/data"
-        TYPESENSE_API_PORT = "${NOMAD_PORT_http}"
-        GLOG_minloglevel   = 1
-      }
-
-      volume_mount {
-        volume      = "immich-typesense"
-        destination = "/data"
-        read_only   = false
-      }
-
-      config {
-        image = "typesense/typesense:0.24.1"
-        ports = ["http"]
-      }
-      template {
-        destination = "config/.env"
-        env         = true
-        change_mode = "restart"
-        data        = "{{ with nomadVar \"nomad/jobs/immich\" }}TYPESENSE_API_KEY={{ .typesense_api_key }}{{ end }}"
-      }
-      service {
-        name     = "immich-typesense"
-        provider = "nomad"
-        port     = "http"
         check {
           name     = "alive"
           type     = "tcp"
