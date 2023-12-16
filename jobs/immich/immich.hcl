@@ -17,6 +17,10 @@ job "immich" {
       dns {
         servers = ["10.10.0.1", "10.10.2.1", "10.10.4.1"]
       }
+      port "web" { 
+        host_network = "wg-mesh"
+        to           = 3000
+      }
       port "server" {
         host_network = "wg-mesh"
         to           = 3001
@@ -160,7 +164,7 @@ job "immich" {
       env {
         # https://immich.app/docs/install/environment-variables
         IMMICH_CONFIG_FILE = "${NOMAD_ALLOC_DIR}/config.json"
-        TYPESENSE_ENABLED  = true
+        TYPESENSE_ENABLED  = false
         // REVERSE_GEOCODING_DUMP_DIRECTORY = TODO
       }
       volume_mount {
@@ -191,7 +195,7 @@ job "immich" {
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt",
           # expose but for now only when on VPN - and can use a single middlewares= at a time
           // "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=${NOMAD_TASK_NAME}-strip,vpn-whitelist@file",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=${NOMAD_TASK_NAME}-strip,vpn-whitelist@file",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=vpn-whitelist@file",
         ]
         check {
           name     = "alive"
@@ -251,14 +255,16 @@ job "immich" {
         REDIS_PORT={{ .Port }}
         {{ end }}
 
+        PORT={{ env "NOMAD_PORT_web" }}
+        SERVER_PORT={{ env "NOMAD_PORT_server" }}
+        MICROSERVICES_PORT={{ env "NOMAD_PORT_microservices" }}
+        NODE_ENV="production"
+
+
 
         IMMICH_SERVER_URL=http://{{ env "NOMAD_IP_server" }}:{{ env "NOMAD_HOST_PORT_server" }}
 
-        {{ range nomadService "immich-typesense" -}}
         ENABLE_TYPESENSE="false"
-        TYPESENSE_HOST={{ .Address }}
-        TYPESENSE_PORT={{ .Port }}
-        {{- end }}
         EOH
       }
     }
@@ -275,7 +281,7 @@ job "immich" {
         IMMICH_CONFIG_FILE = "${NOMAD_ALLOC_DIR}/config.json"
         // REVERSE_GEOCODING_DUMP_DIRECTORY = TODO
         MICROSERVICES_PORT = "${NOMAD_PORT_microservices}"
-        TYPESENSE_ENABLED  = true
+        TYPESENSE_ENABLED  = false
       }
       volume_mount {
         volume      = "immich_pictures"
@@ -324,14 +330,14 @@ job "immich" {
         REDIS_PORT={{ .Port }}
         {{ end }}
 
+        PORT={{ env "NOMAD_PORT_web" }}
+        SERVER_PORT={{ env "NOMAD_PORT_server" }}
+        MICROSERVICES_PORT={{ env "NOMAD_PORT_microservices" }}
+        NODE_ENV="production"
 
         IMMICH_SERVER_URL=http://{{ env "NOMAD_IP_server" }}:{{ env "NOMAD_HOST_PORT_server" }}
 
-        {{ range nomadService "immich-typesense" -}}
         ENABLE_TYPESENSE="false"
-        TYPESENSE_HOST={{ .Address }}
-        TYPESENSE_PORT={{ .Port }}
-        {{- end }}
         EOH
       }
     }
