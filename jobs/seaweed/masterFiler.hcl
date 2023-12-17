@@ -79,7 +79,7 @@ job "seaweedfs" {
           "-mdir=${NOMAD_TASK_DIR}/master",
           "-port=${NOMAD_PORT_http}",
           "-port.grpc=${NOMAD_PORT_grpc}",
-          "-defaultReplication=020",
+          "-defaultReplication=200",
           "-metricsPort=${NOMAD_PORT_metrics}",
           # peers must match constraint above
           "-peers=10.10.4.1:${NOMAD_PORT_http},10.10.2.1:${NOMAD_PORT_http},10.10.0.1:${NOMAD_PORT_http}",
@@ -90,6 +90,7 @@ job "seaweedfs" {
         ]
 
         ports = ["http", "grpc", "metrics"]
+        volumes = [ "local/master.toml:/etc/seaweedfs/master.toml"]
 
         privileged = true
       }
@@ -140,15 +141,15 @@ job "seaweedfs" {
         memory = 80
       }
       template {
-        destination = "/etc/seaweedfs/master.toml"
+        destination = "local/master.toml"
         data        = <<-EOF
         [master.maintenance]
         # periodically run these scripts are the same as running them from 'weed shell'
         scripts = """
           lock
 
+          volume.configure.replication -collectionPattern immich-pictures -replication 200
           ec.encode -fullPercent=95 -quietFor=1h -collection="immich-pictures"
-          volume.configure.replication -collectionPattern immich-pictures -replication 010
 
           ec.rebuild -force
           ec.balance -force
@@ -163,7 +164,7 @@ job "seaweedfs" {
         # fs.configure -locationPrefix=/buckets/ -replication=010 -volumeGrowthCount=2 -apply
 
 
-        sleep_minutes = 30          # sleep minutes between each script execution
+        sleep_minutes = 16          # sleep minutes between each script execution
 
         [master.sequencer]
         type = "raft"     # Choose [raft|snowflake] type for storing the file id sequence

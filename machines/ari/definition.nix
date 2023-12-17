@@ -1,6 +1,7 @@
 { pkgs, ... }: {
   imports = [
     ./hardware-configuration.nix
+    ./nomad.nix
   ];
 
   boot.tmp.cleanOnBoot = true;

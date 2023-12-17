@@ -35,7 +35,6 @@
 
   networking.firewall.enable = true;
   networking.firewall.package = pkgs.iptables;
-  #networking.firewall.allowedUDPPorts = [ 51820 4647 4648 ];
   networking.firewall.allowedTCPPorts = [ 22 ];
 
   system.stateVersion = "22.11";

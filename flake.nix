@@ -2,13 +2,19 @@
   inputs = {
     nixpkgs23-11.url = "github:NixOS/nixpkgs/nixos-23.11";
     # nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nixpkgs-unstable.url = "github:cottand/nixpkgs/nomad-172";
-    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/master";
 
     cottand = {
       url = "github:cottand/home-nix";
       inputs.nixpkgs-unstable.follows = "nixpkgs-unstable";
     };
+
+    nico-xps-flake = {
+      url = "./machines/nico-xps";
+      inputs.nixpkgs.follows = "nixpkgs23-11";
+      inputs.cottand.follows = "cottand";
+    };
+
     home-manager = {
       url = "github:nix-community/home-manager/release-23.11";
       inputs.nixpkgs.follows = "nixpkgs23-11";
@@ -20,7 +26,7 @@
     };
   };
 
-  outputs = { nixpkgs23-11, cottand, home-manager, nixos-hardware, leng, ... }:
+  outputs = { nixpkgs23-11, cottand, home-manager, ... }:
     let
       overlay = cottand.overlay;
       secretPath = "/home/cottand/dev/selfhosted/secret/";
@@ -31,16 +37,11 @@
           nixpkgs = import nixpkgs23-11 {
             system = "x86_64-linux";
           };
-
-          nodeNixpkgs = {
-            nico-xps = import nixpkgs23-11 {
-              system = "x86_64-linux";
-              config.allowUnfree = true;
-            };
-          };
         };
 
-        defaults = { pkgs, lib, name, nodes, ... }: {
+        defaults = { pkgs, lib, name, nodes, ... }: 
+        # lib.mkIf (name != "nico-xps")
+         {
           imports = [
             ./machines/${name}/definition.nix
             ./machines/common_config.nix
@@ -53,31 +54,6 @@
             replaceUnknownProfiles = lib.mkDefault true;
             buildOnTarget = lib.mkDefault false;
             targetHost = lib.mkDefault "${name}.mesh.dcotta.eu";
-          };
-        };
-
-        nico-xps = { name, nodes, ... }: {
-          imports = [
-            home-manager.nixosModules.home-manager
-            nixos-hardware.nixosModules.dell-xps-13-9300
-            # leng.nixosModules.default
-          ];
-          # TEMP?
-          home-manager = {
-            useUserPackages = true;
-            useGlobalPkgs = true;
-            users.cottand = {...}: {
-              imports = [cottand.home];
-            };
-          };
-
-          deployment = {
-            # Allow local deployment with `colmena apply-local`
-            allowLocalDeployment = true;
-
-            # Disable SSH deployment. This node will be skipped in a
-            # normal`colmena apply`.
-            targetHost = null;
           };
         };
 
@@ -102,20 +78,6 @@
             port = 55820;
           };
         };
-
-        # ari = { name, nodes, ... }: {
-        #   imports = [
-        #     ./machines/${name}/definition.nix
-        #   ];
-        #   networking.hostName = name;
-        #   deployment.tags = [ "local" "nomad-server" ];
-        #   custom.wireguard."wg-mesh" = {
-        #     enable = true;
-        #     confPath = secretPath + "wg-mesh/${name}.conf";
-        #     port = 55820;
-        #   };
-        #   deployment.targetHost = "192.168.1.44";
-        # };
 
         maco = { name, nodes, ... }: {
           deployment.tags = [ "contabo" "nomad-server" ];
@@ -147,6 +109,19 @@
             port = 55820;
           };
         };
+
+        ari = { name, nodes, ... }: {
+          imports = [ ];
+          networking.hostName = name;
+          deployment.tags = [ "local" "nomad-server" ];
+          custom.wireguard."wg-mesh" = {
+            enable = true;
+            confPath = secretPath + "wg-mesh/${name}.conf";
+            port = 55820;
+          };
+          deployment.targetHost = "192.168.50.145";
+        };
+
 
         bianco = { name, nodes, ... }: {
           imports = [ ];
