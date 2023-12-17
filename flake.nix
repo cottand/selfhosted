@@ -7,12 +7,8 @@
     cottand = {
       url = "github:cottand/home-nix";
       inputs.nixpkgs-unstable.follows = "nixpkgs-unstable";
-    };
-
-    nico-xps-flake = {
-      url = "./machines/nico-xps";
       inputs.nixpkgs.follows = "nixpkgs23-11";
-      inputs.cottand.follows = "cottand";
+      inputs.home-manager.follows = "home-manager";
     };
 
     home-manager = {
@@ -39,21 +35,34 @@
           };
         };
 
-        defaults = { pkgs, lib, name, nodes, ... }: 
-        # lib.mkIf (name != "nico-xps")
-         {
+        defaults = { pkgs, lib, name, nodes, ... }: {
           imports = [
             ./machines/${name}/definition.nix
             ./machines/common_config.nix
             ./modules
+            home-manager.nixosModules.home-manager
           ];
           nixpkgs.overlays = [ overlay ];
           nixpkgs.system = "x86_64-linux";
           networking.hostName = lib.mkDefault name;
+
           deployment = {
             replaceUnknownProfiles = lib.mkDefault true;
             buildOnTarget = lib.mkDefault false;
             targetHost = lib.mkDefault "${name}.mesh.dcotta.eu";
+          };
+
+          home-manager = {
+            useGlobalPkgs = true;
+            useUserPackages = true;
+            users.cottand = {
+              imports = with cottand.homeManagerModules; [ cli ];
+              home.stateVersion = "22.11";
+            };
+            users.root = {
+              imports = with cottand.homeManagerModules; [ cli ];
+              home.stateVersion = "22.11";
+            };
           };
         };
 
