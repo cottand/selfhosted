@@ -57,7 +57,7 @@ job "tempo" {
       // of folder in host
 
       config {
-        image = "grafana/tempo:2.2.3"
+        image = "grafana/tempo:2.3.1"
         args = [
           "-config.file",
           "local/tempo/local-config.yaml",
@@ -125,7 +125,7 @@ overrides:
 EOH
       }
       resources {
-        cpu        = 256
+        cpu        = 350
         memory     = 256
         memory_max = 1024
       }

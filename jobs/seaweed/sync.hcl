@@ -1,7 +1,7 @@
 
 variable "seaweedfs_version" {
   type    = string
-  default = "3.57"
+  default = "3.59"
 }
 job "seaweedfs-sync" {
   datacenters = ["*"]
