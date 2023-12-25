@@ -1,7 +1,7 @@
 // modified original from https://github.com/watsonian/seaweedfs-nomad
 variable "seaweedfs_version" {
   type    = string
-  default = "3.57"
+  default = "3.59"
 }
 variable "master_port_http" {
   type    = number
@@ -137,7 +137,7 @@ job "seaweedfs" {
         }
       }
       resources {
-        cpu    = 100
+        cpu    = 200
         memory = 80
       }
       template {
@@ -149,7 +149,7 @@ job "seaweedfs" {
           lock
 
           volume.configure.replication -collectionPattern immich-pictures -replication 200
-          ec.encode -fullPercent=95 -quietFor=1h -collection="immich-pictures"
+              ec.encode -fullPercent=95 -quietFor=1h -collection immich-pictures
 
           ec.rebuild -force
           ec.balance -force

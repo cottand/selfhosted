@@ -2,14 +2,6 @@ job "traefik" {
   group "traefik" {
     network {
       mode = "bridge"
-      // port "http" {
-      //   static       = 80
-      //   host_network = "vpn"
-      // }
-      // port "https" {
-      //   static       = 443
-      //   host_network = "vpn"
-      // }
       port "dns-mesh" {
         static = 53
       }
