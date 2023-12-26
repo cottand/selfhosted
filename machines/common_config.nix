@@ -1,10 +1,24 @@
 { config, pkgs, lib, ... }:
 {
 
-
-  nix.gc.automatic = true;
-  nix.gc.options = "--delete-older-than 30d";
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix = {
+    settings.experimental-features = [ "nix-command" "flakes" ];
+    gc.automatic = true;
+    gc.options = "--delete-older-than 30d";
+    gc.dates = "weekly";
+    optimise.automatic = true;
+    settings = {
+      auto-optimise-store = true;
+      allowed-users = [ "@wheel" ];
+      trusted-users = [ "root" "@wheel" ];
+    };
+  };
+  # noop, but here for future reference in case I want to do binary caches again
+  cottand.seaweedBinaryCache = {
+    uploadPostBuild = false;
+    useSubstituter = false;
+    cacheUrl = "s3://nix-cache?profile=cache-upload&endpoint=10.10.0.1:13210&scheme=http";
+  };
 
   swapDevices = [{
     device = "/var/lib/swapfile";

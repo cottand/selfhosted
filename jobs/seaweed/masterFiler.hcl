@@ -229,11 +229,8 @@ job "seaweedfs" {
         static       = 17777
         host_network = "wg-mesh"
       }
-      // port "webdav-vpn" {
-      //   static       = 17777
-      //   host_network = "vpn"
-      // }
       port "s3" {
+        static = 13210
         host_network = "wg-mesh"
       }
     }
@@ -301,11 +298,11 @@ job "seaweedfs" {
         provider = "nomad"
         name     = "seaweedfs-filer-s3"
         port     = "s3"
-        // tags = [
-        //   "traefik.enable=true",
-        //   "traefik.http.routers.${NOMAD_TASK_NAME}-s3.entrypoints=web,websecure",
-        //   "traefik.http.routers.${NOMAD_TASK_NAME}-s3.middlewares=vpn-whitelist@file",
-        // ]
+        tags = [
+          "traefik.enable=true",
+          "traefik.http.routers.${NOMAD_TASK_NAME}-s3.entrypoints=web,websecure",
+          "traefik.http.routers.${NOMAD_TASK_NAME}-s3.middlewares=vpn-whitelist@file",
+        ]
       }
       volume_mount {
         volume      = "seaweedfs-filer"
