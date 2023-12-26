@@ -19,22 +19,22 @@ job "seaweedfs-sync" {
       delay    = "15s"
       mode     = "delay"
     }
-    task "sync-buckets" {
-      driver = "docker"
-      config {
-        image = "chrislusf/seaweedfs:${var.seaweedfs_version}"
+    // task "sync-buckets" {
+    //   driver = "docker"
+    //   config {
+    //     image = "chrislusf/seaweedfs:${var.seaweedfs_version}"
 
-        args = [
-          "-logtostderr",
-          "filer.remote.sync", "-dir=/buckets",
-          "-filer=seaweedfs-filer-http.nomad:8888",
-        ]
-      }
-      resources {
-        cpu    = 100
-        memory = 80
-      }
-    }
+    //     args = [
+    //       "-logtostderr",
+    //       "filer.remote.sync", "-dir=/buckets",
+    //       "-filer=seaweedfs-filer-http.nomad:8888",
+    //     ]
+    //   }
+    //   resources {
+    //     cpu    = 100
+    //     memory = 80
+    //   }
+    // }
     task "sync-documents" {
       driver = "docker"
       config {

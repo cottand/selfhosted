@@ -54,8 +54,8 @@ is_incremental = false
 EOF
       }
       resources {
-        cpu    = 100
-        memory = 80
+        cpu    = 150
+        memory = 120
       }
     }
   }
