@@ -30,6 +30,10 @@ client {
     path      = "/etc/machine-id"
     read_only = true
   }
+  host_volume "ca-certificates" {
+    path      = "/etc/ssl/certs"
+    read_only = true
+  }
   meta {
     docker_privileged = true
   }
@@ -48,5 +52,20 @@ plugin "docker" {
     volumes {
       enabled = true
     }
+  }
+}
+
+vault {
+  enabled = true
+  address = "https://vault.mesh.dcotta.eu:8200"
+  jwt_auth_backend_path = "jwt-nomad" # must match tf
+
+  # Provide a default workload identity configuration so jobs don't need to
+  # specify one.
+  default_identity {
+    aud  = [ "vault.io" ]
+    env  = false
+    file = true
+    ttl  = "1h"
   }
 }

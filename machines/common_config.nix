@@ -65,6 +65,8 @@
     s-tui # power top
     nmap
     traceroute
+
+    vault-bin # for retrieving secrets
   ];
 
   # Set your time zone.

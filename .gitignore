@@ -7,3 +7,8 @@ wg
 acl/acl_auth_method.json
 
 secret/
+
+terraform/**/.terraform
+terraform/**/terraform.tfstate
+terraform/**/terraform.tfstate.backup
+terraform/tmp

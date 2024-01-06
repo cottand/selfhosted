@@ -1,7 +1,7 @@
 
 variable "version" {
   type    = string
-  default = "v1.91.1"
+  default = "v1.91.4"
 }
 variable "domain" {
   type    = string
@@ -68,9 +68,6 @@ job "immich" {
           "job": {
             "backgroundTask": {
               "concurrency": 5
-            },
-            "clipEncoding": {
-              "concurrency": 2
             },
             "metadataExtraction": {
               "concurrency": 5
