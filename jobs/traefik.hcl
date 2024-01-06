@@ -41,9 +41,7 @@ job "traefik" {
       name     = "traefik-metrics"
       provider = "nomad"
       port     = "metrics"
-      tags = [
-        "metrics",
-      ]
+      tags = ["metrics"]
       check {
         name     = "alive"
         type     = "tcp"
@@ -84,7 +82,7 @@ job "traefik" {
         read_only   = false
       }
       config {
-        image = "traefik:3.0.0-beta3"
+        image = "traefik:3.0.0-beta5"
         # needs to be in host wireguard network so that it can reach other VPN members
         volumes = [
           "local/traefik.toml:/etc/traefik/traefik.toml",
@@ -98,16 +96,25 @@ job "traefik" {
 
       template {
         data        = <<EOF
+# [tcp.middlewares.vpn-whitelist.IPWhiteList]
+#   sourcerange = [
+#       '10.8.0.1/24', # VPN clients
+#       '10.10.0.1/16', # WG mesh
+#       '10.2.0.1/16', # VPN guests
+#       '127.1.0.0/24', # VPN clients
+#       '172.26.64.18/20', # containers
+#       '185.216.203.147', # comsmo's public contabo IP (will be origin when using sshuttle)
+#       '138.201.153.245', # miki's public contabo IP (will be origin when using sshuttle or VPN guest)
+#   ]
 [http.middlewares]
     # Middleware that only allows requests after the authentication with credentials specified in usersFile
     [http.middlewares.auth.basicauth]
         users = [
           # see https://doc.traefik.io/traefik/middlewares/http/basicauth/
-          {{ with nomadVar "secret/buckets/seaweedfs-bu" -}}
+          {{ with nomadVar "nomad/jobs/traefik" -}}
           "{{ .basicAuth_cottand }}"
           {{- end }}
         ]
-        usersFile = "/etc/traefik-basic-auth/users"
     # Middleware that only allows requests from inside the VPN
     # https://doc.traefik.io/traefik/middlewares/http/ipwhitelist/
     [http.middlewares.vpn-whitelist.IPAllowList]
@@ -130,18 +137,20 @@ job "traefik" {
     [http.middlewares.replace-enc.replacePathRegex]
       regex = "/___enc_/(.*)"
       replacement = ""
-[http.routers]
-  [http.routers.nomad]
-    rule = "Host( `nomad.vps.dcotta.eu` ) || Host( `nomad.traefik` )"
+# Nomad terminates TLS, so we let traefik just forward TCP
+[tcp.routers]
+  [tcp.routers.nomad]
+    rule = "HostSNI( `nomad.vps.dcotta.eu` ) || HostSNI( `nomad.traefik` )"
     service = "nomad"
     entrypoints= "web,websecure"
+    tls.passthrough = true
 #    tls = true
 #    tls.certresolver= "lets-encrypt"
-#    middlewares = "vpn-whitelist@file"
-[http.services]
-  [http.services.nomad.loadBalancer]
-    [[http.services.nomad.loadBalancer.servers]]
-      url = "http://10.10.4.1:4646/"
+#     middlewares = "vpn-whitelist@file"
+[tcp.services]
+  [tcp.services.nomad.loadBalancer]
+    [[tcp.services.nomad.loadBalancer.servers]]
+      address = "miki.mesh.dcotta.eu:4646"
         # TODO [3] add other servers for load balancing
 EOF
         destination = "local/traefik-dynamic.toml"
@@ -207,11 +216,13 @@ EOF
   defaultRule = "Host(`{{"{{ .Name }}"}}.traefik`)"
 
   [providers.nomad.endpoint]
-    address = "http://10.10.4.1:4646"
-
+    address = "https://miki.mesh.dcotta.eu:4646"
+    # TODO make vault with secret work
+    tls.insecureSkipVerify = true
+    token = "{{ env "NOMAD_TOKEN" }}"
 
 [providers.file]
-  directory = "/etc/traefik/dynamic"
+  filename = "/etc/traefik/dynamic/traefik-dynamic.toml"
 
     {{ range nomadService "tempo-otlp-grpc" -}}
     [tracing]
@@ -225,7 +236,7 @@ EOF
         change_mode = "restart"
         destination = "local/traefik.toml"
       }
-
+      identity { env = true }
       resources {
         cpu    = 256
         memory = 256

@@ -17,7 +17,7 @@
     };
   };
 
-  outputs = { nixpkgs23-11, cottand, home-manager, ... }:
+  outputs = { nixpkgs23-11, nixpkgs-unstable, cottand, home-manager, ... }:
     let
       overlay = cottand.overlay;
       secretPath = "/home/cottand/dev/selfhosted/secret/";
@@ -25,8 +25,15 @@
     {
       colmena = {
         meta = {
-          nixpkgs = import nixpkgs23-11 {
-            system = "x86_64-linux";
+          nixpkgs = import nixpkgs23-11 { system = "x86_64-linux"; };
+          specialArgs.secretPath = secretPath;
+          specialArgs.meta.ip.mesh = {
+            cosmo = "10.10.0.1";
+            elvis = "10.10.1.1";
+            maco = "10.10.2.1";
+            ari = "10.10.3.1";
+            miki = "10.10.4.1";
+            ziggy = "10.10.5.1";
           };
         };
 
@@ -37,6 +44,7 @@
             ./modules
             home-manager.nixosModules.home-manager
             cottand.nixosModules.seaweedBinaryCache
+            cottand.nixosModules.dcottaRootCa
           ];
           nixpkgs.overlays = [ overlay ];
           nixpkgs.system = "x86_64-linux";
@@ -61,7 +69,7 @@
             };
           };
 
-
+          # mesh VPN
           custom.wireguard."wg-mesh" = {
             enable = true;
             confPath = secretPath + "wg-mesh/${name}.conf";
@@ -71,19 +79,22 @@
 
         cosmo = { name, nodes, ... }: {
           deployment.targetHost = "${name}.vps.dcotta.eu";
-          deployment.tags = [ "contabo" "nomad-server" ];
+          deployment.tags = [ "contabo" "nomad-server" "vault" ];
+          vaultNode.enable = true;
         };
 
 
         miki = { name, nodes, lib, ... }: {
           deployment.targetHost = "${name}.vps.dcotta.eu";
           nixpkgs.system = lib.mkForce "aarch64-linux";
-          deployment.tags = [ "hetzner" "nomad-client" ];
+          deployment.tags = [ "hetzner" "nomad-server" "vault" ];
+          vaultNode.enable = true;
         };
 
         maco = { name, nodes, ... }: {
-          deployment.tags = [ "contabo" "nomad-server" ];
+          deployment.tags = [ "contabo" "nomad-server" "vault" ];
           # deployment.targetHost = "maco.mesh.dcotta.eu";
+          vaultNode.enable = true;
         };
 
         elvis = { name, nodes, ... }: {
@@ -106,5 +117,18 @@
           deployment.tags = [ "madrid" "nomad-client" ];
         };
       };
+
+      devShells.x86_64-linux.default =
+        let
+          pkgs = import nixpkgs-unstable {
+            system = "x86_64-linux";
+            config.allowUnfree = true;
+          };
+        in
+        pkgs.mkShell {
+          name = "selfhosted-dev";
+          packages = with pkgs; [ terraform colmena fish vault ];
+          shellHook = "fish && exit";
+        };
     };
 }

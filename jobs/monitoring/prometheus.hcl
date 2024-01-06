@@ -95,7 +95,17 @@ scrape_configs:
     params:
       format: ['prometheus']
     static_configs:
-      - targets: [ 'maco.mesh.dcotta.eu:4646','cosmo.mesh.dcotta.eu:4646', 'bianco.mesh.dcotta.eu:4646', 'elvis.mesh.dcotta.eu:4646', 'ari.mesh.dcotta.eu:4646', 'miki.mesh.dcotta.eu:4646' ]
+      - targets: [ 'ziggy.mesh.dcotta.eu:4646', 'maco.mesh.dcotta.eu:4646','cosmo.mesh.dcotta.eu:4646', 'bianco.mesh.dcotta.eu:4646', 'elvis.mesh.dcotta.eu:4646', 'ari.mesh.dcotta.eu:4646', 'miki.mesh.dcotta.eu:4646' ]
+
+  - job_name: 'vault'
+    metrics_path: "/v1/sys/metrics"
+    scheme: https
+    tls_config:
+      # ca_file: your_ca_here.pem
+    bearer_token: "your_vault_token_here"
+    static_configs:
+    - targets: ['maco.mesh.dcotta.eu:8200']
+
 remote_write:
 - url: http://mimir.traefik/api/v1/push
   send_native_histograms: true

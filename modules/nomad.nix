@@ -1,4 +1,3 @@
-
 # sets up a Nomad node with options to run specifically in the mesh.dcotta.eu fleet
 # binds specifically to wg-mesh interface
 
@@ -65,6 +64,27 @@ in
     ];
 
 
+
+    vaultSecrets =
+      let
+        destDir = "/opt/nomad/tls";
+        secretPath = "nomad/infra/tls";
+      in
+      {
+        "nomad.crt.pem" = {
+          inherit destDir secretPath;
+          field = "cert";
+        };
+        "nomad.ca.pem" = {
+          inherit destDir secretPath;
+          field = "ca";
+        };
+        "nomad.key.rsa" = {
+          inherit destDir secretPath;
+          field = "private_key";
+        };
+      };
+
     networking.firewall.trustedInterfaces = [ "nomad" "docker0" ];
     services.nomad = {
       enable = true;
@@ -92,6 +112,20 @@ in
           meta = mkIf cfg.enableSeaweedFsVolume {
             seaweedfs_volume = true;
           };
+        };
+
+        # Require TLS
+        tls = {
+          rpc_upgrade_mode = true;
+          http = true;
+          rpc = true;
+
+          ca_file = config.vaultSecrets."nomad.ca.pem".path;
+          cert_file = config.vaultSecrets."nomad.crt.pem".path;
+          key_file = config.vaultSecrets."nomad.key.rsa".path;
+
+          verify_server_hostname = true;
+          verify_https_client = false;
         };
       };
     };

@@ -25,5 +25,5 @@ telemetry {
 }
 
 acl {
-  // enabled = true
+  enabled = true
 }
