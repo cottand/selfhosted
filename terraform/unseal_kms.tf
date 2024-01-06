@@ -33,19 +33,19 @@ data "aws_iam_policy_document" "assume_role" {
 
 # IAM
 
-resource "aws_iam_user" "vault-server" {
-  name = "vault-server"
+resource "aws_iam_user" "vault-server2" {
+  name = "vault-server2"
 }
 
-resource "aws_iam_access_key" "vault-server-unseal" {
-  user = aws_iam_user.vault-server.id
+resource "aws_iam_access_key" "vault-server-unseal2" {
+  user = aws_iam_user.vault-server2.id
 }
 
 resource "local_sensitive_file" "vault-server-access-key-env" {
   content  = <<EOT
   # tf-generated
-  AWS_ACCESS_KEY_ID=${aws_iam_access_key.vault-server-unseal.id}
-  AWS_SECRET_ACCESS_KEY=${aws_iam_access_key.vault-server-unseal.secret}
+  AWS_ACCESS_KEY_ID=${aws_iam_access_key.vault-server-unseal2.id}
+  AWS_SECRET_ACCESS_KEY=${aws_iam_access_key.vault-server-unseal2.secret}
   EOT
   filename = "../secret/aws/vault.env"
 }
@@ -53,7 +53,7 @@ resource "local_sensitive_file" "vault-server-access-key-env" {
 ## Vault Server IAM Config
 resource "aws_iam_user_policy" "vault-server-kms" {
   name   = "vault-server-kms"
-  user   = aws_iam_user.vault-server.name
+  user   = aws_iam_user.vault-server2.name
   policy = data.aws_iam_policy_document.vault-server.json
 }
 
