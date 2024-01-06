@@ -58,15 +58,6 @@ resource "aws_iam_user_policy" "vault-server-kms" {
 }
 
 data "aws_iam_policy_document" "vault-server" {
-  #   statement {
-  #     sid    = "RaftSingle"
-  #     effect = "Allow"
-
-  #     actions = ["ec2:DescribeInstances"]
-
-  #     resources = ["*"]
-  #   }
-
   statement {
     sid    = "VaultAWSAuthMethod"
     effect = "Allow"

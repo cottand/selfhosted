@@ -10,8 +10,6 @@ terraform {
 
 provider "vault" {
   address = var.vault_addr
-  # Configuration options
-  # ca_cert_file = ".../../secret/pki/vault.bk/ca.pem"
 }
 
 provider "nomad" {
