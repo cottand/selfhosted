@@ -13,4 +13,10 @@ terraform/**/terraform.tfstate
 terraform/**/terraform.tfstate.backup
 terraform/tmp
 
+**/.terraform
+**/terraform.tfstate
+**/terraform.tfstate.backup
+
 **/*.secret.tfvars
+
+certs/mesh**

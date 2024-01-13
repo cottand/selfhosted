@@ -34,10 +34,11 @@
             ari = "10.10.3.1";
             miki = "10.10.4.1";
             ziggy = "10.10.5.1";
+            bianco = "10.10.0.2";
           };
         };
 
-        defaults = { pkgs, lib, name, nodes, ... }: {
+        defaults = { pkgs, lib, name, nodes, meta, ... }: {
           imports = [
             ./machines/${name}/definition.nix
             ./machines/common_config.nix
@@ -53,7 +54,7 @@
           deployment = {
             replaceUnknownProfiles = lib.mkDefault true;
             buildOnTarget = lib.mkDefault true;
-            targetHost = lib.mkDefault "${name}.mesh.dcotta.eu";
+            targetHost = lib.mkDefault meta.ip.mesh."${name}";
           };
 
           home-manager = {
@@ -78,27 +79,24 @@
         };
 
         cosmo = { name, nodes, ... }: {
-          deployment.targetHost = "${name}.vps.dcotta.eu";
+          # deployment.targetHost = "${name}.vps.dcotta.eu";
           deployment.tags = [ "contabo" "nomad-server" "vault" ];
           vaultNode.enable = true;
         };
 
 
         miki = { name, nodes, lib, ... }: {
-          deployment.targetHost = "${name}.vps.dcotta.eu";
+          # deployment.targetHost = "${name}.vps.dcotta.eu";
           nixpkgs.system = lib.mkForce "aarch64-linux";
           deployment.tags = [ "hetzner" "nomad-server" "vault" ];
           vaultNode.enable = true;
 
-          services.consul = {
-            enable = true;
-            
-          };
         };
 
         maco = { name, nodes, ... }: {
           deployment.tags = [ "contabo" "nomad-server" "vault" ];
           # deployment.targetHost = "maco.mesh.dcotta.eu";
+          # deployment.targetHost = "${name}.vps6.dcotta.eu";
           vaultNode.enable = true;
         };
 

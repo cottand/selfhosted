@@ -1,0 +1,13 @@
+.idea/
+
+**/.DS_Store
+
+secret/
+
+.terraform
+terraform.tfstate
+terraform.tfstate.backup
+.terraform.lock.hcl
+
+
+*.secret.tfvars

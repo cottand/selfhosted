@@ -78,7 +78,7 @@ resource "vault_pki_secret_backend_root_sign_intermediate" "intermediate" {
   common_name = "dcotta.eu mesh intermediate"
   csr         = vault_pki_secret_backend_intermediate_cert_request.csr-request.csr
   format      = "pem_bundle"
-  ttl         = 15480000
+  ttl         = 75480000
   issuer_ref  = vault_pki_secret_backend_root_cert.root_2023.issuer_id
 }
 
@@ -111,7 +111,7 @@ resource "vault_pki_secret_backend_role" "intermediate_role" {
   backend          = vault_mount.pki_int.path
   issuer_ref       = vault_pki_secret_backend_issuer.intermediate.issuer_ref
   name             = "dcotta-dot-eu"
-  ttl              = 1086400
+  ttl              = 2086400
   max_ttl          = 2592000
   allow_ip_sans    = true
   key_type         = "rsa"
@@ -126,7 +126,10 @@ resource "vault_pki_secret_backend_cert" "dcotta-dot-eu" {
   issuer_ref  = vault_pki_secret_backend_issuer.intermediate.issuer_ref
   backend     = vault_pki_secret_backend_role.intermediate_role.backend
   name        = vault_pki_secret_backend_role.intermediate_role.name
-  common_name = "*.mesh.dcotta.eu"
+  common_name = "vault.mesh.dcotta.eu"
+
+  alt_names = ["*.mesh.dcotta.eu"]
+
   ip_sans = [
     "10.10.0.1",
     "10.10.1.1",
@@ -135,7 +138,7 @@ resource "vault_pki_secret_backend_cert" "dcotta-dot-eu" {
     "10.10.4.1",
     "10.10.5.1",
   ]
-  ttl    = 864000
+  ttl    = 86400000
   revoke = true
 }
 
@@ -171,4 +174,9 @@ resource "local_file" "dcotta-dot-eu_issuing_ca" {
 resource "local_file" "dcotta-dot-eu_cert" {
   content  = vault_pki_secret_backend_cert.dcotta-dot-eu.certificate
   filename = "../certs/mesh-cert.pem"
+}
+
+resource "local_file" "dcotta-dot-eu_cert-chain" {
+  content  = "${vault_pki_secret_backend_cert.dcotta-dot-eu.certificate}\n${vault_pki_secret_backend_cert.dcotta-dot-eu.ca_chain}"
+  filename = "../certs/mesh-cert-chain.pem"
 }
