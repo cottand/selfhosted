@@ -5,7 +5,7 @@ job "immich-db-backup" {
     prohibit_overlap = true
   }
 
-  task "lemmy-backup" {
+  task "immich-backup" {
     driver = "docker"
     config {
       image = "eeshugerman/postgres-backup-s3:15"

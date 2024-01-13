@@ -120,6 +120,37 @@ resource "nomad_acl_policy" "read-buckets" {
   }
 }
 
+resource "nomad_acl_policy" "mimir-read-buckets" {
+  name = "mimir-read-buckets"
+  rules_hcl = file("policies/nomad/read-buckets.hcl")
+  job_acl {
+    job_id = "mimir"
+  }
+}
+
+resource "nomad_acl_policy" "seaweedfs-backup-read-buckets" {
+  name = "seaweedfs-backup-read-buckets"
+  rules_hcl = file("policies/nomad/read-buckets.hcl")
+  job_acl {
+    job_id = "seaweedfs-backup"
+  }
+}
+
+resource "nomad_acl_policy" "lemmy-backup-read-buckets" {
+  name = "lemmy-backup-read-buckets"
+  rules_hcl = file("policies/nomad/read-buckets.hcl")
+  job_acl {
+    job_id = "lemmy-backup"
+  }
+}
+
+resource "nomad_acl_policy" "immich-backup-read-buckets" {
+  name = "immich-backup-read-buckets"
+  rules_hcl = file("policies/nomad/read-buckets.hcl")
+  job_acl {
+    job_id = "immich-db-backup"
+  }
+}
 # TODO try to put in KV and fetch from colmena?
 
 # resource "local_sensitive_file" "nomad-dcotta-dot-eu_private_key" {

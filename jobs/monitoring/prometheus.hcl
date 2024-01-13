@@ -57,7 +57,9 @@ scrape_configs:
     static_configs:
       - labels: {'cluster': 'dcotta'}
     nomad_sd_configs:
-    - server: 'http://miki.mesh.dcotta.eu:4646'
+    - server: 'https://miki.mesh.dcotta.eu:4646'
+      tls_config:
+        insecure_skip_verify: true
 
     relabel_configs:
     - source_labels: ['__meta_nomad_tags']
@@ -92,19 +94,22 @@ scrape_configs:
 
   - job_name: 'nomad_sys_metrics'
     metrics_path: /v1/metrics
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
     params:
       format: ['prometheus']
     static_configs:
       - targets: [ 'ziggy.mesh.dcotta.eu:4646', 'maco.mesh.dcotta.eu:4646','cosmo.mesh.dcotta.eu:4646', 'bianco.mesh.dcotta.eu:4646', 'elvis.mesh.dcotta.eu:4646', 'ari.mesh.dcotta.eu:4646', 'miki.mesh.dcotta.eu:4646' ]
 
-  - job_name: 'vault'
-    metrics_path: "/v1/sys/metrics"
-    scheme: https
-    tls_config:
-      # ca_file: your_ca_here.pem
-    bearer_token: "your_vault_token_here"
-    static_configs:
-    - targets: ['maco.mesh.dcotta.eu:8200']
+  # - job_name: 'vault'
+  #   metrics_path: "/v1/sys/metrics"
+  #   scheme: https
+  #   tls_config:
+  #      ca_file: your_ca_here.pem
+  #   bearer_token: "your_vault_token_here"
+  #   static_configs:
+  #   - targets: ['maco.mesh.dcotta.eu:8200']
 
 remote_write:
 - url: http://mimir.traefik/api/v1/push
