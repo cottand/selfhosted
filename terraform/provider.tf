@@ -5,6 +5,10 @@ terraform {
       source  = "hashicorp/vault"
       version = "3.23.0"
     }
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "~> 4.0"
+    }
   }
 }
 
@@ -20,4 +24,8 @@ provider "nomad" {
 provider "aws" {
   region                   = "eu-west-1"
   shared_credentials_files = ["../secret/aws/creds"]
+}
+
+provider "cloudflare" {
+  api_token = file("../secret/cloudflare/token")
 }

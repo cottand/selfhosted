@@ -89,6 +89,11 @@
           nixpkgs.system = lib.mkForce "aarch64-linux";
           deployment.tags = [ "hetzner" "nomad-server" "vault" ];
           vaultNode.enable = true;
+
+          services.consul = {
+            enable = true;
+            
+          };
         };
 
         maco = { name, nodes, ... }: {

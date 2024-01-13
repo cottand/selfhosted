@@ -63,7 +63,7 @@ job "dns" {
     task "leng-dns" {
       driver = "docker"
       config {
-        image = "ghcr.io/cottand/leng:sha-6b2e265"
+        image = "ghcr.io/cottand/leng:v1.5.1"
         args = [
           "--config", "/config.toml",
           "--update",
@@ -104,12 +104,16 @@ metrics.enabled = true
 
 # manual custom dns entries
 customdnsrecords = [
+    "proxy.manual.     3600      IN  A   10.10.4.1  ",
+    "proxy.manual.     3600      IN  A   10.10.2.1  ",
+    "proxy.manual.     3600      IN  A   10.10.0.1  ",
+
     "web.vps.dcotta.eu.     3600      IN  A   10.10.4.1  ",
     "immich.vps.dcotta.eu.  3600      IN  A   10.10.4.1  ",
 
-    "nomad.vps.dcotta.eu.   3600      IN  CNAME   miki.mesh.dcotta.eu  ",
-    "nomad.traefik.         3600      IN  CNAME   miki.mesh.dcotta.eu  ",
-    "traefik.vps.dcotta.eu. 3600      IN  CNAME   miki.mesh.dcotta.eu  ",
+    "nomad.vps.dcotta.eu.   3600      IN  CNAME   proxy.manual  ",
+    "nomad.traefik.         3600      IN  CNAME   proxy.manual  ",
+    "traefik.vps.dcotta.eu. 3600      IN  CNAME   proxy.manual  ",
 
     "web.vps.               3600      IN  CNAME   miki.mesh.dcotta.eu.  ",
     "_http._tcp.seaweedfs-master.nomad IN SRV 0 0 80 seaweed-master.vps.dcotta.eu",
@@ -164,7 +168,7 @@ customdnsrecords = [
     "{{ printf "%-45s %4d %s %4s %s" (sprig_nospace (sprig_cat (index . 0) $base_domain)) $ttl "IN" "A" (sprig_last . ) }}",
 
     {{- /* A records to proxy: */ -}}
-    "{{ printf "%-45s %4d %s %4s %s" (sprig_nospace (sprig_cat (index . 0) ".traefik")) $ttl "IN" "A" "10.10.4.1" }}",
+    "{{ printf "%-45s %4d %s %4s %s" (sprig_nospace (sprig_cat (index . 0) ".traefik")) $ttl "IN" "CNAME" "proxy.manual" }}",
     {{ end }}
 
 

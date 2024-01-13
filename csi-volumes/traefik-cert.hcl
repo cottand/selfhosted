@@ -11,7 +11,7 @@ capacity_min = "2GiB"
 capacity_max = "3GiB"
 
 capability {
-  access_mode     = "single-node-writer"
+  access_mode     = "multi-node-single-writer"
   attachment_mode = "file-system"
 }
 

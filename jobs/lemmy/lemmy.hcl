@@ -1,6 +1,6 @@
 variable "lemmy_version" {
   type    = string
-    default = "0.19.1"
+    default = "0.19.2"
 }
 
 variable "image" {

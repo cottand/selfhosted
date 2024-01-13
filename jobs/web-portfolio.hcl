@@ -14,6 +14,11 @@ job "web-portfolio" {
   }
 
   group "web-portfolio" {
+      constraint { # TODO ARM IMAGES
+        attribute = "${meta.box}"
+        operator = "!="
+        value     = "miki"
+      }
     count = 2
     network {
       mode = "bridge"
