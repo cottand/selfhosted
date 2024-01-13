@@ -21,8 +21,8 @@ resource "vault_pki_secret_backend_role" "nomad_intermediate_role" {
   backend            = vault_mount.pki_int.path
   issuer_ref         = vault_pki_secret_backend_issuer.intermediate.issuer_ref
   name               = "nomad-dcotta-dot-eu"
-  ttl                = 1086400
-  max_ttl            = 2592000
+  max_ttl            = 25920000
+  ttl                = 25920000
   allow_ip_sans      = true
   key_type           = "rsa"
   key_bits           = 4096
@@ -41,14 +41,15 @@ resource "vault_pki_secret_backend_cert" "nomad-dcotta-dot-eu" {
 
   ip_sans = [
     "10.10.0.1",
+    "10.10.0.2",
     "10.10.1.1",
     "10.10.2.1",
     "10.10.3.1",
     "10.10.4.1",
     "10.10.5.1",
   ]
-  alt_names = ["nomad.traefik", "client.global.nomad", "*.mesh.dcotta.eu"]
-  ttl       = 864000
+  alt_names = [ "nomad.traefik", "client.global.nomad", "*.mesh.dcotta.eu", "meta1.mesh.dcotta.eu"]
+  ttl       = 8640000
   revoke    = true
 }
 
@@ -95,7 +96,7 @@ resource "vault_jwt_auth_backend_role" "nomad-workloads" {
     nomad_task      = "nomad_task"
   })
   token_type             = "service"
-  token_policies         = [vault_policy.nomad-workloads.name]
+  token_policies         = ["nomad-workloads"] # matches policy in /nomad/vault_policy.nomad-workloads.name
   token_period           = 30 * 60 * 60
   token_explicit_max_ttl = 0
   backend                = vault_jwt_auth_backend.jwt-nomad.path
@@ -105,65 +106,3 @@ resource "vault_policy" "nomad-workloads" {
   policy = file("policies/nomad-workloads.hcl")
   name   = "nomad-workloads"
 }
-
-resource "nomad_acl_policy" "anonymous" {
-  name        = "anonymous"
-  description = "Anonymous (unauthenticated) policy"
-  rules_hcl   = file("policies/nomad/anonymous.hcl")
-}
-
-resource "nomad_acl_policy" "read-buckets" {
-  name = "read-buckets"
-  rules_hcl = file("policies/nomad/read-buckets.hcl")
-  job_acl {
-    job_id = "traefik"
-  }
-}
-
-resource "nomad_acl_policy" "mimir-read-buckets" {
-  name = "mimir-read-buckets"
-  rules_hcl = file("policies/nomad/read-buckets.hcl")
-  job_acl {
-    job_id = "mimir"
-  }
-}
-
-resource "nomad_acl_policy" "seaweedfs-backup-read-buckets" {
-  name = "seaweedfs-backup-read-buckets"
-  rules_hcl = file("policies/nomad/read-buckets.hcl")
-  job_acl {
-    job_id = "seaweedfs-backup"
-  }
-}
-
-resource "nomad_acl_policy" "lemmy-backup-read-buckets" {
-  name = "lemmy-backup-read-buckets"
-  rules_hcl = file("policies/nomad/read-buckets.hcl")
-  job_acl {
-    job_id = "lemmy-backup"
-  }
-}
-
-resource "nomad_acl_policy" "immich-backup-read-buckets" {
-  name = "immich-backup-read-buckets"
-  rules_hcl = file("policies/nomad/read-buckets.hcl")
-  job_acl {
-    job_id = "immich-db-backup"
-  }
-}
-# TODO try to put in KV and fetch from colmena?
-
-# resource "local_sensitive_file" "nomad-dcotta-dot-eu_private_key" {
-#   content = vault_pki_secret_backend_cert.dcotta-dot-eu.private_key
-#   filename = "../secret/pki/nomad/key.rsa"
-# }
-
-# resource "local_file" "dcotta-dot-eu_issuing_ca" {
-#   content = vault_pki_secret_backend_cert.dcotta-dot-eu.issuing_ca
-#   filename = "../certs/mesh-ca.pem"
-# }
-
-# resource "local_file" "dcotta-dot-eu_cert" {
-#   content = vault_pki_secret_backend_cert.dcotta-dot-eu.certificate
-#   filename = "../certs/mesh-cert.pem"
-# }
