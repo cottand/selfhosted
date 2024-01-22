@@ -58,6 +58,46 @@ module "node_cosmo" {
   is_web_ipv6 = true
 }
 
+module "node_elvis" {
+  cf_zone_id  = var.zone_id
+  source      = "./modules/node"
+  name        = "elvis"
+  ip4_mesh    = local.mesh_ip4.elvis
+  ip4_pub     = null
+  ip6_pub     = var.pub_ip6.elvis
+  is_web_ipv4 = false
+  is_web_ipv6 = false
+}
+module "node_ari" {
+  cf_zone_id  = var.zone_id
+  source      = "./modules/node"
+  name        = "ari"
+  ip4_mesh    = local.mesh_ip4.ari
+  ip4_pub     = null
+  ip6_pub     = var.pub_ip6.ari
+  is_web_ipv4 = false
+  is_web_ipv6 = false
+}
+module "node_ziggy" {
+  cf_zone_id  = var.zone_id
+  source      = "./modules/node"
+  name        = "ziggy"
+  ip4_mesh    = local.mesh_ip4.ziggy
+  ip4_pub     = null
+  ip6_pub     = var.pub_ip6.ziggy
+  is_web_ipv4 = false
+  is_web_ipv6 = false
+}
+module "node_bianco" {
+  cf_zone_id  = var.zone_id
+  source      = "./modules/node"
+  name        = "bianco"
+  ip4_mesh    = local.mesh_ip4.bianco
+  ip4_pub     = null
+  ip6_pub     = null
+  is_web_ipv4 = false
+  is_web_ipv6 = false
+}
 
 
 
