@@ -3,7 +3,7 @@ job "traefik" {
     network {
       mode = "bridge"
       port "dns-mesh" {
-        static = 53
+        // static = 53
       }
       port "http-ui" {
         static       = 8080

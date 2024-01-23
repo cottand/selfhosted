@@ -163,20 +163,20 @@ resource "vault_pki_secret_backend_cert" "dcotta-dot-eu" {
 
 resource "local_sensitive_file" "dcotta-dot-eu_private_key" {
   content  = vault_pki_secret_backend_cert.dcotta-dot-eu.private_key
-  filename = "../secret/pki/vault/key.rsa"
+  filename = "../../secret/pki/vault/key.rsa"
 }
 
 resource "local_file" "dcotta-dot-eu_issuing_ca" {
   content  = vault_pki_secret_backend_cert.dcotta-dot-eu.issuing_ca
-  filename = "../certs/mesh-ca.pem"
+  filename = "../../certs/mesh-ca.pem"
 }
 
 resource "local_file" "dcotta-dot-eu_cert" {
   content  = vault_pki_secret_backend_cert.dcotta-dot-eu.certificate
-  filename = "../certs/mesh-cert.pem"
+  filename = "../../certs/mesh-cert.pem"
 }
 
 resource "local_file" "dcotta-dot-eu_cert-chain" {
   content  = "${vault_pki_secret_backend_cert.dcotta-dot-eu.certificate}\n${vault_pki_secret_backend_cert.dcotta-dot-eu.ca_chain}"
-  filename = "../certs/mesh-cert-chain.pem"
+  filename = "../../certs/mesh-cert-chain.pem"
 }
