@@ -29,7 +29,7 @@ locals {
 
 module "node_miki" {
   cf_zone_id  = var.zone_id
-  source      = "./modules/node"
+  source      = "../modules/node"
   name        = "miki"
   ip4_mesh    = local.mesh_ip4.miki
   ip4_pub     = var.pub_ip4.miki
@@ -39,7 +39,7 @@ module "node_miki" {
 }
 module "node_maco" {
   cf_zone_id  = var.zone_id
-  source      = "./modules/node"
+  source      = "../modules/node"
   name        = "maco"
   ip4_mesh    = local.mesh_ip4.maco
   ip4_pub     = var.pub_ip4.maco
@@ -49,7 +49,7 @@ module "node_maco" {
 }
 module "node_cosmo" {
   cf_zone_id  = var.zone_id
-  source      = "./modules/node"
+  source      = "../modules/node"
   name        = "cosmo"
   ip4_mesh    = local.mesh_ip4.cosmo
   ip4_pub     = var.pub_ip4.cosmo
@@ -60,7 +60,7 @@ module "node_cosmo" {
 
 module "node_elvis" {
   cf_zone_id  = var.zone_id
-  source      = "./modules/node"
+  source      = "../modules/node"
   name        = "elvis"
   ip4_mesh    = local.mesh_ip4.elvis
   ip4_pub     = null
@@ -70,7 +70,7 @@ module "node_elvis" {
 }
 module "node_ari" {
   cf_zone_id  = var.zone_id
-  source      = "./modules/node"
+  source      = "../modules/node"
   name        = "ari"
   ip4_mesh    = local.mesh_ip4.ari
   ip4_pub     = null
@@ -80,7 +80,7 @@ module "node_ari" {
 }
 module "node_ziggy" {
   cf_zone_id  = var.zone_id
-  source      = "./modules/node"
+  source      = "../modules/node"
   name        = "ziggy"
   ip4_mesh    = local.mesh_ip4.ziggy
   ip4_pub     = null
@@ -90,7 +90,7 @@ module "node_ziggy" {
 }
 module "node_bianco" {
   cf_zone_id  = var.zone_id
-  source      = "./modules/node"
+  source      = "../modules/node"
   name        = "bianco"
   ip4_mesh    = local.mesh_ip4.bianco
   ip4_pub     = null
