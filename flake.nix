@@ -100,9 +100,9 @@
           vaultNode.enable = true;
         };
 
-        elvis = { name, nodes, ... }: {
-          deployment.tags = [ "local" "nomad-client" ];
-        };
+        # elvis = { name, nodes, ... }: {
+        #   deployment.tags = [ "local" "nomad-client" ];
+        # };
 
         ziggy = { name, nodes, ... }: {
           imports = [ ];
