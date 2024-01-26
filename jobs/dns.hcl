@@ -109,10 +109,10 @@ customdnsrecords = [
     "proxy.manual.     3600      IN  A   10.10.0.1  ",
 
     "web.vps.dcotta.eu.     3600      IN  A   10.10.4.1  ",
-    "immich.vps.dcotta.eu.  3600      IN  A   10.10.4.1  ",
+    "immich.vps.dcotta.eu.  3600      IN  CNAME   proxy.manual  ",
 
     "nomad.vps.dcotta.eu.   3600      IN  CNAME   proxy.manual  ",
-    "nomad.traefik.         3600      IN  CNAME   proxy.manual  ",
+    "nomad.traefik.         3600      IN  A       10.10.4.1  ",
     "traefik.vps.dcotta.eu. 3600      IN  CNAME   proxy.manual  ",
 
     "web.vps.               3600      IN  CNAME   miki.mesh.dcotta.eu.  ",
