@@ -17,10 +17,6 @@ job "immich" {
       dns {
         servers = ["10.10.0.1", "10.10.2.1", "10.10.4.1"]
       }
-      port "web" { 
-        host_network = "wg-mesh"
-        to           = 3000
-      }
       port "server" {
         host_network = "wg-mesh"
         to           = 3001

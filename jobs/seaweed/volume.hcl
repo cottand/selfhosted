@@ -95,7 +95,7 @@ job "seaweedfs-volume" {
         memory_max = 1500
       }
       config {
-        image = "chrislusf/seaweedfs:3.59"
+        image = "chrislusf/seaweedfs:3.62"
 
         args = [
           "-logtostderr",
