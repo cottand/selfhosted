@@ -15,12 +15,14 @@
       url = "github:nix-community/home-manager/release-23.11";
       inputs.nixpkgs.follows = "nixpkgs23-11";
     };
+
+    utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { nixpkgs23-11, nixpkgs-unstable, cottand, home-manager, ... }:
+  outputs = { nixpkgs23-11, cottand, home-manager, utils, ... }:
     let
       overlay = cottand.overlay;
-      secretPath = "/home/cottand/dev/selfhosted/secret/";
+      secretPath = "/Users/nico/dev/cottand/selfhosted/secret/";
     in
     {
       colmena = {
@@ -79,7 +81,7 @@
         };
 
         cosmo = { name, nodes, ... }: {
-          # deployment.targetHost = "${name}.vps.dcotta.eu";
+          deployment.targetHost = "${name}.vps.dcotta.eu";
           deployment.tags = [ "contabo" "nomad-server" "vault" ];
           vaultNode.enable = true;
         };
@@ -120,18 +122,20 @@
           deployment.tags = [ "madrid" "nomad-client" ];
         };
       };
-
-      devShells.x86_64-linux.default =
-        let
-          pkgs = import nixpkgs-unstable {
-            system = "x86_64-linux";
-            config.allowUnfree = true;
-          };
-        in
-        pkgs.mkShell {
+    } // (utils.lib.eachDefaultSystem (system:
+      let
+        pkgs = import nixpkgs23-11 {
+          inherit system;
+          config.allowUnfree = true;
+          overlays = [ cottand.overlay ];
+        };
+      in
+      {
+        devShells.default = pkgs.mkShell {
           name = "selfhosted-dev";
-          packages = with pkgs; [ terraform colmena fish vault ];
+          packages = with pkgs; [ terraform colmena fish vault nomad_1_7 ];
           shellHook = "fish && exit";
         };
-    };
+      }
+    ));
 }

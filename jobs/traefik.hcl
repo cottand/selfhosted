@@ -2,9 +2,9 @@ job "traefik" {
   group "traefik" {
     network {
       mode = "bridge"
-      port "dns-mesh" {
-        // static = 53
-      }
+      // port "dns-mesh" {
+      //   // static = 53
+      // }
       port "http-ui" {
         static       = 8080
         host_network = "wg-mesh"
