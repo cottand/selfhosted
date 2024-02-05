@@ -5,6 +5,7 @@ provider "registry.terraform.io/hashicorp/nomad" {
   version = "2.1.0"
   hashes = [
     "h1:ek0L7fA+4R1/BXhbutSRqlQPzSZ5aY/I2YfVehuYeEU=",
+    "h1:xW88kA3/KMseqV8ISKZW1pQIsnTjZOYb/FtxfdTAWNI=",
     "zh:39ba4d4fc9557d4d2c1e4bf866cf63973359b73e908cce237c54384512bdb454",
     "zh:40d2b66e3f3675e6b88000c145977c1d5288510c76b702c6c131d9168546c605",
     "zh:40fbe575d85a083f96d4703c6b7334e9fc3e08e4f1d441de2b9513215184ebcc",

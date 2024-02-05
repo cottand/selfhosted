@@ -8,5 +8,5 @@ provider "nomad" {
 }
 
 provider "vault" {
-  address = "https://vault.mesh.dcotta.eu:8200"
+  address = var.vault_addr
 }
