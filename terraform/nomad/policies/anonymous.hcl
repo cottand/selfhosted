@@ -1,24 +1,5 @@
 namespace "default" {
   policy       = "read"
-  capabilities = ["list-jobs", "read-job"]
+  capabilities = ["list-jobs"]
 }
 
-agent {
-  policy = "read"
-}
-
-operator {
-  policy = "read"
-}
-
-quota {
-  policy = "read"
-}
-
-node {
-  policy = "read"
-}
-
-host_volume "*" {
-  policy = "read"
-}
