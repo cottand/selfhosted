@@ -1,4 +1,4 @@
-variable "docker_tag" {
+variable "tag" {
   type    = string
   default = "latest"
 }
@@ -26,7 +26,7 @@ job "web-portfolio" {
       driver = "docker"
 
       config {
-        image = "ghcr.io/cottand/web-portfolio:${var.docker_tag}"
+        image = "ghcr.io/cottand/web-portfolio:${var.tag}"
         ports = ["http"]
       }
 

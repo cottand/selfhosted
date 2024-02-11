@@ -72,6 +72,9 @@ job "traefik" {
     }
 
     task "traefik" {
+      identity {
+        env = true
+      }
       driver = "docker"
       env = {
         "WG_HOST" = "web.vps.dcotta.eu"
@@ -93,7 +96,6 @@ job "traefik" {
         attribute = "${meta.box}"
         value     = "miki"
       }
-
       template {
         data        = <<EOF
 # [tcp.middlewares.vpn-whitelist.IPWhiteList]

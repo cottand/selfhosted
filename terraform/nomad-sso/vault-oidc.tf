@@ -52,7 +52,8 @@ resource "vault_identity_oidc_client" "nomad" {
     "https://nomad.mesh.dcotta.eu:4646/ui/settings/tokens",
     "https://nomad.traefik/oidc/callback",
     "https://nomad.traefik/ui/settings/tokens",
-    "https://openidconnect.net/callback"
+    "https://openidconnect.net/callback",
+    "http://localhost:4649/oidc/callback",
   ]
   assignments      = [
     "allow_all"
