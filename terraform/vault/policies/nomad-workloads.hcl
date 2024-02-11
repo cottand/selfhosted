@@ -1,12 +1,12 @@
-path "secret/data/{{identity.entity.aliases.auth_jwt_7db0c05c.metadata.nomad_namespace}}/{{identity.entity.aliases.auth_jwt_7db0c05c.metadata.nomad_job_id}}/*" {
+path "secret/data/nomad/job/{{identity.entity.aliases.auth_jwt_7db0c05c.metadata.nomad_job_id}}/*" {
   capabilities = ["read"]
 }
 
-path "secret/data/{{identity.entity.aliases.auth_jwt_7db0c05c.metadata.nomad_namespace}}/{{identity.entity.aliases.auth_jwt_7db0c05c.metadata.nomad_job_id}}" {
+path "secret/data/nomad/job/{{identity.entity.aliases.auth_jwt_7db0c05c.metadata.nomad_job_id}}" {
   capabilities = ["read"]
 }
 
-path "secret/metadata/{{identity.entity.aliases.auth_jwt_7db0c05c.metadata.nomad_namespace}}/*" {
+path "secret/metadata/job/*" {
   capabilities = ["list"]
 }
 

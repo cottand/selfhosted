@@ -9,8 +9,13 @@ terraform {
       source  = "cloudflare/cloudflare"
       version = "~> 4.0"
     }
+    bitwarden = {
+      source  = "maxlaverse/bitwarden"
+      version = ">= 0.7.0"
+    }
   }
 }
+
 
 provider "vault" {
   address = var.vault_addr

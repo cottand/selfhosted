@@ -2,24 +2,24 @@
   inputs = {
     nixpkgs23-11.url = "github:NixOS/nixpkgs/nixos-23.11";
     # nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/master";
+    nixpkgs.url = "github:nixos/nixpkgs/master";
 
     cottand = {
       url = "github:cottand/home-nix";
-      inputs.nixpkgs-unstable.follows = "nixpkgs-unstable";
+      inputs.nixpkgs-unstable.follows = "nixpkgs";
       inputs.nixpkgs.follows = "nixpkgs23-11";
       inputs.home-manager.follows = "home-manager";
     };
 
     home-manager = {
-      url = "github:nix-community/home-manager/release-23.11";
-      inputs.nixpkgs.follows = "nixpkgs23-11";
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { nixpkgs23-11, cottand, home-manager, utils, ... }:
+  outputs = { nixpkgs, nixpkgs23-11, cottand, home-manager, utils, ... }:
     let
       overlay = cottand.overlay;
       secretPath = "/Users/nico/dev/cottand/selfhosted/secret/";
@@ -27,7 +27,7 @@
     {
       colmena = {
         meta = {
-          nixpkgs = import nixpkgs23-11 { system = "x86_64-linux"; };
+          nixpkgs = import nixpkgs { system = "x86_64-linux"; };
           specialArgs.secretPath = secretPath;
           specialArgs.meta.ip.mesh = {
             cosmo = "10.10.0.1";
@@ -50,7 +50,7 @@
             cottand.nixosModules.dcottaRootCa
           ];
           nixpkgs.overlays = [ overlay ];
-          nixpkgs.system = "x86_64-linux";
+          nixpkgs.system = lib.mkDefault "x86_64-linux";
           networking.hostName = lib.mkDefault name;
 
           deployment = {
@@ -135,6 +135,9 @@
           name = "selfhosted-dev";
           packages = with pkgs; [ terraform colmena fish vault nomad_1_7 ];
           shellHook = "fish && exit";
+
+          NOMAD_ADDR = "https://10.10.4.1:4646";
+          VAULT_ADDR = "https://vault.mesh.dcotta.eu:8200";
         };
       }
     ));

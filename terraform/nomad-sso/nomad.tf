@@ -50,6 +50,7 @@ resource "nomad_acl_auth_method" "vault" {
       "https://nomad.mesh.dcotta.eu:4646/ui/settings/tokens",
       "https://nomad.traefik/oidc/callback",
       "https://nomad.traefik/ui/settings/tokens",
+      "http://localhost:4649/oidc/callback",
     ]
   }
 }
