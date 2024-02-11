@@ -1,6 +1,6 @@
 # Self-hosted fleet
 
-This is the config-as-code of my personal machine cluster, which I use to self-host some services (including [a blog post](https://nico.dcotta.eu/blog/nomad) about this!).
+This is the config-as-code of my personal machine cluster, which I use to self-host some services, including [my personal website](https://nico.dcotta.eu/projects/selfhosted-homelab).
 
 The fleet is made up of
 - 2 small servers hosted Contabo, in Germany
