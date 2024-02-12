@@ -111,8 +111,8 @@ resource "vault_pki_secret_backend_role" "intermediate_role" {
   backend          = vault_mount.pki_int.path
   issuer_ref       = vault_pki_secret_backend_issuer.intermediate.issuer_ref
   name             = "dcotta-dot-eu"
-  ttl              = 2086400
-  max_ttl          = 2592000
+  ttl              = 2596400
+  max_ttl          = 5592000
   allow_ip_sans    = true
   key_type         = "rsa"
   key_bits         = 4096
@@ -122,13 +122,13 @@ resource "vault_pki_secret_backend_role" "intermediate_role" {
 
 # new cert
 
-resource "vault_pki_secret_backend_cert" "dcotta-dot-eu" {
+resource "vault_pki_secret_backend_cert" "dcotta-dot-eu2" {
   issuer_ref  = vault_pki_secret_backend_issuer.intermediate.issuer_ref
   backend     = vault_pki_secret_backend_role.intermediate_role.backend
   name        = vault_pki_secret_backend_role.intermediate_role.name
-  common_name = "vault.mesh.dcotta.eu"
+  common_name = "vault-server-feb-24.mesh.dcotta.eu"
 
-  alt_names = ["*.mesh.dcotta.eu"]
+  alt_names = ["vault.mesh.dcotta.eu"]
 
   ip_sans = [
     "10.10.0.1",
@@ -138,7 +138,8 @@ resource "vault_pki_secret_backend_cert" "dcotta-dot-eu" {
     "10.10.4.1",
     "10.10.5.1",
   ]
-  ttl    = 86400000
+
+  ttl    = 89400000
   revoke = true
 }
 
@@ -162,21 +163,21 @@ resource "vault_pki_secret_backend_cert" "dcotta-dot-eu" {
 # }
 
 resource "local_sensitive_file" "dcotta-dot-eu_private_key" {
-  content  = vault_pki_secret_backend_cert.dcotta-dot-eu.private_key
+  content  = vault_pki_secret_backend_cert.dcotta-dot-eu2.private_key
   filename = "../../secret/pki/vault/key.rsa"
 }
 
 resource "local_file" "dcotta-dot-eu_issuing_ca" {
-  content  = vault_pki_secret_backend_cert.dcotta-dot-eu.issuing_ca
-  filename = "../../certs/mesh-ca.pem"
+  content  = vault_pki_secret_backend_cert.dcotta-dot-eu2.issuing_ca
+  filename = "../../secret/pki/vault/mesh-ca.pem"
 }
 
 resource "local_file" "dcotta-dot-eu_cert" {
-  content  = vault_pki_secret_backend_cert.dcotta-dot-eu.certificate
-  filename = "../../certs/mesh-cert.pem"
+  content  = vault_pki_secret_backend_cert.dcotta-dot-eu2.certificate
+  filename = "../../secret/pki/vault/mesh-cert.pem"
 }
 
 resource "local_file" "dcotta-dot-eu_cert-chain" {
-  content  = "${vault_pki_secret_backend_cert.dcotta-dot-eu.certificate}\n${vault_pki_secret_backend_cert.dcotta-dot-eu.ca_chain}"
-  filename = "../../certs/mesh-cert-chain.pem"
+  content  = "${vault_pki_secret_backend_cert.dcotta-dot-eu2.certificate}\n${vault_pki_secret_backend_cert.dcotta-dot-eu2.ca_chain}"
+  filename = "../../secret/pki/vault/mesh-cert-chain.pem"
 }
