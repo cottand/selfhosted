@@ -88,6 +88,7 @@ in
     };
     deployment.keys."vault-cert.pem" = {
       keyFile = secretPath + "pki/vault/mesh-cert-chain.pem";
+      # keyFile = secretPath + "../certs/mesh-cert-chain.pem";
       destDir = "/opt/vault/tls";
       user = "root";
       group = "root";
@@ -95,6 +96,7 @@ in
     };
     deployment.keys."vault-ca.pem" = {
       keyFile = secretPath + "pki/vault/mesh-ca.pem";
+      # keyFile = secretPath + "../certs/mesh-ca.pem";
       destDir = "/opt/vault/tls";
       user = "root";
       group = "root";
