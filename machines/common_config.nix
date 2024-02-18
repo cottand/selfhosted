@@ -13,6 +13,7 @@
       trusted-users = [ "root" "@wheel" ];
     };
   };
+
   # noop, but here for future reference in case I want to do binary caches again
   cottand.seaweedBinaryCache = {
     uploadPostBuild = false;
@@ -52,7 +53,6 @@
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPJ7FM2wEuWoUuxRkWnP6PNEtG+HOcwcZIt6Qg/Y1jhk nico.dc@outlook.com"
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF3AKGuE56RZiMURZ4ygV/BrSwrq6Ozp46VVm30PouPQ"
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHcVLH2EH/aAkul8rNWrDoBTjUTL3Y+6vvlVw5FSh8Gt nico.dc@outlook.com-m3"
-
   ];
 
   environment.systemPackages = with pkgs; [

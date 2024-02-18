@@ -20,6 +20,7 @@ locals {
     ari    = "10.10.3.1"
     miki   = "10.10.4.1"
     ziggy  = "10.10.5.1"
+    xps2 = "10.10.6.1"
     bianco = "10.10.0.2"
   }
 }
@@ -75,6 +76,16 @@ module "node_ari" {
   ip4_mesh    = local.mesh_ip4.ari
   ip4_pub     = null
   ip6_pub     = var.pub_ip6.ari
+  is_web_ipv4 = false
+  is_web_ipv6 = false
+}
+module "node_xps2" {
+  cf_zone_id  = var.zone_id
+  source      = "../modules/node"
+  name        = "xps2"
+  ip4_mesh    = local.mesh_ip4.xps2
+  ip4_pub     = null
+  ip6_pub     = var.pub_ip6.xps2
   is_web_ipv4 = false
   is_web_ipv6 = false
 }

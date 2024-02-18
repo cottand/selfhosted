@@ -36,6 +36,7 @@
             ari = "10.10.3.1";
             miki = "10.10.4.1";
             ziggy = "10.10.5.1";
+            xps2 = "10.10.6.1";
             bianco = "10.10.0.2";
           };
         };
@@ -115,6 +116,13 @@
           imports = [ ];
           networking.hostName = name;
           deployment.tags = [ "local" "nomad-client" ];
+        };
+
+        xps2 = { name, nodes, ... }: {
+          imports = [ ];
+          networking.hostName = name;
+          deployment.tags = [ "local" "nomad-client" ];
+          deployment.targetHost = "192.168.50.253";
         };
 
         bianco = { name, nodes, ... }: {
