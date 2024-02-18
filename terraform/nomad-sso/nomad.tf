@@ -61,8 +61,9 @@ resource "nomad_acl_auth_method" "vault" {
 #     -bind-name="engineering-read" \
 #     -selector="engineering in list.roles"
 resource "nomad_acl_binding_rule" "bind-admin" {
-  bind_name = nomad_acl_role.admin.name
-  bind_type = "role"
+  # bind_name = nomad_acl_role.admin.name
+  bind_name = ""
+  bind_type = "management"
   selector = "admins in list.roles"
   auth_method = nomad_acl_auth_method.vault.name
 }

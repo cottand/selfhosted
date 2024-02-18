@@ -42,7 +42,7 @@
 
   nomadNode = {
     enable = true;
-    enableSeaweedFsVolume = true;
+    enableSeaweedFsVolume = false;
     extraSettingsText = ''
       datacenter = "london-home"
       client {
