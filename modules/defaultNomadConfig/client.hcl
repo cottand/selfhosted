@@ -64,8 +64,10 @@ vault {
   # specify one.
   default_identity {
     aud  = [ "vault.io" ]
-    env  = false
+    env  = true
     file = true
     ttl  = "1h"
   }
+
+  create_from_role
 }

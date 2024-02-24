@@ -28,7 +28,7 @@ job "mimir" {
       }
       port "memberlist" {
         host_network = "wg-mesh"
-        to = 7946
+        to           = 7946
       }
       port "grpc" {
         host_network = "wg-mesh"

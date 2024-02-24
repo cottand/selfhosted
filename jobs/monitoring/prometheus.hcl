@@ -4,7 +4,7 @@ job "prometheus" {
   priority    = 1
 
   group "monitoring" {
-    count = 1
+    count = 2
 
     network {
       mode = "bridge"
@@ -40,6 +40,11 @@ job "prometheus" {
     }
 
     task "prometheus" {
+        vault {
+          role = "telemetry-ro"
+          env = true
+        }
+
       template {
         change_mode = "restart"
         destination = "local/prometheus.yml"
@@ -111,14 +116,22 @@ scrape_configs:
         'miki.mesh.dcotta.eu:4646'
         ]
 
-  # - job_name: 'vault'
-  #   metrics_path: "/v1/sys/metrics"
-  #   scheme: https
-  #   tls_config:
-  #      ca_file: your_ca_here.pem
-  #   bearer_token: "your_vault_token_here"
-  #   static_configs:
-  #   - targets: ['maco.mesh.dcotta.eu:8200']
+  - job_name: 'vault'
+    metrics_path: "/v1/sys/metrics"
+    scheme: https
+    params:
+      format: [ 'prometheus' ]
+    authorization:
+      credentials_file: /secrets/vault_token
+    tls_config:
+     insecure_skip_verify: true
+     
+    static_configs:
+     - targets: [
+      'maco.mesh.dcotta.eu:8200',
+      'cosmo.mesh.dcotta.eu:8200',
+      'miki.mesh.dcotta.eu:8200',
+      ]
 
 remote_write:
 - url: http://mimir.traefik/api/v1/push

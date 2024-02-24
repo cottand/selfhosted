@@ -29,7 +29,7 @@ job "loki" {
     }
     task "loki" {
       driver = "docker"
-      user   = "root" 
+      user   = "root"
 
       config {
         image = "grafana/loki:2.8.0"
