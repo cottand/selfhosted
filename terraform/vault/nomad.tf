@@ -47,6 +47,7 @@ resource "vault_pki_secret_backend_cert" "nomad-dcotta-dot-eu" {
     "10.10.3.1",
     "10.10.4.1",
     "10.10.5.1",
+    "10.10.6.1",
   ]
   alt_names = [ "nomad.traefik", "client.global.nomad", "*.mesh.dcotta.eu", "meta1.mesh.dcotta.eu"]
   ttl       = 8640000
