@@ -64,7 +64,7 @@ in
         telemetry {
           # at /v1/sys/metrics 
           disable_hostname = true
-          prometheus_retention_time = "12h"
+          prometheus_retention_time = "6h"
         }
       '';
       package = pkgs.vault-bin;

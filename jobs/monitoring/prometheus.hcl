@@ -100,7 +100,16 @@ scrape_configs:
     params:
       format: ['prometheus']
     static_configs:
-      - targets: [ 'ziggy.mesh.dcotta.eu:4646', 'maco.mesh.dcotta.eu:4646','cosmo.mesh.dcotta.eu:4646', 'bianco.mesh.dcotta.eu:4646', 'elvis.mesh.dcotta.eu:4646', 'ari.mesh.dcotta.eu:4646', 'miki.mesh.dcotta.eu:4646' ]
+      - targets: [ 
+        'ziggy.mesh.dcotta.eu:4646',
+        'maco.mesh.dcotta.eu:4646',
+        'cosmo.mesh.dcotta.eu:4646',
+        'bianco.mesh.dcotta.eu:4646',
+        'elvis.mesh.dcotta.eu:4646',
+        'ari.mesh.dcotta.eu:4646',
+        'xps2.mesh.dcotta.eu:4646',
+        'miki.mesh.dcotta.eu:4646'
+        ]
 
   # - job_name: 'vault'
   #   metrics_path: "/v1/sys/metrics"
