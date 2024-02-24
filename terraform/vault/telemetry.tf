@@ -1,5 +1,5 @@
 resource "vault_policy" "telemetry_ro" {
-  name = "telemetry-ro"
+  name   = "telemetry-ro"
   policy = file("policies/telemetry-ro.hcl")
 }
 

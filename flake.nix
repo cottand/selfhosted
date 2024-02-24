@@ -137,16 +137,23 @@
           config.allowUnfree = true;
           overlays = [ cottand.overlay ];
         };
+        devPackages = with pkgs; [ terraform colmena fish vault nomad_1_7 ];
       in
       {
         devShells.default = pkgs.mkShell {
           name = "selfhosted-dev";
-          packages = with pkgs; [ terraform colmena fish vault nomad_1_7 ];
+          packages = devPackages;
           shellHook = "fish && exit";
 
           NOMAD_ADDR = "https://10.10.4.1:4646";
           VAULT_ADDR = "https://vault.mesh.dcotta.eu:8200";
         };
+
+
+        formatter = pkgs.writeShellScriptBin "fmt" ''
+          ${pkgs.nomad}/bin/nomad fmt
+          ${pkgs.terraform}/bin/terraform fmt
+        '';
       }
     ));
 }

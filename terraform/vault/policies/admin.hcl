@@ -18,6 +18,11 @@ path "sys/policies/acl/*" {
   capabilities = ["create", "read", "update", "delete", "list", "sudo"]
 }
 
+# metrics n stuff
+path "sys/internal/*" {
+  capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+}
+
 # List ACL policies
 path "sys/policies/acl" {
   capabilities = ["list"]
