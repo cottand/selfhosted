@@ -32,6 +32,14 @@ job "prometheus" {
       delay    = "15s"
       mode     = "fail"
     }
+    update {
+      max_parallel     = 1
+      canary           = 1
+      min_healthy_time = "30s"
+      healthy_deadline = "5m"
+      auto_revert      = true
+      auto_promote     = true
+    }
 
     ephemeral_disk {
       size    = 256 # MB
@@ -52,8 +60,8 @@ job "prometheus" {
         data = <<EOH
 ---
 global:
-  scrape_interval:     30s
-  evaluation_interval: 30s
+  scrape_interval:     10s
+  evaluation_interval: 10s
 
 
 scrape_configs:
@@ -177,6 +185,11 @@ EOH
           "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=web",
           "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=vpn-whitelist@file",
         ]
+      }
+      resources {
+        cpu        = 500
+        memory     = 200
+        memory_max = 400
       }
     }
   }

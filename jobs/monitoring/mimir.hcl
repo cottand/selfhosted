@@ -39,7 +39,7 @@ job "mimir" {
       # so that blocks can be flushed
       kill_timeout = "5m"
       config {
-        image = "grafana/mimir:2.9.0"
+        image = "grafana/mimir:2.11.0"
         args = [
           "-config.file",
           "/local/config.yaml",
