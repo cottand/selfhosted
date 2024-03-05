@@ -68,6 +68,4 @@ vault {
     file = true
     ttl  = "1h"
   }
-
-  create_from_role
 }

@@ -4,8 +4,8 @@
   nix = {
     settings.experimental-features = [ "nix-command" "flakes" ];
     gc.automatic = true;
-    gc.options = "--delete-older-than 30d";
-    gc.dates = "weekly";
+    gc.options = "--delete-older-than 15d";
+    gc.dates = "daily";
     optimise.automatic = true;
     settings = {
       auto-optimise-store = true;
@@ -73,6 +73,7 @@
 
   # Set your time zone.
   time.timeZone = lib.mkDefault "Europe/London";
+  networking.timeServers = [ "time.google.com" ];
 
   # Select internationalisation properties.
   i18n.defaultLocale = "en_GB.UTF-8";

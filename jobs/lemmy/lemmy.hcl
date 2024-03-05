@@ -199,6 +199,17 @@ job "lemmy" {
 }
 EOH
       }
+      template {
+        destination = "config/.env"
+        change_mode = "restart"
+        env         = true
+        data        = <<-EOF
+{{ range nomadService "tempo-otlp-grpc" }}
+OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://{{ .Address }}:{{ .Port }}
+OTEL_SERVICE_NAME="lemmy"
+{{ end }}
+EOF
+      }
       resources {
         cpu = 200
         # docs say it should use about 150 MB

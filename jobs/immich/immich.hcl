@@ -1,7 +1,7 @@
 
 variable "version" {
   type    = string
-  default = "v1.91.4"
+  default = "v1.95.1"
 }
 variable "domain" {
   type    = string
@@ -202,33 +202,6 @@ job "immich" {
           }
         }
       }
-      # TODO FIXME WEB from .88^
-      // service {
-      //   name     = "immich" # web: leng inferred from here for immich.traefik
-      //   provider = "nomad"
-      //   port     = "http"
-      //   tags = [
-      //     "traefik.enable=true",
-      //     "traefik.http.routers.${NOMAD_TASK_NAME}-web.rule=Host(`${var.domain}`)",
-      //     "traefik.http.routers.${NOMAD_TASK_NAME}-web.entrypoints=web, web_public, websecure, websecure_public",
-
-      //     "traefik.http.routers.${NOMAD_TASK_NAME}-web.tls=true",
-      //     "traefik.http.routers.${NOMAD_TASK_NAME}-web.tls.certresolver=lets-encrypt",
-      //     # expose but for now only when on VPN
-      //     "traefik.http.routers.${NOMAD_TASK_NAME}-web.middlewares=vpn-whitelist@file",
-      //   ]
-      //   check {
-      //     name     = "alive"
-      //     type     = "tcp"
-      //     interval = "20s"
-      //     timeout  = "2s"
-      //     check_restart {
-      //       limit           = 3
-      //       grace           = "30s"
-      //       ignore_warnings = false
-      //     }
-      //   }
-      // }
       template {
         destination = "config/.env"
         env         = true
@@ -464,7 +437,7 @@ job "immich" {
       driver = "docker"
       config {
         // image = "postgres:15.2"
-        image = "tensorchord/pgvecto-rs:pg15-v0.1.11"
+        image = "tensorchord/pgvecto-rs:pg15-v0.2.0"
         ports = ["postgres"]
       }
       env = {

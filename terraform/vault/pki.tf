@@ -126,7 +126,7 @@ resource "vault_pki_secret_backend_cert" "dcotta-dot-eu2" {
   issuer_ref  = vault_pki_secret_backend_issuer.intermediate.issuer_ref
   backend     = vault_pki_secret_backend_role.intermediate_role.backend
   name        = vault_pki_secret_backend_role.intermediate_role.name
-  common_name = "vault-server-feb-24.mesh.dcotta.eu"
+  common_name = "vault-server-mar-03.mesh.dcotta.eu"
 
   alt_names = ["vault.mesh.dcotta.eu"]
 

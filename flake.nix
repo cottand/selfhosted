@@ -85,6 +85,14 @@
           deployment.targetHost = "${name}.vps.dcotta.eu";
           deployment.tags = [ "contabo" "nomad-server" "vault" ];
           vaultNode.enable = true;
+
+
+          # services.consul = {
+          #   enable = true;
+          #   webUi = true;
+          #   dropPrivileges = false;
+
+          # };
         };
 
 
