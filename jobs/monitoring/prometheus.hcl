@@ -4,7 +4,7 @@ job "prometheus" {
   priority    = 1
 
   group "monitoring" {
-    count = 2
+    count = 1
 
     network {
       mode = "bridge"
@@ -60,8 +60,8 @@ job "prometheus" {
         data = <<EOH
 ---
 global:
-  scrape_interval:     10s
-  evaluation_interval: 10s
+  scrape_interval:     20s
+  evaluation_interval: 20s
 
 
 scrape_configs:
@@ -98,12 +98,6 @@ scrape_configs:
       action: replace
       regex: '(.*)'
       target_label: nomad_node_id
-
-
-#    scrape_interval: 20s
-#    metrics_path: /v1/metrics
-#    params:
-#      format: ['prometheus']
 
   - job_name: 'nomad_sys_metrics'
     metrics_path: /v1/metrics
@@ -188,7 +182,7 @@ EOH
       }
       resources {
         cpu        = 500
-        memory     = 200
+        memory     = 300
         memory_max = 400
       }
     }
