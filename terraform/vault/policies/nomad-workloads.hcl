@@ -13,6 +13,7 @@ path "secret/metadata/job/*" {
 path "secret/metadata/*" {
   capabilities = ["list"]
 }
+
 path "secret/data/nomad/infra/root_ca/*" {
   capabilities = ["read"]
 }
