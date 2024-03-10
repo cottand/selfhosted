@@ -18,12 +18,12 @@ with lib; let
           default = "secret";
         };
 
-        name =  lib.mkOption {
-        description = mdDoc "File name of the key";
-        default = name;
-        type = types.str;
-        internal = true;
-      };
+        name = lib.mkOption {
+          description = mdDoc "File name of the key";
+          default = name;
+          type = types.str;
+          internal = true;
+        };
 
         secretPath = mkOption {
           type = types.str;

@@ -79,6 +79,7 @@
             confPath = secretPath + "wg-mesh/${name}.conf";
             port = 55820;
           };
+          consulNode.enable = true;
         };
 
         cosmo = { name, nodes, ... }: {
@@ -93,6 +94,8 @@
           #   dropPrivileges = false;
 
           # };
+
+          consulNode.server = true;
         };
 
 
@@ -102,6 +105,8 @@
           deployment.tags = [ "hetzner" "nomad-server" "vault" ];
           vaultNode.enable = true;
 
+          consulNode.server = true;
+
         };
 
         maco = { name, nodes, ... }: {
@@ -109,6 +114,10 @@
           # deployment.targetHost = "maco.mesh.dcotta.eu";
           # deployment.targetHost = "${name}.vps6.dcotta.eu";
           vaultNode.enable = true;
+
+
+          consulNode.server = true;
+
         };
 
         # elvis = { name, nodes, ... }: {
@@ -116,25 +125,22 @@
         # };
 
         ziggy = { name, nodes, ... }: {
-          imports = [ ];
           deployment.tags = [ "local" "nomad-client" ];
         };
 
         ari = { name, nodes, ... }: {
-          imports = [ ];
           networking.hostName = name;
           deployment.tags = [ "local" "nomad-client" ];
+          consulNode.server = true;
         };
 
         xps2 = { name, nodes, ... }: {
-          imports = [ ];
+          consulNode.server = true;
           networking.hostName = name;
           deployment.tags = [ "local" "nomad-client" ];
-          deployment.targetHost = "192.168.50.253";
         };
 
         bianco = { name, nodes, ... }: {
-          imports = [ ];
           deployment.tags = [ "madrid" "nomad-client" ];
         };
       };
@@ -145,7 +151,7 @@
           config.allowUnfree = true;
           overlays = [ cottand.overlay ];
         };
-        devPackages = with pkgs; [ terraform colmena fish vault nomad_1_7 ];
+        devPackages = with pkgs; [ terraform colmena fish vault nomad_1_7 bitwarden-cli consul ];
       in
       {
         devShells.default = pkgs.mkShell {

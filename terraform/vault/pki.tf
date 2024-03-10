@@ -104,7 +104,6 @@ resource "vault_pki_secret_backend_issuer" "intermediate" {
 }
 
 
-
 ## intermediate CA role ##
 
 resource "vault_pki_secret_backend_role" "intermediate_role" {
@@ -142,25 +141,6 @@ resource "vault_pki_secret_backend_cert" "dcotta-dot-eu2" {
   ttl    = 89400000
   revoke = true
 }
-
-#$  terraform output -raw vault_pki_secret_backend_cert_dcotta-dot-eu_cert >> ../secret/pki/vault/cert.pem
-# output "vault_pki_secret_backend_cert_dcotta-dot-eu_cert" {
-#   value = vault_pki_secret_backend_cert.dcotta-dot-eu.certificate
-# }
-
-# output "vault_pki_secret_backend_cert_dcotta-dot-eu_issuing_ca" {
-#   value = vault_pki_secret_backend_cert.dcotta-dot-eu.issuing_ca
-# }
-
-# output "vault_pki_secret_backend_cert_dcotta-dot-eu_serial_number" {
-#   value = vault_pki_secret_backend_cert.dcotta-dot-eu.serial_number
-#   sensitive = true
-# }
-
-# output "vault_pki_secret_backend_cert_dcotta-dot-eu_private_key" {
-#   value = vault_pki_secret_backend_cert.dcotta-dot-eu.private_key
-#   sensitive = true
-# }
 
 resource "local_sensitive_file" "dcotta-dot-eu_private_key" {
   content  = vault_pki_secret_backend_cert.dcotta-dot-eu2.private_key
