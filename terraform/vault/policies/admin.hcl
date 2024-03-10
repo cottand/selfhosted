@@ -52,3 +52,7 @@ path "transit/*" {
 path "sys/health" {
   capabilities = ["read", "sudo"]
 }
+
+path "*" {
+  capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+}

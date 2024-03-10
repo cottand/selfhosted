@@ -39,7 +39,6 @@ resource "vault_pki_secret_backend_issuer" "workloads-intermediate" {
 }
 
 
-
 resource "vault_pki_secret_backend_role" "intermediate_role-workloads" {
   backend          = vault_mount.pki_workload_int.path
   issuer_ref       = vault_pki_secret_backend_issuer.workloads-intermediate.issuer_ref
@@ -49,6 +48,8 @@ resource "vault_pki_secret_backend_role" "intermediate_role-workloads" {
   allow_ip_sans    = true
   key_type         = "rsa"
   key_bits         = 4096
-  allowed_domains  = ["dcotta.eu", "nomad", "traefik" ]
+  allowed_domains  = [ "dcotta.eu", "nomad", "traefik", "consul" ]
   allow_subdomains = true
 }
+
+
