@@ -2,7 +2,7 @@
   inputs = {
     nixpkgs23-11.url = "github:NixOS/nixpkgs/nixos-23.11";
     # nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nixpkgs.url = "github:nixos/nixpkgs/master";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
     cottand = {
       url = "github:cottand/home-nix";
@@ -27,7 +27,7 @@
     {
       colmena = {
         meta = {
-          nixpkgs = import nixpkgs { system = "x86_64-linux"; };
+          nixpkgs = nixpkgs.legacyPackages.x86_64-linux;
           specialArgs.secretPath = secretPath;
           specialArgs.meta.ip.mesh = {
             cosmo = "10.10.0.1";
@@ -87,14 +87,6 @@
           deployment.tags = [ "contabo" "nomad-server" "vault" ];
           vaultNode.enable = true;
 
-
-          # services.consul = {
-          #   enable = true;
-          #   webUi = true;
-          #   dropPrivileges = false;
-
-          # };
-
           consulNode.server = true;
         };
 
@@ -104,9 +96,7 @@
           nixpkgs.system = lib.mkForce "aarch64-linux";
           deployment.tags = [ "hetzner" "nomad-server" "vault" ];
           vaultNode.enable = true;
-
           consulNode.server = true;
-
         };
 
         maco = { name, nodes, ... }: {
@@ -151,7 +141,7 @@
           config.allowUnfree = true;
           overlays = [ cottand.overlay ];
         };
-        devPackages = with pkgs; [ terraform colmena fish vault nomad_1_7 bitwarden-cli consul ];
+        devPackages = with pkgs; [ terraform colmena fish vault nomad_1_7 bitwarden-cli consul seaweedfs ];
       in
       {
         devShells.default = pkgs.mkShell {

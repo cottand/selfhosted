@@ -20,9 +20,12 @@ resource "vault_pki_secret_backend_cert" "server-dc1-consul" {
   name        = vault_pki_secret_backend_role.intermediate_role-consul-dc1.name
   common_name = "server.dc1.consul"
 
-#   alt_names = ["vault.mesh.dcotta.eu"]
+  alt_names = ["13mar.server.dc1.consul"]
+  ip_sans = [
+    "127.0.0.1"
+  ]
 
-  ttl    = 24 * 60 * 60
+  ttl    = 12920000
   revoke = true
 }
 
