@@ -20,6 +20,9 @@ job "roach" {
     stagger      = "12s"
   }
   group "roach" {
+connect {
+  enabled = true
+}
     constraint {
       distinct_hosts = true
     }
@@ -73,51 +76,13 @@ job "roach" {
       service {
         name     = "roach-db"
         port     = "db"
-        provider = "nomad"
       }
       service {
         name     = "roach-http"
         port     = "http"
-        provider = "nomad"
       }
 
 
-      template {
-        data        = <<EOH
-{{- $VAR1 := (printf "ip_sans=%s" (env "NOMAD_IP_db")) -}}
-
-{{ with pkiCert "pki_workload_int/issue/dcotta-dot-eu-workloads" "common_name=${var.common_name_tls}" $VAR1 }}
-{{- .Cert -}}
-{{ end }}
-EOH
-        destination = "${NOMAD_SECRETS_DIR}/node.crt"
-        change_mode = "restart"
-        perms = "600"
-      }
-
-      template {
-        data        = <<EOH
-{{- $VAR1 := (printf "ip_sans=%s" (env "attr.unique.network.ip-address")) -}}
-{{ with pkiCert "pki_workload_int/issue/dcotta-dot-eu-workloads" "common_name=${var.common_name_tls}" $VAR1 }}
-{{- .CA -}}
-{{ end }}
-EOH
-        destination = "${NOMAD_SECRETS_DIR}/ca.crt"
-        change_mode = "restart"
-        perms = "600"
-      }
-
-      template {
-        data        = <<EOH
-{{- $VAR1 := (printf "ip_sans=%s" (env "attr.unique.network.ip-address")) -}}
-{{ with pkiCert "pki_workload_int/issue/dcotta-dot-eu-workloads" "common_name=${var.common_name_tls}" $VAR1 }}
-{{- .Key -}}
-{{ end }}
-EOH
-        destination = "${NOMAD_SECRETS_DIR}/node.key"
-        change_mode = "restart"
-        perms = "600"
-      }
       resources {
         cpu        = 200
         memory     = 400

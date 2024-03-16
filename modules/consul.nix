@@ -38,6 +38,7 @@ in
 
         deployment.tags = mkIf cfg.server [ "consul-server" ];
 
+        systemd.services.consul.serviceConfig.Environment = "HOME=/root";
 
         services.consul = {
           dropPrivileges = false;
@@ -74,17 +75,23 @@ in
 
             client_addr = ''{{ GetInterfaceIP "wg-mesh" }} {{ GetAllInterfaces | include "flags" "loopback" | join "address" " " }}'';
 
+            connect.enabled = true;
+            ports.https = 8501;
+            ports.grpc = 8502;
+            ports.grpc_tls = 8503;
+
             tls.defaults = {
-              verify_incoming = true;
+              verify_incoming = false;
               verify_outgoing = true;
               verify_server_hostname = true;
+
               ca_file = config.vaultSecrets."consul.ca.pem".path;
               cert_file = config.vaultSecrets."consul.crt.pem".path;
               key_file = config.vaultSecrets."consul.key.rsa".path;
             };
 
             tls.internal_rpc.verify_server_hostname = true;
-
+            tls.grpc.use_auto_cert = false;
           };
         } // cfg.extraConfig;
       };

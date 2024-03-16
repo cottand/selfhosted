@@ -14,7 +14,7 @@ in
 
 
   config = mkIf cfg.enable {
-    security.pki.certificateFiles = [ "/opt/vault/tls/vault-ca.pem" ./../certs/root_2023_ca.crt ];
+    security.pki.certificateFiles = [ ./../certs/root_2023_ca.crt ];
     systemd.tmpfiles.rules = [ "d /vault/data 1777 root root -" ];
     services.vault = {
       enable = true;

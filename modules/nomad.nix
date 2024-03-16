@@ -91,7 +91,7 @@ in
       package = pkgs.nomad_1_7;
       enableDocker = true;
       dropPrivileges = false;
-      extraPackages = with pkgs; [ cni-plugins getent wget curl ];
+      extraPackages = with pkgs; [ cni-plugins getent wget curl consul];
       extraSettingsPlugins = [ pkgs.nomad-driver-podman ];
       extraSettingsPaths = [
         "/etc/nomad/config/server.hcl"
@@ -128,6 +128,16 @@ in
           verify_server_hostname = true;
 
         };
+        consul = if config.consulNode.enable then {
+          grpc_address = "127.0.0.1:${toString config.services.consul.extraConfig.ports.grpc_tls}";
+          grpc_ca_file = config.vaultSecrets."consul.ca.pem".path;
+
+          ca_file = config.vaultSecrets."consul.ca.pem".path;
+          cert_file = config.vaultSecrets."consul.crt.pem".path;
+          key_file = config.vaultSecrets."consul.key.rsa".path;
+          address = "127.0.0.1:${toString config.services.consul.extraConfig.ports.https}";
+          ssl = true; # TODO enable when consul has https, needs IP SANS!
+        } else null;
       };
     };
   };
