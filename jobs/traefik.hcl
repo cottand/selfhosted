@@ -30,18 +30,18 @@ job "traefik" {
         host_network = "wg-mesh"
       }
     }
-    volume "traefik-cert" {
-      type            = "csi"
-      read_only       = false
-      source          = "traefik-cert"
-      access_mode     = "multi-node-single-writer"
-      attachment_mode = "file-system"
-    }
+    // volume "traefik-cert" {
+    //   type            = "csi"
+    //   read_only       = false
+    //   source          = "traefik-cert"
+    //   access_mode     = "multi-node-single-writer"
+    //   attachment_mode = "file-system"
+    // }
     service {
       name     = "traefik-metrics"
       provider = "nomad"
       port     = "metrics"
-      tags = ["metrics"]
+      tags     = ["metrics"]
       check {
         name     = "alive"
         type     = "tcp"
@@ -79,11 +79,11 @@ job "traefik" {
       env = {
         "WG_HOST" = "web.vps.dcotta.eu"
       }
-      volume_mount {
-        volume      = "traefik-cert"
-        destination = "/etc/traefik-cert"
-        read_only   = false
-      }
+      // volume_mount {
+      //   volume      = "traefik-cert"
+      //   destination = "/etc/traefik-cert"
+      //   read_only   = false
+      // }
       config {
         image = "traefik:3.0.0-beta5"
         # needs to be in host wireguard network so that it can reach other VPN members
@@ -205,7 +205,8 @@ EOF
 
 [certificatesResolvers.lets-encrypt.acme]
   email = "nico@dcotta.eu"
-  storage = "/etc/traefik-cert/acme.json"
+  #storage = "/etc/traefik-cert/acme.json"
+  #storage = "/etc/traefik/"
 
   [certificatesResolvers.lets-encrypt.acme.httpChallenge]
     # let's encrypt has to be able to reach on this entrypoint for cert
@@ -281,18 +282,18 @@ EOF
         host_network = "wg-mesh"
       }
     }
-    volume "traefik-cert" {
-      type            = "csi"
-      read_only       = true
-      source          = "traefik-cert"
-      access_mode     = "multi-node-single-writer"
-      attachment_mode = "file-system"
-    }
+    // volume "traefik-cert" {
+    //   type            = "csi"
+    //   read_only       = true
+    //   source          = "traefik-cert"
+    //   access_mode     = "multi-node-single-writer"
+    //   attachment_mode = "file-system"
+    // }
     service {
       name     = "traefik-metrics"
       provider = "nomad"
       port     = "metrics"
-      tags = ["metrics"]
+      tags     = ["metrics"]
       check {
         name     = "alive"
         type     = "tcp"
@@ -325,11 +326,11 @@ EOF
     count = 2
     task "traefik" {
       driver = "docker"
-      volume_mount {
-        volume      = "traefik-cert"
-        destination = "/etc/traefik-cert"
-        read_only   = true
-      }
+      // volume_mount {
+      //   volume      = "traefik-cert"
+      //   destination = "/etc/traefik-cert"
+      //   read_only   = true
+      // }
       config {
         image = "traefik:3.0.0-beta5"
         # needs to be in host wireguard network so that it can reach other VPN members
@@ -340,17 +341,17 @@ EOF
       }
       constraint {
         attribute = "${meta.box}"
-        operator = "!="
+        operator  = "!="
         value     = "miki"
       }
-    # serve on all datacenter servers
-    # TODO use nomad tag
-    constraint {
-      attribute = "${meta.box}"
-      operator  = "regexp"
-      # We need static IPs for master servers
-      value = "^cosmo|maco$"
-    }
+      # serve on all datacenter servers
+      # TODO use nomad tag
+      constraint {
+        attribute = "${meta.box}"
+        operator  = "regexp"
+        # We need static IPs for master servers
+        value = "^cosmo|maco$"
+      }
 
       template {
         data        = <<EOF

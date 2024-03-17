@@ -14,6 +14,10 @@
           path      = "/volumes/immich-db/"
           read_only = false
         }
+        host_volume "roach" {
+          path      = "/roach.d"
+          read_only = false
+        }
       }
       server {
         enabled          = true

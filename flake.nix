@@ -91,10 +91,17 @@
         };
 
 
+        miki_old = { name, nodes, lib, ... }: {
+          deployment.targetHost = "${name}.vps.dcotta.eu";
+          # nixpkgs.system = lib.mkForce "aarch64-linux";
+          # deployment.tags = [ "hetzner" "nomad-server" "vault" ];
+          vaultNode.enable = true;
+          consulNode.server = true;
+        };
         miki = { name, nodes, lib, ... }: {
-          # deployment.targetHost = "${name}.vps.dcotta.eu";
-          nixpkgs.system = lib.mkForce "aarch64-linux";
-          deployment.tags = [ "hetzner" "nomad-server" "vault" ];
+          deployment.targetHost = "5.189.152.117";
+          # nixpkgs.system = lib.mkForce "aarch64-linux";
+          # deployment.tags = [ "hetzner" "nomad-server" "vault" ];
           vaultNode.enable = true;
           consulNode.server = true;
         };
@@ -150,7 +157,8 @@
           shellHook = "fish && exit";
 
           NOMAD_ADDR = "https://10.10.4.1:4646";
-          VAULT_ADDR = "https://vault.mesh.dcotta.eu:8200";
+          VAULT_ADDR = "https://10.10.2.1:8200";
+          # VAULT_ADDR = "https://vault.mesh.dcotta.eu:8200";
         };
 
 

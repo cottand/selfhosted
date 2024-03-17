@@ -1,5 +1,5 @@
 job "dns" {
-  type        = "system"
+  type = "system"
   group "leng-dns" {
     network {
       mode = "bridge"
