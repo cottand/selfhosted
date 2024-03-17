@@ -60,18 +60,10 @@ in
             server = cfg.server;
             auto_encrypt.allow_tls = cfg.server && true;
 
-            # watches = [
-            #   {
-            #     type = "checks";
-            #     handler = "/usr/bin/health-check-handler.sh";
-            #   }
-            # ];
 
             # telemetry = {
             #   statsite_address = "127.0.0.1:2180";
             # };
-
-            # bootstrap_expect = 3;
 
             client_addr = ''{{ GetInterfaceIP "wg-mesh" }} {{ GetAllInterfaces | include "flags" "loopback" | join "address" " " }}'';
 

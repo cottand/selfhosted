@@ -4,7 +4,7 @@ variable "tag" {
 }
 
 job "web-portfolio-c" {
-  priority    = 50
+  priority = 50
 
   update {
     max_parallel = 1
@@ -22,33 +22,33 @@ job "web-portfolio-c" {
         host_network = "wg-mesh"
       }
     }
-      service {
- connect {
-   sidecar_service {}
- }
-        name     = "web-portfolio"
-        check {
-          name     = "alive"
-          port     = "http"
-          type     = "http"
-          path     = "/"
-          interval = "20s"
-          timeout  = "5s"
-          check_restart {
-            limit           = 3
-            grace           = "5s"
-            ignore_warnings = false
-          }
-        }
-        tags = [
-          "traefik.enable=true",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`nico.dcotta.eu`)",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=web, web_public, websecure, websecure_public",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls=true",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt"
-        ]
-        port = "http"
+    service {
+      connect {
+        sidecar_service {}
       }
+      name = "web-portfolio"
+      check {
+        name     = "alive"
+        port     = "http"
+        type     = "http"
+        path     = "/"
+        interval = "20s"
+        timeout  = "5s"
+        check_restart {
+          limit           = 3
+          grace           = "5s"
+          ignore_warnings = false
+        }
+      }
+      tags = [
+        "traefik.enable=true",
+        "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`nico.dcotta.eu`)",
+        "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=web, web_public, websecure, websecure_public",
+        "traefik.http.routers.${NOMAD_TASK_NAME}.tls=true",
+        "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt"
+      ]
+      port = "http"
+    }
     task "web" {
       driver = "docker"
 

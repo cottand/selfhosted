@@ -25,8 +25,8 @@
           path      = "/lemmy.d/data"
           read_only = false
         }
-        host_volume "grafana-cosmo" {
-          path      = "/grafana.d"
+        host_volume "roach" {
+          path      = "/roach.d"
           read_only = false
         }
       }

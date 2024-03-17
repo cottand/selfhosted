@@ -4,7 +4,7 @@ variable "tag" {
 }
 
 job "web-portfolio" {
-  priority    = 50
+  priority = 50
 
   update {
     max_parallel = 1

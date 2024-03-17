@@ -1,9 +1,9 @@
 { config, pkgs, ... }: {
   imports = [
     ./hardware-configuration.nix
-    ./network-configuration.nix # generated at runtime by nixos-infect
     ./nomad.nix
     ./wg-easy.nix
+    ./ipv6.nix
   ];
 
   boot.tmp.cleanOnBoot = true;
@@ -36,5 +36,5 @@
   virtualisation.docker.enable = true;
   networking.firewall.checkReversePath = false;
 
-  system.stateVersion = "22.11";
+  system.stateVersion = "23.05";
 }

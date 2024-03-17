@@ -119,7 +119,7 @@ resource "cloudflare_record" "nico-cname-web" {
   zone_id = var.zone_id
   name    = "nico"
   type    = "CNAME"
-  value   = "web.dcotta.eu"
+  value   = "miki.vps.dcotta.eu"
   ttl     = 1
   comment = "tf managed"
   proxied = true

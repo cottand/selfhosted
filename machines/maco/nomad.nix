@@ -11,6 +11,10 @@
         }
         alloc_dir = "/nomad.d/alloc/"
         state_dir = "/nomad.d/client-state"
+        host_volume "roach" {
+          path      = "/roach.d"
+          read_only = false
+        }
       }
       server {
         enabled          = true
