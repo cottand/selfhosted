@@ -60,6 +60,12 @@ job "roach" {
       connect {
         sidecar_service {}
       }
+      tags = [
+        "traefik.enable=true",
+        "traefik.consulcatalog.connect=true",
+        // "traefik.http.routers.${NOMAD_TASK_NAME}=Host(``)",
+        "traefik.http.routers.${NOMAD_GROUP_NAME}.entrypoints=web",
+      ]
     }
     service {
       name = "roach-rpc"
@@ -155,6 +161,12 @@ job "roach" {
       connect {
         sidecar_service {}
       }
+      tags = [
+        "traefik.enable=true",
+        "traefik.consulcatalog.connect=true",
+        "traefik.connect=true",
+        "traefik.http.routers.roach.entrypoints=web, websecure",
+      ]
     }
     service {
       name = "roach-rpc"

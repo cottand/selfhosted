@@ -71,19 +71,25 @@ in
             ports.https = 8501;
             ports.grpc = 8502;
             ports.grpc_tls = 8503;
+            tls = {
+              defaults = {
+                verify_incoming = false;
+                verify_outgoing = true;
+                verify_server_hostname = true;
 
-            tls.defaults = {
-              verify_incoming = false;
-              verify_outgoing = true;
-              verify_server_hostname = true;
-
-              ca_file = config.vaultSecrets."consul.ca.pem".path;
-              cert_file = config.vaultSecrets."consul.crt.pem".path;
-              key_file = config.vaultSecrets."consul.key.rsa".path;
+                ca_file = config.vaultSecrets."consul.ca.pem".path;
+                cert_file = config.vaultSecrets."consul.crt.pem".path;
+                key_file = config.vaultSecrets."consul.key.rsa".path;
+              };
+              internal_rpc.verify_server_hostname = true;
+              grpc.use_auto_cert = false;
             };
 
-            tls.internal_rpc.verify_server_hostname = true;
-            tls.grpc.use_auto_cert = false;
+            acl = {
+              enabled = true;
+              default_policy = "allow";
+              enable_token_persistence = true;
+            };
           };
         } // cfg.extraConfig;
       };

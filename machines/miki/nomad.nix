@@ -9,7 +9,11 @@
           box = "miki"
           name = "miki"
         }
-        cpu_total_compute = 10000 # see https://github.com/hashicorp/nomad/issues/18272
+        // cpu_total_compute = 10000 # see https://github.com/hashicorp/nomad/issues/18272
+        host_network "public" {
+          interface           = "ens18"
+          reserved_ports      = "22"
+        }
         host_volume "immich-db" {
           path      = "/volumes/immich-db/"
           read_only = false

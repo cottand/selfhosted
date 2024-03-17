@@ -20,7 +20,9 @@ resource "vault_pki_secret_backend_cert" "server-dc1-consul" {
   name        = vault_pki_secret_backend_role.intermediate_role-consul-dc1.name
   common_name = "server.dc1.consul"
 
-  alt_names = ["13mar.server.dc1.consul"]
+  alt_names = [
+    "13mar.server.dc1.consul",
+  ]
   ip_sans = [
     "127.0.0.1"
   ]

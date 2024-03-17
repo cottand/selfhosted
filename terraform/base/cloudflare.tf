@@ -18,7 +18,7 @@ locals {
     ari    = "10.10.3.1"
     miki   = "10.10.4.1"
     ziggy  = "10.10.5.1"
-    xps2 = "10.10.6.1"
+    xps2   = "10.10.6.1"
     bianco = "10.10.0.2"
   }
 }
@@ -116,6 +116,15 @@ module "node_bianco" {
 resource "cloudflare_record" "nico-cname-web" {
   zone_id = var.zone_id
   name    = "nico"
+  type    = "CNAME"
+  value   = "miki.vps.dcotta.eu"
+  ttl     = 1
+  comment = "tf managed"
+  proxied = true
+}
+resource "cloudflare_record" "nico-test--cname-nico" {
+  zone_id = var.zone_id
+  name    = "test-nico"
   type    = "CNAME"
   value   = "miki.vps.dcotta.eu"
   ttl     = 1
