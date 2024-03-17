@@ -90,31 +90,18 @@
           consulNode.server = true;
         };
 
-
-        miki_old = { name, nodes, lib, ... }: {
-          deployment.targetHost = "${name}.vps.dcotta.eu";
-          # nixpkgs.system = lib.mkForce "aarch64-linux";
-          # deployment.tags = [ "hetzner" "nomad-server" "vault" ];
-          vaultNode.enable = true;
-          consulNode.server = true;
-        };
         miki = { name, nodes, lib, ... }: {
-          deployment.targetHost = "5.189.152.117";
-          # nixpkgs.system = lib.mkForce "aarch64-linux";
-          # deployment.tags = [ "hetzner" "nomad-server" "vault" ];
+          deployment.targetHost = "${name}.vps.dcotta.eu";
+          deployment.tags = [ "contabo" "nomad-server" "vault" ];
           vaultNode.enable = true;
           consulNode.server = true;
         };
 
         maco = { name, nodes, ... }: {
           deployment.tags = [ "contabo" "nomad-server" "vault" ];
-          # deployment.targetHost = "maco.mesh.dcotta.eu";
           # deployment.targetHost = "${name}.vps6.dcotta.eu";
           vaultNode.enable = true;
-
-
           consulNode.server = true;
-
         };
 
         # elvis = { name, nodes, ... }: {
