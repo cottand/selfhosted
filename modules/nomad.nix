@@ -100,6 +100,8 @@ in
       ];
       settings = {
         client = {
+          network_interface = "wg-mesh";
+
           cni_path = "${pkgs.cni-plugins}/bin";
 
           host_volume = mkIf cfg.enableSeaweedFsVolume {
@@ -136,7 +138,8 @@ in
           cert_file = config.vaultSecrets."consul.crt.pem".path;
           key_file = config.vaultSecrets."consul.key.rsa".path;
           address = "127.0.0.1:${toString config.services.consul.extraConfig.ports.https}";
-          ssl = true; # TODO enable when consul has https, needs IP SANS!
+          ssl = true;
+          # share_ssl = true; default is true
         } else null;
       };
     };

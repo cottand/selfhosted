@@ -2,11 +2,11 @@ job "traefik" {
   group "traefik" {
     network {
       mode = "bridge"
-      // port "dns-mesh" {
-      //   // static = 53
-      // }
+      port "dns-mesh" {
+        // static = 53
+      }
       port "http-ui" {
-        static       = 8080
+        to = 8080
         host_network = "wg-mesh"
       }
       port "http-mesh" {
@@ -20,10 +20,12 @@ job "traefik" {
       port "http_public" {
         static = 80
         to     = 8000
+        host_network = "public"
       }
       port "https_public" {
         static = 443
         to     = 44300
+        host_network = "public"
       }
       port "metrics" {
         static       = 31934 # hardcoded so that prometheus can find it after restart
@@ -37,20 +39,20 @@ job "traefik" {
     }
     service {
       name     = "traefik-metrics"
-      provider = "nomad"
+      // provider = "nomad"
       port     = "metrics"
       tags     = ["metrics"]
-      check {
-        name     = "alive"
-        type     = "tcp"
-        port     = "metrics"
-        interval = "20s"
-        timeout  = "2s"
-      }
+      // check {
+      //   name     = "alive"
+      //   type     = "tcp"
+      //   port     = "metrics"
+      //   interval = "20s"
+      //   timeout  = "2s"
+      // }
     }
     service {
       name     = "traefik"
-      provider = "nomad"
+      // provider = "nomad"
       tags = [
         "traefik.enable=true",
         "traefik.http.routers.traefik_dash.entrypoints=web,websecure",
@@ -61,14 +63,25 @@ job "traefik" {
         // "traefik.http.routers.traefik_dash.middlewares=auth@file",
       ]
       port = "http-ui"
-      check {
-        name     = "alive"
-        type     = "tcp"
-        interval = "20s"
-        timeout  = "2s"
+      // check {
+      //   name     = "alive"
+      //   type     = "tcp"
+      //   interval = "20s"
+      //   timeout  = "2s"
+      // }
+      connect {
+        sidecar_service {}
       }
     }
+    service {
+      name = "traefik-ingress"
+      port = "http-mesh"
+      task = "traefik"
 
+      connect {
+        native = true
+      }
+    }
     task "traefik" {
       identity {
         env = true
@@ -83,7 +96,7 @@ job "traefik" {
         read_only   = false
       }
       config {
-        image = "traefik:3.0.0-beta5"
+        image = "traefik:3.0.0-rc3"
         # needs to be in host wireguard network so that it can reach other VPN members
         volumes = [
           "local/traefik.toml:/etc/traefik/traefik.toml",
@@ -200,6 +213,25 @@ EOF
     # let's encrypt has to be able to reach on this entrypoint for cert
    entryPoint = "web_public"
 
+[providers.consulCatalog]
+  # The service name below should match the nomad/consul service above
+  # and is used for intentions in consul
+  servicename="traefik-ingress"
+  refreshInterval = "10s"
+  exposedByDefault = false
+  connectAware = true
+  connectByDefault = true
+  #prefix="traefik"
+
+  #endpoint.address = "10.10.4.1:8501"
+  endpoint.tls.insecureSkipVerify = true # TODO add SAN for this IP!
+  endpoint.datacenter = "dc1"
+  #endpoint.scheme = "http" # TODO change
+
+  defaultRule = "Host(`{{"{{ .Name }}"}}.traefik`)"
+  
+
+
 [providers.nomad]
   refreshInterval = "5s"
   exposedByDefault = false
@@ -216,11 +248,12 @@ EOF
   filename = "/etc/traefik/dynamic/traefik-dynamic.toml"
 
     {{ range nomadService "tempo-otlp-grpc" -}}
-    [tracing]
-        [tracing.openTelemetry]
-        address = "{{ .Address }}:{{ .Port }}"
-        insecure = true
-            [tracing.openTelemetry.grpc]
+
+    #[tracing]
+    #    [tracing.openTelemetry]
+    #    address = "{{ .Address }}:{{ .Port }}"
+    #    insecure = true
+    #        [tracing.openTelemetry.grpc]
     {{ end -}}
 
 EOF

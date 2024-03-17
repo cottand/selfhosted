@@ -108,9 +108,9 @@
         #   deployment.tags = [ "local" "nomad-client" ];
         # };
 
-        ziggy = { name, nodes, ... }: {
-          deployment.tags = [ "local" "nomad-client" ];
-        };
+        # ziggy = { name, nodes, ... }: {
+        #   deployment.tags = [ "local" "nomad-client" ];
+        # };
 
         ari = { name, nodes, ... }: {
           networking.hostName = name;

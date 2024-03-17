@@ -50,7 +50,7 @@ job "dns" {
       provider = "nomad"
       port     = "http_doh"
       tags = [
-        "traefik.enable=true",
+        "traefik.enable=false",
         "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`dns.vps.dcotta.eu`) ", //" || ( Host(`138.201.153.245`) && PathPrefix(`/dns-query`) )",
         "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=web, web_public, websecure, websecure_public",
 
@@ -105,8 +105,8 @@ metrics.enabled = true
 # manual custom dns entries
 customdnsrecords = [
     "proxy.manual.     3600      IN  A   10.10.4.1  ",
-    "proxy.manual.     3600      IN  A   10.10.2.1  ",
-    "proxy.manual.     3600      IN  A   10.10.0.1  ",
+    #"proxy.manual.     3600      IN  A   10.10.2.1  ",
+    #"proxy.manual.     3600      IN  A   10.10.0.1  ",
 
     "web.vps.dcotta.eu.     3600      IN  A   10.10.4.1  ",
     "immich.vps.dcotta.eu.  3600      IN  CNAME   proxy.manual  ",
@@ -122,6 +122,7 @@ customdnsrecords = [
     "webdav.vps            3600  IN  A   {{ .Address }}",
     {{ end }}
 
+
     {{ range $i, $s := nomadService "seaweedfs-master-http" }}
     "seaweedfs-master.vps  3600 IN  A   {{ .Address }}",
     {{ end }}
@@ -136,7 +137,7 @@ customdnsrecords = [
     {{ $rr_a := sprig_list -}}
     {{- $rr_srv := sprig_list -}}
     {{- $base_domain := ".nomad" -}} {{- /* Change this field for a diferent tld! */ -}}
-    {{- $ttl := 3600 -}}             {{- /* Change this field for a diferent ttl! */ -}}
+    {{- $ttl := 360 -}}             {{- /* Change this field for a diferent ttl! */ -}}
 
     {{- /* Iterate over all of the registered Nomad services */ -}}
     {{- range nomadServices -}}
@@ -156,6 +157,12 @@ customdnsrecords = [
             {{- $rr_srv = sprig_append $rr_srv (sprig_list $svc.Name $svc.Port $node) -}}
         {{- end -}}
     {{- end -}}
+
+    {{- range services -}}
+
+    # comment with {{ .Name }}
+
+    {{-end-}}
 
     {{- /* Iterate over lists and print everything */ -}}
 
