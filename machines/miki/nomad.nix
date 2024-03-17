@@ -18,6 +18,10 @@
           path      = "/roach.d"
           read_only = false
         }
+        host_volume "traefik" {
+          path      = "/traefik.d"
+          read_only = false
+        }
       }
       server {
         enabled          = true

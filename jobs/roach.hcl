@@ -14,10 +14,9 @@ variable "mem" {
   type    = number
   default = 400
 }
-
-variable common_name_tls {
-  type    = string
-  default = "roach.service.nomad"
+variable "bind" {
+  type = string
+  default = "127.0.0.1"
 }
 
 job "roach" {
@@ -104,13 +103,13 @@ job "roach" {
           "--advertise-addr=${NOMAD_IP_rpc}",
           # peers must match constraint above
           "--join=${NOMAD_UPSTREAM_ADDR_cosmo_roach_rpc},${NOMAD_UPSTREAM_ADDR_maco_roach_rpc}",
-          "--listen-addr=0.0.0.0:${NOMAD_PORT_rpc}",
+          "--listen-addr=${var.bind}:${NOMAD_PORT_rpc}",
           "--cache=${var.cache}",
           "--max-sql-memory=${var.maxSqlMem}",
           "--insecure",
-          "--sql-addr=0.0.0.0:${NOMAD_PORT_db}",
+          "--sql-addr=${var.bind}:${NOMAD_PORT_db}",
           "--advertise-sql-addr=${NOMAD_IP_db}:${NOMAD_PORT_db}",
-          "--http-addr=0.0.0.0:${NOMAD_PORT_http}",
+          "--http-addr=${var.bind}:${NOMAD_PORT_http}",
           "--store=/roach",
         ]
       }
@@ -199,13 +198,13 @@ job "roach" {
             "--advertise-addr=${NOMAD_IP_rpc}",
             # peers must match constraint above
             "--join=${NOMAD_UPSTREAM_ADDR_cosmo_roach_rpc},${NOMAD_UPSTREAM_ADDR_miki_roach_rpc}",
-            "--listen-addr=0.0.0.0:${NOMAD_PORT_rpc}",
+            "--listen-addr=${var.bind}:${NOMAD_PORT_rpc}",
             "--cache=${var.cache}",
             "--max-sql-memory=${var.maxSqlMem}",
             "--insecure",
-            "--sql-addr=0.0.0.0:${NOMAD_PORT_db}",
+            "--sql-addr=${var.bind}:${NOMAD_PORT_db}",
             "--advertise-sql-addr=${NOMAD_IP_db}:${NOMAD_PORT_db}",
-            "--http-addr=0.0.0.0:${NOMAD_PORT_http}",
+            "--http-addr=${var.bind}:${NOMAD_PORT_http}",
           "--store=/roach",
           ]
         }
@@ -293,13 +292,13 @@ job "roach" {
           "--advertise-addr=${NOMAD_IP_rpc}",
           # peers must match constraint above
           "--join=${NOMAD_UPSTREAM_ADDR_miki_roach_rpc},${NOMAD_UPSTREAM_ADDR_maco_roach_rpc}",
-          "--listen-addr=0.0.0.0:${NOMAD_PORT_rpc}",
+          "--listen-addr=${var.bind}:${NOMAD_PORT_rpc}",
           "--cache=${var.cache}",
           "--max-sql-memory=${var.maxSqlMem}",
           "--insecure",
-          "--sql-addr=0.0.0.0:${NOMAD_PORT_db}",
+          "--sql-addr=${var.bind}:${NOMAD_PORT_db}",
           "--advertise-sql-addr=${NOMAD_IP_db}:${NOMAD_PORT_db}",
-          "--http-addr=0.0.0.0:${NOMAD_PORT_http}",
+          "--http-addr=${var.bind}:${NOMAD_PORT_http}",
           "--store=/roach",
         ]
       }
