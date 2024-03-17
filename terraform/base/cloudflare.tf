@@ -1,5 +1,3 @@
-# nico.dcotta.eu
-
 variable "zone_id" {
   type = string
 }
