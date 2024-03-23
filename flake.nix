@@ -135,7 +135,19 @@
           config.allowUnfree = true;
           overlays = [ cottand.overlay ];
         };
-        devPackages = with pkgs; [ terraform colmena fish vault nomad_1_7 bitwarden-cli consul seaweedfs ];
+        x86DarwinPkgs = import nixpkgs { system = "x86_64-darwin"; config.allowUnfree = true; };
+        roachdb = if system == "aarch64-darwin" then x86DarwinPkgs.cockroachdb else pkgs.cokcroachdb;
+        devPackages = with pkgs; [
+          # roachdb
+          terraform
+          colmena
+          fish
+          vault
+          nomad_1_7
+          bitwarden-cli
+          consul
+          seaweedfs
+        ];
       in
       {
         devShells.default = pkgs.mkShell {
@@ -147,7 +159,6 @@
           VAULT_ADDR = "https://10.10.2.1:8200";
           # VAULT_ADDR = "https://vault.mesh.dcotta.eu:8200";
         };
-
 
         formatter = pkgs.writeShellScriptBin "fmt" ''
           ${pkgs.nomad}/bin/nomad fmt

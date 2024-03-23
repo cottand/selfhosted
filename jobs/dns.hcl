@@ -113,6 +113,7 @@ customdnsrecords = [
 
     "nomad.vps.dcotta.eu.   3600      IN  CNAME   proxy.manual  ",
     "nomad.traefik.         3600      IN  A       10.10.4.1  ",
+    "consul.traefik.        3600      IN  A       10.10.4.1  ",
     "traefik.vps.dcotta.eu. 3600      IN  CNAME   proxy.manual  ",
 
     "web.vps.               3600      IN  CNAME   miki.mesh.dcotta.eu.  ",
@@ -158,15 +159,12 @@ customdnsrecords = [
         {{- end -}}
     {{- end -}}
 
-    {{- range services -}}
-
-    # comment with {{ .Name }}
-
-    {{-end-}}
+    {{- range services }}
+    "{{ printf "%-45s %d  %10s %10s %s" (sprig_nospace (sprig_cat .Name ".traefik" )) $ttl "IN" "A" "10.10.4.1" }}",
+    {{- end -}}
 
     {{- /* Iterate over lists and print everything */ -}}
 
-    {{- /* Only the latest record will get returned - see https://github.com/looterz/grimd/issues/114 */ -}}
     {{ range $rr_srv -}}
     "{{ printf "%-45s %s %s %d %d %6d %s" (sprig_nospace (sprig_cat (index . 0) $base_domain ".srv")) "IN" "SRV" 0 0 (index . 1) (sprig_nospace (sprig_cat (index . 2) $base_domain )) }}",
     {{ end -}}
