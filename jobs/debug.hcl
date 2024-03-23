@@ -2,15 +2,19 @@ job "debug" {
   group "debug" {
     network {
       mode = "bridge"
+      port "web" {
+        to           = 80
+        host_network = "wg-mesh"
+      }
     }
       service {
         name     = "debug"
-        port = "80"
+        port = "web"
         connect {
           sidecar_service {
             proxy {
               upstreams {
-                destination_name = "web-portfolio-c"
+                destination_name = "roach-web"
                 local_bind_port  = 8001
               }
               upstreams {

@@ -8,9 +8,9 @@ resource "vault_pki_secret_backend_role" "intermediate_role-consul-dc1" {
   allow_ip_sans    = true
   key_type         = "rsa"
   key_bits         = 4096
-  allowed_domains  = [ "dc1.consul" ]
+  allowed_domains  = ["dc1.consul", "traefik"]
   allow_subdomains = true
-  generate_lease = true
+  generate_lease   = true
 }
 
 
@@ -22,9 +22,11 @@ resource "vault_pki_secret_backend_cert" "server-dc1-consul" {
 
   alt_names = [
     "13mar.server.dc1.consul",
+    "consul.traefik",
   ]
   ip_sans = [
-    "127.0.0.1"
+    "127.0.0.1",
+    "10.10.4.1",
   ]
 
   ttl    = 12920000
@@ -43,11 +45,11 @@ resource "vault_pki_secret_backend_cert" "server-dc1-consul" {
 # }
 
 resource "vault_kv_secret_v2" "consul-pub-cert" {
-  mount      = vault_mount.kv-secret.path
-  name       = "/consul/infra/tls"
+  mount = vault_mount.kv-secret.path
+  name  = "/consul/infra/tls"
   data_json = jsonencode({
-    key = vault_pki_secret_backend_cert.server-dc1-consul.private_key
+    key   = vault_pki_secret_backend_cert.server-dc1-consul.private_key
     chain = "${vault_pki_secret_backend_cert.server-dc1-consul.certificate}\n${vault_pki_secret_backend_cert.server-dc1-consul.ca_chain}"
-    ca          = vault_pki_secret_backend_root_cert.root_2023.certificate
+    ca    = vault_pki_secret_backend_root_cert.root_2023.certificate
   })
 }

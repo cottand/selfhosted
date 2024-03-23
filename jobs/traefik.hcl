@@ -27,6 +27,10 @@ job "traefik" {
         to     = 44300
         host_network = "public"
       }
+      port "sql" {
+        static=5432
+        host_network = "wg-mesh"
+      }
       port "metrics" {
         static       = 31934 # hardcoded so that prometheus can find it after restart
         host_network = "wg-mesh"
@@ -147,6 +151,11 @@ job "traefik" {
     service = "nomad"
     entrypoints= "web,websecure"
     tls.passthrough = true
+  [tcp.routers.traefik]
+    rule = "HostSNI( `consul.vps.dcotta.eu` ) || HostSNI( `consul.traefik` )"
+    service = "consul"
+    entrypoints= "web,websecure"
+    tls.passthrough = true
 #    tls = true
 #    tls.certresolver= "lets-encrypt"
 #     middlewares = "vpn-whitelist@file"
@@ -154,7 +163,9 @@ job "traefik" {
   [tcp.services.nomad.loadBalancer]
     [[tcp.services.nomad.loadBalancer.servers]]
       address = "miki.mesh.dcotta.eu:4646"
-        # TODO [3] add other servers for load balancing
+  [tcp.services.consul.loadBalancer]
+    [[tcp.services.consul.loadBalancer.servers]]
+      address = "miki.mesh.dcotta.eu:8501"
 EOF
         destination = "local/traefik-dynamic.toml"
         change_mode = "signal"
@@ -163,6 +174,8 @@ EOF
       template {
         data        = <<EOF
 [entryPoints]
+  [entrypoints.sql]
+        address = ":{{ env "NOMAD_PORT_sql" }}"
   [entryPoints.dns]
         address = ":{{ env "NOMAD_PORT_dns_mesh" }}/udp"
 
@@ -221,12 +234,10 @@ EOF
   exposedByDefault = false
   connectAware = true
   connectByDefault = true
-  #prefix="traefik"
 
   #endpoint.address = "10.10.4.1:8501"
   endpoint.tls.insecureSkipVerify = true # TODO add SAN for this IP!
   endpoint.datacenter = "dc1"
-  #endpoint.scheme = "http" # TODO change
 
   defaultRule = "Host(`{{"{{ .Name }}"}}.traefik`)"
   

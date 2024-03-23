@@ -48,8 +48,6 @@ resource "vault_pki_secret_backend_role" "intermediate_role-workloads" {
   allow_ip_sans    = true
   key_type         = "rsa"
   key_bits         = 4096
-  allowed_domains  = [ "dcotta.eu", "nomad", "traefik", "consul" ]
+  allowed_domains  = ["dcotta.eu", "nomad", "traefik", "consul"]
   allow_subdomains = true
 }
-
-
