@@ -21,3 +21,8 @@ path "secret/data/nomad/infra/root_ca/*" {
 path "secret/data/nomad/infra/root_ca" {
   capabilities = ["read"]
 }
+
+# roach part for all workloads
+path "secret/data/nomad/job/roach/users/{{identity.entity.aliases.auth_jwt_7db0c05c.metadata.nomad_job_id}}" {
+  capabilities = ["read"]
+}

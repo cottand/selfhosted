@@ -68,6 +68,7 @@ in
             client_addr = ''{{ GetInterfaceIP "wg-mesh" }} {{ GetAllInterfaces | include "flags" "loopback" | join "address" " " }}'';
 
             connect.enabled = true;
+            # ports.http = -1;
             ports.https = 8501;
             ports.grpc = 8502;
             ports.grpc_tls = 8503;

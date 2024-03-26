@@ -81,7 +81,7 @@ resource "vault_pki_secret_backend_cert" "cockroachdb-client-grafana" {
   issuer_ref  = vault_pki_secret_backend_issuer.workloads-intermediate.issuer_ref
   backend     = vault_mount.pki_workload_int.path
   name        = vault_pki_secret_backend_role.intermediate_role-roach-client.name
-  common_name = "root"
+  common_name = "grafana"
 
   ttl    = 72200000
   revoke = true
