@@ -4,18 +4,6 @@ job "grafana" {
   priority    = 1
   group "grafana" {
     count = 1
-    volume "grafana" {
-      type      = "host"
-      read_only = false
-      source    = "grafana-cosmo"
-    }
-    // volume "grafana" {
-    //   type            = "csi"
-    //   read_only       = false
-    //   source          = "grafana"
-    //   access_mode     = "single-node-writer"
-    //   attachment_mode = "file-system"
-    // }
     network {
       mode = "bridge"
       dns {
@@ -26,10 +14,6 @@ job "grafana" {
           "10.10.1.1",
         ]
       }
-      port "http" {
-        to           = 3000
-        host_network = "wg-mesh"
-      }
     }
 
     restart {
@@ -39,11 +23,53 @@ job "grafana" {
       mode     = "delay"
     }
 
+    service {
+      name = "grafana"
+      port = "3000"
+
+      connect {
+        sidecar_service {
+          proxy {
+            upstreams {
+              destination_name = "roach-db"
+              local_bind_port  = 5432
+            }
+          }
+        }
+      }
+
+      // check {
+      //   expose = true
+      //   name     = "alive"
+      //   port     = "3000"
+      //   type     = "http"
+      //   path     = "/api/health"
+      //   interval = "20s"
+      //   timeout  = "5s"
+      //   check_restart {
+      //     limit           = 3
+      //     grace           = "30s"
+      //     ignore_warnings = false
+      //   }
+      // }
+
+      tags = [
+        "traefik.enable=true",
+        "traefik.consulcatalog.connect=true",
+        "traefik.http.routers.${NOMAD_GROUP_NAME}.entrypoints=web",
+        "traefik.http.routers.${NOMAD_GROUP_NAME}.middlewares=vpn-whitelist@file",
+      ]
+
+    }
     task "grafana" {
+      vault {
+        env = true
+      }
       driver = "docker"
       config {
-        image = "grafana/grafana:10.1.5"
+        image = "grafana/grafana:10.4.1"
         ports = ["http"]
+        args  = ["--config", "/local/config.ini"]
       }
       user = "root:root"
       env = {
@@ -55,37 +81,48 @@ job "grafana" {
         "GF_SERVER_SERVE_FROM_SUB_PATH" = true
         "GF_SECURITY_ALLOW_EMBEDDING"   = true
         "GF_FEATURE_TOGGLES_ENABLE"     = "traceToMetrics logsExploreTableVisualisation"
-
       }
-      volume_mount {
-        volume      = "grafana"
-        destination = "/var/lib/grafana"
-        read_only   = false
+
+      template {
+        change_mode = "restart"
+        destination = "local/config.ini"
+
+        data = <<EOH
+          [database]
+            type = "postgres"
+            host = "localhost:5432"
+            user = "grafana"
+            ssl_mode = "verify-full"
+            ssl_sni = "roach-db.traefik"
+            servert_cert_name = "cockroachdb-2023-mar-20.roach-db.traefik"
+            ca_cert_path = "/secrets/ca.crt"
+            client_key_path = "/secrets/client.grafana.key"
+            client_cert_path = "/secrets/client.grafana.crt"
+        EOH
       }
-      service {
-        name     = "grafana"
-        provider = "nomad"
-        port     = "http"
-
-        check {
-          name     = "alive"
-          port     = "http"
-          type     = "http"
-          path     = "/api/health"
-          interval = "20s"
-          timeout  = "5s"
-          check_restart {
-            limit           = 3
-            grace           = "30s"
-            ignore_warnings = false
-          }
-        }
-
-        tags = [
-          "traefik.enable=true",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=web",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=vpn-whitelist@file",
-        ]
+      template {
+        destination  = "/secrets/client.grafana.key"
+        change_mode   = "restart"
+        data = <<EOF
+{{with secret "secret/data/nomad/job/roach/users/grafana"}}{{.Data.data.key}}{{end}}
+        EOF
+        perms        = "0600"
+      }
+      template {
+        destination  = "/secrets/client.grafana.crt"
+        change_mode   = "restart"
+        data = <<EOF
+{{with secret "secret/data/nomad/job/roach/users/grafana"}}{{.Data.data.chain}}{{end}}
+        EOF
+        perms        = "0600"
+      }
+      template {
+        destination  = "/secrets/ca.crt"
+        change_mode   = "restart"
+        data = <<EOF
+{{with secret "secret/data/nomad/job/roach/users/grafana"}}{{.Data.data.ca}}{{end}}
+        EOF
+        perms        = "0600"
       }
     }
   }

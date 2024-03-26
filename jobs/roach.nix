@@ -1,8 +1,9 @@
 let
+  version = "latest-v23.1";
   cache = "80MB";
-  maxSqlMem = "${toString (mem / 2)}MB";
-  cpu = 210;
-  mem = 420;
+  maxSqlMem = "${toString (mem * 0.6)}MB";
+  cpu = 220;
+  mem = 500;
   rpcPort = 26257;
   webPort = 8080;
   sqlPort = 5432;
@@ -15,6 +16,24 @@ let
   advertise = "127.0.0.1";
   seconds = 1000000000;
   advertiseOf = node: "${advertise}:${toString binds.${node}}";
+  certsForUser = name: [
+    {
+      destPath = "/secrets/client.${name}.key";
+      changeMode = "restart";
+      embeddedTmpl = ''
+        {{with secret "secret/data/nomad/job/roach/users/${name}"}}{{.Data.data.key}}{{end}}
+      '';
+      perms = "0600";
+    }
+    {
+      destPath = "/secrets/client.${name}.crt";
+      changeMode = "restart";
+      embeddedTmpl = ''
+        {{with secret "secret/data/nomad/job/roach/users/${name}"}}{{.Data.data.chain}}{{end}}
+      '';
+      perms = "0600";
+    }
+  ];
   mkConfig = node: other1: other2: {
     name = "${node}-roach";
     count = 1;
@@ -123,7 +142,7 @@ let
       }];
       driver = "docker";
       config = {
-        image = "cockroachdb/cockroach:latest-v23.2";
+        image = "cockroachdb/cockroach:${version}";
         args = [
           "start"
           "--advertise-addr=${advertiseOf node}"
@@ -151,41 +170,25 @@ let
           destPath = "/secrets/ca.crt";
           changeMode = "restart";
           embeddedTmpl = ''
-          {{with secret "secret/data/nomad/job/roach/cert"}}{{.Data.data.ca}}{{end}}
+            {{with secret "secret/data/nomad/job/roach/cert"}}{{.Data.data.ca}}{{end}}
           '';
         }
         {
           destPath = "/secrets/node.crt";
           changeMode = "restart";
           embeddedTmpl = ''
-          {{with secret "secret/data/nomad/job/roach/cert"}}{{.Data.data.chain}}{{end}}
+            {{with secret "secret/data/nomad/job/roach/cert"}}{{.Data.data.chain}}{{end}}
           '';
         }
         {
           destPath = "/secrets/node.key";
           changeMode = "restart";
           embeddedTmpl = ''
-          {{with secret "secret/data/nomad/job/roach/cert"}}{{.Data.data.key}}{{end}}
+            {{with secret "secret/data/nomad/job/roach/cert"}}{{.Data.data.key}}{{end}}
           '';
           perms = "0600";
         }
-        {
-          destPath = "/secrets/client.root.key";
-          changeMode = "restart";
-          embeddedTmpl = ''
-          {{with secret "secret/data/nomad/job/roach/users/root"}}{{.Data.data.key}}{{end}}
-          '';
-          perms = "0600";
-        }
-        {
-          destPath = "/secrets/client.root.crt";
-          changeMode = "restart";
-          embeddedTmpl = ''
-          {{with secret "secret/data/nomad/job/roach/users/root"}}{{.Data.data.chain}}{{end}}
-          '';
-          perms = "0600";
-        }
-      ];
+      ] ++ builtins.concatLists (builtins.map certsForUser [ "root" "grafana" ]);
     }];
   };
 in
