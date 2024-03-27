@@ -14,6 +14,11 @@ resource "vault_pki_secret_backend_intermediate_cert_request" "workload-csr-requ
   common_name = "dcotta.eu Workloads Intermediate Authority"
 }
 
+resource "vault_pki_secret_backend_config_urls" "config" {
+  backend           = vault_mount.pki_workload_int.path
+  enable_templating = true
+}
+
 resource "vault_pki_secret_backend_root_sign_intermediate" "workload_intermediate" {
   backend     = vault_mount.pki.path
   common_name = "dcotta.eu workloads intermediate"

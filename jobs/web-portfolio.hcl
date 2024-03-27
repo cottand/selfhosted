@@ -14,7 +14,7 @@ job "web-portfolio" {
   }
 
   group "web-portfolio" {
-    count = 3
+    count = 4
     network {
       mode = "bridge"
       port "http" {}
