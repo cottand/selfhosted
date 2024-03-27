@@ -36,7 +36,7 @@ job "grafana" {
               local_bind_port  = 5432
             }
             upstreams {
-              destination_name = "mimir"
+              destination_name = "mimir-http"
               local_bind_port  = 8000
             }
           }

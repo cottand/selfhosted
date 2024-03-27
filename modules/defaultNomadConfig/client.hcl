@@ -64,8 +64,8 @@ vault {
   # specify one.
   default_identity {
     aud  = [ "vault.io" ]
-    env  = true
-    file = true
+    env  = false
+    file = false
     ttl  = "1h"
   }
 }
