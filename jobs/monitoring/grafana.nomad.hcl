@@ -14,6 +14,7 @@ job "grafana" {
           "10.10.1.1",
         ]
       }
+      port "healthz" { to = -1 }
     }
 
     restart {
@@ -34,24 +35,30 @@ job "grafana" {
               destination_name = "roach-db"
               local_bind_port  = 5432
             }
+            upstreams {
+              destination_name = "mimir"
+              local_bind_port  = 8000
+            }
           }
         }
       }
 
-      // check {
-      //   expose = true
-      //   name     = "alive"
-      //   port     = "3000"
-      //   type     = "http"
-      //   path     = "/api/health"
-      //   interval = "20s"
-      //   timeout  = "5s"
-      //   check_restart {
-      //     limit           = 3
-      //     grace           = "30s"
-      //     ignore_warnings = false
-      //   }
-      // }
+      check {
+        expose   = true
+        name     = "healthz"
+        port     = "healthz"
+        type     = "http"
+        path     = "/api/health"
+        interval = "20s"
+        timeout  = "5s"
+        check_restart {
+          limit           = 3
+          grace           = "30s"
+          ignore_warnings = false
+        }
+        task = "grafana"
+        // address_mode = "driver"
+      }
 
       tags = [
         "traefik.enable=true",
@@ -105,28 +112,28 @@ job "grafana" {
         EOH
       }
       template {
-        destination  = "/secrets/client.grafana.key"
-        change_mode   = "restart"
-        data = <<EOF
+        destination = "/secrets/client.grafana.key"
+        change_mode = "restart"
+        data        = <<EOF
 {{with secret "secret/data/nomad/job/roach/users/grafana"}}{{.Data.data.key}}{{end}}
         EOF
-        perms        = "0600"
+        perms       = "0600"
       }
       template {
-        destination  = "/secrets/client.grafana.crt"
-        change_mode   = "restart"
-        data = <<EOF
+        destination = "/secrets/client.grafana.crt"
+        change_mode = "restart"
+        data        = <<EOF
 {{with secret "secret/data/nomad/job/roach/users/grafana"}}{{.Data.data.chain}}{{end}}
         EOF
-        perms        = "0600"
+        perms       = "0600"
       }
       template {
-        destination  = "/secrets/ca.crt"
-        change_mode   = "restart"
-        data = <<EOF
+        destination = "/secrets/ca.crt"
+        change_mode = "restart"
+        data        = <<EOF
 {{with secret "secret/data/nomad/job/roach/users/grafana"}}{{.Data.data.ca}}{{end}}
         EOF
-        perms        = "0600"
+        perms       = "0600"
       }
     }
   }

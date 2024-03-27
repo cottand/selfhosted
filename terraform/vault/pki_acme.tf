@@ -1,3 +1,6 @@
+# see https://www.infralovers.com/blog/2023-10-16-hashicorp-vault-acme-terraform-configuration/
+#     https://developer.hashicorp.com/vault/api-docs/secret/pki#acme-certificate-issuance
+#     
 
 resource "vault_pki_secret_backend_config_cluster" "int-workload-config" {
   backend  = vault_mount.pki_workload_int.path

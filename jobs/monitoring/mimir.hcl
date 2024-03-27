@@ -1,3 +1,12 @@
+variable "ports" {
+  type = map(number)
+  default = {
+    http       = 5001
+    grpc       = 5002
+    memberlist = 7946
+  }
+}
+
 job "mimir" {
   datacenters = ["*"]
   type        = "service"
@@ -23,7 +32,8 @@ job "mimir" {
     }
     network {
       mode = "bridge"
-      port "http" {
+      port "healthz" {
+        to           = -1
         host_network = "wg-mesh"
       }
       port "memberlist" {
@@ -33,6 +43,41 @@ job "mimir" {
       port "grpc" {
         host_network = "wg-mesh"
       }
+    }
+    service {
+      connect {
+        sidecar_service {
+          proxy {}
+        }
+      }
+      name = "mimir-http"
+      port = "${var.ports.http}"
+      check {
+        name     = "healthz"
+        port     = "healthz"
+        type     = "http"
+        path     = "/ready"
+        interval = "20s"
+        timeout  = "5s"
+        check_restart {
+          limit           = 3
+          grace           = "120s"
+          ignore_warnings = false
+        }
+        expose = true
+      }
+      tags = [
+        "metrics",
+        "traefik.enable=true",
+        "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=vpn-whitelist@file",
+        "traefik.http.routers.${NOMAD_GROUP_NAME}.entrypoints=web, websecure",
+        "traefik.http.routers.${NOMAD_GROUP_NAME}.tls=true",
+        "traefik.http.routers.${NOMAD_GROUP_NAME}.tls.certresolver=dcotta-vault"
+      ]
+    }
+    service {
+      name = "mimir-memberlist"
+      port = "${var.ports.memberlist}"
     }
     task "mimir" {
       driver = "docker"
@@ -60,18 +105,12 @@ job "mimir" {
         # see https://github.com/grafana/mimir/discussions/3501#discussioncomment-4282204
               
 server:
-  http_listen_port: {{ env "NOMAD_PORT_http" }}
-  grpc_listen_port: {{ env "NOMAD_PORT_grpc" }}
+  http_listen_port: ${var.ports.http}
+  grpc_listen_port: ${var.ports.grpc}
 common:
   storage:
     backend: s3
     s3:
-      # {{ range nomadService "seaweedfs-filer-s3" }}
-      # endpoint: {{ .Address}}:{{ .Port }}
-      # {{ end }}
-      # insecure: true
-      # region: us-east
-      # bucket_name: mimir
       bucket_name: mimir-long-term
       endpoint: s3.us-east-005.backblazeb2.com
       region: us-east-005
@@ -139,35 +178,6 @@ EOH
         cpu        = 256
         memory     = 512
         memory_max = 1024
-      }
-      service {
-        name     = "mimir"
-        port     = "http"
-        provider = "nomad"
-        check {
-          name     = "mimir healthcheck"
-          port     = "http"
-          type     = "http"
-          path     = "/ready"
-          interval = "20s"
-          timeout  = "5s"
-          check_restart {
-            limit           = 3
-            grace           = "120s"
-            ignore_warnings = false
-          }
-        }
-        tags = [
-          "metrics",
-          "traefik.enable=true",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=web,websecure",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=vpn-whitelist@file",
-        ]
-      }
-      service {
-        name     = "mimir-memberlist"
-        port     = "memberlist"
-        provider = "nomad"
       }
     }
   }
