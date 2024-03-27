@@ -15,10 +15,7 @@ job "prometheus" {
           "10.10.4.1",
         ]
       }
-      port "http" {
-        to           = 9090
-        host_network = "wg-mesh"
-      }
+      port "health" { to = -1 }
     }
 
     constraint {
@@ -46,12 +43,41 @@ job "prometheus" {
       migrate = true
       sticky  = true
     }
+    service {
+      name = "prometheus"
+      port = "9090"
+
+      // check { // TODO HTTP CHECK
+      //   name     = "alive"
+      //   type     = "tcp"
+      //   interval = "10s"
+      //   timeout  = "2s"
+      // }
+      connect {
+        sidecar_service {
+          proxy {
+            upstreams {
+              destination_name = "mimir-http"
+              local_bind_port  = 8001
+            }
+          }
+        }
+      }
+      tags = [
+        "metrics",
+        "traefik.enable=true",
+        "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=web,websecure",
+        "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=vpn-whitelist@file",
+        "traefik.http.routers.${NOMAD_GROUP_NAME}.tls=true",
+        "traefik.http.routers.${NOMAD_GROUP_NAME}.tls.certresolver=dcotta-vault"
+      ]
+    }
 
     task "prometheus" {
-        vault {
-          role = "telemetry-ro"
-          env = true
-        }
+      vault {
+        role = "telemetry-ro"
+        env  = true
+      }
 
       template {
         change_mode = "restart"
@@ -136,7 +162,7 @@ scrape_configs:
       ]
 
 remote_write:
-- url: http://mimir.traefik/api/v1/push
+- url: http://localhost:8001/api/v1/push
   send_native_histograms: true
 EOH
       }
@@ -162,24 +188,6 @@ EOH
         ports = ["http"]
       }
 
-      service {
-        name     = "prometheus"
-        provider = "nomad"
-        port     = "http"
-
-        check {
-          name     = "alive"
-          type     = "tcp"
-          interval = "10s"
-          timeout  = "2s"
-        }
-        tags = [
-          "metrics",
-          "traefik.enable=true",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=web",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=vpn-whitelist@file",
-        ]
-      }
       resources {
         cpu        = 500
         memory     = 300
