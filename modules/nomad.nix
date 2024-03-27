@@ -47,6 +47,11 @@ in
       "nomad/config/client.hcl".text = (builtins.readFile ./defaultNomadConfig/client.hcl);
       "nomad/config/server.hcl".text = (builtins.readFile ./defaultNomadConfig/server.hcl);
       "nomad/config/extraSettings.hcl".text = cfg.extraSettingsText;
+
+      # necessary in order to copy files over to etc/ssl/certs (not symlink) so that volumes can mount these dirs
+      "ssl/certs/ca-certificates.crt".mode = "0644";
+      "ssl/certs/ca-bundle.crt".mode = "0644";
+      "pki/tls/certs/ca-bundle.crt".mode = "0644";
     };
 
 
@@ -91,7 +96,7 @@ in
       package = pkgs.nomad_1_7;
       enableDocker = true;
       dropPrivileges = false;
-      extraPackages = with pkgs; [ cni-plugins getent wget curl consul];
+      extraPackages = with pkgs; [ cni-plugins getent wget curl consul ];
       extraSettingsPlugins = [ pkgs.nomad-driver-podman ];
       extraSettingsPaths = [
         "/etc/nomad/config/server.hcl"
@@ -130,17 +135,18 @@ in
           verify_server_hostname = true;
 
         };
-        consul = if config.consulNode.enable then {
-          grpc_address = "127.0.0.1:${toString config.services.consul.extraConfig.ports.grpc_tls}";
-          grpc_ca_file = config.vaultSecrets."consul.ca.pem".path;
+        consul =
+          if config.consulNode.enable then {
+            grpc_address = "127.0.0.1:${toString config.services.consul.extraConfig.ports.grpc_tls}";
+            grpc_ca_file = config.vaultSecrets."consul.ca.pem".path;
 
-          ca_file = config.vaultSecrets."consul.ca.pem".path;
-          cert_file = config.vaultSecrets."consul.crt.pem".path;
-          key_file = config.vaultSecrets."consul.key.rsa".path;
-          address = "127.0.0.1:${toString config.services.consul.extraConfig.ports.https}";
-          ssl = true;
-          # share_ssl = true; default is true
-        } else null;
+            ca_file = config.vaultSecrets."consul.ca.pem".path;
+            cert_file = config.vaultSecrets."consul.crt.pem".path;
+            key_file = config.vaultSecrets."consul.key.rsa".path;
+            address = "127.0.0.1:${toString config.services.consul.extraConfig.ports.https}";
+            ssl = true;
+            # share_ssl = true; default is true
+          } else null;
       };
     };
   };

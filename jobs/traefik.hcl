@@ -41,6 +41,11 @@ job "traefik" {
       read_only       = false
       source          = "traefik"
     }
+    volume "ca-certificates" {
+      type = "host"
+      read_only = true
+      source = "ca-certificates"
+    }
     service {
       name     = "traefik-metrics"
       // provider = "nomad"
@@ -98,6 +103,12 @@ job "traefik" {
         volume      = "traefik"
         destination = "/etc/traefik-cert"
         read_only   = false
+      }
+      volume_mount {
+        volume      = "ca-certificates"
+        destination = "/etc/ssl/certs"
+        read_only   = true
+        propagation_mode="host-to-task"
       }
       config {
         image = "traefik:3.0.0-rc3"
@@ -225,6 +236,15 @@ EOF
   [certificatesResolvers.lets-encrypt.acme.httpChallenge]
     # let's encrypt has to be able to reach on this entrypoint for cert
    entryPoint = "web_public"
+
+
+[certificatesResolvers.dcotta-vault.acme]
+  email = "nico@dcotta.eu"
+  storage = "/etc/traefik-cert/acme-dcotta-vault.json"
+  caServer= "https://vault.mesh.dcotta.eu:8200/v1/pki_workload_int/acme/directory"
+  certificatesDuration = 720 # hours in a month
+  tlsChallenge = true
+
 
 [providers.consulCatalog]
   # The service name below should match the nomad/consul service above
