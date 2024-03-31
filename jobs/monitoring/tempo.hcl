@@ -1,3 +1,14 @@
+variable ports {
+  type = map(string)
+  default = {
+    http = 12346
+    grpc = 12347
+    otlp_grpc = 12348
+    jaeger_thrift_compact = 6831
+    jaeger_ingest = 6891
+  }
+}
+
 job "tempo" {
   datacenters = ["*"]
   type        = "service"
@@ -31,10 +42,7 @@ job "tempo" {
           "10.10.1.1",
         ]
       }
-      port "http" {
-        host_network = "wg-mesh"
-      }
-      port "grpc" {
+      port "metrics" {
         host_network = "wg-mesh"
       }
       port "otlp-grpc" {
@@ -51,6 +59,69 @@ job "tempo" {
         host_network = "wg-mesh"
       }
     }
+      service {
+        name     = "tempo-metrics"
+        port     = "${var.ports.http}"
+        check {
+          expose = true
+          name     = "tempo healthcheck"
+          port     = "metrics"
+          type     = "http"
+          path     = "/metrics"
+          interval = "20s"
+          timeout  = "5s"
+          check_restart {
+            limit           = 3
+            grace           = "120s"
+            ignore_warnings = false
+          }
+        }
+        meta {
+          metrics_port = "${NOMAD_PORT_http}"
+        }
+        connect {
+        sidecar_service {
+          proxy {}
+        }
+        }
+      }
+      service {
+        name     = "tempo-http"
+        port     = "${var.ports.http}"
+        tags = [
+        "traefik.consulcatalog.connect=true",
+          "traefik.enable=true",
+          "traefik.http.routers.${NOMAD_GROUP_NAME}.entrypoints=web,websecure",
+          "traefik.http.routers.${NOMAD_GROUP_NAME}.middlewares=vpn-whitelist@file",
+        "traefik.http.routers.${NOMAD_GROUP_NAME}.tls=true",
+        "traefik.http.routers.${NOMAD_GROUP_NAME}.tls.certresolver=dcotta-vault"
+        ]
+        connect {
+        sidecar_service {
+          proxy {
+            upstreams {
+              destination_name = "mimir-http"
+              local_bind_port  = 8001
+            }
+          }
+        }
+        }
+      }
+      service {
+        name     = "tempo-jaeger-thrift-compact"
+        port     = "jaeger-thrift-compact"
+        // provider = "nomad"
+      }
+      service {
+        name     = "tempo-jaeger-ingest"
+        port     = "jaeger-ingest"
+        // provider = "nomad"
+      }
+      service {
+        name     = "tempo-otlp-grpc"
+        port     = "otlp-grpc"
+        // provider = "nomad"
+      }
     task "tempo" {
       driver = "docker"
       user   = "root" // !! so it can access the container volume, must be user
@@ -62,21 +133,14 @@ job "tempo" {
           "-config.file",
           "local/tempo/local-config.yaml",
         ]
-        ports = [
-          "http",
-          "grpc",
-          "otlp-grpc",
-          "jaeger-ingest",
-          "jaeger-thrift-compact",
-        ]
       }
       template {
         destination = "local/tempo/local-config.yaml"
         data        = <<EOH
 auth_enabled: false
 server:
-  http_listen_port: {{ env "NOMAD_PORT_http" }}
-  grpc_listen_port: {{ env "NOMAD_PORT_grpc" }}
+  http_listen_port: ${var.ports.http}
+  grpc_listen_port: ${var.ports.grpc}
 
 distributor:
   # each of these has their separate config - see https://grafana.com/docs/tempo/latest/configuration/#distributor
@@ -109,7 +173,7 @@ metrics_generator:
   storage:
     path: /alloc/data/tempo/generator/wal
     remote_write:
-      - url: http://mimir.traefik/api/v1/push
+      - url: http://localhost:8001/api/v1/push
         send_exemplars: true
   
 storage:
@@ -128,45 +192,6 @@ EOH
         cpu        = 350
         memory     = 256
         memory_max = 1024
-      }
-      service {
-        name     = "tempo"
-        port     = "http"
-        provider = "nomad"
-        check {
-          name     = "tempo healthcheck"
-          port     = "http"
-          type     = "http"
-          path     = "/ready"
-          interval = "20s"
-          timeout  = "5s"
-          check_restart {
-            limit           = 3
-            grace           = "120s"
-            ignore_warnings = false
-          }
-        }
-        tags = [
-          "metrics",
-          "traefik.enable=true",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=web,websecure",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=vpn-whitelist@file",
-        ]
-      }
-      service {
-        name     = "tempo-jaeger-thrift-compact"
-        port     = "jaeger-thrift-compact"
-        provider = "nomad"
-      }
-      service {
-        name     = "tempo-jaeger-ingest"
-        port     = "jaeger-ingest"
-        provider = "nomad"
-      }
-      service {
-        name     = "tempo-otlp-grpc"
-        port     = "otlp-grpc"
-        provider = "nomad"
       }
     }
   }

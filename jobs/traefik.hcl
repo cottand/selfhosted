@@ -295,13 +295,11 @@ EOF
 [providers.file]
   filename = "/etc/traefik/dynamic/traefik-dynamic.toml"
 
-    {{ range nomadService "tempo-otlp-grpc" -}}
+    {{ range service "tempo-otlp-grpc" -}}
 
-    #[tracing]
-    #    [tracing.openTelemetry]
-    #    address = "{{ .Address }}:{{ .Port }}"
-    #    insecure = true
-    #        [tracing.openTelemetry.grpc]
+    [tracing]
+        otlp.grpc.endpoint = "{{ .Address }}:{{ .Port }}"
+        otlp.grpc.insecure = true
     {{ end -}}
 
 EOF
