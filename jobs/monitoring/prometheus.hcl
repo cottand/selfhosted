@@ -66,8 +66,8 @@ job "prometheus" {
       tags = [
         "metrics",
         "traefik.enable=true",
-        "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=web,websecure",
-        "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=vpn-whitelist@file",
+        "traefik.http.routers.${NOMAD_GROUP_NAME}.entrypoints=web,websecure",
+        "traefik.http.routers.${NOMAD_GROUP_NAME}.middlewares=vpn-whitelist@file",
         "traefik.http.routers.${NOMAD_GROUP_NAME}.tls=true",
         "traefik.http.routers.${NOMAD_GROUP_NAME}.tls.certresolver=dcotta-vault"
       ]
@@ -91,10 +91,74 @@ global:
 
 
 scrape_configs:
+  - job_name: 'consul_services'
+    # Labels assigned to all metrics scraped from the targets.
+    static_configs:
+      - labels: {'cluster': 'dcotta'}
+     
+    consul_sd_configs:
+    - server: 'https://{{ env "NOMAD_IP_health" }}:8501' # well known consul https port
+      tls_config:
+        insecure_skip_verify: true
+
+    relabel_configs:
+    # Only scrape services that have a metrics_port meta field.
+    - source_labels: [__meta_consul_service_metadata_metrics_port]
+      action: keep
+      regex: (.+)
+    
+    # Replace the port in the address with the one from the metrics_port meta field.
+    - source_labels: [__address__, __meta_consul_service_metadata_metrics_port]
+      regex: ([^:]+)(?::\d+)?;(\d+)
+      replacement: $${1}:$${2}
+      target_label: __address__
+
+    # Don't scrape -sidecar-proxy services that Consul sets up, otherwise we'll have duplicates.
+    - source_labels: [__meta_consul_service]
+      action: drop
+      regex: (.+)-sidecar-proxy
+
+    - source_labels: ['__meta_consul_service']
+      regex: '(.*)'
+      action: replace
+      target_label: service_name
+
+    - source_labels: ['__meta_consul_service_id']
+      action: replace
+      regex: '(.*)'
+      target_label: service_id
+
+    - source_labels: ['__meta_consul_address']
+      action: replace
+      regex: '(.*)'
+      target_label: node_ip
+
+    - source_labels: ['__meta_consul_node']
+      action: replace
+      regex: '(.*)'
+      target_label: node_id
+
+    - source_labels: [__meta_consul_service_metadata_external_source]
+      action: replace
+      regex: '(.*)'
+      target_label: service_source
+
+    # set metrics path to /metrics by default but override with meta=metrics_path
+    - target_label:  __metrics_path__
+      replacement: "/metrics"
+      action: replace
+    - source_labels: [__meta_consul_service_metadata_metrics_path]
+      regex: '(.+)'
+      target_label:  __metrics_path__
+      replacement: $1
+      action: replace
+    
+
   - job_name: 'nomad_metrics'
     # Labels assigned to all metrics scraped from the targets.
     static_configs:
       - labels: {'cluster': 'dcotta'}
+     
     nomad_sd_configs:
     - server: 'https://miki.mesh.dcotta.eu:4646'
       tls_config:
@@ -123,7 +187,7 @@ scrape_configs:
     - source_labels: ['__meta_nomad_node_id']
       action: replace
       regex: '(.*)'
-      target_label: nomad_node_id
+      target_label: node_id
 
   - job_name: 'nomad_sys_metrics'
     metrics_path: /v1/metrics
@@ -142,7 +206,7 @@ scrape_configs:
         'ari.mesh.dcotta.eu:4646',
         'xps2.mesh.dcotta.eu:4646',
         'miki.mesh.dcotta.eu:4646'
-        ]
+      ]
 
   - job_name: 'vault'
     metrics_path: "/v1/sys/metrics"
@@ -159,7 +223,24 @@ scrape_configs:
       'maco.mesh.dcotta.eu:8200',
       'cosmo.mesh.dcotta.eu:8200',
       'miki.mesh.dcotta.eu:8200',
-      ]
+    ]
+  - job_name: 'consul'
+    metrics_path: "/v1/agent/metrics"
+    scheme: https
+    params:
+      format: [ 'prometheus' ]
+    tls_config:
+     insecure_skip_verify: true
+     
+    static_configs:
+     - targets: [
+      'maco.mesh.dcotta.eu:8501',
+      'cosmo.mesh.dcotta.eu:8501',
+      'miki.mesh.dcotta.eu:8501',
+      'ari.mesh.dcotta.eu:8501',
+      'xps2.mesh.dcotta.eu:8501',
+    ]
+
 
 remote_write:
 - url: http://localhost:8001/api/v1/push

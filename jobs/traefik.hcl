@@ -1,3 +1,10 @@
+variable "ports" {
+  type = map(string)
+  default = {
+    metrics = 5001
+  }
+} 
+
 job "traefik" {
   group "traefik" {
     network {
@@ -35,6 +42,9 @@ job "traefik" {
         static       = 31934 # hardcoded so that prometheus can find it after restart
         host_network = "wg-mesh"
       }
+      dns {
+        servers = [ "10.10.2.1", "10.10.4.1" ]
+      }
     }
     volume "traefik" {
       type            = "host"
@@ -48,16 +58,23 @@ job "traefik" {
     }
     service {
       name     = "traefik-metrics"
-      // provider = "nomad"
-      port     = "metrics"
+      port     = "${var.ports.metrics}"
       tags     = ["metrics"]
-      // check {
-      //   name     = "alive"
-      //   type     = "tcp"
-      //   port     = "metrics"
-      //   interval = "20s"
-      //   timeout  = "2s"
-      // }
+      check {
+        expose   = true
+        name     = "metrics"
+        port     = "metrics"
+        type     = "http"
+        path     = "/metrics"
+        interval = "10s"
+        timeout  = "3s"
+      }
+      connect {
+        sidecar_service {}
+      }
+      meta {
+        metrics_port = "${NOMAD_HOST_PORT_metrics}"
+      }
     }
     service {
       name     = "traefik"
@@ -217,7 +234,7 @@ EOF
 
 
   [entryPoints.metrics]
-    address = ":{{ env "NOMAD_PORT_metrics" }}"
+    address = ":${var.ports.metrics}"
 
 [metrics]
   [metrics.prometheus]

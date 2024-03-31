@@ -60,10 +60,19 @@ in
             server = cfg.server;
             auto_encrypt.allow_tls = cfg.server && true;
 
+            telemetry = {
+              disable_hostname = true;
+              enable_host_metrics = true;
+              prometheus_retention_time = "1h";
+            };
 
-            # telemetry = {
-            #   statsite_address = "127.0.0.1:2180";
-            # };
+              # TODO FIX DNS!
+            ui_config = {
+              enabled = true;
+              # metrics_provider = "prometheus";
+              # metrics_proxy.base_url = "https://mimir-http.traefik/prometheus";
+              # metrics_proxy.path_allowlist = ["/prometheus/api/v1/query_range" "/prometheus/api/v1/query"];
+            };
 
             client_addr = ''{{ GetInterfaceIP "wg-mesh" }} {{ GetAllInterfaces | include "flags" "loopback" | join "address" " " }}'';
 
