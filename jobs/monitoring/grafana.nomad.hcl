@@ -39,6 +39,10 @@ job "grafana" {
               destination_name = "mimir-http"
               local_bind_port  = 8000
             }
+            upstreams {
+              destination_name = "tempo-http"
+              local_bind_port  = 8001
+            }
           }
         }
       }

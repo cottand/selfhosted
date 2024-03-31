@@ -91,6 +91,49 @@ global:
 
 
 scrape_configs:
+  - job_name: nomad_nodes
+    metrics_path: /v1/metrics
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    params:
+      format: ['prometheus']
+
+    static_configs:
+      - labels: {'cluster': 'dcotta'}
+
+    consul_sd_configs:
+    - server: 'https://{{ env "NOMAD_IP_health" }}:8501' # well known consul https port
+      tls_config:
+        insecure_skip_verify: true
+
+    relabel_configs:
+    # Only scrape nomad services
+    - source_labels: ['__meta_consul_service']
+      action: keep
+      regex: (nomad(.+)client)
+
+    - source_labels: ['__meta_consul_service']
+      regex: '(.*)'
+      action: replace
+      target_label: service_name
+
+    - source_labels: ['__meta_consul_service_id']
+      action: replace
+      regex: '(.*)'
+      target_label: service_id
+
+    - source_labels: ['__meta_consul_address']
+      action: replace
+      regex: '(.*)'
+      target_label: node_ip
+
+    - source_labels: ['__meta_consul_node']
+      action: replace
+      regex: '(.*)'
+      target_label: node_id
+
+
   - job_name: 'consul_services'
     # Labels assigned to all metrics scraped from the targets.
     static_configs:
@@ -189,24 +232,6 @@ scrape_configs:
       regex: '(.*)'
       target_label: node_id
 
-  - job_name: 'nomad_sys_metrics'
-    metrics_path: /v1/metrics
-    scheme: https
-    tls_config:
-      insecure_skip_verify: true
-    params:
-      format: ['prometheus']
-    static_configs:
-      - targets: [ 
-        'ziggy.mesh.dcotta.eu:4646',
-        'maco.mesh.dcotta.eu:4646',
-        'cosmo.mesh.dcotta.eu:4646',
-        'bianco.mesh.dcotta.eu:4646',
-        'elvis.mesh.dcotta.eu:4646',
-        'ari.mesh.dcotta.eu:4646',
-        'xps2.mesh.dcotta.eu:4646',
-        'miki.mesh.dcotta.eu:4646'
-      ]
 
   - job_name: 'vault'
     metrics_path: "/v1/sys/metrics"

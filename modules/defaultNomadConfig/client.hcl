@@ -69,3 +69,11 @@ vault {
     ttl  = "1h"
   }
 }
+
+consul {
+  address = "127.0.0.1:8501"
+  grpc_address = "127.0.0.1:8503"
+  checks_use_advertise = true
+  ssl = true
+  verify_ssl = false
+}
