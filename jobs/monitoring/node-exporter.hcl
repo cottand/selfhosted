@@ -3,11 +3,24 @@ job "node-exporter" {
   group "node-exporter" {
     network {
       mode = "bridge"
-      port "metrics" {
-        host_network = "wg-mesh"
-      }
+      port "metrics" {}
     }
 
+    service {
+      name     = "node-exporter-metrics"
+      port     = "metrics"
+      check {
+        name     = "metrics"
+        port     = "metrics"
+        type     = "http"
+        path     = "/metrics"
+        interval = "10s"
+        timeout  = "3s"
+      }
+      meta {
+        metrics_port = "${NOMAD_HOST_PORT_metrics}"
+      }
+    }
     task "node-exporter" {
       driver = "docker"
 
@@ -26,18 +39,6 @@ job "node-exporter" {
       resources {
         cpu    = 100
         memory = 60
-      }
-      service {
-        provider = "nomad"
-        name     = "node-exporter"
-        port     = "metrics"
-        tags     = ["metrics"]
-        check {
-          name     = "alive"
-          type     = "tcp"
-          interval = "10s"
-          timeout  = "2s"
-        }
       }
     }
   }

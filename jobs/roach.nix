@@ -1,8 +1,8 @@
 let
   version = "latest-v23.1";
-  cache = "80MB";
-  maxSqlMem = "${toString (mem * 0.6)}MB";
-  cpu = 220;
+  cache = "70MB";
+  maxSqlMem = "${toString (mem * 0.5)}MB";
+  cpu = 400;
   mem = 500;
   rpcPort = 26257;
   webPort = 8080;
@@ -12,6 +12,11 @@ let
     miki = 8001;
     maco = 8002;
     cosmo = 8003;
+  };
+  sidecarResources = with builtins; mapAttrs (_: ceil) {
+    cpu = 0.10 * cpu;
+    memoryMB = 0.15 * mem;
+    memoryMaxMB = 0.15 * mem + 100;
   };
   advertise = "127.0.0.1";
   seconds = 1000000000;
@@ -50,27 +55,19 @@ let
     };
     networks = [{
       mode = "bridge";
-      dynamicPorts = [
-        # {
-        #   hostNetwork = "wg-mesh";
-        #   label = "db";
-        # }
-        # {
-        #   hostNetwork = "wg-mesh";
-        #   label = "http";
-        # }
-        # {
-        #   hostNetwork = "wg-mesh";
-        #   label = "rpc";
-        #   to = 26257;
-        # }
-      ];
+      dynamicPorts = [{
+        label = "metrics";
+        to = -1;
+      }];
     }];
     services = [
       {
         name = "roach-db";
         portLabel = toString sqlPort;
-        connect.sidecarService = { };
+        connect = {
+          sidecarService = { };
+          sidecarTask.resources = sidecarResources;
+        };
         taskName = "roach";
         tags = [
           "traefik.enable=true"
@@ -84,7 +81,10 @@ let
         name = "roach-web";
         portLabel = toString webPort;
         taskName = "roach";
-        connect.sidecarService = { };
+        connect = {
+          sidecarService = { };
+          sidecarTask.resources = sidecarResources;
+        };
         tags = [
           "traefik.enable=true"
           "traefik.consulcatalog.connect=true"
@@ -93,35 +93,60 @@ let
           "traefik.tcp.routers.roach-web.rule=HostSNI(`roach-web.traefik`)"
         ];
       }
-      {
-        name = "roach-rpc";
-        # portLabel = "rpc";
-        portLabel = toString rpcPort;
-        connect.sidecarService = { };
-      }
+      # {
+      #   name = "roach-rpc";
+      #   # portLabel = "rpc";
+      #   portLabel = toString rpcPort;
+      #   connect.sidecarService = { };
+      # }
       {
         name = "${node}-roach-rpc";
         portLabel = toString rpcPort;
         taskName = "roach";
         connect = {
-          sidecarService = {
-            proxy = {
-              upstreams = [
-                {
-                  destinationName = "${other1}-roach-rpc";
-                  localBindPort = binds.${other1};
-                }
-                {
-                  destinationName = "${other2}-roach-rpc";
-                  localBindPort = binds.${other2};
-                }
-              ];
-            };
-          };
+          sidecarService.proxy.upstreams = [
+            {
+              destinationName = "${other1}-roach-rpc";
+              localBindPort = binds.${other1};
+            }
+            {
+              destinationName = "${other2}-roach-rpc";
+              localBindPort = binds.${other2};
+            }
+          ];
+          sidecarTask.resources = sidecarResources // { cpu = builtins.ceil (cpu * 0.30); };
         };
       }
+      rec {
+        name = "roach-metrics";
+        portLabel = toString webPort;
+        taskName = "roach";
+        connect = {
+          sidecarService.proxy.expose.paths = [{
+            path = meta.metrics_path;
+            protocol = "http";
+            localPathPort = webPort;
+            listenerPort = "metrics";
+          }];
+          sidecarTask.resources = sidecarResources;
+        };
+        meta = {
+          metrics_port = "\${NOMAD_HOST_PORT_metrics}";
+          metrics_path = "/_status/vars";
+        };
+        # checks = [{
+        #   expose = true;
+        #   name = "metrics";
+        #   portLabel = "metrics";
+        #   type = "http";
+        #   protocol = "https";
+        #   TLSSkipVerify = true;
+        #   path = meta.metrics_path;
+        #   interval = 10 * seconds;
+        #   timeout = 3 * seconds;
+        # }];
+      }
     ];
-
 
     tasks = [{
       name = "roach";
