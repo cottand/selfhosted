@@ -7,8 +7,8 @@ job "node-exporter" {
     }
 
     service {
-      name     = "node-exporter-metrics"
-      port     = "metrics"
+      name = "node-exporter-metrics"
+      port = "metrics"
       check {
         name     = "metrics"
         port     = "metrics"

@@ -47,7 +47,12 @@ job "mimir" {
     service {
       connect {
         sidecar_service {
-          proxy {}
+          proxy {
+            upstreams {
+              destination_name = "tempo-otlp-grpc-mesh"
+              local_bind_port  = 9001
+            }
+          }
         }
       }
       name = "mimir-http"

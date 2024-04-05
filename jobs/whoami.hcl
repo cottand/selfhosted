@@ -36,7 +36,6 @@ job "whoami" {
           "--port=${NOMAD_PORT_http}",
         ]
       }
-
     }
   }
 }
