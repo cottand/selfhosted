@@ -43,6 +43,10 @@ job "grafana" {
               destination_name = "tempo-http"
               local_bind_port  = 8001
             }
+            upstreams {
+              destination_name = "tempo-otlp-grpc-mesh"
+              local_bind_port  = 19199
+            }
           }
         }
       }

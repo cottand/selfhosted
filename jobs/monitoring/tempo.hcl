@@ -1,11 +1,11 @@
 variable ports {
   type = map(string)
   default = {
-    http = 12346
-    grpc = 12347
-    otlp_grpc = 12348
+    http                  = 12346
+    grpc                  = 12347
+    otlp_grpc             = 12348
     jaeger_thrift_compact = 6831
-    jaeger_ingest = 6891
+    jaeger_ingest         = 6891
   }
 }
 
@@ -46,6 +46,7 @@ job "tempo" {
         host_network = "wg-mesh"
       }
       port "otlp-grpc" {
+        to = var.ports.otlp_grpc
         host_network = "wg-mesh"
       }
       # see https://www.jaegertracing.io/docs/1.47/deployment/#collector
@@ -59,44 +60,44 @@ job "tempo" {
         host_network = "wg-mesh"
       }
     }
-      service {
-        name     = "tempo-metrics"
-        port     = "${var.ports.http}"
-        check {
-          expose = true
-          name     = "tempo healthcheck"
-          port     = "metrics"
-          type     = "http"
-          path     = "/metrics"
-          interval = "20s"
-          timeout  = "5s"
-          check_restart {
-            limit           = 3
-            grace           = "120s"
-            ignore_warnings = false
-          }
+    service {
+      name = "tempo-metrics"
+      port = "${var.ports.http}"
+      check {
+        expose   = true
+        name     = "tempo healthcheck"
+        port     = "metrics"
+        type     = "http"
+        path     = "/metrics"
+        interval = "20s"
+        timeout  = "5s"
+        check_restart {
+          limit           = 3
+          grace           = "120s"
+          ignore_warnings = false
         }
-        meta {
-          metrics_port = "${NOMAD_PORT_http}"
-        }
-        connect {
+      }
+      meta {
+        metrics_port = "${NOMAD_PORT_http}"
+      }
+      connect {
         sidecar_service {
           proxy {}
         }
-        }
       }
-      service {
-        name     = "tempo-http"
-        port     = "${var.ports.http}"
-        tags = [
+    }
+    service {
+      name = "tempo-http"
+      port = "${var.ports.http}"
+      tags = [
         "traefik.consulcatalog.connect=true",
-          "traefik.enable=true",
-          "traefik.http.routers.${NOMAD_GROUP_NAME}.entrypoints=web,websecure",
-          "traefik.http.routers.${NOMAD_GROUP_NAME}.middlewares=vpn-whitelist@file",
+        "traefik.enable=true",
+        "traefik.http.routers.${NOMAD_GROUP_NAME}.entrypoints=web,websecure",
+        "traefik.http.routers.${NOMAD_GROUP_NAME}.middlewares=vpn-whitelist@file",
         "traefik.http.routers.${NOMAD_GROUP_NAME}.tls=true",
         "traefik.http.routers.${NOMAD_GROUP_NAME}.tls.certresolver=dcotta-vault"
-        ]
-        connect {
+      ]
+      connect {
         sidecar_service {
           proxy {
             upstreams {
@@ -105,23 +106,33 @@ job "tempo" {
             }
           }
         }
+      }
+    }
+    service {
+      name = "tempo-jaeger-thrift-compact"
+      port = "jaeger-thrift-compact"
+      // provider = "nomad"
+    }
+    service {
+      name = "tempo-jaeger-ingest"
+      port = "jaeger-ingest"
+      // provider = "nomad"
+    }
+    service {
+      name = "tempo-otlp-grpc"
+      port = "otlp-grpc"
+      // provider = "nomad"
+    }
+    service {
+      name = "tempo-otlp-grpc-mesh"
+      port = var.ports.otlp_grpc
+      // provider = "nomad"
+      connect {
+        sidecar_service {
+          proxy {}
         }
       }
-      service {
-        name     = "tempo-jaeger-thrift-compact"
-        port     = "jaeger-thrift-compact"
-        // provider = "nomad"
-      }
-      service {
-        name     = "tempo-jaeger-ingest"
-        port     = "jaeger-ingest"
-        // provider = "nomad"
-      }
-      service {
-        name     = "tempo-otlp-grpc"
-        port     = "otlp-grpc"
-        // provider = "nomad"
-      }
+    }
     task "tempo" {
       driver = "docker"
       user   = "root" // !! so it can access the container volume, must be user

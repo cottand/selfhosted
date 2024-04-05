@@ -1,12 +1,14 @@
+let lib = import ./lib; in
 {
-  job."whoami" = {
+  job = lib.transformJob {
+    name = "whoami";
+    id = "whoami";
     group."whoami" = {
       network = {
         mode = "bridge";
         port."http" = { };
       };
-      service = {
-        name = "whoami";
+      service."whoami" = {
         tags = [
           "traefik.enable=true"
           "traefik.http.routers.whoami.rule=PathPrefix(`/whoami`)"
@@ -16,11 +18,21 @@
         ];
         port = "http";
         connect = {
-          sidecar_service = {
-            proxy = {
-              upstreams = {
-                destination_name = "web-portfolio-c";
-                local_bind_port = 8001;
+          sidecarService = {
+            proxy = let otlpPort = 9001; in {
+              upstreams = [
+                {
+                  destinationName = "web-portfolio-c";
+                  localBindPort = 8001;
+                }
+                {
+                  destinationName = "tempo-otlp-grpc-mesh";
+                  localBindPort = otlpPort;
+                }
+              ];
+              config = lib.mkEnvoyProxyConfig {
+                otlpService = "proxy-whoami";
+                otlpUpstreamPort = otlpPort;
               };
             };
           };

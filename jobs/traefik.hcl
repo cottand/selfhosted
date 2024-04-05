@@ -3,7 +3,7 @@ variable "ports" {
   default = {
     metrics = 5001
   }
-} 
+}
 
 job "traefik" {
   group "traefik" {
@@ -13,7 +13,7 @@ job "traefik" {
         // static = 53
       }
       port "http-ui" {
-        to = 8080
+        to           = 8080
         host_network = "wg-mesh"
       }
       port "http-mesh" {
@@ -25,17 +25,17 @@ job "traefik" {
         host_network = "wg-mesh"
       }
       port "http_public" {
-        static = 80
-        to     = 8000
+        static       = 80
+        to           = 8000
         host_network = "public"
       }
       port "https_public" {
-        static = 443
-        to     = 44300
+        static       = 443
+        to           = 44300
         host_network = "public"
       }
       port "sql" {
-        static=5432
+        static       = 5432
         host_network = "wg-mesh"
       }
       port "metrics" {
@@ -43,23 +43,23 @@ job "traefik" {
         host_network = "wg-mesh"
       }
       dns {
-        servers = [ "10.10.2.1", "10.10.4.1" ]
+        servers = ["10.10.2.1", "10.10.4.1"]
       }
     }
     volume "traefik" {
-      type            = "host"
-      read_only       = false
-      source          = "traefik"
+      type      = "host"
+      read_only = false
+      source    = "traefik"
     }
     volume "ca-certificates" {
-      type = "host"
+      type      = "host"
       read_only = true
-      source = "ca-certificates"
+      source    = "ca-certificates"
     }
     service {
-      name     = "traefik-metrics"
-      port     = "${var.ports.metrics}"
-      tags     = ["metrics"]
+      name = "traefik-metrics"
+      port = "${var.ports.metrics}"
+      tags = ["metrics"]
       check {
         expose   = true
         name     = "metrics"
@@ -77,7 +77,7 @@ job "traefik" {
       }
     }
     service {
-      name     = "traefik"
+      name = "traefik"
       // provider = "nomad"
       tags = [
         "traefik.enable=true",
@@ -122,10 +122,10 @@ job "traefik" {
         read_only   = false
       }
       volume_mount {
-        volume      = "ca-certificates"
-        destination = "/etc/ssl/certs"
-        read_only   = true
-        propagation_mode="host-to-task"
+        volume           = "ca-certificates"
+        destination      = "/etc/ssl/certs"
+        read_only        = true
+        propagation_mode = "host-to-task"
       }
       config {
         image = "traefik:3.0.0-rc3"
