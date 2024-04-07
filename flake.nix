@@ -137,6 +137,9 @@
         };
         x86DarwinPkgs = import nixpkgs { system = "x86_64-darwin"; config.allowUnfree = true; };
         roachdb = if system == "aarch64-darwin" then x86DarwinPkgs.cockroachdb else pkgs.cokcroachdb;
+        nixmad = pkgs.writeShellScriptBin "nixmad" ''
+          ${pkgs.nix}/bin/nix eval -f $1 --json --show-trace | ${pkgs.nomad}/bin/nomad run -json -
+        '';
         devPackages = with pkgs; [
           # roachdb
           terraform
@@ -147,6 +150,7 @@
           bitwarden-cli
           consul
           seaweedfs
+          nixmad
         ];
       in
       {

@@ -1,26 +1,48 @@
-{
-  otlpService,
-  otlpUpstreamPort,
+{ otlpService
+, otlpUpstreamPort
+, otlpUpstreamHost ? "127.0.0.1"
 }:
 {
   protocol = "http";
-  envoy_tracing_json = ''
-    {
-       "http": {
-                "name": "envoy.tracers.opentelemetry",
-                "typed_config": {
-                    "@type": "type.googleapis.com/envoy.config.trace.v3.OpenTelemetryConfig",
-                    "grpc_service": {
-                        "envoy_grpc": {
-                            "cluster_name": "opentelemetry_collector"
-                        },
-                        "timeout": "0.250s"
-                    },
-                    "service_name": "${otlpService}"
-                }
-            }
-    }
-  '';
+  #   envoy_tracing_json = ''
+  #     {
+  #        "http": {
+  #                 "name": "envoy.tracers.opentelemetry",
+  #                 "typed_config": {
+  #                     "@type": "type.googleapis.com/envoy.config.trace.v3.OpenTelemetryConfig",
+  #                     "grpc_service": {
+  #                         "envoy_grpc": {
+  #                             "cluster_name": "opentelemetry_collector"
+  #                         },
+  #                         "timeout": "0.250s"
+  #                     },
+  #                     "service_name": "${otlpService}"
+  #                 }
+  #             }
+  #     }
+  #   '';
+
+  envoy_listener_tracing_json = builtins.toJSON {
+    "@type" = "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager.Tracing";
+    custom_tags = [
+      { request_header = { default_value = ""; name = "x-custom-traceid"; }; tag = "custom_header"; }
+      { environment.name = "NOMAD_ALLOC_ID"; tag = "alloc_id"; }
+    ];
+    provider = {
+      name = "envoy.tracers.opentelemetry";
+      typed_config = {
+        "@type" = "type.googleapis.com/envoy.config.trace.v3.OpenTelemetryConfig";
+        grpc_service = {
+          envoy_grpc. cluster_name = "opentelemetry_collector";
+          timeout = "0.250s";
+        };
+        service_name = otlpService;
+      };
+    };
+    # spawn_upstream_span = true;
+  };
+
+
 
   envoy_extra_static_clusters_json = ''
     {
@@ -44,7 +66,7 @@
                             "endpoint": {
                                 "address": {
                                     "socket_address": {
-                                        "address": "127.0.0.1",
+                                        "address": "${otlpUpstreamHost}",
                                         "port_value": ${toString otlpUpstreamPort}
                                     }
                                 }
