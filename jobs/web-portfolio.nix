@@ -21,12 +21,14 @@ lib.mkJob "web-portfolio" {
     };
 
     service."web-portfolio" = {
-      connect.sidecar_service = {
+      connect.sidecarService = {
         proxy = let oltpPort = 9001; in {
-          upstreams = [{
-            destinationName = "tempo-otlp-grpc-mesh";
-            localBindPort = oltpPort;
-          }];
+          upstreams = [
+            {
+              destinationName = "tempo-otlp-grpc-mesh";
+              localBindPort = oltpPort;
+            }
+          ];
           config = lib.mkEnvoyProxyConfig {
             otlpService = "proxy-web-portfolio";
             otlpUpstreamPort = oltpPort;
@@ -53,23 +55,13 @@ lib.mkJob "web-portfolio" {
       env = {
         PORT = "\${NOMAD_PORT_http}";
         HOST = "127.0.0.1";
+        OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = "http://localhost:9001";
+        OTEL_SERVICE_NAME = "web-portfolio";
       };
-
 
       resources = {
         cpu = 70;
         memory = 60;
-      };
-      template = {
-        destination = "config/.env";
-        change_mode = "restart";
-        env = true;
-        data = ''
-          {{ range service "tempo-otlp-grpc" }}
-          OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://{{ .Address }}:{{ .Port }}
-          OTEL_SERVICE_NAME="web-portfolio"
-          {{ end }}
-        '';
       };
     };
   };

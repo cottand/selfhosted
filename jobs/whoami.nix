@@ -19,10 +19,10 @@ let lib = import ./lib; in
         port = "http";
         connect = {
           sidecarService = {
-            proxy = let otlpPort = 9001; in {
+            proxy = let otlpPort = 9101; in {
               upstreams = [
                 {
-                  destinationName = "web-portfolio-c";
+                  destinationName = "web-portfolio";
                   localBindPort = 8001;
                 }
                 {
