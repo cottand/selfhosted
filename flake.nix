@@ -1,13 +1,11 @@
 {
   inputs = {
-    nixpkgs23-11.url = "github:NixOS/nixpkgs/nixos-23.11";
-    # nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
     cottand = {
       url = "github:cottand/home-nix";
       inputs.nixpkgs-unstable.follows = "nixpkgs";
-      inputs.nixpkgs.follows = "nixpkgs23-11";
+      inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
     };
 
@@ -19,9 +17,9 @@
     utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { nixpkgs, nixpkgs23-11, cottand, home-manager, utils, ... }:
+  outputs = { nixpkgs, cottand, home-manager, utils, ... }:
     let
-      overlay = cottand.overlay;
+      overlays = [ (import ./overlay.nix) ];
       secretPath = "/Users/nico/dev/cottand/selfhosted/secret/";
     in
     {
@@ -50,7 +48,7 @@
             cottand.nixosModules.seaweedBinaryCache
             cottand.nixosModules.dcottaRootCa
           ];
-          nixpkgs.overlays = [ overlay ];
+          nixpkgs.overlays = overlays;
           nixpkgs.system = lib.mkDefault "x86_64-linux";
           networking.hostName = lib.mkDefault name;
 
@@ -130,16 +128,12 @@
       };
     } // (utils.lib.eachDefaultSystem (system:
       let
-        pkgs = import nixpkgs23-11 {
-          inherit system;
+        pkgs = import nixpkgs {
+          inherit system overlays;
           config.allowUnfree = true;
-          overlays = [ cottand.overlay ];
         };
         x86DarwinPkgs = import nixpkgs { system = "x86_64-darwin"; config.allowUnfree = true; };
         roachdb = if system == "aarch64-darwin" then x86DarwinPkgs.cockroachdb else pkgs.cokcroachdb;
-        nixmad = pkgs.writeShellScriptBin "nixmad" ''
-          ${pkgs.nix}/bin/nix eval -f $1 --json --show-trace | ${pkgs.nomad}/bin/nomad run -json -
-        '';
         devPackages = with pkgs; [
           # roachdb
           terraform
@@ -150,10 +144,14 @@
           bitwarden-cli
           consul
           seaweedfs
-          nixmad
+          self.packages.${system}.nixmad
         ];
       in
       {
+        packages.nixmad = pkgs.writeShellScriptBin "nixmad" ''
+            ${pkgs.nix}/bin/nix eval -f $1 --json --show-trace | ${pkgs.nomad}/bin/nomad run -json -
+          '';
+
         devShells.default = pkgs.mkShell {
           name = "selfhosted-dev";
           packages = devPackages;

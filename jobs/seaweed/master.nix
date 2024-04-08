@@ -1,4 +1,5 @@
 let
+  lib = import ./lib;
   version = "3.59";
   cpu = 100;
   mem = 200;
@@ -172,7 +173,7 @@ let
         {
           destPath = "local/master.toml";
           changeMode = "restart";
-          embeddedTmpl = ''
+          embeddedTmpl = builtins.to ''
             [master.maintenance]
             # periodically run these scripts are the same as running them from 'weed shell'
             scripts = """

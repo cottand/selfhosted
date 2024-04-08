@@ -4,28 +4,11 @@
 }:
 {
   protocol = "http";
-  #   envoy_tracing_json = ''
-  #     {
-  #        "http": {
-  #                 "name": "envoy.tracers.opentelemetry",
-  #                 "typed_config": {
-  #                     "@type": "type.googleapis.com/envoy.config.trace.v3.OpenTelemetryConfig",
-  #                     "grpc_service": {
-  #                         "envoy_grpc": {
-  #                             "cluster_name": "opentelemetry_collector"
-  #                         },
-  #                         "timeout": "0.250s"
-  #                     },
-  #                     "service_name": "${otlpService}"
-  #                 }
-  #             }
-  #     }
-  #   '';
 
   envoy_listener_tracing_json = builtins.toJSON {
     "@type" = "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager.Tracing";
     custom_tags = [
-      { request_header = { default_value = ""; name = "x-custom-traceid"; }; tag = "custom_header"; }
+      { request_header. default_value = ""; request_header.name = "x-custom-traceid"; tag = "custom_header"; }
       { environment.name = "NOMAD_ALLOC_ID"; tag = "alloc_id"; }
     ];
     provider = {
@@ -39,7 +22,7 @@
         service_name = otlpService;
       };
     };
-    # spawn_upstream_span = true;
+    spawn_upstream_span = true;
   };
 
 
