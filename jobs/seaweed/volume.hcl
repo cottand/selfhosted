@@ -49,40 +49,40 @@ job "seaweedfs-volume" {
       source    = "seaweedfs-volume"
     }
 
+    service {
+      name     = "seaweedfs-volume-http"
+      port     = "http"
+      check {
+        name     = "healthz"
+        port     = "http"
+        type     = "http"
+        path     = "/status"
+        interval = "20s"
+        timeout  = "5s"
+        check_restart {
+          limit           = 3
+          grace           = "120s"
+          ignore_warnings = false
+        }
+      }
+    }
+    service {
+      name     = "seaweedfs-volume-metrics"
+      port     = "metrics"
+      provider = "nomad"
+      tags     = ["metrics"]
+    }
+
+    service {
+      name     = "seaweedfs-volume-grpc"
+      port     = "grpc"
+      provider = "nomad"
+    }
+
 
     task "seaweed" {
       driver = "docker"
 
-      service {
-        name     = "seaweedfs-volume-http"
-        port     = "http"
-        provider = "nomad"
-        check {
-          name     = "healthz"
-          port     = "http"
-          type     = "http"
-          path     = "/status"
-          interval = "20s"
-          timeout  = "5s"
-          check_restart {
-            limit           = 3
-            grace           = "120s"
-            ignore_warnings = false
-          }
-        }
-      }
-      service {
-        name     = "seaweedfs-volume-metrics"
-        port     = "metrics"
-        provider = "nomad"
-        tags     = ["metrics"]
-      }
-
-      service {
-        name     = "seaweedfs-volume-grpc"
-        port     = "grpc"
-        provider = "nomad"
-      }
       volume_mount {
         volume      = "seaweedfs-volume"
         destination = "/data"
