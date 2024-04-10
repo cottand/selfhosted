@@ -50,7 +50,7 @@ let
     volumes."roach" = {
       name = "roach";
       type = "host";
-      read_only = false;
+      readOnly = false;
       source = "roach";
     };
     networks = [{

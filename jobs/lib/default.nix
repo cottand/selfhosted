@@ -55,11 +55,27 @@ rec {
       update = replaceIn setAsHclList "group" "taskGroups";
     }
     {
+      path = [ "group" "*" "service" "*" "connect" ];
+      update = replaceIn (id: id) "sidecar_service" "sidecarService";
+    }
+    {
+      path = [ "group" "*" "service" "*" "connect" "sidecarService" "proxy" ];
+      update = replaceIn (setAsHclListWithLabel "destinationName") "upstream" "upstreams";
+    }
+    {
+      path = [ "group" "*" "task" "*" "template" ];
+      update = replaceIn (id : id) "data" "embeddedTmpl";
+    }
+    {
+      path = [ "group" "*" "task" "*" ];
+      update = replaceIn (setAsHclListWithLabel "destPath") "template" "templates";
+    }
+    {
       path = [ "group" "*" "network" ];
       update = replaceIn (setAsHclListWithLabel "label") "port" "dynamicPorts";
     }
     {
-      path = [ "group" "*" "service" "*" ];
+      path = [ "group" "*" "service" "*"  ];
       update = replaceIn (id: id) "port" "portLabel";
     }
     {
@@ -73,10 +89,6 @@ rec {
     {
       path = [ "group" "*" ];
       update = replaceIn setAsHclList "task" "tasks";
-    }
-    {
-      path = [ "group" "*" "service" "*" "connect" ];
-      update = replaceIn (id: id) "sidecar_service" "sidecarService";
     }
     {
       path = [ "group" "*" ];
