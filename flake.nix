@@ -17,7 +17,7 @@
     utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { nixpkgs, cottand, home-manager, utils, ... }:
+  outputs = { self, nixpkgs, cottand, home-manager, utils, ... }:
     let
       overlays = [ (import ./overlay.nix) ];
       secretPath = "/Users/nico/dev/cottand/selfhosted/secret/";
