@@ -68,8 +68,6 @@ in
       "wg-quick-wg-mesh.service"
     ];
 
-
-
     vaultSecrets =
       let
         destDir = "/opt/nomad/tls";
@@ -111,7 +109,7 @@ in
 
           host_volume = mkIf cfg.enableSeaweedFsVolume {
             "seaweedfs-volume" = {
-              path = "${seaweedVolumePath}";
+              path = seaweedVolumePath;
               read_only = false;
             };
           };

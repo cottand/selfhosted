@@ -1,4 +1,4 @@
-{ pkgs, lib, config, name, meta, ... }:
+{ lib, config, name, meta, ... }:
 with lib;
 let
   cfg = config.consulNode;
