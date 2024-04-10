@@ -15,7 +15,7 @@ let
     memoryMB = 0.25 * mem;
     memoryMaxMB = 0.25 * mem + 100;
   };
-  seconds = 1000000000;
+
   advertiseOf = node: "localhost:${toString binds.${node}}";
 
   mkConfig = node: other1: other2:
@@ -52,7 +52,7 @@ let
             upstream."tempo-otlp-grpc-mesh".localBindPort = 4321;
 
             config = lib.mkEnvoyProxyConfig {
-              otlpService = "proxy-seaweed-http";
+              otlpService = "proxy-seaweed-master-http";
               otlpUpstreamPort = 4321;
             };
           };
@@ -95,7 +95,7 @@ let
             upstream."tempo-otlp-grpc-mesh".localBindPort = 4322;
 
             config = lib.mkEnvoyProxyConfig {
-              otlpService = "proxy-seaweed-${node}";
+              otlpService = "proxy-seaweed-master-${node}";
               otlpUpstreamPort = 4322;
               protocol = "grpc";
             };
@@ -143,8 +143,8 @@ let
           portLabel = "metrics";
           type = "http";
           path = meta.metrics_path;
-          interval = 10 * seconds;
-          timeout = 3 * seconds;
+          interval = 10 * lib.seconds;
+          timeout = 3 * lib.seconds;
         }];
       };
 
@@ -241,7 +241,7 @@ lib.mkJob "seaweed-master" {
   datacenters = [ "*" ];
   update = {
     maxParallel = 1;
-    stagger = 12 * seconds;
+    stagger = 12 * lib.seconds;
   };
   group."miki-seaweed-master" = mkConfig "miki" "maco" "cosmo";
   group."maco-seaweed-master" = mkConfig "maco" "cosmo" "miki";

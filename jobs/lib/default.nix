@@ -7,7 +7,9 @@ let
 in
 rec {
   seconds = 1000000000;
+
   localhost = "127.0.0.1";
+
   mkNetworks =
     { mode ? "bridge"
     , port ? { }
@@ -64,7 +66,7 @@ rec {
     }
     {
       path = [ "group" "*" "task" "*" "template" ];
-      update = replaceIn (id : id) "data" "embeddedTmpl";
+      update = replaceIn (id: id) "data" "embeddedTmpl";
     }
     {
       path = [ "group" "*" "task" "*" ];
@@ -75,8 +77,8 @@ rec {
       update = replaceIn (setAsHclListWithLabel "label") "port" "dynamicPorts";
     }
     {
-      path = [ "group" "*" "service" "*"  ];
-      update = replaceIn (id: id) "port" "portLabel";
+      path = [ "group" "*" "service" "*" ];
+      update = replaceIn (port: if !(builtins.isString port) then toString port else port) "port" "portLabel";
     }
     {
       path = [ "group" "*" "task" "*" ];
