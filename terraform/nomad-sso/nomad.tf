@@ -24,7 +24,7 @@ resource "nomad_acl_auth_method" "vault" {
   default        = true
   name           = "Vault"
   token_locality = "global"
-  max_token_ttl  = "30m0s"
+  max_token_ttl  = "120m0s"
   type           = "OIDC"
 
   config {
