@@ -140,7 +140,7 @@ lib.mkJob "seaweed-filer" {
           "-metricsPort=${toString ports.metrics}"
           "-webdav"
           "-webdav.collection="
-          "-webdav.replication=020"
+          "-webdav.replication=010"
           "-webdav.port=${toString ports.webdav}"
           "-s3"
           "-s3.port=${toString ports.s3}"

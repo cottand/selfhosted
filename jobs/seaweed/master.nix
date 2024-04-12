@@ -199,7 +199,7 @@ let
               scripts = """
                 lock
 
-                volume.configure.replication -collectionPattern immich-pictures -replication 200
+                volume.configure.replication -collectionPattern immich-pictures -replication 100
                     ec.encode -fullPercent=95 -quietFor=1h -collection immich-pictures
 
                 ec.rebuild -force

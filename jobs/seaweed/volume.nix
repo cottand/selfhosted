@@ -3,8 +3,8 @@ let
   lib = import ./../lib;
 
   ports = {
-    http = 7000;
-    grpc = 17000;
+    http = 7002;
+    grpc = 17002;
     metrics = 9001;
     oltp = 4321;
   };
@@ -44,7 +44,13 @@ lib.mkJob "seaweed-volume" {
 
     network = {
       mode = "bridge";
-      port."metrics".hostNetwork = "wg-mesh";
+      dynamicPorts = [
+        { label = "metrics"; }
+      ];
+      reservedPorts = [
+        { label = "http"; value = ports.http; }
+        { label = "grpc"; value = ports.grpc; }
+      ];
     };
 
     volume."seaweedfs-volume" = {
@@ -177,7 +183,7 @@ lib.mkJob "seaweed-volume" {
           "-max=0"
           "-dataCenter=\${node.datacenter}"
           "-rack=\${node.unique.name}"
-          "-ip=0.0.0.0"
+          "-ip=\${NOMAD_IP_http}"
           "-publicUrl=seaweed-volume-http.traefik/\${node.unique.name}"
           "-ip.bind=0.0.0.0"
           "-port=${toString ports.http}"
