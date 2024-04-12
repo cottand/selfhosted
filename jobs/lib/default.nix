@@ -72,10 +72,10 @@ rec {
       path = [ "group" "*" "task" "*" ];
       update = replaceIn (setAsHclListWithLabel "destPath") "template" "templates";
     }
-    {
-      path = [ "group" "*" "network" ];
-      update = replaceIn (setAsHclListWithLabel "label") "port" "dynamicPorts";
-    }
+    # {
+    #   path = [ "group" "*" "network" ];
+    #   update = replaceIn (setAsHclListWithLabel "label") "port" "reservedPorts";
+    # }
     {
       path = [ "group" "*" "service" "*" ];
       update = replaceIn (port: if !(builtins.isString port) then toString port else port) "port" "portLabel";
