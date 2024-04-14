@@ -1,6 +1,6 @@
 let
   lib = import ../lib;
-  version = "3.59";
+  version = "3.64";
   cpu = 100;
   mem = 200;
   advertise = "127.0.0.1";
