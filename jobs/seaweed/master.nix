@@ -3,8 +3,6 @@ let
   version = "3.64";
   cpu = 100;
   mem = 200;
-  advertise = "127.0.0.1";
-  bind = "127.0.0.1";
   binds = {
     miki = 9334;
     maco = 9335;
@@ -149,19 +147,6 @@ let
       };
 
       task."seaweed-master" = {
-        # vault.env = true;
-        # vault.changeMode = "restart";
-        # identities = [{
-        #   audience = [ "vault.io" ];
-        #   changeMode = "restart";
-        #   name = "vault_default";
-        #   TTL = 3600 * seconds;
-        # }];
-        # volumeMounts = [{
-        #   volume = "roach";
-        #   destination = "/roach";
-        #   readOnly = false;
-        # }];
         driver = "docker";
         config = {
           image = "chrislusf/seaweedfs:${version}";
