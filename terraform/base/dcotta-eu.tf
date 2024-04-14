@@ -1,4 +1,4 @@
-variable "zone_id" {
+variable "eu_zone_id" {
   type = string
 }
 
@@ -27,7 +27,7 @@ locals {
 ## Discovery
 
 module "node_miki" {
-  cf_zone_id  = var.zone_id
+  cf_zone_id  = var.eu_zone_id
   source      = "../modules/node"
   name        = "miki"
   ip4_mesh    = local.mesh_ip4.miki
@@ -37,7 +37,7 @@ module "node_miki" {
   is_web_ipv6 = true
 }
 module "node_maco" {
-  cf_zone_id  = var.zone_id
+  cf_zone_id  = var.eu_zone_id
   source      = "../modules/node"
   name        = "maco"
   ip4_mesh    = local.mesh_ip4.maco
@@ -47,7 +47,7 @@ module "node_maco" {
   is_web_ipv6 = true
 }
 module "node_cosmo" {
-  cf_zone_id  = var.zone_id
+  cf_zone_id  = var.eu_zone_id
   source      = "../modules/node"
   name        = "cosmo"
   ip4_mesh    = local.mesh_ip4.cosmo
@@ -58,7 +58,7 @@ module "node_cosmo" {
 }
 
 module "node_elvis" {
-  cf_zone_id  = var.zone_id
+  cf_zone_id  = var.eu_zone_id
   source      = "../modules/node"
   name        = "elvis"
   ip4_mesh    = local.mesh_ip4.elvis
@@ -68,7 +68,7 @@ module "node_elvis" {
   is_web_ipv6 = false
 }
 module "node_ari" {
-  cf_zone_id  = var.zone_id
+  cf_zone_id  = var.eu_zone_id
   source      = "../modules/node"
   name        = "ari"
   ip4_mesh    = local.mesh_ip4.ari
@@ -78,7 +78,7 @@ module "node_ari" {
   is_web_ipv6 = false
 }
 module "node_xps2" {
-  cf_zone_id  = var.zone_id
+  cf_zone_id  = var.eu_zone_id
   source      = "../modules/node"
   name        = "xps2"
   ip4_mesh    = local.mesh_ip4.xps2
@@ -88,7 +88,7 @@ module "node_xps2" {
   is_web_ipv6 = false
 }
 module "node_ziggy" {
-  cf_zone_id  = var.zone_id
+  cf_zone_id  = var.eu_zone_id
   source      = "../modules/node"
   name        = "ziggy"
   ip4_mesh    = local.mesh_ip4.ziggy
@@ -98,7 +98,7 @@ module "node_ziggy" {
   is_web_ipv6 = false
 }
 module "node_bianco" {
-  cf_zone_id  = var.zone_id
+  cf_zone_id  = var.eu_zone_id
   source      = "../modules/node"
   name        = "bianco"
   ip4_mesh    = local.mesh_ip4.bianco
@@ -114,7 +114,7 @@ module "node_bianco" {
 
 
 resource "cloudflare_record" "nico-cname-web" {
-  zone_id = var.zone_id
+  zone_id = var.eu_zone_id
   name    = "nico"
   type    = "CNAME"
   value   = "miki.vps.dcotta.eu"
@@ -123,7 +123,7 @@ resource "cloudflare_record" "nico-cname-web" {
   proxied = true
 }
 resource "cloudflare_record" "nico-test--cname-nico" {
-  zone_id = var.zone_id
+  zone_id = var.eu_zone_id
   name    = "test-nico"
   type    = "CNAME"
   value   = "miki.vps.dcotta.eu"
@@ -133,7 +133,7 @@ resource "cloudflare_record" "nico-test--cname-nico" {
 }
 
 resource "cloudflare_record" "lemmy-cname-web" {
-  zone_id = var.zone_id
+  zone_id = var.eu_zone_id
   name    = "r"
   type    = "CNAME"
   value   = "web.dcotta.eu"

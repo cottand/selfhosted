@@ -59,6 +59,7 @@ lib.mkJob "seaweed-filer" {
           };
         };
       };
+      connect.sidecarTask.resources = sidecarResources;
       # TODO implement http healthcheck https://github.com/seaweedfs/seaweedfs/pull/4899/files
       port = toString ports.http;
       check = {
@@ -77,7 +78,7 @@ lib.mkJob "seaweed-filer" {
         "traefik.http.routers.\${NOMAD_GROUP_NAME}-http.middlewares=mesh-whitelist@file"
       ];
     };
-    service."seaweedfs-filer-grpc" = {
+    service."seaweed-filer-grpc" = {
       port = toString ports.grpc;
       check = {
         name = "alive";
@@ -86,7 +87,7 @@ lib.mkJob "seaweed-filer" {
         interval = "20s";
         timeout = "2s";
       };
-      connect. sidecarService.proxy = {
+      connect.sidecarService.proxy = {
         upstream."seaweed-miki-master-grpc".localBindPort = 19334;
         upstream."seaweed-maco-master-grpc".localBindPort = 19335;
         upstream."seaweed-cosmo-master-grpc".localBindPort = 19336;
@@ -94,23 +95,14 @@ lib.mkJob "seaweed-filer" {
         config = lib.mkEnvoyProxyConfig {
           otlpService = "proxy-seaweed-filer-grpc";
           otlpUpstreamPort = otlpPort;
-          protocol = "grpc";
+          protocol = "tcp";
         };
       };
+      connect.sidecarTask.resources = sidecarResources;
     };
-    service."seaweedfs-webdav" = {
-      port = toString ports.webdav;
-      check = {
-        name = "alive";
-        type = "tcp";
-        port = "webdav";
-        interval = "20s";
-        timeout = "2s";
-      };
-    };
-    service."seaweedfs-filer-metrics" = {
+    service."seaweed-filer-metrics" = {
       connect.sidecarService.proxy = { };
-      sidecarTask.resources = sidecarResources;
+      connect.sidecarTask.resources = sidecarResources;
       port = toString ports.metrics;
       checks = [{
         expose = true;
@@ -124,7 +116,7 @@ lib.mkJob "seaweed-filer" {
       meta.metrics_port = "\${NOMAD_HOST_PORT_metrics}";
       meta.metrics_path = "/metrics";
     };
-    service. "seaweedfs-filer-s3" = {
+    service. "seaweed-filer-s3" = {
       port = toString ports.s3;
       tags = [
         "traefik.enable=true"
@@ -132,7 +124,6 @@ lib.mkJob "seaweed-filer" {
         "traefik.http.routers.\${NOMAD_GROUP_NAME}-s3.middlewares=vpn-whitelist@file"
       ];
     };
-
 
     task."seaweed-filer" = {
       driver = "docker";
@@ -146,19 +137,17 @@ lib.mkJob "seaweed-filer" {
           "-ip=${bind}"
           "-ip.bind=${bind}"
           (
-            with (builtins.mapAttrs (_: toString) upstreamPorts);
-            "-master=localhost:${cosmo},localhost:${miki},localhost:${maco}"
+            with lib;
+            "-master=${cosmo.ip}:9333,${miki.ip}:9333,${maco.ip}:9333"
           )
           "-port=${toString ports.http}"
           "-port.grpc=${toString ports.grpc}"
           "-metricsPort=${toString ports.metrics}"
-          # "-webdav"
-          # "-webdav.collection="
-          # "-webdav.replication=010"
-          # "-webdav.port=${toString ports.webdav}"
           "-s3"
           "-s3.port=${toString ports.s3}"
           "-s3.allowEmptyFolder=false"
+          "-dataCenter=\${node.datacenter}"
+          "-rack=\${node.unique.name}"
         ];
         mounts = [{
           type = "bind";
