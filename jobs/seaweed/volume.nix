@@ -14,8 +14,8 @@ let
     cosmo = 9336;
   };
 
-  cpu = 100;
-  mem = 200;
+  cpu = 120;
+  mem = 250;
   sidecarResources = with builtins; mapAttrs (_: ceil) {
     cpu = 0.20 * cpu;
     memoryMB = 0.25 * mem;
@@ -27,7 +27,7 @@ lib.mkJob "seaweed-volume" {
 
   update = {
     maxParallel = 1;
-    stagger = 15 * lib.seconds;
+    stagger = 20 * lib.seconds;
   };
   constraint = {
     attribute = "\${meta.seaweedfs_volume}";
@@ -35,10 +35,10 @@ lib.mkJob "seaweed-volume" {
   };
 
   group."seaweed-volume" = {
-    restart = {
-      interval = "10m";
+    restart = with lib; {
+      interval = 10 * minutes;
       attempts = 6;
-      delay = "15s";
+      delay = 15 * seconds;
       mode = "delay";
     };
 
@@ -79,7 +79,7 @@ lib.mkJob "seaweed-volume" {
         "traefik.http.routers.\${NOMAD_GROUP_NAME}-http.tls=true"
         "traefik.http.routers.\${NOMAD_GROUP_NAME}-http.tls.certresolver=dcotta-vault"
         "traefik.http.routers.\${NOMAD_GROUP_NAME}-http.middlewares=mesh-whitelist@file"
-        "traefik.http.routers.\${NOMAD_GROUP_NAME}-http.rule=Host(`seaweed-volume-http.traefik`)"
+        "traefik.http.routers.\${NOMAD_GROUP_NAME}-http.rule=Host(`seaweed-volume-http.traefik`) && PathPrefix(`/seaweedfsstatic`)"
 
         # node specific
         "traefik.http.routers.${router}.entrypoints=web,websecure"
@@ -92,9 +92,9 @@ lib.mkJob "seaweed-volume" {
         # redirect http -> https
         "traefik.http.middlewares.${router}-redirectscheme.redirectscheme.scheme=https"
         "traefik.http.middlewares.${router}-redirectscheme.redirectscheme.permanent=true"
-        "traefik.http.routers.${router}-http.entrypoints=web,websecure"
-        "traefik.http.routers.${router}-http.middlewares=mesh-whitelist@file,${router}-redirectscheme"
-        "traefik.http.routers.${router}-http.rule=Host(`seaweed-volume-http.traefik`) && PathPrefix(`/\${node.unique.name}`)"
+        "traefik.http.routers.${router}-redirect.entrypoints=web,websecure"
+        "traefik.http.routers.${router}-redirect.middlewares=mesh-whitelist@file,${router}-redirectscheme"
+        "traefik.http.routers.${router}-redirect.rule=Host(`seaweed-volume-http.traefik`) && PathPrefix(`/\${node.unique.name}`)"
 
       ];
       check = {
@@ -165,7 +165,7 @@ lib.mkJob "seaweed-volume" {
       resources = {
         cpu = cpu;
         memoryMB = mem;
-        memoryMaxMB = builtins.ceil (mem * 1.2);
+        memoryMaxMB = builtins.ceil (mem * 2.5);
       };
       config = {
         image = "chrislusf/seaweedfs:3.62";

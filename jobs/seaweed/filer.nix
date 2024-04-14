@@ -1,6 +1,6 @@
 let
   lib = import ../lib;
-  version = "3.59";
+  version = "3.64";
   cpu = 100;
   mem = 200;
   ports = {
@@ -39,7 +39,9 @@ lib.mkJob "seaweed-filer" {
 
       port."http" = { };
       port."grpc" = { };
-      port."metrics" = { };
+      dynamicPorts = [
+        { label = "metrics"; }
+      ];
     };
 
     service."seaweed-filer-http" = {
@@ -107,8 +109,20 @@ lib.mkJob "seaweed-filer" {
       };
     };
     service."seaweedfs-filer-metrics" = {
+      connect.sidecarService.proxy = { };
+      sidecarTask.resources = sidecarResources;
       port = toString ports.metrics;
-      # TODO check with nomad's metrics port
+      checks = [{
+        expose = true;
+        name = "metrics";
+        port = "metrics";
+        type = "http";
+        path = "/metrics";
+        interval = 10 * lib.seconds;
+        timeout = 3 * lib.seconds;
+      }];
+      meta.metrics_port = "\${NOMAD_HOST_PORT_metrics}";
+      meta.metrics_path = "/metrics";
     };
     service. "seaweedfs-filer-s3" = {
       port = toString ports.s3;
@@ -138,19 +152,19 @@ lib.mkJob "seaweed-filer" {
           "-port=${toString ports.http}"
           "-port.grpc=${toString ports.grpc}"
           "-metricsPort=${toString ports.metrics}"
-          "-webdav"
-          "-webdav.collection="
-          "-webdav.replication=010"
-          "-webdav.port=${toString ports.webdav}"
+          # "-webdav"
+          # "-webdav.collection="
+          # "-webdav.replication=010"
+          # "-webdav.port=${toString ports.webdav}"
           "-s3"
           "-s3.port=${toString ports.s3}"
           "-s3.allowEmptyFolder=false"
         ];
-      mounts = [{
-        type = "bind";
-        source = "local/filer.toml";
-        target = "/etc/seaweedfs/filer.toml";
-      }];
+        mounts = [{
+          type = "bind";
+          source = "local/filer.toml";
+          target = "/etc/seaweedfs/filer.toml";
+        }];
       };
 
       resources = {

@@ -7,6 +7,7 @@ let
 in
 rec {
   seconds = 1000000000;
+  minutes = 60 * seconds;
 
   localhost = "127.0.0.1";
 
@@ -71,6 +72,10 @@ rec {
     {
       path = [ "group" "*" "task" "*" ];
       update = replaceIn (setAsHclListWithLabel "destPath") "template" "templates";
+    }
+    {
+      path = [ "group" "*" ];
+      update = replaceIn (id: id) "restart" "restartPolicy";
     }
     # {
     #   path = [ "group" "*" "network" ];

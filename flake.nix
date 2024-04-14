@@ -144,6 +144,7 @@
           bitwarden-cli
           consul
           seaweedfs
+          wander
           self.packages.${system}.nixmad
         ];
       in
@@ -155,7 +156,7 @@
         devShells.default = pkgs.mkShell {
           name = "selfhosted-dev";
           packages = devPackages;
-          shellHook = "fish && exit";
+          shellHook = ''fish --init-command 'abbr -a weeds "nomad alloc exec -i -t -task seaweed-filer -job seaweed-filer weed shell -master localhost:9334" ' && exit'';
 
           NOMAD_ADDR = "https://10.10.4.1:4646";
           VAULT_ADDR = "https://10.10.2.1:8200";
