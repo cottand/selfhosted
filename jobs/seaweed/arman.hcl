@@ -21,14 +21,6 @@ job "seaweedfs-arman" {
 
     network {
       mode = "bridge"
-      dns {
-        servers = [
-          "10.10.0.1",
-          "10.10.2.1",
-          "10.10.1.1",
-          "10.10.4.1",
-        ]
-      }
 
       port "webdav" {
         host_network = "wg-mesh"
@@ -48,7 +40,7 @@ job "seaweedfs-arman" {
           "-replication=010",
           "-port=${NOMAD_PORT_webdav}",
           "-filer=seaweedfs-filer-http.nomad:8888.18888",
-          "-filer.path=/buckets/arman",
+          "-filer.path=/buckets",
           "-cacheDir=/alloc/data/",
           "-cacheCapacityMB=1024",
         ]

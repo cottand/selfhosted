@@ -113,6 +113,16 @@ rec {
   };
 
 
+  cosmo.ip = "10.10.0.1";
+  elvis.ip = "10.10.1.1";
+  maco.ip = "10.10.2.1";
+  ari.ip = "10.10.3.1";
+  miki.ip = "10.10.4.1";
+  ziggy.ip = "10.10.5.1";
+  xps2.ip = "10.10.6.1";
+  bianco.ip = "10.10.0.2";
+
+
   tests = {
     asHclList = check (setAsHclList { lol = { a = 1; }; }) [{ name = "lol"; a = 1; }];
 

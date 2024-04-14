@@ -150,8 +150,8 @@
       in
       {
         packages.nixmad = pkgs.writeShellScriptBin "nixmad" ''
-            ${pkgs.nix}/bin/nix eval -f $1 --json --show-trace | ${pkgs.nomad}/bin/nomad run -json -
-          '';
+          ${pkgs.nix}/bin/nix eval -f $1 --json --show-trace | ${pkgs.nomad}/bin/nomad run -json -
+        '';
 
         devShells.default = pkgs.mkShell {
           name = "selfhosted-dev";
