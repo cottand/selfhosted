@@ -53,7 +53,7 @@ lib.mkJob "seaweed-volume" {
       ];
     };
 
-    volume."seaweedfs-volume" = {
+    volumes."seaweed-volume" = {
       type = "host";
       readOnly = false;
       source = "seaweedfs-volume";
@@ -156,11 +156,11 @@ lib.mkJob "seaweed-volume" {
     task."seaweed" = {
       driver = "docker";
 
-      volumeMount = {
-        volume = "seaweedfs-volume";
-        destination = "/data";
+      volumeMounts = [{
+        volume = "seaweed-volume";
+        destination = "/volume";
         readOnly = false;
-      };
+      }];
 
       resources = {
         cpu = cpu;
@@ -178,8 +178,7 @@ lib.mkJob "seaweed-volume" {
             with (builtins.mapAttrs (_: toString) upstreamPorts);
             "-mserver=localhost:${cosmo},localhost:${miki},localhost:${maco}"
           )
-          "-dir=/data/\${node.unique.name}"
-          "-dir=/data"
+          "-dir=/volume"
           "-max=0"
           "-dataCenter=\${node.datacenter}"
           "-rack=\${node.unique.name}"

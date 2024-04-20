@@ -152,6 +152,11 @@ let
           # higher=less splitting of large files
           "-volumeSizeLimitMB=1000"
         ];
+        mounts = [{
+          type = "bind";
+          source = "local/master.toml";
+          target = "/etc/seaweedfs/master.toml";
+        }];
       };
       resources = {
         cpu = cpu;
@@ -168,8 +173,7 @@ let
             scripts = """
               lock
 
-              volume.configure.replication -collectionPattern immich-pictures -replication 100
-                  ec.encode -fullPercent=95 -quietFor=1h -collection immich-pictures
+              ec.encode -fullPercent=95 -quietFor=48h
 
               ec.rebuild -force
               ec.balance -force
@@ -195,11 +199,11 @@ let
             #   000 has only one copy, copy_1
             #   010 and 001 has two copies, copy_2
             #   011 has only 3 copies, copy_3
-            # [master.volume_growth]
-            # copy_1 = 7                # create 1 x 7 = 7 actual volumes
-            # copy_2 = 2                # create 2 x 6 = 12 actual volumes
-            # copy_3 = 3                # create 3 x 3 = 9 actual volumes
-            # copy_other = 1            # create n x 1 = n actual volumes
+            [master.volume_growth]
+            copy_1 = 7                # create 1 x 7 = 7 actual volumes
+            copy_2 = 2                # create 2 x 6 = 12 actual volumes
+            copy_3 = 3                # create 3 x 3 = 9 actual volumes
+            copy_other = 1            # create n x 1 = n actual volumes
           '';
         }
       ];
@@ -210,7 +214,10 @@ lib.mkJob "seaweed-master" {
   datacenters = [ "*" ];
   update = {
     maxParallel = 1;
-    stagger = 12 * lib.seconds;
+    autoRevert = true;
+    autoPromote = true;
+    canary = 1;
+    stagger = 10 * lib.seconds;
   };
   group."miki-seaweed-master" = mkConfig "miki" "maco" "cosmo";
   group."maco-seaweed-master" = mkConfig "maco" "cosmo" "miki";
