@@ -5,6 +5,10 @@
     extraSettingsText = ''
       datacenter = "dusseldorf-contabo"
       client {
+        host_volume "traefik" {
+          path      = "/traefik.d"
+          read_only = false
+        }
         meta {
           box = "maco"
           name = "maco"

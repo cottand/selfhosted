@@ -10,11 +10,6 @@ let
     s3 = 13210;
     webdav = 12311;
   };
-  upstreamPorts = {
-    miki = 9334;
-    maco = 9335;
-    cosmo = 9336;
-  };
   sidecarResources = with builtins; mapAttrs (_: ceil) {
     cpu = 0.20 * cpu;
     memoryMB = 0.25 * mem;
@@ -53,9 +48,9 @@ lib.mkJob "seaweed-filer" {
           upstream."roach-db".localBindPort = 5432;
 
           config = lib.mkEnvoyProxyConfig {
-            otlpService = "proxy-web-portfolio";
+            otlpService = "proxy-seaweed-filer-http";
             otlpUpstreamPort = otlpPort;
-            protocol = "tcp";
+            protocol = "http";
           };
         };
       };
@@ -88,10 +83,6 @@ lib.mkJob "seaweed-filer" {
         timeout = "2s";
       };
       connect.sidecarService.proxy = {
-        upstream."seaweed-miki-master-grpc".localBindPort = 19334;
-        upstream."seaweed-maco-master-grpc".localBindPort = 19335;
-        upstream."seaweed-cosmo-master-grpc".localBindPort = 19336;
-
         config = lib.mkEnvoyProxyConfig {
           otlpService = "proxy-seaweed-filer-grpc";
           otlpUpstreamPort = otlpPort;

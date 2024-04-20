@@ -8,7 +8,7 @@
   };
   # IPv6 address given by Contabo personal dashboard
   networking.interfaces.ens18.ipv6.addresses = [{
-    address = "2a02:c207:2172:6974::1";
+    address = "2a02:c206:2172:6974::1";
     prefixLength = 64;
   }];
 }

@@ -23,8 +23,7 @@ lib.mkJob "web-portfolio" {
     service."web-portfolio" = {
       connect.sidecarService = {
         proxy = let oltpPort = 9001; in {
-          upstreams = [
-            {
+          upstreams = [{
               destinationName = "tempo-otlp-grpc-mesh";
               localBindPort = oltpPort;
             }

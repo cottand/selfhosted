@@ -30,13 +30,13 @@ job "dns" {
 
     service {
       name     = "dns-metrics"
-      provider = "nomad"
       port     = "metrics"
-      tags     = ["metrics"]
+      meta {
+        metrics_port = "${NOMAD_HOST_PORT_metrics}"
+      }
     }
     service {
       name     = "dns"
-      provider = "nomad"
       port     = "dns"
       tags = [
         "traefik.enable=true",
@@ -47,7 +47,6 @@ job "dns" {
     }
     service {
       name     = "doh"
-      provider = "nomad"
       port     = "http_doh"
       tags = [
         "traefik.enable=false",

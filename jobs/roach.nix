@@ -2,8 +2,8 @@ let
   version = "latest-v23.1";
   cache = "70MB";
   maxSqlMem = "${toString (mem * 0.5)}MB";
-  cpu = 400;
-  mem = 500;
+  cpu = 500;
+  mem = 600;
   rpcPort = 26257;
   webPort = 8080;
   sqlPort = 5432;
@@ -15,8 +15,8 @@ let
   };
   sidecarResources = with builtins; mapAttrs (_: ceil) {
     cpu = 0.10 * cpu;
-    memoryMB = 0.15 * mem;
-    memoryMaxMB = 0.15 * mem + 100;
+    memoryMB = 0.10 * mem;
+    memoryMaxMB = 0.10 * mem + 100;
   };
   advertise = "127.0.0.1";
   seconds = 1000000000;
@@ -173,7 +173,6 @@ let
           "--advertise-addr=${advertiseOf node}"
           # peers must match constraint above
           "--join=${advertiseOf other1},${advertiseOf other2}"
-          # "--listen-addr=${bind}:\${NOMAD_PORT_rpc}"
           "--listen-addr=${bind}:${toString rpcPort}"
           "--cache=${cache}"
           "--max-sql-memory=${maxSqlMem}"
@@ -181,7 +180,6 @@ let
           "--advertise-sql-addr=roach-db.traefik:${toString sqlPort}"
           "--http-addr=${bind}:${toString webPort}"
           "--store=/roach"
-          # "--insecure"
           "--certs-dir=/secrets"
         ];
       };
