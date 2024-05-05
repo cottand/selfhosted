@@ -7,9 +7,9 @@ lib.mkJob "web-portfolio" {
   priority = 50;
 
   update = {
-    max_parallel = 1;
-    auto_revert = true;
-    auto_promote = true;
+    maxParallel = 1;
+    autoRevert = true;
+    autoPromote = true;
     canary = 1;
   };
 
@@ -17,17 +17,16 @@ lib.mkJob "web-portfolio" {
     count = 2;
     network = {
       mode = "bridge";
-      port."http" = { };
+      dynamicPorts = [{ label = "http"; }];
     };
 
     service."web-portfolio" = {
       connect.sidecarService = {
         proxy = let oltpPort = 9001; in {
           upstreams = [{
-              destinationName = "tempo-otlp-grpc-mesh";
-              localBindPort = oltpPort;
-            }
-          ];
+            destinationName = "tempo-otlp-grpc-mesh";
+            localBindPort = oltpPort;
+          }];
           config = lib.mkEnvoyProxyConfig {
             otlpService = "proxy-web-portfolio";
             otlpUpstreamPort = oltpPort;

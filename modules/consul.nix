@@ -37,8 +37,10 @@ in
 
 
         deployment.tags = mkIf cfg.server [ "consul-server" ];
-
-        systemd.services.consul.serviceConfig.Environment = "HOME=/root";
+        systemd.services.consul = {
+          serviceConfig.Environment = "HOME=/root";
+          after = [ "wg-quick-wg-mesh.service" ];
+        };
 
         services.consul = {
           dropPrivileges = false;
@@ -66,7 +68,7 @@ in
               prometheus_retention_time = "1h";
             };
 
-              # TODO FIX DNS!
+            # TODO FIX DNS!
             ui_config = {
               enabled = true;
               # metrics_provider = "prometheus";

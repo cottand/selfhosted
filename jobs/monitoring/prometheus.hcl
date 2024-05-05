@@ -47,12 +47,20 @@ job "prometheus" {
       name = "prometheus"
       port = "9090"
 
-      // check { // TODO HTTP CHECK
-      //   name     = "alive"
-      //   type     = "tcp"
-      //   interval = "10s"
-      //   timeout  = "2s"
-      // }
+      check {
+        expose   = true
+        name     = "healthy"
+        port     = "health"
+        type     = "http"
+        path     = "/-/healthy"
+        interval = "20s"
+        timeout  = "5s"
+        check_restart {
+          limit           = 3
+          grace           = "120s"
+          ignore_warnings = false
+        }
+      }
       connect {
         sidecar_service {
           proxy {
@@ -134,7 +142,70 @@ scrape_configs:
       target_label: node_id
 
 
+  - job_name: 'cockroachdb'
+    tls_config:
+      insecure_skip_verify: true
+    consul_sd_configs:
+    - server: 'https://{{ env "NOMAD_IP_health" }}:8501' # well known consul https port
+      tls_config:
+        insecure_skip_verify: true
+
+    relabel_configs:
+    # Only scrape services that have a metrics_port meta field.
+    - source_labels: [__meta_consul_service_metadata_metrics_port]
+      action: keep
+      regex: (.+)
+    
+    # Replace the port in the address with the one from the metrics_port meta field.
+    - source_labels: [__address__, __meta_consul_service_metadata_metrics_port]
+      regex: ([^:]+)(?::\d+)?;(\d+)
+      replacement: $${1}:$${2}
+      target_label: __address__
+
+    # Don't scrape -sidecar-proxy services that Consul sets up, otherwise we'll have duplicates.
+    - source_labels: [__meta_consul_service]
+      action: drop
+      regex: (.+)-sidecar-proxy
+
+    # Scrape only cokcorachdb
+    - source_labels: [__meta_consul_service]
+      action: keep
+      regex: roach-(.+)
+
+    - source_labels: ['__meta_consul_service']
+      regex: '(.*)'
+      action: replace
+      target_label: service_name
+
+    - source_labels: ['__meta_consul_service_id']
+      action: replace
+      regex: '(.*)'
+      target_label: service_id
+
+    - source_labels: ['__meta_consul_address']
+      action: replace
+      regex: '(.*)'
+      target_label: node_ip
+
+    - source_labels: ['__meta_consul_node']
+      action: replace
+      regex: '(.*)'
+      target_label: node_id
+
+    - source_labels: [__meta_consul_service_metadata_external_source]
+      action: replace
+      regex: '(.*)'
+      target_label: service_source
+
+    # set metrics path to /metrics by default but override with meta=metrics_path
+    - target_label:  __metrics_path__
+      replacement: "/metrics"
+      action: replace
+
+
   - job_name: 'consul_services'
+    tls_config:
+      insecure_skip_verify: true
     # Labels assigned to all metrics scraped from the targets.
     static_configs:
       - labels: {'cluster': 'dcotta'}

@@ -31,11 +31,12 @@ lib.mkJob "seaweed-filer" {
     count = 3;
     network = {
       mode = "bridge";
-
-      port."http" = { };
-      port."grpc" = { };
       dynamicPorts = [
         { label = "metrics"; }
+      ];
+      reservedPorts = [
+        { label = "http"; value = ports.http; }
+        { label = "grpc"; value = ports.grpc; }
       ];
     };
 
@@ -91,16 +92,16 @@ lib.mkJob "seaweed-filer" {
       };
       connect.sidecarTask.resources = sidecarResources;
     };
-    service."seaweed-filer-metrics" = {
+    service."seaweed-filer-metrics" = rec {
       connect.sidecarService.proxy = { };
       connect.sidecarTask.resources = sidecarResources;
       port = toString ports.metrics;
       checks = [{
         expose = true;
         name = "metrics";
-        port = "metrics";
+        portLabel = "metrics";
         type = "http";
-        path = "/metrics";
+        path = meta.metrics_path;
         interval = 10 * lib.seconds;
         timeout = 3 * lib.seconds;
       }];

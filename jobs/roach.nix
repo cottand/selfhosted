@@ -57,7 +57,7 @@ let
       mode = "bridge";
       dynamicPorts = [{
         label = "metrics";
-        to = -1;
+        to = webPort;
       }];
     }];
     services = [
@@ -117,34 +117,19 @@ let
           sidecarTask.resources = sidecarResources // { cpu = builtins.ceil (cpu * 0.30); };
         };
       }
-      rec {
+      {
         name = "roach-metrics";
         portLabel = toString webPort;
         taskName = "roach";
         connect = {
-          sidecarService.proxy.expose.paths = [{
-            path = meta.metrics_path;
-            protocol = "http";
-            localPathPort = webPort;
-            listenerPort = "metrics";
-          }];
+          sidecarService.proxy = { };
           sidecarTask.resources = sidecarResources;
         };
-        meta = {
-          metrics_port = "\${NOMAD_HOST_PORT_metrics}";
-          metrics_path = "/_status/vars";
-        };
-        # checks = [{
-        #   expose = true;
-        #   name = "metrics";
-        #   portLabel = "metrics";
-        #   type = "http";
-        #   protocol = "https";
-        #   TLSSkipVerify = true;
-        #   path = meta.metrics_path;
-        #   interval = 10 * seconds;
-        #   timeout = 3 * seconds;
-        # }];
+        # cockroachdb's metrics dashboards assume a job called cockroachdb, which is not our case :'c
+        # meta = {
+          # metrics_port = "\${NOMAD_HOST_PORT_metrics}";
+          # metrics_path = "/_status/vars";
+        # };
       }
     ];
 
@@ -178,7 +163,7 @@ let
           "--max-sql-memory=${maxSqlMem}"
           "--sql-addr=${bind}:${toString sqlPort}"
           "--advertise-sql-addr=roach-db.traefik:${toString sqlPort}"
-          "--http-addr=${bind}:${toString webPort}"
+          "--http-addr=0.0.0.0:${toString webPort}"
           "--store=/roach"
           "--certs-dir=/secrets"
         ];

@@ -4,6 +4,7 @@ job "seaweedfs-backup" {
 
   group "backup" {
     network {
+      mode = "bridge"
       dns {
         servers = [
           "10.10.0.1",
@@ -11,6 +12,7 @@ job "seaweedfs-backup" {
           "10.10.1.1",
         ]
       }
+      port "metrics" {}
     }
     count = 1
     restart {
@@ -18,6 +20,25 @@ job "seaweedfs-backup" {
       attempts = 5
       delay    = "15s"
       mode     = "delay"
+    }
+    service {
+        name = "seaweed-backup"
+        port = "metrics"
+
+        connect {
+          sidecar_service {
+            proxy {
+              upstreams {
+                destination_name = "seaweed-filer-http"
+                local_bind_port  = 8888
+              }
+              upstreams {
+                destination_name = "seaweed-filer-grpc"
+                local_bind_port  = 18888
+              }
+            }
+          }
+        }
     }
     task "backup" {
 
@@ -28,7 +49,7 @@ job "seaweedfs-backup" {
         args = [
           "-logtostderr",
           "filer.backup",
-          "-filer=seaweedfs-filer-http.nomad:8888",
+          "-filer=localhost:8888.18888",
         ]
         mount {
           type   = "bind"
@@ -49,10 +70,20 @@ bucket = "{{ .bucketName }}"
 endpoint = "https://{{ .endpoint }}"
 {{ end }}
 region = "us-east-005"
-directory = "/snapshot/"    # destination directory - snapshot := non incremental
+directory = "/snapshot2/"    # destination directory - snapshot := non incremental
 is_incremental = false 
 EOF
       }
+      // template {
+      //   destination = "env"
+      //   change_mode = "restart"
+      //   env = true
+      //   data = <<-EOF
+      //   {{ range $i, $s := service "seaweed-filer-http" }}
+      //   FILER_ADDR="{{ .Address }}:{{ .Port }}"
+      //   {{ end }}
+      //   EOF
+      // }
       resources {
         cpu    = 150
         memory = 120

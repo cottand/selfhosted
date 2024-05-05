@@ -39,6 +39,7 @@ lib.mkJob "seaweed-webdav" {
           };
         };
       };
+      connect.sidecarTask.resources = sidecarResources;
       # TODO implement http healthcheck https://github.com/seaweedfs/seaweedfs/pull/4899/files
       port = ports.webdav;
       tags = [
