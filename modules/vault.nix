@@ -15,7 +15,10 @@ in
 
   config = mkIf cfg.enable {
     deployment.tags = [ "vault-server" ];
-    security.pki.certificateFiles = [ ./../certs/root_2023_ca.crt ];
+    security.pki.certificateFiles = [ 
+      ./../certs/root_2023_ca.crt
+      ./../certs/root_2024_ca.crt
+       ];
     systemd.tmpfiles.rules = [ "d /vault/data 1777 root root -" ];
     services.vault = {
       enable = true;

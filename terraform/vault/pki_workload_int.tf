@@ -25,7 +25,7 @@ resource "vault_pki_secret_backend_root_sign_intermediate" "workload_intermediat
   csr         = vault_pki_secret_backend_intermediate_cert_request.workload-csr-request.csr
   format      = "pem_bundle"
   ttl         = 75480000
-  issuer_ref  = vault_pki_secret_backend_root_cert.root_2023.issuer_id
+  issuer_ref  = vault_pki_secret_backend_root_cert.root_2024.issuer_id
 }
 
 # step 2.5
