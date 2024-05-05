@@ -1,6 +1,7 @@
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs-master.url = "github:nixos/nixpkgs";
 
     cottand = {
       url = "github:cottand/home-nix";
@@ -17,9 +18,12 @@
     utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, cottand, home-manager, utils, ... }:
+  outputs = { self, nixpkgs, cottand, home-manager, utils, nixpkgs-master, ... }:
     let
-      overlays = [ (import ./overlay.nix) ];
+      newVault = final: prev: {
+        vault-bin = (import nixpkgs-master { system = prev.system; config.allowUnfree = true; }).vault-bin;
+      };
+      overlays = [ (import ./overlay.nix) newVault ];
       secretPath = "/Users/nico/dev/cottand/selfhosted/secret/";
     in
     {
@@ -48,8 +52,11 @@
             cottand.nixosModules.seaweedBinaryCache
             cottand.nixosModules.dcottaRootCa
           ];
-          nixpkgs.overlays = overlays;
-          nixpkgs.system = lib.mkDefault "x86_64-linux";
+          nixpkgs = {
+            inherit overlays;
+            system = lib.mkDefault "x86_64-linux";
+            config.allowUnfree = true;
+          };
           networking.hostName = lib.mkDefault name;
 
           deployment = {

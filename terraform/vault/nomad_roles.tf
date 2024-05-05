@@ -13,3 +13,7 @@ module "workload-role-workload-telemetry-ro" {
   vault_policy  = file("policies/telemetry-ro.hcl")
 }
 
+resource "vault_policy" "nomad-workload-roach" {
+  policy = file("policies/roach.hcl")
+  name   = "roach"
+}

@@ -17,9 +17,6 @@ resource "vault_pki_secret_backend_root_cert" "root_2024" {
   issuer_name = "root-2024"
 }
 
-# output "vault_pki_secret_backend_root_cert_root_2023" {
-#   value = vault_pki_secret_backend_root_cert.root_2023.certificate
-# } 
 resource "local_file" "root_2024_cert" {
   content  = vault_pki_secret_backend_root_cert.root_2024.certificate
   filename = "tmp/root_2024_ca.crt"

@@ -39,7 +39,7 @@ job "prometheus" {
     }
 
     ephemeral_disk {
-      size    = 256 # MB
+      size = 256 # MB
       migrate = true
       sticky  = true
     }
@@ -143,6 +143,8 @@ scrape_configs:
 
 
   - job_name: 'cockroachdb'
+    static_configs:
+      - labels: {'cluster': 'dcotta'}
     tls_config:
       insecure_skip_verify: true
     consul_sd_configs:
@@ -199,7 +201,7 @@ scrape_configs:
 
     # set metrics path to /metrics by default but override with meta=metrics_path
     - target_label:  __metrics_path__
-      replacement: "/metrics"
+      replacement: "/_status/vars"
       action: replace
 
 

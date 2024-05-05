@@ -9,7 +9,9 @@ resource "vault_pki_secret_backend_config_cluster" "int-workload-config" {
 }
 
 resource "vault_generic_endpoint" "pki_int_acme" {
-  depends_on           = [vault_pki_secret_backend_role.intermediate_role-acme, vault_pki_secret_backend_config_cluster.int-workload-config]
+  depends_on = [
+    vault_pki_secret_backend_role.intermediate_role-acme, vault_pki_secret_backend_config_cluster.int-workload-config
+  ]
   path                 = "${vault_mount.pki_workload_int.path}/config/acme"
   ignore_absent_fields = true
   disable_delete       = true
@@ -27,7 +29,7 @@ resource "vault_pki_secret_backend_role" "intermediate_role-acme" {
   issuer_ref       = vault_pki_secret_backend_issuer.workloads-intermediate.issuer_ref
   name             = "dcotta-dot-eu-acme"
   ttl              = 1292000
-  max_ttl          = 1292000 # 1 months ish
+  max_ttl = 1292000 # 1 months ish
   allow_ip_sans    = true
   key_type         = "rsa"
   key_bits         = 4096

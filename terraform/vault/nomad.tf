@@ -32,7 +32,7 @@ resource "vault_pki_secret_backend_role" "nomad_intermediate_role" {
 }
 
 # new cert
-resource "vault_pki_secret_backend_cert" "nomad-dcotta-dot-eu" {
+resource "vault_pki_secret_backend_cert" "nomad-dcotta" {
   issuer_ref  = vault_pki_secret_backend_issuer.intermediate.issuer_ref
   backend     = vault_pki_secret_backend_role.nomad_intermediate_role.backend
   name        = vault_pki_secret_backend_role.nomad_intermediate_role.name
@@ -55,18 +55,18 @@ resource "vault_pki_secret_backend_cert" "nomad-dcotta-dot-eu" {
 
 # Put new cert in KV
 resource "vault_kv_secret_v2" "nomad-mtls" {
-  depends_on = [vault_pki_secret_backend_cert.nomad-dcotta-dot-eu]
+  depends_on = [vault_pki_secret_backend_cert.nomad-dcotta]
   mount      = vault_mount.kv-secret.path
   name       = "/nomad/infra/tls"
   data_json  = jsonencode({
-    private_key = vault_pki_secret_backend_cert.nomad-dcotta-dot-eu.private_key
-    cert        = "${vault_pki_secret_backend_cert.nomad-dcotta-dot-eu.certificate}\n${vault_pki_secret_backend_cert.nomad-dcotta-dot-eu.ca_chain}"
+    private_key = vault_pki_secret_backend_cert.nomad-dcotta.private_key
+    cert        = "${vault_pki_secret_backend_cert.nomad-dcotta.certificate}\n${vault_pki_secret_backend_cert.nomad-dcotta.ca_chain}"
     ca          = vault_pki_secret_backend_root_cert.root_2024.certificate
   })
 }
 
 resource "vault_kv_secret_v2" "nomad-pub-cert" {
-  depends_on = [vault_pki_secret_backend_cert.nomad-dcotta-dot-eu]
+  depends_on = [vault_pki_secret_backend_cert.nomad-dcotta]
   mount      = vault_mount.kv-secret.path
   name       = "/nomad/infra/root_ca"
   data_json  = jsonencode({
@@ -82,6 +82,8 @@ resource "vault_jwt_auth_backend" "jwt-nomad" {
   jwt_supported_algs = ["RS256", "EdDSA"]
   default_role       = "nomad-workloads"
 }
+
+#
 
 # nomad-workloads role
 resource "vault_jwt_auth_backend_role" "nomad-workloads" {
