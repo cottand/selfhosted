@@ -1,5 +1,5 @@
 variable ports {
-  type = map(string)
+  type = map(number)
   default = {
     http                  = 12346
     grpc                  = 12347
@@ -69,8 +69,8 @@ job "tempo" {
         port     = "metrics"
         type     = "http"
         path     = "/metrics"
-        interval = "20s"
-        timeout  = "5s"
+        interval = "30s"
+        timeout  = "10s"
         check_restart {
           limit           = 3
           grace           = "120s"
