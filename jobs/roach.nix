@@ -126,10 +126,10 @@ let
           sidecarTask.resources = sidecarResources;
         };
         # cockroachdb's metrics dashboards assume a job called cockroachdb, which is not our case :'c
-        # meta = {
-          # metrics_port = "\${NOMAD_HOST_PORT_metrics}";
-          # metrics_path = "/_status/vars";
-        # };
+         meta = {
+           metrics_port = "\${NOMAD_HOST_PORT_metrics}";
+           metrics_path = "/_status/vars";
+         };
       }
     ];
 
@@ -140,7 +140,7 @@ let
       identities = [{
         audience = [ "vault.io" ];
         changeMode = "restart";
-        name = "vault_default";
+        name = "roach";
         TTL = 3600 * seconds;
         # "Env": true
         # "File": true,
@@ -205,7 +205,7 @@ in
     name = "roach";
     id = "roach";
     datacenters = [ "*" ];
-    update = {
+    updatePolicy = {
       maxParallel = 1;
       stagger = 12 * seconds;
     };

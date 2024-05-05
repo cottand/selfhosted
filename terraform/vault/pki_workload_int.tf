@@ -11,7 +11,7 @@ resource "vault_mount" "pki_workload_int" {
 resource "vault_pki_secret_backend_intermediate_cert_request" "workload-csr-request" {
   backend     = vault_mount.pki_workload_int.path
   type        = "internal"
-  common_name = "dcotta.eu Workloads Intermediate Authority"
+  common_name = "dcotta Workloads Intermediate Authority"
 }
 
 resource "vault_pki_secret_backend_config_urls" "config" {
@@ -21,7 +21,7 @@ resource "vault_pki_secret_backend_config_urls" "config" {
 
 resource "vault_pki_secret_backend_root_sign_intermediate" "workload_intermediate" {
   backend     = vault_mount.pki.path
-  common_name = "dcotta.eu workloads intermediate"
+  common_name = "dcotta2 workloads intermediate"
   csr         = vault_pki_secret_backend_intermediate_cert_request.workload-csr-request.csr
   format      = "pem_bundle"
   ttl         = 75480000
@@ -40,7 +40,7 @@ resource "vault_pki_secret_backend_intermediate_set_signed" "workload_intermedia
 resource "vault_pki_secret_backend_issuer" "workloads-intermediate" {
   backend     = vault_mount.pki_workload_int.path
   issuer_ref  = vault_pki_secret_backend_intermediate_set_signed.workload_intermediate.imported_issuers[0]
-  issuer_name = "dcotta-dot-eu-workloads-intermediate"
+  issuer_name = "dcotta-dot-workloads-intermediate"
 }
 
 

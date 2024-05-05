@@ -1,6 +1,11 @@
 { pkgs, lib, ... }:
 {
 
+  security.pki.certificateFiles = [
+    ./../certs/root_2024_ca.crt
+  ];
+
+
   nix = {
     settings.experimental-features = [ "nix-command" "flakes" ];
     gc.automatic = true;
@@ -26,7 +31,6 @@
     size = 1 * 1024;
   }];
 
-  nixpkgs.config.allowUnfree = true;
   services.openssh.enable = true;
   services.sshguard.enable = true;
   networking.enableIPv6 = true;

@@ -23,6 +23,6 @@ path "secret/data/nomad/infra/root_ca" {
 }
 
 # roach part for all workloads
-path "secret/data/nomad/job/roach/users/{{identity.entity.aliases.auth_jwt_f5c14826.metadata.nomad_job_id}}" {
+path "secret/data/nomad/job/roach/users/*" {
   capabilities = ["read"]
 }

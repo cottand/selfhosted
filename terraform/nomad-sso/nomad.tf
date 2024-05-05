@@ -28,6 +28,7 @@ resource "nomad_acl_auth_method" "vault" {
   type           = "OIDC"
 
   config {
+    signing_algs = ["RS256", "EdDSA"]
     oidc_discovery_url = "${var.vault_addr}/v1/identity/oidc/provider/${vault_identity_oidc_provider.provider.name}"
 
     oidc_client_id  = vault_identity_oidc_client.nomad.client_id
@@ -42,7 +43,7 @@ resource "nomad_acl_auth_method" "vault" {
     list_claim_mappings = {
       "groups" = "roles"
     }
-    
+
     oidc_client_secret = vault_identity_oidc_client.nomad.client_secret
 
     allowed_redirect_uris = [
@@ -60,6 +61,8 @@ resource "nomad_acl_auth_method" "vault" {
 #     -bind-type=role \
 #     -bind-name="engineering-read" \
 #     -selector="engineering in list.roles"
+
+
 resource "nomad_acl_binding_rule" "bind-admin" {
   # bind_name = nomad_acl_role.admin.name
   bind_name = ""
