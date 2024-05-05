@@ -1,9 +1,8 @@
-
 ## Secret KV
 
 resource "vault_mount" "kv-secret" {
-  path    = "secret"
-  type    = "kv"
+  path = "secret"
+  type = "kv"
   options = { version = "2" }
 
   description = "Key-vaule v2 for ad-hoc secrets"
@@ -20,7 +19,7 @@ resource "vault_kv_secret_backend_v2" "kv" {
 resource "vault_pki_secret_backend_role" "nomad_intermediate_role" {
   backend            = vault_mount.pki_int.path
   issuer_ref         = vault_pki_secret_backend_issuer.intermediate.issuer_ref
-  name               = "nomad-dcotta-dot-eu"
+  name               = "nomad-dcotta"
   max_ttl            = 25920000
   ttl                = 25920000
   allow_ip_sans      = true
@@ -59,10 +58,10 @@ resource "vault_kv_secret_v2" "nomad-mtls" {
   depends_on = [vault_pki_secret_backend_cert.nomad-dcotta-dot-eu]
   mount      = vault_mount.kv-secret.path
   name       = "/nomad/infra/tls"
-  data_json = jsonencode({
-    private_key = "${vault_pki_secret_backend_cert.nomad-dcotta-dot-eu.private_key}"
+  data_json  = jsonencode({
+    private_key = vault_pki_secret_backend_cert.nomad-dcotta-dot-eu.private_key
     cert        = "${vault_pki_secret_backend_cert.nomad-dcotta-dot-eu.certificate}\n${vault_pki_secret_backend_cert.nomad-dcotta-dot-eu.ca_chain}"
-    ca          = "${vault_pki_secret_backend_root_cert.root_2023.certificate}"
+    ca          = vault_pki_secret_backend_root_cert.root_2024.certificate
   })
 }
 
@@ -70,8 +69,8 @@ resource "vault_kv_secret_v2" "nomad-pub-cert" {
   depends_on = [vault_pki_secret_backend_cert.nomad-dcotta-dot-eu]
   mount      = vault_mount.kv-secret.path
   name       = "/nomad/infra/root_ca"
-  data_json = jsonencode({
-    value = "${vault_pki_secret_backend_root_cert.root_2023.certificate}"
+  data_json  = jsonencode({
+    value = vault_pki_secret_backend_root_cert.root_2024.certificate
   })
 }
 
@@ -91,13 +90,13 @@ resource "vault_jwt_auth_backend_role" "nomad-workloads" {
   bound_audiences         = ["vault.io"]
   user_claim              = "/nomad_job_id"
   user_claim_json_pointer = true
-  claim_mappings = tomap({
+  claim_mappings          = tomap({
     nomad_namespace = "nomad_namespace"
     nomad_job_id    = "nomad_job_id"
     nomad_task      = "nomad_task"
   })
   token_type             = "service"
-  token_policies         = ["nomad-workloads"] # matches policy in /nomad/vault_policy.nomad-workloads.name
+  token_policies = ["nomad-workloads"] # matches policy in /nomad/vault_policy.nomad-workloads.name
   token_period           = 30 * 60 * 60
   token_explicit_max_ttl = 0
   backend                = vault_jwt_auth_backend.jwt-nomad.path

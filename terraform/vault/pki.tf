@@ -9,35 +9,35 @@ resource "vault_mount" "pki" {
   max_lease_ttl_seconds     = 315360000
 }
 
-resource "vault_pki_secret_backend_root_cert" "root_2023" {
+resource "vault_pki_secret_backend_root_cert" "root_2024" {
   backend     = vault_mount.pki.path
   type        = "internal"
-  common_name = "dcotta.eu root"
+  common_name = "dcotta root"
   ttl         = 315360000
-  issuer_name = "root-2023"
+  issuer_name = "root-2024"
 }
 
 # output "vault_pki_secret_backend_root_cert_root_2023" {
 #   value = vault_pki_secret_backend_root_cert.root_2023.certificate
 # } 
-resource "local_file" "root_2023_cert" {
-  content  = vault_pki_secret_backend_root_cert.root_2023.certificate
-  filename = "tmp/root_2023_ca.crt"
+resource "local_file" "root_2024_cert" {
+  content  = vault_pki_secret_backend_root_cert.root_2024.certificate
+  filename = "tmp/root_2024_ca.crt"
 }
 
 # used to update name and properties
 # manages lifecycle of existing issuer
-resource "vault_pki_secret_backend_issuer" "root_2023" {
+resource "vault_pki_secret_backend_issuer" "root_2024" {
   backend                        = vault_mount.pki.path
-  issuer_ref                     = vault_pki_secret_backend_root_cert.root_2023.issuer_id
-  issuer_name                    = vault_pki_secret_backend_root_cert.root_2023.issuer_name
+  issuer_ref                     = vault_pki_secret_backend_root_cert.root_2024.issuer_id
+  issuer_name                    = vault_pki_secret_backend_root_cert.root_2024.issuer_name
   revocation_signature_algorithm = "SHA256WithRSA"
 }
 
 # vault write pki/roles/2023-servers allow_any_name=true
 resource "vault_pki_secret_backend_role" "role" {
   backend          = vault_mount.pki.path
-  name             = "2023-servers-role"
+  name             = "2024-servers-role"
   allow_ip_sans    = true
   key_type         = "rsa"
   key_bits         = 4096
@@ -59,13 +59,13 @@ resource "vault_mount" "pki_int" {
   description = "Intermediate PKI mount"
 
   default_lease_ttl_seconds = 86400
-  max_lease_ttl_seconds     = 157680000
+  max_lease_ttl_seconds     = 315360000
 }
 
 resource "vault_pki_secret_backend_intermediate_cert_request" "csr-request" {
   backend     = vault_mount.pki_int.path
   type        = "internal"
-  common_name = "dcotta.eu Intermediate Authority"
+  common_name = "dcotta Intermediate Authority"
 }
 
 resource "local_file" "csr_request_cert" {
@@ -75,11 +75,11 @@ resource "local_file" "csr_request_cert" {
 
 resource "vault_pki_secret_backend_root_sign_intermediate" "intermediate" {
   backend     = vault_mount.pki.path
-  common_name = "dcotta.eu mesh intermediate"
+  common_name = "dcotta mesh intermediate"
   csr         = vault_pki_secret_backend_intermediate_cert_request.csr-request.csr
   format      = "pem_bundle"
-  ttl         = 75480000
-  issuer_ref  = vault_pki_secret_backend_root_cert.root_2023.issuer_id
+  ttl         = 315360000
+  issuer_ref  = vault_pki_secret_backend_root_cert.root_2024.issuer_id
 }
 
 
@@ -100,22 +100,21 @@ resource "vault_pki_secret_backend_intermediate_set_signed" "intermediate" {
 resource "vault_pki_secret_backend_issuer" "intermediate" {
   backend     = vault_mount.pki_int.path
   issuer_ref  = vault_pki_secret_backend_intermediate_set_signed.intermediate.imported_issuers[0]
-  issuer_name = "dcotta-dot-eu-intermediate"
+  issuer_name = "dcotta-intermediate"
 }
-
 
 ## intermediate CA role ##
 
 resource "vault_pki_secret_backend_role" "intermediate_role" {
   backend          = vault_mount.pki_int.path
   issuer_ref       = vault_pki_secret_backend_issuer.intermediate.issuer_ref
-  name             = "dcotta-dot-eu"
+  name             = "dcotta-int"
   ttl              = 2596400
-  max_ttl          = 10592000 # 4 months ish
+  max_ttl          = 20592000 # 8 months ish
   allow_ip_sans    = true
   key_type         = "rsa"
   key_bits         = 4096
-  allowed_domains  = ["dcotta.eu"]
+  allowed_domains  = ["dcotta.eu", "dcotta.com"]
   allow_subdomains = true
 }
 
@@ -125,7 +124,7 @@ resource "vault_pki_secret_backend_cert" "dcotta-dot-eu2" {
   issuer_ref  = vault_pki_secret_backend_issuer.intermediate.issuer_ref
   backend     = vault_pki_secret_backend_role.intermediate_role.backend
   name        = vault_pki_secret_backend_role.intermediate_role.name
-  common_name = "vault-server-mar-03.mesh.dcotta.eu"
+  common_name = "vault-server-may-05-2.mesh.dcotta.eu"
 
   alt_names = ["vault.mesh.dcotta.eu"]
 
@@ -138,7 +137,8 @@ resource "vault_pki_secret_backend_cert" "dcotta-dot-eu2" {
     "10.10.5.1",
   ]
 
-  ttl    = 89400000
+  ttl    = 10592000
+  # ttl    = 89400000
   revoke = true
 }
 

@@ -50,6 +50,6 @@ resource "vault_kv_secret_v2" "consul-pub-cert" {
   data_json = jsonencode({
     key   = vault_pki_secret_backend_cert.server-dc1-consul.private_key
     chain = "${vault_pki_secret_backend_cert.server-dc1-consul.certificate}\n${vault_pki_secret_backend_cert.server-dc1-consul.ca_chain}"
-    ca    = vault_pki_secret_backend_root_cert.root_2023.certificate
+    ca    = vault_pki_secret_backend_root_cert.root_2024.certificate
   })
 }

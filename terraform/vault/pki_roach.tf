@@ -37,7 +37,7 @@ resource "vault_kv_secret_v2" "cockroachdb-cert" {
   data_json = jsonencode({
     key   = vault_pki_secret_backend_cert.cockroachdb.private_key
     chain = "${vault_pki_secret_backend_cert.cockroachdb.certificate}\n${vault_pki_secret_backend_cert.cockroachdb.ca_chain}"
-    ca    = vault_pki_secret_backend_root_cert.root_2023.certificate
+    ca    = vault_pki_secret_backend_root_cert.root_2024.certificate
   })
 }
 
@@ -73,7 +73,7 @@ resource "vault_kv_secret_v2" "cockroachdb-client-root" {
   data_json = jsonencode({
     key   = vault_pki_secret_backend_cert.cockroachdb-client-root.private_key
     chain = "${vault_pki_secret_backend_cert.cockroachdb-client-root.certificate}\n${vault_pki_secret_backend_cert.cockroachdb-client-root.ca_chain}"
-    ca    = vault_pki_secret_backend_root_cert.root_2023.certificate
+    ca    = vault_pki_secret_backend_root_cert.root_2024.certificate
   })
 }
 
@@ -93,6 +93,6 @@ resource "vault_kv_secret_v2" "cockroachdb-client-grafana" {
   data_json = jsonencode({
     key   = vault_pki_secret_backend_cert.cockroachdb-client-grafana.private_key
     chain = "${vault_pki_secret_backend_cert.cockroachdb-client-grafana.certificate}\n${vault_pki_secret_backend_cert.cockroachdb-client-grafana.ca_chain}"
-    ca    = vault_pki_secret_backend_root_cert.root_2023.certificate
+    ca    = vault_pki_secret_backend_root_cert.root_2024.certificate
   })
 }
