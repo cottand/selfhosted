@@ -39,7 +39,7 @@ job "traefik" {
         host_network = "wg-mesh"
       }
       port "metrics" {
-        static       = 31934 # hardcoded so that prometheus can find it after restart
+        static = 31934 # hardcoded so that prometheus can find it after restart
         host_network = "wg-mesh"
       }
       dns {
@@ -109,9 +109,7 @@ job "traefik" {
       }
     }
     task "traefik" {
-      identity {
-        env = true
-      }
+      vault {}
       driver = "docker"
       env = {
         "WG_HOST" = "web.vps.dcotta.eu"
@@ -128,7 +126,7 @@ job "traefik" {
         propagation_mode = "host-to-task"
       }
       config {
-        image = "traefik:3.0.0-rc3"
+        image = "traefik:3.0"
         # needs to be in host wireguard network so that it can reach other VPN members
         volumes = [
           "local/traefik.toml:/etc/traefik/traefik.toml",
@@ -140,7 +138,12 @@ job "traefik" {
         value     = "miki"
       }
       template {
+        destination = "local/traefik-dynamic.toml"
         data        = <<EOF
+[[tls.certificates]]
+  certFile = "/secrets/internal_cert/cert"
+  keyFile =  "/secrets/internal_cert/key"
+
 [http.middlewares]
     # Middleware that only allows requests after the authentication with credentials specified in usersFile
     [http.middlewares.auth.basicauth]
@@ -195,7 +198,6 @@ job "traefik" {
     [[tcp.services.consul.loadBalancer.servers]]
       address = "miki.mesh.dcotta.eu:8501"
 EOF
-        destination = "local/traefik-dynamic.toml"
         change_mode = "signal"
       }
 
@@ -276,7 +278,7 @@ EOF
   endpoint.tls.insecureSkipVerify = true # TODO add SAN for this IP!
   endpoint.datacenter = "dc1"
 
-  defaultRule = "Host(`{{"{{ .Name }}"}}.traefik`)"
+  defaultRule = "Host(`{{"{{ .Name }}"}}.traefik`) || Host(`{{"{{ .Name }}"}}.tfk.nd`)"
   
 
 
@@ -305,6 +307,24 @@ EOF
 EOF
         change_mode = "restart"
         destination = "local/traefik.toml"
+      }
+      template {
+        change_mode = "restart"
+        destination = "secrets/internal_cert/cert"
+        data        = <<EOF
+{{with secret "secret/data/nomad/job/traefik/internal-cert"}}
+{{.Data.data.chain}}
+{{end}}
+        EOF
+      }
+      template {
+        change_mode = "restart"
+        destination = "secrets/internal_cert/key"
+        data        = <<EOF
+{{with secret "secret/data/nomad/job/traefik/internal-cert"}}
+{{.Data.data.key}}
+{{end}}
+        EOF
       }
       identity { env = true }
       resources {

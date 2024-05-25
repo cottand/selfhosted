@@ -1,6 +1,6 @@
 let
   lib = import ./lib;
-  tag = "sha-2713046";
+  tag = "sha-5bccbc1";
 in
 lib.mkJob "web-portfolio" {
 
@@ -40,7 +40,14 @@ lib.mkJob "web-portfolio" {
         "traefik.http.routers.\${NOMAD_GROUP_NAME}.rule=Host(`nico.dcotta.eu`)"
         "traefik.http.routers.\${NOMAD_GROUP_NAME}.entrypoints=web, web_public, websecure, websecure_public"
         "traefik.http.routers.\${NOMAD_GROUP_NAME}.tls=true"
-        "traefik.http.routers.\${NOMAD_GROUP_NAME}.tls.certresolver=lets-encrypt"
+        "traefik.http.routers.\${NOMAD_GROUP_NAME}.middlewares=\${NOMAD_GROUP_NAME}-redir"
+        "traefik.http.middlewares.\${NOMAD_GROUP_NAME}-redir.redirectregex.regex=nico.dcotta.eu/(.*)"
+        "traefik.http.middlewares.\${NOMAD_GROUP_NAME}-redir.redirectregex.replacement=nico.dcotta.com/\${1}"
+        "traefik.http.middlewares.\${NOMAD_GROUP_NAME}-redir.redirectregex.permanent=true"
+
+        "traefik.http.routers.\${NOMAD_GROUP_NAME}-com.rule=Host(`nico.dcotta.com`)"
+        "traefik.http.routers.\${NOMAD_GROUP_NAME}-com.entrypoints=web, web_public, websecure, websecure_public"
+        "traefik.http.routers.\${NOMAD_GROUP_NAME}-com.tls=true"
       ];
       port = "http";
     };

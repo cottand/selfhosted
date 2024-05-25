@@ -49,10 +49,35 @@ resource "vault_pki_secret_backend_role" "intermediate_role-workloads" {
   issuer_ref       = vault_pki_secret_backend_issuer.workloads-intermediate.issuer_ref
   name             = "dcotta-dot-eu-workloads"
   ttl              = 1292000
-  max_ttl          = 1292000 # 1 month ish
+  max_ttl          = 12 * 1292000 # 1 month ish
   allow_ip_sans    = true
   key_type         = "rsa"
   key_bits         = 4096
-  allowed_domains  = ["dcotta.eu", "nomad", "traefik", "consul"]
+  allowed_domains  = ["dcotta.eu", "nomad", "traefik", "consul", "dcotta.com", "tfk.nd"]
+  allow_wildcard_certificates = true
   allow_subdomains = true
+}
+
+resource "vault_pki_secret_backend_cert" "traefik-internal-wildcard-cert" {
+  issuer_ref  = vault_pki_secret_backend_issuer.workloads-intermediate.issuer_ref
+  backend     = vault_mount.pki_workload_int.path
+  name        = vault_pki_secret_backend_role.intermediate_role-workloads.name
+  common_name = "wildcard-cert-05-24.traefik"
+
+  alt_names = [ "*.tfk.nd", "*.dcotta.com", "*.dcotta.eu"]
+
+  ttl    = 1 * 1292000 # 1 month ish
+  auto_renew = true
+  revoke = true
+}
+
+
+resource "vault_kv_secret_v2" "traefik-internal-wildcard-cert" {
+  mount = vault_mount.kv-secret.path
+  name  = "/nomad/job/traefik/internal-cert"
+  data_json = jsonencode({
+    key   = vault_pki_secret_backend_cert.traefik-internal-wildcard-cert.private_key
+    chain = "${vault_pki_secret_backend_cert.traefik-internal-wildcard-cert.certificate}\n${vault_pki_secret_backend_cert.traefik-internal-wildcard-cert.ca_chain}"
+    ca    = vault_pki_secret_backend_root_cert.root_2024.certificate
+  })
 }

@@ -62,7 +62,7 @@ job "dns" {
     task "leng-dns" {
       driver = "docker"
       config {
-        image = "ghcr.io/cottand/leng:sha-e6d236d"
+        image = "ghcr.io/cottand/leng:v1.5.2"
         args = [
           "--config", "/config.toml",
           "--update",
@@ -160,6 +160,7 @@ customdnsrecords = [
 
     {{- range services }}
     "{{ printf "%-45s %d  %10s %10s %s" (sprig_nospace (sprig_cat .Name ".traefik" )) $ttl "IN" "A" "10.10.4.1" }}",
+    "{{ printf "%-45s %d  %10s %10s %s" (sprig_nospace (sprig_cat .Name ".tfk.nd" )) $ttl "IN" "A" "10.10.4.1" }}",
     {{- end -}}
 
     {{- /* Iterate over lists and print everything */ -}}

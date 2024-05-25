@@ -76,7 +76,6 @@ job "grafana" {
 
         "traefik.http.routers.${NOMAD_GROUP_NAME}.entrypoints=web, websecure",
         "traefik.http.routers.${NOMAD_GROUP_NAME}.tls=true",
-        "traefik.http.routers.${NOMAD_GROUP_NAME}.tls.certresolver=dcotta-vault"
       ]
 
     }
