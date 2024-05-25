@@ -25,7 +25,7 @@
       };
     };
     # see https://github.com/hashicorp/consul/pull/20973
-    # spawn_upstream_span = true;
+#    spawn_upstream_span = true;
   };
 
 

@@ -2,12 +2,24 @@ variable "com_zone_id" {
   type = string
 }
 
-# resource "cloudflare_record" "dcotta-com-proton-txt" {
-#   zone_id = var.com_zone_id
-#   name    = "@"
-#   type    = "TXT"
-#   value   = "protonmail-verification=c7e23b185906de15c5d6db5d92e9647b97abbbc3"
-#   ttl     = 60
-#   comment = "tf managed"
-#   proxied = false
-# }
+
+module "node_miki_com" {
+  cf_zone_id  = var.com_zone_id
+  source      = "../modules/node"
+  name        = "miki"
+  ip4_mesh    = local.mesh_ip4.miki
+  ip4_pub     = var.pub_ip4.miki
+  ip6_pub     = var.pub_ip6.miki
+  is_web_ipv4 = true
+  is_web_ipv6 = true
+}
+
+resource "cloudflare_record" "nico-cname-web-com" {
+  zone_id = var.com_zone_id
+  name    = "nico"
+  type    = "CNAME"
+  value   = "miki.vps.dcotta.com"
+  ttl     = 1
+  comment = "tf managed"
+  proxied = true
+}
