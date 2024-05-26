@@ -201,7 +201,7 @@
                   ],
                   "targets": [
                      {
-                        "expr": "sort_desc(\n  cluster_namespace_deployment_reason:required_replicas:count{nomad_service=~\"$job\"}\n    > ignoring(reason) group_left\n  cluster_namespace_deployment:actual_replicas:count{nomad_service=~\"$job\"}\n)\n",
+                        "expr": "sort_desc(\n  cluster_namespace_deployment_reason:required_replicas:count{service_name=~\"$job\"}\n    > ignoring(reason) group_left\n  cluster_namespace_deployment:actual_replicas:count{service_name=~\"$job\"}\n)\n",
                         "format": "table",
                         "instant": true,
                         "intervalFactor": 2,
@@ -290,7 +290,7 @@
                "multi": true,
                "name": "job",
                "options": [ ],
-               "query": "label_values(cortex_build_info, nomad_service)",
+               "query": "label_values(cortex_build_info, service_name)",
                "refresh": 1,
                "regex": "",
                "sort": 1,

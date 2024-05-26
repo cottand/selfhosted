@@ -90,7 +90,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(cluster_namespace_nomad_service:cortex_distributor_received_samples:rate5m{nomad_service=~\"$job\"})",
+                        "expr": "sum(cluster_namespace_service_name:cortex_distributor_received_samples:rate5m{service_name=~\"$job\"})",
                         "format": "time_series",
                         "instant": true,
                         "intervalFactor": 2,
@@ -167,7 +167,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(cluster_namespace_nomad_service:cortex_distributor_received_exemplars:rate5m{nomad_service=~\"$job\"})",
+                        "expr": "sum(cluster_namespace_service_name:cortex_distributor_received_exemplars:rate5m{service_name=~\"$job\"})",
                         "format": "time_series",
                         "instant": true,
                         "intervalFactor": 2,
@@ -244,7 +244,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(cortex_ingester_memory_series{nomad_service=~\"$job\"}\n/ on(cluster, namespace) group_left\nmax by (cluster, namespace) (cortex_distributor_replication_factor{nomad_service=~\"$job\"}))\n",
+                        "expr": "sum(cortex_ingester_memory_series{service_name=~\"$job\"}\n/ on(cluster, namespace) group_left\nmax by (cluster, namespace) (cortex_distributor_replication_factor{service_name=~\"$job\"}))\n",
                         "format": "time_series",
                         "instant": true,
                         "intervalFactor": 2,
@@ -321,7 +321,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(cortex_ingester_tsdb_exemplar_exemplars_in_storage{nomad_service=~\"$job\"}\n/ on(cluster, namespace) group_left\nmax by (cluster, namespace) (cortex_distributor_replication_factor{nomad_service=~\"$job\"}))\n",
+                        "expr": "sum(cortex_ingester_tsdb_exemplar_exemplars_in_storage{service_name=~\"$job\"}\n/ on(cluster, namespace) group_left\nmax by (cluster, namespace) (cortex_distributor_replication_factor{service_name=~\"$job\"}))\n",
                         "format": "time_series",
                         "instant": true,
                         "intervalFactor": 2,
@@ -397,7 +397,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "count(count by(user) (cortex_ingester_active_series{nomad_service=~\"$job\"}))",
+                        "expr": "count(count by(user) (cortex_ingester_active_series{service_name=~\"$job\"}))",
                         "format": "time_series",
                         "instant": true,
                         "intervalFactor": 2,
@@ -493,7 +493,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by (status) (\n  label_replace(label_replace(rate(cortex_request_duration_seconds_count{nomad_service=~\"$job\", route=~\"/distributor.Distributor/Push|/httpgrpc.*|api_(v1|prom)_push|otlp_v1_metrics\"}[$__rate_interval]),\n  \"status\", \"${1}xx\", \"status_code\", \"([0-9])..\"),\n  \"status\", \"${1}\", \"status_code\", \"([a-z]+)\"))\n",
+                        "expr": "sum by (status) (\n  label_replace(label_replace(rate(cortex_request_duration_seconds_count{service_name=~\"$job\", route=~\"/distributor.Distributor/Push|/httpgrpc.*|api_(v1|prom)_push|otlp_v1_metrics\"}[$__rate_interval]),\n  \"status\", \"${1}xx\", \"status_code\", \"([0-9])..\"),\n  \"status\", \"${1}\", \"status_code\", \"([a-z]+)\"))\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{status}}",
@@ -568,7 +568,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "histogram_quantile(0.99, sum by (le) (cluster_nomad_service_route:cortex_request_duration_seconds_bucket:sum_rate{nomad_service=~\"$job\", route=~\"/distributor.Distributor/Push|/httpgrpc.*|api_(v1|prom)_push|otlp_v1_metrics\"})) * 1e3",
+                        "expr": "histogram_quantile(0.99, sum by (le) (cluster_service_name_route:cortex_request_duration_seconds_bucket:sum_rate{service_name=~\"$job\", route=~\"/distributor.Distributor/Push|/httpgrpc.*|api_(v1|prom)_push|otlp_v1_metrics\"})) * 1e3",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "99th percentile",
@@ -576,7 +576,7 @@
                         "step": 10
                      },
                      {
-                        "expr": "histogram_quantile(0.50, sum by (le) (cluster_nomad_service_route:cortex_request_duration_seconds_bucket:sum_rate{nomad_service=~\"$job\", route=~\"/distributor.Distributor/Push|/httpgrpc.*|api_(v1|prom)_push|otlp_v1_metrics\"})) * 1e3",
+                        "expr": "histogram_quantile(0.50, sum by (le) (cluster_service_name_route:cortex_request_duration_seconds_bucket:sum_rate{service_name=~\"$job\", route=~\"/distributor.Distributor/Push|/httpgrpc.*|api_(v1|prom)_push|otlp_v1_metrics\"})) * 1e3",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "50th percentile",
@@ -584,7 +584,7 @@
                         "step": 10
                      },
                      {
-                        "expr": "1e3 * sum(cluster_nomad_service_route:cortex_request_duration_seconds_sum:sum_rate{nomad_service=~\"$job\", route=~\"/distributor.Distributor/Push|/httpgrpc.*|api_(v1|prom)_push|otlp_v1_metrics\"}) / sum(cluster_nomad_service_route:cortex_request_duration_seconds_count:sum_rate{nomad_service=~\"$job\", route=~\"/distributor.Distributor/Push|/httpgrpc.*|api_(v1|prom)_push|otlp_v1_metrics\"})",
+                        "expr": "1e3 * sum(cluster_service_name_route:cortex_request_duration_seconds_sum:sum_rate{service_name=~\"$job\", route=~\"/distributor.Distributor/Push|/httpgrpc.*|api_(v1|prom)_push|otlp_v1_metrics\"}) / sum(cluster_service_name_route:cortex_request_duration_seconds_count:sum_rate{service_name=~\"$job\", route=~\"/distributor.Distributor/Push|/httpgrpc.*|api_(v1|prom)_push|otlp_v1_metrics\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "Average",
@@ -668,7 +668,7 @@
                   "targets": [
                      {
                         "exemplar": true,
-                        "expr": "histogram_quantile(0.99, sum by(le, service_id) (rate(cortex_request_duration_seconds_bucket{nomad_service=~\"$job\", route=~\"/distributor.Distributor/Push|/httpgrpc.*|api_(v1|prom)_push|otlp_v1_metrics\"}[$__rate_interval])))",
+                        "expr": "histogram_quantile(0.99, sum by(le, service_id) (rate(cortex_request_duration_seconds_bucket{service_name=~\"$job\", route=~\"/distributor.Distributor/Push|/httpgrpc.*|api_(v1|prom)_push|otlp_v1_metrics\"}[$__rate_interval])))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "",
@@ -732,7 +732,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by (status) (\n  label_replace(label_replace(rate(cortex_request_duration_seconds_count{nomad_service=~\"$job\",route=\"/cortex.Ingester/Push\"}[$__rate_interval]),\n  \"status\", \"${1}xx\", \"status_code\", \"([0-9])..\"),\n  \"status\", \"${1}\", \"status_code\", \"([a-z]+)\"))\n",
+                        "expr": "sum by (status) (\n  label_replace(label_replace(rate(cortex_request_duration_seconds_count{service_name=~\"$job\",route=\"/cortex.Ingester/Push\"}[$__rate_interval]),\n  \"status\", \"${1}xx\", \"status_code\", \"([0-9])..\"),\n  \"status\", \"${1}\", \"status_code\", \"([a-z]+)\"))\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{status}}",
@@ -807,7 +807,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "histogram_quantile(0.99, sum by (le) (cluster_nomad_service_route:cortex_request_duration_seconds_bucket:sum_rate{nomad_service=~\"$job\", route=\"/cortex.Ingester/Push\"})) * 1e3",
+                        "expr": "histogram_quantile(0.99, sum by (le) (cluster_service_name_route:cortex_request_duration_seconds_bucket:sum_rate{service_name=~\"$job\", route=\"/cortex.Ingester/Push\"})) * 1e3",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "99th percentile",
@@ -815,7 +815,7 @@
                         "step": 10
                      },
                      {
-                        "expr": "histogram_quantile(0.50, sum by (le) (cluster_nomad_service_route:cortex_request_duration_seconds_bucket:sum_rate{nomad_service=~\"$job\", route=\"/cortex.Ingester/Push\"})) * 1e3",
+                        "expr": "histogram_quantile(0.50, sum by (le) (cluster_service_name_route:cortex_request_duration_seconds_bucket:sum_rate{service_name=~\"$job\", route=\"/cortex.Ingester/Push\"})) * 1e3",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "50th percentile",
@@ -823,7 +823,7 @@
                         "step": 10
                      },
                      {
-                        "expr": "1e3 * sum(cluster_nomad_service_route:cortex_request_duration_seconds_sum:sum_rate{nomad_service=~\"$job\", route=\"/cortex.Ingester/Push\"}) / sum(cluster_nomad_service_route:cortex_request_duration_seconds_count:sum_rate{nomad_service=~\"$job\", route=\"/cortex.Ingester/Push\"})",
+                        "expr": "1e3 * sum(cluster_service_name_route:cortex_request_duration_seconds_sum:sum_rate{service_name=~\"$job\", route=\"/cortex.Ingester/Push\"}) / sum(cluster_service_name_route:cortex_request_duration_seconds_count:sum_rate{service_name=~\"$job\", route=\"/cortex.Ingester/Push\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "Average",
@@ -907,7 +907,7 @@
                   "targets": [
                      {
                         "exemplar": true,
-                        "expr": "histogram_quantile(0.99, sum by(le, service_id) (rate(cortex_request_duration_seconds_bucket{nomad_service=~\"$job\", route=\"/cortex.Ingester/Push\"}[$__rate_interval])))",
+                        "expr": "histogram_quantile(0.99, sum by(le, service_id) (rate(cortex_request_duration_seconds_bucket{service_name=~\"$job\", route=\"/cortex.Ingester/Push\"}[$__rate_interval])))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "",
@@ -972,14 +972,14 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "kube_horizontalpodautoscaler_spec_max_replicas{nomad_service=~\"$job\", horizontalpodautoscaler=~\"keda-hpa-distributor\"}\n# Add the scaletargetref_name label for readability\n+ on (cluster, namespace, horizontalpodautoscaler) group_left (scaletargetref_name)\n  0*kube_horizontalpodautoscaler_info{nomad_service=~\"$job\", horizontalpodautoscaler=~\"keda-hpa-distributor\"}\n",
+                        "expr": "kube_horizontalpodautoscaler_spec_max_replicas{service_name=~\"$job\", horizontalpodautoscaler=~\"keda-hpa-distributor\"}\n# Add the scaletargetref_name label for readability\n+ on (cluster, namespace, horizontalpodautoscaler) group_left (scaletargetref_name)\n  0*kube_horizontalpodautoscaler_info{service_name=~\"$job\", horizontalpodautoscaler=~\"keda-hpa-distributor\"}\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "Max {{ scaletargetref_name }}",
                         "legendLink": null
                      },
                      {
-                        "expr": "kube_horizontalpodautoscaler_status_current_replicas{nomad_service=~\"$job\", horizontalpodautoscaler=~\"keda-hpa-distributor\"}\n# HPA doesn't go to 0 replicas, so we multiply by 0 if the HPA is not active\n* on (cluster, namespace, horizontalpodautoscaler)\n  kube_horizontalpodautoscaler_status_condition{nomad_service=~\"$job\", horizontalpodautoscaler=~\"keda-hpa-distributor\", condition=\"ScalingActive\", status=\"true\"}\n# Add the scaletargetref_name label for readability\n+ on (cluster, namespace, horizontalpodautoscaler) group_left (scaletargetref_name)\n  0*kube_horizontalpodautoscaler_info{nomad_service=~\"$job\", horizontalpodautoscaler=~\"keda-hpa-distributor\"}\n",
+                        "expr": "kube_horizontalpodautoscaler_status_current_replicas{service_name=~\"$job\", horizontalpodautoscaler=~\"keda-hpa-distributor\"}\n# HPA doesn't go to 0 replicas, so we multiply by 0 if the HPA is not active\n* on (cluster, namespace, horizontalpodautoscaler)\n  kube_horizontalpodautoscaler_status_condition{service_name=~\"$job\", horizontalpodautoscaler=~\"keda-hpa-distributor\", condition=\"ScalingActive\", status=\"true\"}\n# Add the scaletargetref_name label for readability\n+ on (cluster, namespace, horizontalpodautoscaler) group_left (scaletargetref_name)\n  0*kube_horizontalpodautoscaler_info{service_name=~\"$job\", horizontalpodautoscaler=~\"keda-hpa-distributor\"}\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "Current {{ scaletargetref_name }}",
@@ -1055,7 +1055,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by (scaledObject) (\n  keda_metrics_adapter_scaler_metrics_value{metric=~\".*cpu.*\"}\n  /\n  on(metric) group_left label_replace(\n      kube_horizontalpodautoscaler_spec_target_metric{nomad_service=~\"$job\", horizontalpodautoscaler=~\"keda-hpa-distributor\"},\n      \"metric\", \"$1\", \"metric_name\", \"(.+)\"\n  )\n)\n",
+                        "expr": "sum by (scaledObject) (\n  keda_metrics_adapter_scaler_metrics_value{metric=~\".*cpu.*\"}\n  /\n  on(metric) group_left label_replace(\n      kube_horizontalpodautoscaler_spec_target_metric{service_name=~\"$job\", horizontalpodautoscaler=~\"keda-hpa-distributor\"},\n      \"metric\", \"$1\", \"metric_name\", \"(.+)\"\n  )\n)\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{ scaledObject }}",
@@ -1131,7 +1131,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by (scaledObject) (\n  keda_metrics_adapter_scaler_metrics_value{metric=~\".*memory.*\"}\n  /\n  on(metric) group_left label_replace(\n      kube_horizontalpodautoscaler_spec_target_metric{nomad_service=~\"$job\", horizontalpodautoscaler=~\"keda-hpa-distributor\"},\n      \"metric\", \"$1\", \"metric_name\", \"(.+)\"\n  )\n)\n",
+                        "expr": "sum by (scaledObject) (\n  keda_metrics_adapter_scaler_metrics_value{metric=~\".*memory.*\"}\n  /\n  on(metric) group_left label_replace(\n      kube_horizontalpodautoscaler_spec_target_metric{service_name=~\"$job\", horizontalpodautoscaler=~\"keda-hpa-distributor\"},\n      \"metric\", \"$1\", \"metric_name\", \"(.+)\"\n  )\n)\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{ scaledObject }}",
@@ -1207,7 +1207,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(metric) (rate(keda_metrics_adapter_scaler_errors[$__rate_interval])) +\non(metric) group_left\nlabel_replace(\n    kube_horizontalpodautoscaler_spec_target_metric{nomad_service=~\"$job\", horizontalpodautoscaler=~\"keda-hpa-distributor\"}\n    * 0, \"metric\", \"$1\", \"metric_name\", \"(.+)\"\n)\n",
+                        "expr": "sum by(metric) (rate(keda_metrics_adapter_scaler_errors[$__rate_interval])) +\non(metric) group_left\nlabel_replace(\n    kube_horizontalpodautoscaler_spec_target_metric{service_name=~\"$job\", horizontalpodautoscaler=~\"keda-hpa-distributor\"}\n    * 0, \"metric\", \"$1\", \"metric_name\", \"(.+)\"\n)\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{metric}} failures",
@@ -1303,7 +1303,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by (status) (\n  label_replace(label_replace(rate(cortex_kv_request_duration_seconds_count{nomad_service=~\"$job\", kv_name=~\"distributor-hatracker\"}[$__rate_interval]),\n  \"status\", \"${1}xx\", \"status_code\", \"([0-9])..\"),\n  \"status\", \"${1}\", \"status_code\", \"([a-z]+)\"))\n",
+                        "expr": "sum by (status) (\n  label_replace(label_replace(rate(cortex_kv_request_duration_seconds_count{service_name=~\"$job\", kv_name=~\"distributor-hatracker\"}[$__rate_interval]),\n  \"status\", \"${1}xx\", \"status_code\", \"([0-9])..\"),\n  \"status\", \"${1}\", \"status_code\", \"([a-z]+)\"))\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{status}}",
@@ -1378,21 +1378,21 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "histogram_quantile(0.99, sum(rate(cortex_kv_request_duration_seconds_bucket{nomad_service=~\"$job\", kv_name=~\"distributor-hatracker\"}[$__rate_interval])) by (le)) * 1e3",
+                        "expr": "histogram_quantile(0.99, sum(rate(cortex_kv_request_duration_seconds_bucket{service_name=~\"$job\", kv_name=~\"distributor-hatracker\"}[$__rate_interval])) by (le)) * 1e3",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "99th Percentile",
                         "refId": "A"
                      },
                      {
-                        "expr": "histogram_quantile(0.50, sum(rate(cortex_kv_request_duration_seconds_bucket{nomad_service=~\"$job\", kv_name=~\"distributor-hatracker\"}[$__rate_interval])) by (le)) * 1e3",
+                        "expr": "histogram_quantile(0.50, sum(rate(cortex_kv_request_duration_seconds_bucket{service_name=~\"$job\", kv_name=~\"distributor-hatracker\"}[$__rate_interval])) by (le)) * 1e3",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "50th Percentile",
                         "refId": "B"
                      },
                      {
-                        "expr": "sum(rate(cortex_kv_request_duration_seconds_sum{nomad_service=~\"$job\", kv_name=~\"distributor-hatracker\"}[$__rate_interval])) * 1e3 / sum(rate(cortex_kv_request_duration_seconds_count{nomad_service=~\"$job\", kv_name=~\"distributor-hatracker\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_kv_request_duration_seconds_sum{service_name=~\"$job\", kv_name=~\"distributor-hatracker\"}[$__rate_interval])) * 1e3 / sum(rate(cortex_kv_request_duration_seconds_count{service_name=~\"$job\", kv_name=~\"distributor-hatracker\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "Average",
@@ -1488,7 +1488,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by (status) (\n  label_replace(label_replace(rate(cortex_kv_request_duration_seconds_count{nomad_service=~\"$job\", kv_name=~\"distributor-(lifecycler|ring)\"}[$__rate_interval]),\n  \"status\", \"${1}xx\", \"status_code\", \"([0-9])..\"),\n  \"status\", \"${1}\", \"status_code\", \"([a-z]+)\"))\n",
+                        "expr": "sum by (status) (\n  label_replace(label_replace(rate(cortex_kv_request_duration_seconds_count{service_name=~\"$job\", kv_name=~\"distributor-(lifecycler|ring)\"}[$__rate_interval]),\n  \"status\", \"${1}xx\", \"status_code\", \"([0-9])..\"),\n  \"status\", \"${1}\", \"status_code\", \"([a-z]+)\"))\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{status}}",
@@ -1563,21 +1563,21 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "histogram_quantile(0.99, sum(rate(cortex_kv_request_duration_seconds_bucket{nomad_service=~\"$job\", kv_name=~\"distributor-(lifecycler|ring)\"}[$__rate_interval])) by (le)) * 1e3",
+                        "expr": "histogram_quantile(0.99, sum(rate(cortex_kv_request_duration_seconds_bucket{service_name=~\"$job\", kv_name=~\"distributor-(lifecycler|ring)\"}[$__rate_interval])) by (le)) * 1e3",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "99th Percentile",
                         "refId": "A"
                      },
                      {
-                        "expr": "histogram_quantile(0.50, sum(rate(cortex_kv_request_duration_seconds_bucket{nomad_service=~\"$job\", kv_name=~\"distributor-(lifecycler|ring)\"}[$__rate_interval])) by (le)) * 1e3",
+                        "expr": "histogram_quantile(0.50, sum(rate(cortex_kv_request_duration_seconds_bucket{service_name=~\"$job\", kv_name=~\"distributor-(lifecycler|ring)\"}[$__rate_interval])) by (le)) * 1e3",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "50th Percentile",
                         "refId": "B"
                      },
                      {
-                        "expr": "sum(rate(cortex_kv_request_duration_seconds_sum{nomad_service=~\"$job\", kv_name=~\"distributor-(lifecycler|ring)\"}[$__rate_interval])) * 1e3 / sum(rate(cortex_kv_request_duration_seconds_count{nomad_service=~\"$job\", kv_name=~\"distributor-(lifecycler|ring)\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_kv_request_duration_seconds_sum{service_name=~\"$job\", kv_name=~\"distributor-(lifecycler|ring)\"}[$__rate_interval])) * 1e3 / sum(rate(cortex_kv_request_duration_seconds_count{service_name=~\"$job\", kv_name=~\"distributor-(lifecycler|ring)\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "Average",
@@ -1673,7 +1673,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by (status) (\n  label_replace(label_replace(rate(cortex_kv_request_duration_seconds_count{nomad_service=~\"$job\", kv_name=~\"ingester-.*\"}[$__rate_interval]),\n  \"status\", \"${1}xx\", \"status_code\", \"([0-9])..\"),\n  \"status\", \"${1}\", \"status_code\", \"([a-z]+)\"))\n",
+                        "expr": "sum by (status) (\n  label_replace(label_replace(rate(cortex_kv_request_duration_seconds_count{service_name=~\"$job\", kv_name=~\"ingester-.*\"}[$__rate_interval]),\n  \"status\", \"${1}xx\", \"status_code\", \"([0-9])..\"),\n  \"status\", \"${1}\", \"status_code\", \"([a-z]+)\"))\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{status}}",
@@ -1748,21 +1748,21 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "histogram_quantile(0.99, sum(rate(cortex_kv_request_duration_seconds_bucket{nomad_service=~\"$job\", kv_name=~\"ingester-.*\"}[$__rate_interval])) by (le)) * 1e3",
+                        "expr": "histogram_quantile(0.99, sum(rate(cortex_kv_request_duration_seconds_bucket{service_name=~\"$job\", kv_name=~\"ingester-.*\"}[$__rate_interval])) by (le)) * 1e3",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "99th Percentile",
                         "refId": "A"
                      },
                      {
-                        "expr": "histogram_quantile(0.50, sum(rate(cortex_kv_request_duration_seconds_bucket{nomad_service=~\"$job\", kv_name=~\"ingester-.*\"}[$__rate_interval])) by (le)) * 1e3",
+                        "expr": "histogram_quantile(0.50, sum(rate(cortex_kv_request_duration_seconds_bucket{service_name=~\"$job\", kv_name=~\"ingester-.*\"}[$__rate_interval])) by (le)) * 1e3",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "50th Percentile",
                         "refId": "B"
                      },
                      {
-                        "expr": "sum(rate(cortex_kv_request_duration_seconds_sum{nomad_service=~\"$job\", kv_name=~\"ingester-.*\"}[$__rate_interval])) * 1e3 / sum(rate(cortex_kv_request_duration_seconds_count{nomad_service=~\"$job\", kv_name=~\"ingester-.*\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_kv_request_duration_seconds_sum{service_name=~\"$job\", kv_name=~\"ingester-.*\"}[$__rate_interval])) * 1e3 / sum(rate(cortex_kv_request_duration_seconds_count{service_name=~\"$job\", kv_name=~\"ingester-.*\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "Average",
@@ -1853,14 +1853,14 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(rate(cortex_ingester_shipper_uploads_total{nomad_service=~\"$job\"}[$__rate_interval])) - sum(rate(cortex_ingester_shipper_upload_failures_total{nomad_service=~\"$job\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_ingester_shipper_uploads_total{service_name=~\"$job\"}[$__rate_interval])) - sum(rate(cortex_ingester_shipper_upload_failures_total{service_name=~\"$job\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "successful",
                         "legendLink": null
                      },
                      {
-                        "expr": "sum(rate(cortex_ingester_shipper_upload_failures_total{nomad_service=~\"$job\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_ingester_shipper_upload_failures_total{service_name=~\"$job\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "failed",
@@ -1936,21 +1936,21 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "histogram_quantile(0.99, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket{nomad_service=~\"$job\",component=\"ingester\",operation=\"upload\"}[$__rate_interval])) by (le)) * 1e3",
+                        "expr": "histogram_quantile(0.99, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket{service_name=~\"$job\",component=\"ingester\",operation=\"upload\"}[$__rate_interval])) by (le)) * 1e3",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "99th Percentile",
                         "refId": "A"
                      },
                      {
-                        "expr": "histogram_quantile(0.50, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket{nomad_service=~\"$job\",component=\"ingester\",operation=\"upload\"}[$__rate_interval])) by (le)) * 1e3",
+                        "expr": "histogram_quantile(0.50, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket{service_name=~\"$job\",component=\"ingester\",operation=\"upload\"}[$__rate_interval])) by (le)) * 1e3",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "50th Percentile",
                         "refId": "B"
                      },
                      {
-                        "expr": "sum(rate(thanos_objstore_bucket_operation_duration_seconds_sum{nomad_service=~\"$job\",component=\"ingester\",operation=\"upload\"}[$__rate_interval])) * 1e3 / sum(rate(thanos_objstore_bucket_operation_duration_seconds_count{nomad_service=~\"$job\",component=\"ingester\",operation=\"upload\"}[$__rate_interval]))",
+                        "expr": "sum(rate(thanos_objstore_bucket_operation_duration_seconds_sum{service_name=~\"$job\",component=\"ingester\",operation=\"upload\"}[$__rate_interval])) * 1e3 / sum(rate(thanos_objstore_bucket_operation_duration_seconds_count{service_name=~\"$job\",component=\"ingester\",operation=\"upload\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "Average",
@@ -2041,14 +2041,14 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(rate(cortex_ingester_tsdb_compactions_total{nomad_service=~\"$job\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_ingester_tsdb_compactions_total{service_name=~\"$job\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "successful",
                         "legendLink": null
                      },
                      {
-                        "expr": "sum(rate(cortex_ingester_tsdb_compactions_failed_total{nomad_service=~\"$job\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_ingester_tsdb_compactions_failed_total{service_name=~\"$job\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "failed",
@@ -2124,21 +2124,21 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "histogram_quantile(0.99, sum(rate(cortex_ingester_tsdb_compaction_duration_seconds_bucket{nomad_service=~\"$job\"}[$__rate_interval])) by (le)) * 1e3",
+                        "expr": "histogram_quantile(0.99, sum(rate(cortex_ingester_tsdb_compaction_duration_seconds_bucket{service_name=~\"$job\"}[$__rate_interval])) by (le)) * 1e3",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "99th Percentile",
                         "refId": "A"
                      },
                      {
-                        "expr": "histogram_quantile(0.50, sum(rate(cortex_ingester_tsdb_compaction_duration_seconds_bucket{nomad_service=~\"$job\"}[$__rate_interval])) by (le)) * 1e3",
+                        "expr": "histogram_quantile(0.50, sum(rate(cortex_ingester_tsdb_compaction_duration_seconds_bucket{service_name=~\"$job\"}[$__rate_interval])) by (le)) * 1e3",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "50th Percentile",
                         "refId": "B"
                      },
                      {
-                        "expr": "sum(rate(cortex_ingester_tsdb_compaction_duration_seconds_sum{nomad_service=~\"$job\"}[$__rate_interval])) * 1e3 / sum(rate(cortex_ingester_tsdb_compaction_duration_seconds_count{nomad_service=~\"$job\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_ingester_tsdb_compaction_duration_seconds_sum{service_name=~\"$job\"}[$__rate_interval])) * 1e3 / sum(rate(cortex_ingester_tsdb_compaction_duration_seconds_count{service_name=~\"$job\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "Average",
@@ -2229,14 +2229,14 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(rate(cortex_ingester_tsdb_wal_truncations_total{nomad_service=~\"$job\"}[$__rate_interval])) - sum(rate(cortex_ingester_tsdb_wal_truncations_failed_total{nomad_service=~\"$job\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_ingester_tsdb_wal_truncations_total{service_name=~\"$job\"}[$__rate_interval])) - sum(rate(cortex_ingester_tsdb_wal_truncations_failed_total{service_name=~\"$job\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "successful",
                         "legendLink": null
                      },
                      {
-                        "expr": "sum(rate(cortex_ingester_tsdb_wal_truncations_failed_total{nomad_service=~\"$job\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_ingester_tsdb_wal_truncations_failed_total{service_name=~\"$job\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "failed",
@@ -2315,14 +2315,14 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(rate(cortex_ingester_tsdb_checkpoint_creations_total{nomad_service=~\"$job\"}[$__rate_interval])) - sum(rate(cortex_ingester_tsdb_checkpoint_creations_failed_total{nomad_service=~\"$job\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_ingester_tsdb_checkpoint_creations_total{service_name=~\"$job\"}[$__rate_interval])) - sum(rate(cortex_ingester_tsdb_checkpoint_creations_failed_total{service_name=~\"$job\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "successful",
                         "legendLink": null
                      },
                      {
-                        "expr": "sum(rate(cortex_ingester_tsdb_checkpoint_creations_failed_total{nomad_service=~\"$job\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_ingester_tsdb_checkpoint_creations_failed_total{service_name=~\"$job\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "failed",
@@ -2388,7 +2388,7 @@
                   "span": 3,
                   "targets": [
                      {
-                        "expr": "sum(rate(cortex_ingester_tsdb_wal_truncate_duration_seconds_sum{nomad_service=~\"$job\"}[$__rate_interval]))\n/\nsum(rate(cortex_ingester_tsdb_wal_truncate_duration_seconds_count{nomad_service=~\"$job\"}[$__rate_interval])) >= 0\n",
+                        "expr": "sum(rate(cortex_ingester_tsdb_wal_truncate_duration_seconds_sum{service_name=~\"$job\"}[$__rate_interval]))\n/\nsum(rate(cortex_ingester_tsdb_wal_truncate_duration_seconds_count{service_name=~\"$job\"}[$__rate_interval])) >= 0\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "avg",
@@ -2433,14 +2433,14 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(rate(cortex_ingester_tsdb_wal_corruptions_total{nomad_service=~\"$job\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_ingester_tsdb_wal_corruptions_total{service_name=~\"$job\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "WAL",
                         "legendLink": null
                      },
                      {
-                        "expr": "sum(rate(cortex_ingester_tsdb_mmap_chunk_corruptions_total{nomad_service=~\"$job\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_ingester_tsdb_mmap_chunk_corruptions_total{service_name=~\"$job\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "mmap-ed chunks",
@@ -2528,7 +2528,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(cluster_namespace_nomad_service:cortex_distributor_exemplars_in:rate5m{nomad_service=~\"$job\"})",
+                        "expr": "sum(cluster_namespace_service_name:cortex_distributor_exemplars_in:rate5m{service_name=~\"$job\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "incoming exemplars",
@@ -2604,7 +2604,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(cluster_namespace_nomad_service:cortex_distributor_received_exemplars:rate5m{nomad_service=~\"$job\"})",
+                        "expr": "sum(cluster_namespace_service_name:cortex_distributor_received_exemplars:rate5m{service_name=~\"$job\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "received exemplars",
@@ -2680,7 +2680,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(\n  cluster_namespace_nomad_service:cortex_ingester_ingested_exemplars:rate5m{nomad_service=~\"$job\"}\n  / on(cluster, namespace) group_left\n  max by (cluster, namespace) (cortex_distributor_replication_factor{nomad_service=~\"$job\"})\n)\n",
+                        "expr": "sum(\n  cluster_namespace_service_name:cortex_ingester_ingested_exemplars:rate5m{service_name=~\"$job\"}\n  / on(cluster, namespace) group_left\n  max by (cluster, namespace) (cortex_distributor_replication_factor{service_name=~\"$job\"})\n)\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "ingested exemplars",
@@ -2756,7 +2756,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(\n  cluster_namespace_nomad_service:cortex_ingester_tsdb_exemplar_exemplars_appended:rate5m{nomad_service=~\"$job\"}\n  / on(cluster, namespace) group_left\n  max by (cluster, namespace) (cortex_distributor_replication_factor{nomad_service=~\"$job\"})\n)\n",
+                        "expr": "sum(\n  cluster_namespace_service_name:cortex_ingester_tsdb_exemplar_exemplars_appended:rate5m{service_name=~\"$job\"}\n  / on(cluster, namespace) group_left\n  max by (cluster, namespace) (cortex_distributor_replication_factor{service_name=~\"$job\"})\n)\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "appended exemplars",
@@ -2843,7 +2843,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by (reason) (rate(cortex_distributor_instance_rejected_requests_total{nomad_service=~\"$job\"}[$__rate_interval]))",
+                        "expr": "sum by (reason) (rate(cortex_distributor_instance_rejected_requests_total{service_name=~\"$job\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{reason}}",
@@ -2918,7 +2918,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by (reason) (rate(cortex_ingester_instance_rejected_requests_total{nomad_service=~\"$job\"}[$__rate_interval]))",
+                        "expr": "sum by (reason) (rate(cortex_ingester_instance_rejected_requests_total{service_name=~\"$job\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{reason}}",
@@ -3005,7 +3005,7 @@
                "multi": true,
                "name": "job",
                "options": [ ],
-               "query": "label_values(cortex_build_info, nomad_service)",
+               "query": "label_values(cortex_build_info, service_name)",
                "refresh": 1,
                "regex": "",
                "sort": 1,

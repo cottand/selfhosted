@@ -67,7 +67,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(cluster_nomad_service_service_id:cortex_alertmanager_alerts:sum{nomad_service=~\"$job\"})",
+                        "expr": "sum(cluster_service_name_service_id:cortex_alertmanager_alerts:sum{service_name=~\"$job\"})",
                         "format": "time_series",
                         "instant": true,
                         "intervalFactor": 2,
@@ -143,7 +143,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(cluster_nomad_service_service_id:cortex_alertmanager_silences:sum{nomad_service=~\"$job\"})",
+                        "expr": "sum(cluster_service_name_service_id:cortex_alertmanager_silences:sum{service_name=~\"$job\"})",
                         "format": "time_series",
                         "instant": true,
                         "intervalFactor": 2,
@@ -219,7 +219,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "max(cortex_alertmanager_tenants_discovered{nomad_service=~\"$job\"})",
+                        "expr": "max(cortex_alertmanager_tenants_discovered{service_name=~\"$job\"})",
                         "format": "time_series",
                         "instant": true,
                         "intervalFactor": 2,
@@ -315,7 +315,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by (status) (\n  label_replace(label_replace(rate(cortex_request_duration_seconds_count{nomad_service=~\"$job\", route=~\"/alertmanagerpb.Alertmanager/HandleRequest\"}[$__rate_interval]),\n  \"status\", \"${1}xx\", \"status_code\", \"([0-9])..\"),\n  \"status\", \"${1}\", \"status_code\", \"([a-z]+)\"))\n",
+                        "expr": "sum by (status) (\n  label_replace(label_replace(rate(cortex_request_duration_seconds_count{service_name=~\"$job\", route=~\"/alertmanagerpb.Alertmanager/HandleRequest\"}[$__rate_interval]),\n  \"status\", \"${1}xx\", \"status_code\", \"([0-9])..\"),\n  \"status\", \"${1}\", \"status_code\", \"([a-z]+)\"))\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{status}}",
@@ -390,7 +390,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "histogram_quantile(0.99, sum by (le) (cluster_nomad_service_route:cortex_request_duration_seconds_bucket:sum_rate{nomad_service=~\"$job\", route=~\"/alertmanagerpb.Alertmanager/HandleRequest\"})) * 1e3",
+                        "expr": "histogram_quantile(0.99, sum by (le) (cluster_service_name_route:cortex_request_duration_seconds_bucket:sum_rate{service_name=~\"$job\", route=~\"/alertmanagerpb.Alertmanager/HandleRequest\"})) * 1e3",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "99th percentile",
@@ -398,7 +398,7 @@
                         "step": 10
                      },
                      {
-                        "expr": "histogram_quantile(0.50, sum by (le) (cluster_nomad_service_route:cortex_request_duration_seconds_bucket:sum_rate{nomad_service=~\"$job\", route=~\"/alertmanagerpb.Alertmanager/HandleRequest\"})) * 1e3",
+                        "expr": "histogram_quantile(0.50, sum by (le) (cluster_service_name_route:cortex_request_duration_seconds_bucket:sum_rate{service_name=~\"$job\", route=~\"/alertmanagerpb.Alertmanager/HandleRequest\"})) * 1e3",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "50th percentile",
@@ -406,7 +406,7 @@
                         "step": 10
                      },
                      {
-                        "expr": "1e3 * sum(cluster_nomad_service_route:cortex_request_duration_seconds_sum:sum_rate{nomad_service=~\"$job\", route=~\"/alertmanagerpb.Alertmanager/HandleRequest\"}) / sum(cluster_nomad_service_route:cortex_request_duration_seconds_count:sum_rate{nomad_service=~\"$job\", route=~\"/alertmanagerpb.Alertmanager/HandleRequest\"})",
+                        "expr": "1e3 * sum(cluster_service_name_route:cortex_request_duration_seconds_sum:sum_rate{service_name=~\"$job\", route=~\"/alertmanagerpb.Alertmanager/HandleRequest\"}) / sum(cluster_service_name_route:cortex_request_duration_seconds_count:sum_rate{service_name=~\"$job\", route=~\"/alertmanagerpb.Alertmanager/HandleRequest\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "Average",
@@ -497,14 +497,14 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(cluster_nomad_service:cortex_alertmanager_alerts_received_total:rate5m{nomad_service=~\"$job\"})\n-\nsum(cluster_nomad_service:cortex_alertmanager_alerts_invalid_total:rate5m{nomad_service=~\"$job\"})\n",
+                        "expr": "sum(cluster_service_name:cortex_alertmanager_alerts_received_total:rate5m{service_name=~\"$job\"})\n-\nsum(cluster_service_name:cortex_alertmanager_alerts_invalid_total:rate5m{service_name=~\"$job\"})\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "successful",
                         "legendLink": null
                      },
                      {
-                        "expr": "sum(cluster_nomad_service:cortex_alertmanager_alerts_invalid_total:rate5m{nomad_service=~\"$job\"})",
+                        "expr": "sum(cluster_service_name:cortex_alertmanager_alerts_invalid_total:rate5m{service_name=~\"$job\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "failed",
@@ -591,7 +591,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "cortex_alertmanager_dispatcher_aggregation_groups{nomad_service=~\"$job\"}",
+                        "expr": "cortex_alertmanager_dispatcher_aggregation_groups{service_name=~\"$job\"}",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
@@ -681,14 +681,14 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(cluster_nomad_service_integration:cortex_alertmanager_notifications_total:rate5m{nomad_service=~\"$job\"})\n-\nsum(cluster_nomad_service_integration:cortex_alertmanager_notifications_failed_total:rate5m{nomad_service=~\"$job\"})\n",
+                        "expr": "sum(cluster_service_name_integration:cortex_alertmanager_notifications_total:rate5m{service_name=~\"$job\"})\n-\nsum(cluster_service_name_integration:cortex_alertmanager_notifications_failed_total:rate5m{service_name=~\"$job\"})\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "successful",
                         "legendLink": null
                      },
                      {
-                        "expr": "sum(cluster_nomad_service_integration:cortex_alertmanager_notifications_failed_total:rate5m{nomad_service=~\"$job\"})\n",
+                        "expr": "sum(cluster_service_name_integration:cortex_alertmanager_notifications_failed_total:rate5m{service_name=~\"$job\"})\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "failed",
@@ -763,14 +763,14 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "(\nsum(cluster_nomad_service_integration:cortex_alertmanager_notifications_total:rate5m{nomad_service=~\"$job\"}) by(integration)\n-\nsum(cluster_nomad_service_integration:cortex_alertmanager_notifications_failed_total:rate5m{nomad_service=~\"$job\"}) by(integration)\n) > 0\nor on () vector(0)\n",
+                        "expr": "(\nsum(cluster_service_name_integration:cortex_alertmanager_notifications_total:rate5m{service_name=~\"$job\"}) by(integration)\n-\nsum(cluster_service_name_integration:cortex_alertmanager_notifications_failed_total:rate5m{service_name=~\"$job\"}) by(integration)\n) > 0\nor on () vector(0)\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "success - {{ integration }}",
                         "legendLink": null
                      },
                      {
-                        "expr": "sum(cluster_nomad_service_integration:cortex_alertmanager_notifications_failed_total:rate5m{nomad_service=~\"$job\"}) by(integration)",
+                        "expr": "sum(cluster_service_name_integration:cortex_alertmanager_notifications_failed_total:rate5m{service_name=~\"$job\"}) by(integration)",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "failed - {{ integration }}",
@@ -845,21 +845,21 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "histogram_quantile(0.99, sum(rate(cortex_alertmanager_notification_latency_seconds_bucket{nomad_service=~\"$job\"}[$__rate_interval])) by (le)) * 1e3",
+                        "expr": "histogram_quantile(0.99, sum(rate(cortex_alertmanager_notification_latency_seconds_bucket{service_name=~\"$job\"}[$__rate_interval])) by (le)) * 1e3",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "99th Percentile",
                         "refId": "A"
                      },
                      {
-                        "expr": "histogram_quantile(0.50, sum(rate(cortex_alertmanager_notification_latency_seconds_bucket{nomad_service=~\"$job\"}[$__rate_interval])) by (le)) * 1e3",
+                        "expr": "histogram_quantile(0.50, sum(rate(cortex_alertmanager_notification_latency_seconds_bucket{service_name=~\"$job\"}[$__rate_interval])) by (le)) * 1e3",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "50th Percentile",
                         "refId": "B"
                      },
                      {
-                        "expr": "sum(rate(cortex_alertmanager_notification_latency_seconds_sum{nomad_service=~\"$job\"}[$__rate_interval])) * 1e3 / sum(rate(cortex_alertmanager_notification_latency_seconds_count{nomad_service=~\"$job\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_alertmanager_notification_latency_seconds_sum{service_name=~\"$job\"}[$__rate_interval])) * 1e3 / sum(rate(cortex_alertmanager_notification_latency_seconds_count{service_name=~\"$job\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "Average",
@@ -946,7 +946,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(operation) (rate(thanos_objstore_bucket_operations_total{nomad_service=~\"$job\",component=\"alertmanager-storage\"}[$__rate_interval]))",
+                        "expr": "sum by(operation) (rate(thanos_objstore_bucket_operations_total{service_name=~\"$job\",component=\"alertmanager-storage\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{operation}}",
@@ -1013,7 +1013,7 @@
                   "span": 3,
                   "targets": [
                      {
-                        "expr": "sum by(operation) (rate(thanos_objstore_bucket_operation_failures_total{nomad_service=~\"$job\",component=\"alertmanager-storage\"}[$__rate_interval])) / sum by(operation) (rate(thanos_objstore_bucket_operations_total{nomad_service=~\"$job\",component=\"alertmanager-storage\"}[$__rate_interval])) >= 0",
+                        "expr": "sum by(operation) (rate(thanos_objstore_bucket_operation_failures_total{service_name=~\"$job\",component=\"alertmanager-storage\"}[$__rate_interval])) / sum by(operation) (rate(thanos_objstore_bucket_operations_total{service_name=~\"$job\",component=\"alertmanager-storage\"}[$__rate_interval])) >= 0",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{operation}}",
@@ -1055,21 +1055,21 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "histogram_quantile(0.99, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket{nomad_service=~\"$job\",component=\"alertmanager-storage\",operation=\"attributes\"}[$__rate_interval])) by (le)) * 1e3",
+                        "expr": "histogram_quantile(0.99, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket{service_name=~\"$job\",component=\"alertmanager-storage\",operation=\"attributes\"}[$__rate_interval])) by (le)) * 1e3",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "99th Percentile",
                         "refId": "A"
                      },
                      {
-                        "expr": "histogram_quantile(0.50, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket{nomad_service=~\"$job\",component=\"alertmanager-storage\",operation=\"attributes\"}[$__rate_interval])) by (le)) * 1e3",
+                        "expr": "histogram_quantile(0.50, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket{service_name=~\"$job\",component=\"alertmanager-storage\",operation=\"attributes\"}[$__rate_interval])) by (le)) * 1e3",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "50th Percentile",
                         "refId": "B"
                      },
                      {
-                        "expr": "sum(rate(thanos_objstore_bucket_operation_duration_seconds_sum{nomad_service=~\"$job\",component=\"alertmanager-storage\",operation=\"attributes\"}[$__rate_interval])) * 1e3 / sum(rate(thanos_objstore_bucket_operation_duration_seconds_count{nomad_service=~\"$job\",component=\"alertmanager-storage\",operation=\"attributes\"}[$__rate_interval]))",
+                        "expr": "sum(rate(thanos_objstore_bucket_operation_duration_seconds_sum{service_name=~\"$job\",component=\"alertmanager-storage\",operation=\"attributes\"}[$__rate_interval])) * 1e3 / sum(rate(thanos_objstore_bucket_operation_duration_seconds_count{service_name=~\"$job\",component=\"alertmanager-storage\",operation=\"attributes\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "Average",
@@ -1144,21 +1144,21 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "histogram_quantile(0.99, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket{nomad_service=~\"$job\",component=\"alertmanager-storage\",operation=\"exists\"}[$__rate_interval])) by (le)) * 1e3",
+                        "expr": "histogram_quantile(0.99, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket{service_name=~\"$job\",component=\"alertmanager-storage\",operation=\"exists\"}[$__rate_interval])) by (le)) * 1e3",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "99th Percentile",
                         "refId": "A"
                      },
                      {
-                        "expr": "histogram_quantile(0.50, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket{nomad_service=~\"$job\",component=\"alertmanager-storage\",operation=\"exists\"}[$__rate_interval])) by (le)) * 1e3",
+                        "expr": "histogram_quantile(0.50, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket{service_name=~\"$job\",component=\"alertmanager-storage\",operation=\"exists\"}[$__rate_interval])) by (le)) * 1e3",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "50th Percentile",
                         "refId": "B"
                      },
                      {
-                        "expr": "sum(rate(thanos_objstore_bucket_operation_duration_seconds_sum{nomad_service=~\"$job\",component=\"alertmanager-storage\",operation=\"exists\"}[$__rate_interval])) * 1e3 / sum(rate(thanos_objstore_bucket_operation_duration_seconds_count{nomad_service=~\"$job\",component=\"alertmanager-storage\",operation=\"exists\"}[$__rate_interval]))",
+                        "expr": "sum(rate(thanos_objstore_bucket_operation_duration_seconds_sum{service_name=~\"$job\",component=\"alertmanager-storage\",operation=\"exists\"}[$__rate_interval])) * 1e3 / sum(rate(thanos_objstore_bucket_operation_duration_seconds_count{service_name=~\"$job\",component=\"alertmanager-storage\",operation=\"exists\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "Average",
@@ -1245,21 +1245,21 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "histogram_quantile(0.99, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket{nomad_service=~\"$job\",component=\"alertmanager-storage\",operation=\"get\"}[$__rate_interval])) by (le)) * 1e3",
+                        "expr": "histogram_quantile(0.99, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket{service_name=~\"$job\",component=\"alertmanager-storage\",operation=\"get\"}[$__rate_interval])) by (le)) * 1e3",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "99th Percentile",
                         "refId": "A"
                      },
                      {
-                        "expr": "histogram_quantile(0.50, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket{nomad_service=~\"$job\",component=\"alertmanager-storage\",operation=\"get\"}[$__rate_interval])) by (le)) * 1e3",
+                        "expr": "histogram_quantile(0.50, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket{service_name=~\"$job\",component=\"alertmanager-storage\",operation=\"get\"}[$__rate_interval])) by (le)) * 1e3",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "50th Percentile",
                         "refId": "B"
                      },
                      {
-                        "expr": "sum(rate(thanos_objstore_bucket_operation_duration_seconds_sum{nomad_service=~\"$job\",component=\"alertmanager-storage\",operation=\"get\"}[$__rate_interval])) * 1e3 / sum(rate(thanos_objstore_bucket_operation_duration_seconds_count{nomad_service=~\"$job\",component=\"alertmanager-storage\",operation=\"get\"}[$__rate_interval]))",
+                        "expr": "sum(rate(thanos_objstore_bucket_operation_duration_seconds_sum{service_name=~\"$job\",component=\"alertmanager-storage\",operation=\"get\"}[$__rate_interval])) * 1e3 / sum(rate(thanos_objstore_bucket_operation_duration_seconds_count{service_name=~\"$job\",component=\"alertmanager-storage\",operation=\"get\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "Average",
@@ -1334,21 +1334,21 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "histogram_quantile(0.99, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket{nomad_service=~\"$job\",component=\"alertmanager-storage\",operation=\"get_range\"}[$__rate_interval])) by (le)) * 1e3",
+                        "expr": "histogram_quantile(0.99, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket{service_name=~\"$job\",component=\"alertmanager-storage\",operation=\"get_range\"}[$__rate_interval])) by (le)) * 1e3",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "99th Percentile",
                         "refId": "A"
                      },
                      {
-                        "expr": "histogram_quantile(0.50, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket{nomad_service=~\"$job\",component=\"alertmanager-storage\",operation=\"get_range\"}[$__rate_interval])) by (le)) * 1e3",
+                        "expr": "histogram_quantile(0.50, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket{service_name=~\"$job\",component=\"alertmanager-storage\",operation=\"get_range\"}[$__rate_interval])) by (le)) * 1e3",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "50th Percentile",
                         "refId": "B"
                      },
                      {
-                        "expr": "sum(rate(thanos_objstore_bucket_operation_duration_seconds_sum{nomad_service=~\"$job\",component=\"alertmanager-storage\",operation=\"get_range\"}[$__rate_interval])) * 1e3 / sum(rate(thanos_objstore_bucket_operation_duration_seconds_count{nomad_service=~\"$job\",component=\"alertmanager-storage\",operation=\"get_range\"}[$__rate_interval]))",
+                        "expr": "sum(rate(thanos_objstore_bucket_operation_duration_seconds_sum{service_name=~\"$job\",component=\"alertmanager-storage\",operation=\"get_range\"}[$__rate_interval])) * 1e3 / sum(rate(thanos_objstore_bucket_operation_duration_seconds_count{service_name=~\"$job\",component=\"alertmanager-storage\",operation=\"get_range\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "Average",
@@ -1423,21 +1423,21 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "histogram_quantile(0.99, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket{nomad_service=~\"$job\",component=\"alertmanager-storage\",operation=\"upload\"}[$__rate_interval])) by (le)) * 1e3",
+                        "expr": "histogram_quantile(0.99, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket{service_name=~\"$job\",component=\"alertmanager-storage\",operation=\"upload\"}[$__rate_interval])) by (le)) * 1e3",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "99th Percentile",
                         "refId": "A"
                      },
                      {
-                        "expr": "histogram_quantile(0.50, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket{nomad_service=~\"$job\",component=\"alertmanager-storage\",operation=\"upload\"}[$__rate_interval])) by (le)) * 1e3",
+                        "expr": "histogram_quantile(0.50, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket{service_name=~\"$job\",component=\"alertmanager-storage\",operation=\"upload\"}[$__rate_interval])) by (le)) * 1e3",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "50th Percentile",
                         "refId": "B"
                      },
                      {
-                        "expr": "sum(rate(thanos_objstore_bucket_operation_duration_seconds_sum{nomad_service=~\"$job\",component=\"alertmanager-storage\",operation=\"upload\"}[$__rate_interval])) * 1e3 / sum(rate(thanos_objstore_bucket_operation_duration_seconds_count{nomad_service=~\"$job\",component=\"alertmanager-storage\",operation=\"upload\"}[$__rate_interval]))",
+                        "expr": "sum(rate(thanos_objstore_bucket_operation_duration_seconds_sum{service_name=~\"$job\",component=\"alertmanager-storage\",operation=\"upload\"}[$__rate_interval])) * 1e3 / sum(rate(thanos_objstore_bucket_operation_duration_seconds_count{service_name=~\"$job\",component=\"alertmanager-storage\",operation=\"upload\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "Average",
@@ -1512,21 +1512,21 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "histogram_quantile(0.99, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket{nomad_service=~\"$job\",component=\"alertmanager-storage\",operation=\"delete\"}[$__rate_interval])) by (le)) * 1e3",
+                        "expr": "histogram_quantile(0.99, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket{service_name=~\"$job\",component=\"alertmanager-storage\",operation=\"delete\"}[$__rate_interval])) by (le)) * 1e3",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "99th Percentile",
                         "refId": "A"
                      },
                      {
-                        "expr": "histogram_quantile(0.50, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket{nomad_service=~\"$job\",component=\"alertmanager-storage\",operation=\"delete\"}[$__rate_interval])) by (le)) * 1e3",
+                        "expr": "histogram_quantile(0.50, sum(rate(thanos_objstore_bucket_operation_duration_seconds_bucket{service_name=~\"$job\",component=\"alertmanager-storage\",operation=\"delete\"}[$__rate_interval])) by (le)) * 1e3",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "50th Percentile",
                         "refId": "B"
                      },
                      {
-                        "expr": "sum(rate(thanos_objstore_bucket_operation_duration_seconds_sum{nomad_service=~\"$job\",component=\"alertmanager-storage\",operation=\"delete\"}[$__rate_interval])) * 1e3 / sum(rate(thanos_objstore_bucket_operation_duration_seconds_count{nomad_service=~\"$job\",component=\"alertmanager-storage\",operation=\"delete\"}[$__rate_interval]))",
+                        "expr": "sum(rate(thanos_objstore_bucket_operation_duration_seconds_sum{service_name=~\"$job\",component=\"alertmanager-storage\",operation=\"delete\"}[$__rate_interval])) * 1e3 / sum(rate(thanos_objstore_bucket_operation_duration_seconds_count{service_name=~\"$job\",component=\"alertmanager-storage\",operation=\"delete\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "Average",
@@ -1613,7 +1613,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "max by(service_id) (cortex_alertmanager_tenants_owned{nomad_service=~\"$job\"})",
+                        "expr": "max by(service_id) (cortex_alertmanager_tenants_owned{service_name=~\"$job\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
@@ -1688,7 +1688,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(service_id) (cluster_nomad_service_service_id:cortex_alertmanager_alerts:sum{nomad_service=~\"$job\"})",
+                        "expr": "sum by(service_id) (cluster_service_name_service_id:cortex_alertmanager_alerts:sum{service_name=~\"$job\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
@@ -1763,7 +1763,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(service_id) (cluster_nomad_service_service_id:cortex_alertmanager_silences:sum{nomad_service=~\"$job\"})",
+                        "expr": "sum by(service_id) (cluster_service_name_service_id:cortex_alertmanager_silences:sum{service_name=~\"$job\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
@@ -1853,14 +1853,14 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(rate(cortex_alertmanager_sync_configs_total{nomad_service=~\"$job\"}[$__rate_interval]))\n-\nsum(rate(cortex_alertmanager_sync_configs_failed_total{nomad_service=~\"$job\"}[$__rate_interval]))\n",
+                        "expr": "sum(rate(cortex_alertmanager_sync_configs_total{service_name=~\"$job\"}[$__rate_interval]))\n-\nsum(rate(cortex_alertmanager_sync_configs_failed_total{service_name=~\"$job\"}[$__rate_interval]))\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "successful",
                         "legendLink": null
                      },
                      {
-                        "expr": "sum(rate(cortex_alertmanager_sync_configs_failed_total{nomad_service=~\"$job\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_alertmanager_sync_configs_failed_total{service_name=~\"$job\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "failed",
@@ -1935,7 +1935,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(reason) (rate(cortex_alertmanager_sync_configs_total{nomad_service=~\"$job\"}[$__rate_interval]))",
+                        "expr": "sum by(reason) (rate(cortex_alertmanager_sync_configs_total{service_name=~\"$job\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{reason}}",
@@ -2010,7 +2010,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum (rate(cortex_alertmanager_ring_check_errors_total{nomad_service=~\"$job\"}[$__rate_interval]))",
+                        "expr": "sum (rate(cortex_alertmanager_ring_check_errors_total{service_name=~\"$job\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "errors",
@@ -2097,7 +2097,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(outcome) (rate(cortex_alertmanager_state_initial_sync_completed_total{nomad_service=~\"$job\"}[$__rate_interval]))",
+                        "expr": "sum by(outcome) (rate(cortex_alertmanager_state_initial_sync_completed_total{service_name=~\"$job\"}[$__rate_interval]))",
                         "format": "time_series",
                         "interval": "1m",
                         "intervalFactor": 2,
@@ -2173,7 +2173,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "histogram_quantile(0.99, sum(rate(cortex_alertmanager_state_initial_sync_duration_seconds_bucket{nomad_service=~\"$job\"}[$__rate_interval])) by (le)) * 1e3",
+                        "expr": "histogram_quantile(0.99, sum(rate(cortex_alertmanager_state_initial_sync_duration_seconds_bucket{service_name=~\"$job\"}[$__rate_interval])) by (le)) * 1e3",
                         "format": "time_series",
                         "interval": "1m",
                         "intervalFactor": 2,
@@ -2181,7 +2181,7 @@
                         "refId": "A"
                      },
                      {
-                        "expr": "histogram_quantile(0.50, sum(rate(cortex_alertmanager_state_initial_sync_duration_seconds_bucket{nomad_service=~\"$job\"}[$__rate_interval])) by (le)) * 1e3",
+                        "expr": "histogram_quantile(0.50, sum(rate(cortex_alertmanager_state_initial_sync_duration_seconds_bucket{service_name=~\"$job\"}[$__rate_interval])) by (le)) * 1e3",
                         "format": "time_series",
                         "interval": "1m",
                         "intervalFactor": 2,
@@ -2189,7 +2189,7 @@
                         "refId": "B"
                      },
                      {
-                        "expr": "sum(rate(cortex_alertmanager_state_initial_sync_duration_seconds_sum{nomad_service=~\"$job\"}[$__rate_interval])) * 1e3 / sum(rate(cortex_alertmanager_state_initial_sync_duration_seconds_count{nomad_service=~\"$job\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_alertmanager_state_initial_sync_duration_seconds_sum{service_name=~\"$job\"}[$__rate_interval])) * 1e3 / sum(rate(cortex_alertmanager_state_initial_sync_duration_seconds_count{service_name=~\"$job\"}[$__rate_interval]))",
                         "format": "time_series",
                         "interval": "1m",
                         "intervalFactor": 2,
@@ -2268,7 +2268,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(rate(cortex_alertmanager_state_fetch_replica_state_total{nomad_service=~\"$job\"}[$__rate_interval]))\n-\nsum(rate(cortex_alertmanager_state_fetch_replica_state_failed_total{nomad_service=~\"$job\"}[$__rate_interval]))\n",
+                        "expr": "sum(rate(cortex_alertmanager_state_fetch_replica_state_total{service_name=~\"$job\"}[$__rate_interval]))\n-\nsum(rate(cortex_alertmanager_state_fetch_replica_state_failed_total{service_name=~\"$job\"}[$__rate_interval]))\n",
                         "format": "time_series",
                         "interval": "1m",
                         "intervalFactor": 2,
@@ -2276,7 +2276,7 @@
                         "legendLink": null
                      },
                      {
-                        "expr": "sum(rate(cortex_alertmanager_state_fetch_replica_state_failed_total{nomad_service=~\"$job\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_alertmanager_state_fetch_replica_state_failed_total{service_name=~\"$job\"}[$__rate_interval]))",
                         "format": "time_series",
                         "interval": "1m",
                         "intervalFactor": 2,
@@ -2367,14 +2367,14 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(cluster_nomad_service:cortex_alertmanager_state_replication_total:rate5m{nomad_service=~\"$job\"})\n-\nsum(cluster_nomad_service:cortex_alertmanager_state_replication_failed_total:rate5m{nomad_service=~\"$job\"})\n",
+                        "expr": "sum(cluster_service_name:cortex_alertmanager_state_replication_total:rate5m{service_name=~\"$job\"})\n-\nsum(cluster_service_name:cortex_alertmanager_state_replication_failed_total:rate5m{service_name=~\"$job\"})\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "successful",
                         "legendLink": null
                      },
                      {
-                        "expr": "sum(cluster_nomad_service:cortex_alertmanager_state_replication_failed_total:rate5m{nomad_service=~\"$job\"})",
+                        "expr": "sum(cluster_service_name:cortex_alertmanager_state_replication_failed_total:rate5m{service_name=~\"$job\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "failed",
@@ -2452,14 +2452,14 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(cluster_nomad_service:cortex_alertmanager_partial_state_merges_total:rate5m{nomad_service=~\"$job\"})\n-\nsum(cluster_nomad_service:cortex_alertmanager_partial_state_merges_failed_total:rate5m{nomad_service=~\"$job\"})\n",
+                        "expr": "sum(cluster_service_name:cortex_alertmanager_partial_state_merges_total:rate5m{service_name=~\"$job\"})\n-\nsum(cluster_service_name:cortex_alertmanager_partial_state_merges_failed_total:rate5m{service_name=~\"$job\"})\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "successful",
                         "legendLink": null
                      },
                      {
-                        "expr": "sum(cluster_nomad_service:cortex_alertmanager_partial_state_merges_failed_total:rate5m{nomad_service=~\"$job\"})",
+                        "expr": "sum(cluster_service_name:cortex_alertmanager_partial_state_merges_failed_total:rate5m{service_name=~\"$job\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "failed",
@@ -2537,14 +2537,14 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(rate(cortex_alertmanager_state_persist_total{nomad_service=~\"$job\"}[$__rate_interval]))\n-\nsum(rate(cortex_alertmanager_state_persist_failed_total{nomad_service=~\"$job\"}[$__rate_interval]))\n",
+                        "expr": "sum(rate(cortex_alertmanager_state_persist_total{service_name=~\"$job\"}[$__rate_interval]))\n-\nsum(rate(cortex_alertmanager_state_persist_failed_total{service_name=~\"$job\"}[$__rate_interval]))\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "successful",
                         "legendLink": null
                      },
                      {
-                        "expr": "sum(rate(cortex_alertmanager_state_persist_failed_total{nomad_service=~\"$job\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_alertmanager_state_persist_failed_total{service_name=~\"$job\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "failed",
@@ -2631,7 +2631,7 @@
                "multi": true,
                "name": "job",
                "options": [ ],
-               "query": "label_values(cortex_build_info, nomad_service)",
+               "query": "label_values(cortex_build_info, service_name)",
                "refresh": 1,
                "regex": "",
                "sort": 1,

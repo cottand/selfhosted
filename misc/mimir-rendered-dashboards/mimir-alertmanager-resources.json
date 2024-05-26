@@ -81,21 +81,21 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(service_id) (rate(container_cpu_usage_seconds_total{nomad_service=~\"$job\",container=~\"alertmanager\"}[$__rate_interval]))",
+                        "expr": "sum by(service_id) (rate(container_cpu_usage_seconds_total{service_name=~\"$job\",container=~\"alertmanager\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
                         "legendLink": null
                      },
                      {
-                        "expr": "min(container_spec_cpu_quota{nomad_service=~\"$job\",container=~\"alertmanager\"} / container_spec_cpu_period{nomad_service=~\"$job\",container=~\"alertmanager\"})",
+                        "expr": "min(container_spec_cpu_quota{service_name=~\"$job\",container=~\"alertmanager\"} / container_spec_cpu_period{service_name=~\"$job\",container=~\"alertmanager\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "limit",
                         "legendLink": null
                      },
                      {
-                        "expr": "min(kube_pod_container_resource_requests{nomad_service=~\"$job\",container=~\"alertmanager\",resource=\"cpu\"})",
+                        "expr": "min(kube_pod_container_resource_requests{service_name=~\"$job\",container=~\"alertmanager\",resource=\"cpu\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "request",
@@ -183,21 +183,21 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "max by(service_id) (container_memory_working_set_bytes{nomad_service=~\"$job\",container=~\"alertmanager\"})",
+                        "expr": "max by(service_id) (container_memory_working_set_bytes{service_name=~\"$job\",container=~\"alertmanager\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
                         "legendLink": null
                      },
                      {
-                        "expr": "min(container_spec_memory_limit_bytes{nomad_service=~\"$job\",container=~\"alertmanager\"} > 0)",
+                        "expr": "min(container_spec_memory_limit_bytes{service_name=~\"$job\",container=~\"alertmanager\"} > 0)",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "limit",
                         "legendLink": null
                      },
                      {
-                        "expr": "min(kube_pod_container_resource_requests{nomad_service=~\"$job\",container=~\"alertmanager\",resource=\"memory\"})",
+                        "expr": "min(kube_pod_container_resource_requests{service_name=~\"$job\",container=~\"alertmanager\",resource=\"memory\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "request",
@@ -270,7 +270,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(service_id) (go_memstats_heap_inuse_bytes{nomad_service=~\"$job\",container=~\"alertmanager\"})",
+                        "expr": "sum by(service_id) (go_memstats_heap_inuse_bytes{service_name=~\"$job\",container=~\"alertmanager\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
@@ -355,7 +355,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(service_id) (rate(container_network_receive_bytes_total{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?alertmanager.*\"}[$__rate_interval]))",
+                        "expr": "sum by(service_id) (rate(container_network_receive_bytes_total{service_name=~\"$job\",service_id=~\"(.*mimir-)?alertmanager.*\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
@@ -430,7 +430,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(service_id) (rate(container_network_transmit_bytes_total{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?alertmanager.*\"}[$__rate_interval]))",
+                        "expr": "sum by(service_id) (rate(container_network_transmit_bytes_total{service_name=~\"$job\",service_id=~\"(.*mimir-)?alertmanager.*\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
@@ -517,7 +517,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(node_id, service_id, device) (\n  rate(\n    node_disk_written_bytes_total[$__rate_interval]\n  )\n)\n+\nignoring(service_id) group_right() (\n  label_replace(\n    count by(\n      node_id,\n      service_id,\n      device\n    )\n    (\n      container_fs_writes_bytes_total{\n        nomad_service=~\"$job\",\n        container=~\"alertmanager\",\n        device!~\".*sda.*\"\n      }\n    ),\n    \"device\",\n    \"$1\",\n    \"device\",\n    \"/dev/(.*)\"\n  ) * 0\n)\n\n",
+                        "expr": "sum by(node_id, service_id, device) (\n  rate(\n    node_disk_written_bytes_total[$__rate_interval]\n  )\n)\n+\nignoring(service_id) group_right() (\n  label_replace(\n    count by(\n      node_id,\n      service_id,\n      device\n    )\n    (\n      container_fs_writes_bytes_total{\n        service_name=~\"$job\",\n        container=~\"alertmanager\",\n        device!~\".*sda.*\"\n      }\n    ),\n    \"device\",\n    \"$1\",\n    \"device\",\n    \"/dev/(.*)\"\n  ) * 0\n)\n\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}} - {{device}}",
@@ -592,7 +592,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(node_id, service_id, device) (\n  rate(\n    node_disk_read_bytes_total[$__rate_interval]\n  )\n) + ignoring(service_id) group_right() (\n  label_replace(\n    count by(\n      node_id,\n      service_id,\n      device\n    )\n    (\n      container_fs_writes_bytes_total{\n        nomad_service=~\"$job\",\n        container=~\"alertmanager\",\n        device!~\".*sda.*\"\n      }\n    ),\n    \"device\",\n    \"$1\",\n    \"device\",\n    \"/dev/(.*)\"\n  ) * 0\n)\n\n",
+                        "expr": "sum by(node_id, service_id, device) (\n  rate(\n    node_disk_read_bytes_total[$__rate_interval]\n  )\n) + ignoring(service_id) group_right() (\n  label_replace(\n    count by(\n      node_id,\n      service_id,\n      device\n    )\n    (\n      container_fs_writes_bytes_total{\n        service_name=~\"$job\",\n        container=~\"alertmanager\",\n        device!~\".*sda.*\"\n      }\n    ),\n    \"device\",\n    \"$1\",\n    \"device\",\n    \"/dev/(.*)\"\n  ) * 0\n)\n\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}} - {{device}}",
@@ -679,7 +679,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "max by(persistentvolumeclaim) (\n  kubelet_volume_stats_used_bytes{nomad_service=~\"$job\"} /\n  kubelet_volume_stats_capacity_bytes{nomad_service=~\"$job\"}\n)\nand\ncount by(persistentvolumeclaim) (\n  kube_persistentvolumeclaim_labels{\n    nomad_service=~\"$job\",\n    label_name=~\"(alertmanager).*\"\n  }\n)\n",
+                        "expr": "max by(persistentvolumeclaim) (\n  kubelet_volume_stats_used_bytes{service_name=~\"$job\"} /\n  kubelet_volume_stats_capacity_bytes{service_name=~\"$job\"}\n)\nand\ncount by(persistentvolumeclaim) (\n  kube_persistentvolumeclaim_labels{\n    service_name=~\"$job\",\n    label_name=~\"(alertmanager).*\"\n  }\n)\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{persistentvolumeclaim}}",
@@ -765,7 +765,7 @@
                "multi": false,
                "name": "job",
                "options": [ ],
-               "query": "label_values(cortex_build_info, nomad_service)",
+               "query": "label_values(cortex_build_info, service_name)",
                "refresh": 1,
                "regex": "",
                "sort": 1,

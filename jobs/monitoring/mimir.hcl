@@ -26,13 +26,17 @@ job "mimir" {
       mode     = "delay"
     }
     ephemeral_disk {
-      size    = 1024 # MB
+      size = 1024 # MB
       migrate = true
       sticky  = true
     }
     network {
       mode = "bridge"
       port "healthz" {
+        to           = -1
+        host_network = "wg-mesh"
+      }
+      port "metrics" {
         to           = -1
         host_network = "wg-mesh"
       }
@@ -71,8 +75,24 @@ job "mimir" {
         }
         expose = true
       }
+      check {
+        name     = "metrics"
+        port     = "metrics"
+        type     = "http"
+        path     = "/metrics"
+        interval = "20s"
+        timeout  = "5s"
+        expose   = true
+        check_restart {
+          limit           = 3
+          grace           = "120s"
+          ignore_warnings = false
+        }
+      }
+      meta {
+        metrics_port = "${NOMAD_HOST_PORT_metrics}"
+      }
       tags = [
-        "metrics",
         "traefik.enable=true",
         "traefik.http.routers.${NOMAD_GROUP_NAME}.middlewares=vpn-whitelist@file",
         "traefik.http.routers.${NOMAD_GROUP_NAME}.entrypoints=web, websecure",
@@ -89,8 +109,8 @@ job "mimir" {
       # so that blocks can be flushed
       kill_timeout = "5m"
       config {
-        image = "grafana/mimir:2.11.0"
-        args = [
+        image = "grafana/mimir:2.12.0"
+        args  = [
           "-config.file",
           "/local/config.yaml",
           "-target=all",
@@ -116,6 +136,7 @@ common:
   storage:
     backend: s3
     s3:
+      send_content_md5: true
       bucket_name: mimir-long-term
       endpoint: s3.us-east-005.backblazeb2.com
       region: us-east-005

@@ -66,7 +66,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(service_id) (rate(container_cpu_usage_seconds_total{nomad_service=~\"$job\",container=~\"distributor|ingester|mimir-write\"}[$__rate_interval]))",
+                        "expr": "sum by(service_id) (rate(container_cpu_usage_seconds_total{service_name=~\"$job\",container=~\"distributor|ingester|mimir-write\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
@@ -141,7 +141,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "max by(service_id) (container_memory_working_set_bytes{nomad_service=~\"$job\",container=~\"distributor|ingester|mimir-write\"})",
+                        "expr": "max by(service_id) (container_memory_working_set_bytes{service_name=~\"$job\",container=~\"distributor|ingester|mimir-write\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
@@ -216,7 +216,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(service_id) (go_memstats_heap_inuse_bytes{nomad_service=~\"$job\",container=~\"distributor|ingester|mimir-write\"})",
+                        "expr": "sum by(service_id) (go_memstats_heap_inuse_bytes{service_name=~\"$job\",container=~\"distributor|ingester|mimir-write\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
@@ -316,21 +316,21 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(service_id) (rate(container_cpu_usage_seconds_total{nomad_service=~\"$job\",container=~\"distributor\"}[$__rate_interval]))",
+                        "expr": "sum by(service_id) (rate(container_cpu_usage_seconds_total{service_name=~\"$job\",container=~\"distributor\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
                         "legendLink": null
                      },
                      {
-                        "expr": "min(container_spec_cpu_quota{nomad_service=~\"$job\",container=~\"distributor\"} / container_spec_cpu_period{nomad_service=~\"$job\",container=~\"distributor\"})",
+                        "expr": "min(container_spec_cpu_quota{service_name=~\"$job\",container=~\"distributor\"} / container_spec_cpu_period{service_name=~\"$job\",container=~\"distributor\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "limit",
                         "legendLink": null
                      },
                      {
-                        "expr": "min(kube_pod_container_resource_requests{nomad_service=~\"$job\",container=~\"distributor\",resource=\"cpu\"})",
+                        "expr": "min(kube_pod_container_resource_requests{service_name=~\"$job\",container=~\"distributor\",resource=\"cpu\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "request",
@@ -418,21 +418,21 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "max by(service_id) (container_memory_working_set_bytes{nomad_service=~\"$job\",container=~\"distributor\"})",
+                        "expr": "max by(service_id) (container_memory_working_set_bytes{service_name=~\"$job\",container=~\"distributor\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
                         "legendLink": null
                      },
                      {
-                        "expr": "min(container_spec_memory_limit_bytes{nomad_service=~\"$job\",container=~\"distributor\"} > 0)",
+                        "expr": "min(container_spec_memory_limit_bytes{service_name=~\"$job\",container=~\"distributor\"} > 0)",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "limit",
                         "legendLink": null
                      },
                      {
-                        "expr": "min(kube_pod_container_resource_requests{nomad_service=~\"$job\",container=~\"distributor\",resource=\"memory\"})",
+                        "expr": "min(kube_pod_container_resource_requests{service_name=~\"$job\",container=~\"distributor\",resource=\"memory\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "request",
@@ -505,7 +505,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(service_id) (go_memstats_heap_inuse_bytes{nomad_service=~\"$job\",container=~\"distributor\"})",
+                        "expr": "sum by(service_id) (go_memstats_heap_inuse_bytes{service_name=~\"$job\",container=~\"distributor\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
@@ -590,7 +590,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(service_id) (cortex_ingester_memory_series{nomad_service=~\"$job\"})",
+                        "expr": "sum by(service_id) (cortex_ingester_memory_series{service_name=~\"$job\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
@@ -678,21 +678,21 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(service_id) (rate(container_cpu_usage_seconds_total{nomad_service=~\"$job\",container=~\"ingester\"}[$__rate_interval]))",
+                        "expr": "sum by(service_id) (rate(container_cpu_usage_seconds_total{service_name=~\"$job\",container=~\"ingester\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
                         "legendLink": null
                      },
                      {
-                        "expr": "min(container_spec_cpu_quota{nomad_service=~\"$job\",container=~\"ingester\"} / container_spec_cpu_period{nomad_service=~\"$job\",container=~\"ingester\"})",
+                        "expr": "min(container_spec_cpu_quota{service_name=~\"$job\",container=~\"ingester\"} / container_spec_cpu_period{service_name=~\"$job\",container=~\"ingester\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "limit",
                         "legendLink": null
                      },
                      {
-                        "expr": "min(kube_pod_container_resource_requests{nomad_service=~\"$job\",container=~\"ingester\",resource=\"cpu\"})",
+                        "expr": "min(kube_pod_container_resource_requests{service_name=~\"$job\",container=~\"ingester\",resource=\"cpu\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "request",
@@ -792,21 +792,21 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "max by(service_id) (container_memory_rss{nomad_service=~\"$job\",container=~\"ingester\"})",
+                        "expr": "max by(service_id) (container_memory_rss{service_name=~\"$job\",container=~\"ingester\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
                         "legendLink": null
                      },
                      {
-                        "expr": "min(container_spec_memory_limit_bytes{nomad_service=~\"$job\",container=~\"ingester\"} > 0)",
+                        "expr": "min(container_spec_memory_limit_bytes{service_name=~\"$job\",container=~\"ingester\"} > 0)",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "limit",
                         "legendLink": null
                      },
                      {
-                        "expr": "min(kube_pod_container_resource_requests{nomad_service=~\"$job\",container=~\"ingester\",resource=\"memory\"})",
+                        "expr": "min(kube_pod_container_resource_requests{service_name=~\"$job\",container=~\"ingester\",resource=\"memory\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "request",
@@ -894,21 +894,21 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "max by(service_id) (container_memory_working_set_bytes{nomad_service=~\"$job\",container=~\"ingester\"})",
+                        "expr": "max by(service_id) (container_memory_working_set_bytes{service_name=~\"$job\",container=~\"ingester\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
                         "legendLink": null
                      },
                      {
-                        "expr": "min(container_spec_memory_limit_bytes{nomad_service=~\"$job\",container=~\"ingester\"} > 0)",
+                        "expr": "min(container_spec_memory_limit_bytes{service_name=~\"$job\",container=~\"ingester\"} > 0)",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "limit",
                         "legendLink": null
                      },
                      {
-                        "expr": "min(kube_pod_container_resource_requests{nomad_service=~\"$job\",container=~\"ingester\",resource=\"memory\"})",
+                        "expr": "min(kube_pod_container_resource_requests{service_name=~\"$job\",container=~\"ingester\",resource=\"memory\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "request",
@@ -981,7 +981,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(service_id) (go_memstats_heap_inuse_bytes{nomad_service=~\"$job\",container=~\"ingester\"})",
+                        "expr": "sum by(service_id) (go_memstats_heap_inuse_bytes{service_name=~\"$job\",container=~\"ingester\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
@@ -1066,7 +1066,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(node_id, service_id, device) (\n  rate(\n    node_disk_written_bytes_total[$__rate_interval]\n  )\n)\n+\nignoring(service_id) group_right() (\n  label_replace(\n    count by(\n      node_id,\n      service_id,\n      device\n    )\n    (\n      container_fs_writes_bytes_total{\n        nomad_service=~\"$job\",\n        container=~\"ingester\",\n        device!~\".*sda.*\"\n      }\n    ),\n    \"device\",\n    \"$1\",\n    \"device\",\n    \"/dev/(.*)\"\n  ) * 0\n)\n\n",
+                        "expr": "sum by(node_id, service_id, device) (\n  rate(\n    node_disk_written_bytes_total[$__rate_interval]\n  )\n)\n+\nignoring(service_id) group_right() (\n  label_replace(\n    count by(\n      node_id,\n      service_id,\n      device\n    )\n    (\n      container_fs_writes_bytes_total{\n        service_name=~\"$job\",\n        container=~\"ingester\",\n        device!~\".*sda.*\"\n      }\n    ),\n    \"device\",\n    \"$1\",\n    \"device\",\n    \"/dev/(.*)\"\n  ) * 0\n)\n\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}} - {{device}}",
@@ -1141,7 +1141,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(node_id, service_id, device) (\n  rate(\n    node_disk_read_bytes_total[$__rate_interval]\n  )\n) + ignoring(service_id) group_right() (\n  label_replace(\n    count by(\n      node_id,\n      service_id,\n      device\n    )\n    (\n      container_fs_writes_bytes_total{\n        nomad_service=~\"$job\",\n        container=~\"ingester\",\n        device!~\".*sda.*\"\n      }\n    ),\n    \"device\",\n    \"$1\",\n    \"device\",\n    \"/dev/(.*)\"\n  ) * 0\n)\n\n",
+                        "expr": "sum by(node_id, service_id, device) (\n  rate(\n    node_disk_read_bytes_total[$__rate_interval]\n  )\n) + ignoring(service_id) group_right() (\n  label_replace(\n    count by(\n      node_id,\n      service_id,\n      device\n    )\n    (\n      container_fs_writes_bytes_total{\n        service_name=~\"$job\",\n        container=~\"ingester\",\n        device!~\".*sda.*\"\n      }\n    ),\n    \"device\",\n    \"$1\",\n    \"device\",\n    \"/dev/(.*)\"\n  ) * 0\n)\n\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}} - {{device}}",
@@ -1216,7 +1216,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "max by(persistentvolumeclaim) (\n  kubelet_volume_stats_used_bytes{nomad_service=~\"$job\"} /\n  kubelet_volume_stats_capacity_bytes{nomad_service=~\"$job\"}\n)\nand\ncount by(persistentvolumeclaim) (\n  kube_persistentvolumeclaim_labels{\n    nomad_service=~\"$job\",\n    label_name=~\"(ingester).*\"\n  }\n)\n",
+                        "expr": "max by(persistentvolumeclaim) (\n  kubelet_volume_stats_used_bytes{service_name=~\"$job\"} /\n  kubelet_volume_stats_capacity_bytes{service_name=~\"$job\"}\n)\nand\ncount by(persistentvolumeclaim) (\n  kube_persistentvolumeclaim_labels{\n    service_name=~\"$job\",\n    label_name=~\"(ingester).*\"\n  }\n)\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{persistentvolumeclaim}}",
@@ -1302,7 +1302,7 @@
                "multi": false,
                "name": "job",
                "options": [ ],
-               "query": "label_values(cortex_build_info, nomad_service)",
+               "query": "label_values(cortex_build_info, service_name)",
                "refresh": 1,
                "regex": "",
                "sort": 1,

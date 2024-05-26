@@ -66,7 +66,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "count(cortex_config_hash{nomad_service=~\"$job\"}) by (sha256)",
+                        "expr": "count(cortex_config_hash{service_name=~\"$job\"}) by (sha256)",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "sha256:{{sha256}}",
@@ -153,7 +153,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "count(cortex_runtime_config_hash{nomad_service=~\"$job\"}) by (sha256)",
+                        "expr": "count(cortex_runtime_config_hash{service_name=~\"$job\"}) by (sha256)",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "sha256:{{sha256}}",
@@ -240,7 +240,7 @@
                "multi": true,
                "name": "job",
                "options": [ ],
-               "query": "label_values(cortex_build_info, nomad_service)",
+               "query": "label_values(cortex_build_info, service_name)",
                "refresh": 1,
                "regex": "",
                "sort": 1,

@@ -96,28 +96,28 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(\n  (\n    cortex_ingester_memory_series_created_total{nomad_service=~\"$job\", user=\"$user\"}\n    - cortex_ingester_memory_series_removed_total{nomad_service=~\"$job\", user=\"$user\"}\n  )\n  / on(cluster, namespace) group_left\n  max by (cluster, namespace) (cortex_distributor_replication_factor{nomad_service=~\"$job\"})\n)\n",
+                        "expr": "sum(\n  (\n    cortex_ingester_memory_series_created_total{service_name=~\"$job\", user=\"$user\"}\n    - cortex_ingester_memory_series_removed_total{service_name=~\"$job\", user=\"$user\"}\n  )\n  / on(cluster, namespace) group_left\n  max by (cluster, namespace) (cortex_distributor_replication_factor{service_name=~\"$job\"})\n)\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "in-memory",
                         "legendLink": null
                      },
                      {
-                        "expr": "max(cortex_limits_overrides{nomad_service=~\"$job\", limit_name=\"max_global_series_per_user\", user=\"$user\"})\nor\nmax(cortex_limits_defaults{nomad_service=~\"$job\", limit_name=\"max_global_series_per_user\"})\n",
+                        "expr": "max(cortex_limits_overrides{service_name=~\"$job\", limit_name=\"max_global_series_per_user\", user=\"$user\"})\nor\nmax(cortex_limits_defaults{service_name=~\"$job\", limit_name=\"max_global_series_per_user\"})\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "limit",
                         "legendLink": null
                      },
                      {
-                        "expr": "sum(\n  cortex_ingester_active_series{nomad_service=~\"$job\", user=\"$user\"}\n  / on(cluster, namespace) group_left\n  max by (cluster, namespace) (cortex_distributor_replication_factor{nomad_service=~\"$job\"})\n)\n",
+                        "expr": "sum(\n  cortex_ingester_active_series{service_name=~\"$job\", user=\"$user\"}\n  / on(cluster, namespace) group_left\n  max by (cluster, namespace) (cortex_distributor_replication_factor{service_name=~\"$job\"})\n)\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "active",
                         "legendLink": null
                      },
                      {
-                        "expr": "sum by (name) (\n  cortex_ingester_active_series_custom_tracker{nomad_service=~\"$job\", user=\"$user\"}\n  / on(cluster, namespace) group_left\n  max by (cluster, namespace) (cortex_distributor_replication_factor{nomad_service=~\"$job\"})\n) > 0\n",
+                        "expr": "sum by (name) (\n  cortex_ingester_active_series_custom_tracker{service_name=~\"$job\", user=\"$user\"}\n  / on(cluster, namespace) group_left\n  max by (cluster, namespace) (cortex_distributor_replication_factor{service_name=~\"$job\"})\n) > 0\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "active ({{ name }})",
@@ -199,14 +199,14 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(\n  cortex_ingester_active_native_histogram_series{nomad_service=~\"$job\", user=\"$user\"}\n  / on(cluster, namespace) group_left\n  max by (cluster, namespace) (cortex_distributor_replication_factor{nomad_service=~\"$job\"})\n)\n",
+                        "expr": "sum(\n  cortex_ingester_active_native_histogram_series{service_name=~\"$job\", user=\"$user\"}\n  / on(cluster, namespace) group_left\n  max by (cluster, namespace) (cortex_distributor_replication_factor{service_name=~\"$job\"})\n)\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "active",
                         "legendLink": null
                      },
                      {
-                        "expr": "sum by (name) (\n  cortex_ingester_active_native_histogram_series_custom_tracker{nomad_service=~\"$job\", user=\"$user\"}\n  / on(cluster, namespace) group_left\n  max by (cluster, namespace) (cortex_distributor_replication_factor{nomad_service=~\"$job\"})\n) > 0\n",
+                        "expr": "sum by (name) (\n  cortex_ingester_active_native_histogram_series_custom_tracker{service_name=~\"$job\", user=\"$user\"}\n  / on(cluster, namespace) group_left\n  max by (cluster, namespace) (cortex_distributor_replication_factor{service_name=~\"$job\"})\n) > 0\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "active ({{ name }})",
@@ -288,14 +288,14 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(\n  cortex_ingester_active_native_histogram_buckets{nomad_service=~\"$job\", user=\"$user\"}\n  / on(cluster, namespace) group_left\n  max by (cluster, namespace) (cortex_distributor_replication_factor{nomad_service=~\"$job\"})\n)\n",
+                        "expr": "sum(\n  cortex_ingester_active_native_histogram_buckets{service_name=~\"$job\", user=\"$user\"}\n  / on(cluster, namespace) group_left\n  max by (cluster, namespace) (cortex_distributor_replication_factor{service_name=~\"$job\"})\n)\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "buckets",
                         "legendLink": null
                      },
                      {
-                        "expr": "sum by (name) (\n  cortex_ingester_active_native_histogram_buckets_custom_tracker{nomad_service=~\"$job\", user=\"$user\"}\n  / on(cluster, namespace) group_left\n  max by (cluster, namespace) (cortex_distributor_replication_factor{nomad_service=~\"$job\"})\n) > 0\n",
+                        "expr": "sum by (name) (\n  cortex_ingester_active_native_histogram_buckets_custom_tracker{service_name=~\"$job\", user=\"$user\"}\n  / on(cluster, namespace) group_left\n  max by (cluster, namespace) (cortex_distributor_replication_factor{service_name=~\"$job\"})\n) > 0\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "buckets ({{ name }})",
@@ -377,7 +377,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(\n  cortex_ingester_tsdb_exemplar_series_with_exemplars_in_storage{nomad_service=~\"$job\", user=\"$user\"}\n  / on(cluster, namespace) group_left\n  max by (cluster, namespace) (cortex_distributor_replication_factor{nomad_service=~\"$job\"})\n)\n",
+                        "expr": "sum(\n  cortex_ingester_tsdb_exemplar_series_with_exemplars_in_storage{service_name=~\"$job\", user=\"$user\"}\n  / on(cluster, namespace) group_left\n  max by (cluster, namespace) (cortex_distributor_replication_factor{service_name=~\"$job\"})\n)\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "series",
@@ -447,7 +447,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "time() - max(cortex_distributor_latest_seen_sample_timestamp_seconds{nomad_service=~\"$job\", user=\"$user\"} > 0)",
+                        "expr": "time() - max(cortex_distributor_latest_seen_sample_timestamp_seconds{service_name=~\"$job\", user=\"$user\"} > 0)",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "age",
@@ -517,7 +517,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "time() - min(cortex_ingester_tsdb_exemplar_last_exemplars_timestamp_seconds{nomad_service=~\"$job\", user=\"$user\"} > 0)",
+                        "expr": "time() - min(cortex_ingester_tsdb_exemplar_last_exemplars_timestamp_seconds{service_name=~\"$job\", user=\"$user\"} > 0)",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "age",
@@ -599,7 +599,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(rate(cortex_distributor_requests_in_total{nomad_service=~\"$job\", user=\"$user\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_distributor_requests_in_total{service_name=~\"$job\", user=\"$user\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "rate",
@@ -681,14 +681,14 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(rate(cortex_distributor_received_requests_total{nomad_service=~\"$job\", user=\"$user\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_distributor_received_requests_total{service_name=~\"$job\", user=\"$user\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "rate",
                         "legendLink": null
                      },
                      {
-                        "expr": "max(cortex_limits_overrides{nomad_service=~\"$job\", limit_name=\"request_rate\", user=\"$user\"})\nor\nmax(cortex_limits_defaults{nomad_service=~\"$job\", limit_name=\"request_rate\"})\n",
+                        "expr": "max(cortex_limits_overrides{service_name=~\"$job\", limit_name=\"request_rate\", user=\"$user\"})\nor\nmax(cortex_limits_defaults{service_name=~\"$job\", limit_name=\"request_rate\"})\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "limit",
@@ -764,7 +764,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by (reason) (rate(cortex_discarded_requests_total{nomad_service=~\"$job\", user=\"$user\"}[$__rate_interval]))",
+                        "expr": "sum by (reason) (rate(cortex_discarded_requests_total{service_name=~\"$job\", user=\"$user\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{ reason }}",
@@ -846,7 +846,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(rate(cortex_distributor_samples_in_total{nomad_service=~\"$job\", user=\"$user\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_distributor_samples_in_total{service_name=~\"$job\", user=\"$user\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "rate",
@@ -928,14 +928,14 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(rate(cortex_distributor_received_samples_total{nomad_service=~\"$job\", user=\"$user\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_distributor_received_samples_total{service_name=~\"$job\", user=\"$user\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "rate",
                         "legendLink": null
                      },
                      {
-                        "expr": "max(cortex_limits_overrides{nomad_service=~\"$job\", limit_name=\"ingestion_rate\", user=\"$user\"})\nor\nmax(cortex_limits_defaults{nomad_service=~\"$job\", limit_name=\"ingestion_rate\"})\n",
+                        "expr": "max(cortex_limits_overrides{service_name=~\"$job\", limit_name=\"ingestion_rate\", user=\"$user\"})\nor\nmax(cortex_limits_defaults{service_name=~\"$job\", limit_name=\"ingestion_rate\"})\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "limit",
@@ -1011,14 +1011,14 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(rate(cortex_distributor_deduped_samples_total{nomad_service=~\"$job\", user=\"$user\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_distributor_deduped_samples_total{service_name=~\"$job\", user=\"$user\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "deduplicated",
                         "legendLink": null
                      },
                      {
-                        "expr": "sum(rate(cortex_distributor_non_ha_samples_received_total{nomad_service=~\"$job\", user=\"$user\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_distributor_non_ha_samples_received_total{service_name=~\"$job\", user=\"$user\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "non-HA",
@@ -1094,14 +1094,14 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by (reason) (rate(cortex_discarded_samples_total{nomad_service=~\"$job\", user=\"$user\"}[$__rate_interval]))",
+                        "expr": "sum by (reason) (rate(cortex_discarded_samples_total{service_name=~\"$job\", user=\"$user\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{ reason }} (distributor)",
                         "legendLink": null
                      },
                      {
-                        "expr": "sum by (reason) (rate(cortex_discarded_samples_total{nomad_service=~\"$job\", user=\"$user\"}[$__rate_interval]))",
+                        "expr": "sum by (reason) (rate(cortex_discarded_samples_total{service_name=~\"$job\", user=\"$user\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{ reason }} (ingester)",
@@ -1183,7 +1183,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(rate(cortex_distributor_exemplars_in_total{nomad_service=~\"$job\", user=\"$user\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_distributor_exemplars_in_total{service_name=~\"$job\", user=\"$user\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "rate",
@@ -1253,7 +1253,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(rate(cortex_distributor_received_exemplars_total{nomad_service=~\"$job\", user=\"$user\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_distributor_received_exemplars_total{service_name=~\"$job\", user=\"$user\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "rate",
@@ -1329,7 +1329,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by (reason) (rate(cortex_discarded_exemplars_total{nomad_service=~\"$job\", user=\"$user\"}[$__rate_interval]))",
+                        "expr": "sum by (reason) (rate(cortex_discarded_exemplars_total{service_name=~\"$job\", user=\"$user\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{ reason }}",
@@ -1399,7 +1399,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(\n  rate(cortex_ingester_tsdb_exemplar_exemplars_appended_total{nomad_service=~\"$job\", user=\"$user\"}[$__rate_interval])\n  / on(cluster, namespace) group_left\n  max by (cluster, namespace) (cortex_distributor_replication_factor{nomad_service=~\"$job\"})\n)\n",
+                        "expr": "sum(\n  rate(cortex_ingester_tsdb_exemplar_exemplars_appended_total{service_name=~\"$job\", user=\"$user\"}[$__rate_interval])\n  / on(cluster, namespace) group_left\n  max by (cluster, namespace) (cortex_distributor_replication_factor{service_name=~\"$job\"})\n)\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "rate",
@@ -1487,7 +1487,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by (job) (cortex_ingester_tsdb_symbol_table_size_bytes{nomad_service=~\"$job\", user=\"$user\"})",
+                        "expr": "sum by (job) (cortex_ingester_tsdb_symbol_table_size_bytes{service_name=~\"$job\", user=\"$user\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{ job }}",
@@ -1563,7 +1563,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by (job) (cortex_ingester_tsdb_storage_blocks_bytes{nomad_service=~\"$job\", user=\"$user\"})",
+                        "expr": "sum by (job) (cortex_ingester_tsdb_storage_blocks_bytes{service_name=~\"$job\", user=\"$user\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{ job }}",
@@ -1657,14 +1657,14 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "count(sum by (rule_group) (cortex_prometheus_rule_group_rules{nomad_service=~\"$job\", user=\"$user\"}))",
+                        "expr": "count(sum by (rule_group) (cortex_prometheus_rule_group_rules{service_name=~\"$job\", user=\"$user\"}))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "groups",
                         "legendLink": null
                      },
                      {
-                        "expr": "max(cortex_limits_overrides{nomad_service=~\"$job\", limit_name=\"ruler_max_rule_groups_per_tenant\", user=\"$user\"})\nor\nmax(cortex_limits_defaults{nomad_service=~\"$job\", limit_name=\"ruler_max_rule_groups_per_tenant\"})\n",
+                        "expr": "max(cortex_limits_overrides{service_name=~\"$job\", limit_name=\"ruler_max_rule_groups_per_tenant\", user=\"$user\"})\nor\nmax(cortex_limits_defaults{service_name=~\"$job\", limit_name=\"ruler_max_rule_groups_per_tenant\"})\n",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "limit",
@@ -1734,7 +1734,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(cortex_prometheus_rule_group_rules{nomad_service=~\"$job\", user=\"$user\"})",
+                        "expr": "sum(cortex_prometheus_rule_group_rules{service_name=~\"$job\", user=\"$user\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "rules",
@@ -1803,7 +1803,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(rate(cortex_prometheus_rule_evaluations_total{nomad_service=~\"$job\", user=\"$user\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_prometheus_rule_evaluations_total{service_name=~\"$job\", user=\"$user\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "rate",
@@ -1878,7 +1878,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by (rule_group) (rate(cortex_prometheus_rule_evaluation_failures_total{nomad_service=~\"$job\", user=\"$user\"}[$__rate_interval])) > 0",
+                        "expr": "sum by (rule_group) (rate(cortex_prometheus_rule_evaluation_failures_total{service_name=~\"$job\", user=\"$user\"}[$__rate_interval])) > 0",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{ rule_group }}",
@@ -2003,7 +2003,7 @@
                   ],
                   "targets": [
                      {
-                        "expr": "topk($limit, sum by (rule_group) (cortex_prometheus_rule_group_rules{nomad_service=~\"$job\", user=\"$user\"}))",
+                        "expr": "topk($limit, sum by (rule_group) (cortex_prometheus_rule_group_rules{service_name=~\"$job\", user=\"$user\"}))",
                         "format": "table",
                         "instant": true,
                         "intervalFactor": 2,
@@ -2118,7 +2118,7 @@
                   ],
                   "targets": [
                      {
-                        "expr": "topk($limit, sum by (rule_group) (cortex_prometheus_rule_group_last_duration_seconds{nomad_service=~\"$job\", user=\"$user\"}))",
+                        "expr": "topk($limit, sum by (rule_group) (cortex_prometheus_rule_group_last_duration_seconds{service_name=~\"$job\", user=\"$user\"}))",
                         "format": "table",
                         "instant": true,
                         "intervalFactor": 2,
@@ -2201,7 +2201,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(rate(cortex_prometheus_notifications_sent_total{nomad_service=~\"$job\", user=\"$user\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_prometheus_notifications_sent_total{service_name=~\"$job\", user=\"$user\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "rate",
@@ -2272,7 +2272,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(rate(cortex_prometheus_notifications_errors_total{nomad_service=~\"$job\", user=\"$user\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_prometheus_notifications_errors_total{service_name=~\"$job\", user=\"$user\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "rate",
@@ -2359,7 +2359,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(rate(cortex_query_frontend_queries_total{nomad_service=~\"$job\", user=\"$user\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_query_frontend_queries_total{service_name=~\"$job\", user=\"$user\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "Queries / Sec",
@@ -2434,7 +2434,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(cortex_query_scheduler_queue_length{nomad_service=~\"$job\", user=\"$user\"})",
+                        "expr": "sum(cortex_query_scheduler_queue_length{service_name=~\"$job\", user=\"$user\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "Queue Length",
@@ -2521,7 +2521,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(rate(cortex_query_frontend_queries_total{nomad_service=~\"$job\", user=\"$user\"}[$__rate_interval]))",
+                        "expr": "sum(rate(cortex_query_frontend_queries_total{service_name=~\"$job\", user=\"$user\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "Queries / Sec",
@@ -2596,7 +2596,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum(cortex_query_scheduler_queue_length{nomad_service=~\"$job\", user=\"$user\"})",
+                        "expr": "sum(cortex_query_scheduler_queue_length{service_name=~\"$job\", user=\"$user\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "Queue Length",
@@ -2683,7 +2683,7 @@
                "multi": true,
                "name": "job",
                "options": [ ],
-               "query": "label_values(cortex_build_info, nomad_service)",
+               "query": "label_values(cortex_build_info, service_name)",
                "refresh": 1,
                "regex": "",
                "sort": 1,
