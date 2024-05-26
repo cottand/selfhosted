@@ -1,6 +1,6 @@
 let
   lib = import ./lib;
-  tag = "sha-5bccbc1";
+  tag = "sha-928d0c2";
 in
 lib.mkJob "web-portfolio" {
 

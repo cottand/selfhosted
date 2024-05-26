@@ -66,7 +66,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(service_id) (rate(container_network_receive_bytes_total{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?(query-frontend|querier|ruler-query-frontend|ruler-querier|mimir-read).*\"}[$__rate_interval]))",
+                        "expr": "sum by(service_id) (rate(container_network_receive_bytes_total{service_name=~\"$job\",service_id=~\"(.*mimir-)?(query-frontend|querier|ruler-query-frontend|ruler-querier|mimir-read).*\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
@@ -141,7 +141,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(service_id) (rate(container_network_transmit_bytes_total{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?(query-frontend|querier|ruler-query-frontend|ruler-querier|mimir-read).*\"}[$__rate_interval]))",
+                        "expr": "sum by(service_id) (rate(container_network_transmit_bytes_total{service_name=~\"$job\",service_id=~\"(.*mimir-)?(query-frontend|querier|ruler-query-frontend|ruler-querier|mimir-read).*\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
@@ -216,14 +216,14 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "avg(cortex_inflight_requests{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?(query-frontend|querier|ruler-query-frontend|ruler-querier|mimir-read).*\"})",
+                        "expr": "avg(cortex_inflight_requests{service_name=~\"$job\",service_id=~\"(.*mimir-)?(query-frontend|querier|ruler-query-frontend|ruler-querier|mimir-read).*\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "avg",
                         "legendLink": null
                      },
                      {
-                        "expr": "max(cortex_inflight_requests{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?(query-frontend|querier|ruler-query-frontend|ruler-querier|mimir-read).*\"})",
+                        "expr": "max(cortex_inflight_requests{service_name=~\"$job\",service_id=~\"(.*mimir-)?(query-frontend|querier|ruler-query-frontend|ruler-querier|mimir-read).*\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "highest",
@@ -298,21 +298,21 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "avg(sum by(service_id) (cortex_tcp_connections{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?(query-frontend|querier|ruler-query-frontend|ruler-querier|mimir-read).*\"}))",
+                        "expr": "avg(sum by(service_id) (cortex_tcp_connections{service_name=~\"$job\",service_id=~\"(.*mimir-)?(query-frontend|querier|ruler-query-frontend|ruler-querier|mimir-read).*\"}))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "avg",
                         "legendLink": null
                      },
                      {
-                        "expr": "max(sum by(service_id) (cortex_tcp_connections{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?(query-frontend|querier|ruler-query-frontend|ruler-querier|mimir-read).*\"}))",
+                        "expr": "max(sum by(service_id) (cortex_tcp_connections{service_name=~\"$job\",service_id=~\"(.*mimir-)?(query-frontend|querier|ruler-query-frontend|ruler-querier|mimir-read).*\"}))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "highest",
                         "legendLink": null
                      },
                      {
-                        "expr": "min(cortex_tcp_connections_limit{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?(query-frontend|querier|ruler-query-frontend|ruler-querier|mimir-read).*\"})",
+                        "expr": "min(cortex_tcp_connections_limit{service_name=~\"$job\",service_id=~\"(.*mimir-)?(query-frontend|querier|ruler-query-frontend|ruler-querier|mimir-read).*\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "limit",
@@ -399,7 +399,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(service_id) (rate(container_network_receive_bytes_total{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?query-frontend.*\"}[$__rate_interval]))",
+                        "expr": "sum by(service_id) (rate(container_network_receive_bytes_total{service_name=~\"$job\",service_id=~\"(.*mimir-)?query-frontend.*\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
@@ -474,7 +474,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(service_id) (rate(container_network_transmit_bytes_total{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?query-frontend.*\"}[$__rate_interval]))",
+                        "expr": "sum by(service_id) (rate(container_network_transmit_bytes_total{service_name=~\"$job\",service_id=~\"(.*mimir-)?query-frontend.*\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
@@ -549,14 +549,14 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "avg(cortex_inflight_requests{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?query-frontend.*\"})",
+                        "expr": "avg(cortex_inflight_requests{service_name=~\"$job\",service_id=~\"(.*mimir-)?query-frontend.*\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "avg",
                         "legendLink": null
                      },
                      {
-                        "expr": "max(cortex_inflight_requests{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?query-frontend.*\"})",
+                        "expr": "max(cortex_inflight_requests{service_name=~\"$job\",service_id=~\"(.*mimir-)?query-frontend.*\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "highest",
@@ -631,21 +631,21 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "avg(sum by(service_id) (cortex_tcp_connections{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?query-frontend.*\"}))",
+                        "expr": "avg(sum by(service_id) (cortex_tcp_connections{service_name=~\"$job\",service_id=~\"(.*mimir-)?query-frontend.*\"}))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "avg",
                         "legendLink": null
                      },
                      {
-                        "expr": "max(sum by(service_id) (cortex_tcp_connections{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?query-frontend.*\"}))",
+                        "expr": "max(sum by(service_id) (cortex_tcp_connections{service_name=~\"$job\",service_id=~\"(.*mimir-)?query-frontend.*\"}))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "highest",
                         "legendLink": null
                      },
                      {
-                        "expr": "min(cortex_tcp_connections_limit{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?query-frontend.*\"})",
+                        "expr": "min(cortex_tcp_connections_limit{service_name=~\"$job\",service_id=~\"(.*mimir-)?query-frontend.*\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "limit",
@@ -732,7 +732,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(service_id) (rate(container_network_receive_bytes_total{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?query-scheduler.*\"}[$__rate_interval]))",
+                        "expr": "sum by(service_id) (rate(container_network_receive_bytes_total{service_name=~\"$job\",service_id=~\"(.*mimir-)?query-scheduler.*\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
@@ -807,7 +807,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(service_id) (rate(container_network_transmit_bytes_total{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?query-scheduler.*\"}[$__rate_interval]))",
+                        "expr": "sum by(service_id) (rate(container_network_transmit_bytes_total{service_name=~\"$job\",service_id=~\"(.*mimir-)?query-scheduler.*\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
@@ -882,14 +882,14 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "avg(cortex_inflight_requests{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?query-scheduler.*\"})",
+                        "expr": "avg(cortex_inflight_requests{service_name=~\"$job\",service_id=~\"(.*mimir-)?query-scheduler.*\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "avg",
                         "legendLink": null
                      },
                      {
-                        "expr": "max(cortex_inflight_requests{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?query-scheduler.*\"})",
+                        "expr": "max(cortex_inflight_requests{service_name=~\"$job\",service_id=~\"(.*mimir-)?query-scheduler.*\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "highest",
@@ -964,21 +964,21 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "avg(sum by(service_id) (cortex_tcp_connections{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?query-scheduler.*\"}))",
+                        "expr": "avg(sum by(service_id) (cortex_tcp_connections{service_name=~\"$job\",service_id=~\"(.*mimir-)?query-scheduler.*\"}))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "avg",
                         "legendLink": null
                      },
                      {
-                        "expr": "max(sum by(service_id) (cortex_tcp_connections{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?query-scheduler.*\"}))",
+                        "expr": "max(sum by(service_id) (cortex_tcp_connections{service_name=~\"$job\",service_id=~\"(.*mimir-)?query-scheduler.*\"}))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "highest",
                         "legendLink": null
                      },
                      {
-                        "expr": "min(cortex_tcp_connections_limit{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?query-scheduler.*\"})",
+                        "expr": "min(cortex_tcp_connections_limit{service_name=~\"$job\",service_id=~\"(.*mimir-)?query-scheduler.*\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "limit",
@@ -1065,7 +1065,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(service_id) (rate(container_network_receive_bytes_total{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?querier.*\"}[$__rate_interval]))",
+                        "expr": "sum by(service_id) (rate(container_network_receive_bytes_total{service_name=~\"$job\",service_id=~\"(.*mimir-)?querier.*\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
@@ -1140,7 +1140,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(service_id) (rate(container_network_transmit_bytes_total{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?querier.*\"}[$__rate_interval]))",
+                        "expr": "sum by(service_id) (rate(container_network_transmit_bytes_total{service_name=~\"$job\",service_id=~\"(.*mimir-)?querier.*\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
@@ -1215,14 +1215,14 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "avg(cortex_inflight_requests{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?querier.*\"})",
+                        "expr": "avg(cortex_inflight_requests{service_name=~\"$job\",service_id=~\"(.*mimir-)?querier.*\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "avg",
                         "legendLink": null
                      },
                      {
-                        "expr": "max(cortex_inflight_requests{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?querier.*\"})",
+                        "expr": "max(cortex_inflight_requests{service_name=~\"$job\",service_id=~\"(.*mimir-)?querier.*\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "highest",
@@ -1297,21 +1297,21 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "avg(sum by(service_id) (cortex_tcp_connections{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?querier.*\"}))",
+                        "expr": "avg(sum by(service_id) (cortex_tcp_connections{service_name=~\"$job\",service_id=~\"(.*mimir-)?querier.*\"}))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "avg",
                         "legendLink": null
                      },
                      {
-                        "expr": "max(sum by(service_id) (cortex_tcp_connections{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?querier.*\"}))",
+                        "expr": "max(sum by(service_id) (cortex_tcp_connections{service_name=~\"$job\",service_id=~\"(.*mimir-)?querier.*\"}))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "highest",
                         "legendLink": null
                      },
                      {
-                        "expr": "min(cortex_tcp_connections_limit{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?querier.*\"})",
+                        "expr": "min(cortex_tcp_connections_limit{service_name=~\"$job\",service_id=~\"(.*mimir-)?querier.*\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "limit",
@@ -1398,7 +1398,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(service_id) (rate(container_network_receive_bytes_total{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?store-gateway.*\"}[$__rate_interval]))",
+                        "expr": "sum by(service_id) (rate(container_network_receive_bytes_total{service_name=~\"$job\",service_id=~\"(.*mimir-)?store-gateway.*\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
@@ -1473,7 +1473,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(service_id) (rate(container_network_transmit_bytes_total{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?store-gateway.*\"}[$__rate_interval]))",
+                        "expr": "sum by(service_id) (rate(container_network_transmit_bytes_total{service_name=~\"$job\",service_id=~\"(.*mimir-)?store-gateway.*\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
@@ -1548,14 +1548,14 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "avg(cortex_inflight_requests{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?store-gateway.*\"})",
+                        "expr": "avg(cortex_inflight_requests{service_name=~\"$job\",service_id=~\"(.*mimir-)?store-gateway.*\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "avg",
                         "legendLink": null
                      },
                      {
-                        "expr": "max(cortex_inflight_requests{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?store-gateway.*\"})",
+                        "expr": "max(cortex_inflight_requests{service_name=~\"$job\",service_id=~\"(.*mimir-)?store-gateway.*\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "highest",
@@ -1630,21 +1630,21 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "avg(sum by(service_id) (cortex_tcp_connections{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?store-gateway.*\"}))",
+                        "expr": "avg(sum by(service_id) (cortex_tcp_connections{service_name=~\"$job\",service_id=~\"(.*mimir-)?store-gateway.*\"}))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "avg",
                         "legendLink": null
                      },
                      {
-                        "expr": "max(sum by(service_id) (cortex_tcp_connections{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?store-gateway.*\"}))",
+                        "expr": "max(sum by(service_id) (cortex_tcp_connections{service_name=~\"$job\",service_id=~\"(.*mimir-)?store-gateway.*\"}))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "highest",
                         "legendLink": null
                      },
                      {
-                        "expr": "min(cortex_tcp_connections_limit{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?store-gateway.*\"})",
+                        "expr": "min(cortex_tcp_connections_limit{service_name=~\"$job\",service_id=~\"(.*mimir-)?store-gateway.*\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "limit",
@@ -1731,7 +1731,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(service_id) (rate(container_network_receive_bytes_total{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?ruler.*\"}[$__rate_interval]))",
+                        "expr": "sum by(service_id) (rate(container_network_receive_bytes_total{service_name=~\"$job\",service_id=~\"(.*mimir-)?ruler.*\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
@@ -1806,7 +1806,7 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "sum by(service_id) (rate(container_network_transmit_bytes_total{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?ruler.*\"}[$__rate_interval]))",
+                        "expr": "sum by(service_id) (rate(container_network_transmit_bytes_total{service_name=~\"$job\",service_id=~\"(.*mimir-)?ruler.*\"}[$__rate_interval]))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "{{service_id}}",
@@ -1881,14 +1881,14 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "avg(cortex_inflight_requests{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?ruler.*\"})",
+                        "expr": "avg(cortex_inflight_requests{service_name=~\"$job\",service_id=~\"(.*mimir-)?ruler.*\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "avg",
                         "legendLink": null
                      },
                      {
-                        "expr": "max(cortex_inflight_requests{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?ruler.*\"})",
+                        "expr": "max(cortex_inflight_requests{service_name=~\"$job\",service_id=~\"(.*mimir-)?ruler.*\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "highest",
@@ -1963,21 +1963,21 @@
                   "steppedLine": false,
                   "targets": [
                      {
-                        "expr": "avg(sum by(service_id) (cortex_tcp_connections{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?ruler.*\"}))",
+                        "expr": "avg(sum by(service_id) (cortex_tcp_connections{service_name=~\"$job\",service_id=~\"(.*mimir-)?ruler.*\"}))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "avg",
                         "legendLink": null
                      },
                      {
-                        "expr": "max(sum by(service_id) (cortex_tcp_connections{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?ruler.*\"}))",
+                        "expr": "max(sum by(service_id) (cortex_tcp_connections{service_name=~\"$job\",service_id=~\"(.*mimir-)?ruler.*\"}))",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "highest",
                         "legendLink": null
                      },
                      {
-                        "expr": "min(cortex_tcp_connections_limit{nomad_service=~\"$job\",service_id=~\"(.*mimir-)?ruler.*\"})",
+                        "expr": "min(cortex_tcp_connections_limit{service_name=~\"$job\",service_id=~\"(.*mimir-)?ruler.*\"})",
                         "format": "time_series",
                         "intervalFactor": 2,
                         "legendFormat": "limit",
@@ -2063,7 +2063,7 @@
                "multi": false,
                "name": "job",
                "options": [ ],
-               "query": "label_values(cortex_build_info, nomad_service)",
+               "query": "label_values(cortex_build_info, service_name)",
                "refresh": 1,
                "regex": "",
                "sort": 1,
