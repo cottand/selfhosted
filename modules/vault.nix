@@ -107,9 +107,8 @@ in
       group = "root";
       permissions = "0644";
     };
-
     deployment.keys."vault-aws.env" = {
-      keyFile = secretPath + "aws/vault.env";
+      keyCommand = [ "bws-get"  "d9709fc0-8f24-4e51-9435-b186014a5e6b"];
       destDir = "/opt/vault/aws";
       user = "root";
       group = "vault";

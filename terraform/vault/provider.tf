@@ -5,9 +5,9 @@ terraform {
       source  = "hashicorp/vault"
       version = "~> 4.2.0"
     }
-    cloudflare = {
-      source  = "cloudflare/cloudflare"
-      version = "~> 4.0"
+    bitwarden-secrets = {
+      source = "sebastiaan-dev/bitwarden-secrets"
+      version = "0.1.2"
     }
   }
 }
@@ -22,12 +22,20 @@ provider "nomad" {
   skip_verify = true
 }
 
+data "external" "keychain-bw-token" {
+  program = [ "keychain-get", "bitwarden/secret/m3-cli" ]
+}
+
+provider "bitwarden-secrets" {
+  access_token = data.external.keychain-bw-token.result.value
+}
+
+data "bitwarden-secrets_secret" "awsTfUser" {
+  id = "29faed54-7b0f-47ce-b233-b186014331e1"
+}
 
 provider "aws" {
   region                   = "eu-west-1"
-  shared_credentials_files = ["../../secret/aws/creds"]
-}
-
-provider "cloudflare" {
-  api_token = file("../../secret/cloudflare/token")
+  access_key = jsondecode(data.bitwarden-secrets_secret.awsTfUser.value)["access_key"]
+  secret_key = jsondecode(data.bitwarden-secrets_secret.awsTfUser.value)["secret_key"]
 }
