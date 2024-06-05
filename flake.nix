@@ -142,7 +142,7 @@
         };
         x86DarwinPkgs = import nixpkgs { system = "x86_64-darwin"; config.allowUnfree = true; };
         roachdb = if system == "aarch64-darwin" then x86DarwinPkgs.cockroachdb else pkgs.cokcroachdb;
-        devPackages = with pkgs; [
+        devPackages = with pkgs; with self.packages.${system}; [
           # roachdb
           terraform
           colmena
@@ -153,12 +153,19 @@
           consul
           seaweedfs
           wander
-          self.packages.${system}.nixmad
+          bws
+
+          nixmad
+          bws-get
         ];
       in
       {
         packages.nixmad = pkgs.writeShellScriptBin "nixmad" ''
           ${pkgs.nix}/bin/nix eval -f $1 --json --show-trace | ${pkgs.nomad}/bin/nomad run -json -
+        '';
+
+        packages.bws-get = pkgs.writeShellScriptBin "bws-get" ''
+          ${pkgs.bws}/bin/bws secret get $1 | ${pkgs.jq}/bin/jq -r '.value'
         '';
 
         devShells.default = pkgs.mkShell {
