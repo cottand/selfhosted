@@ -4,7 +4,6 @@ with lib; let
   secretOptsType = { lib, name, config, ... }:
     let
       inherit (lib) types;
-      mdDoc = lib.mdDoc or (md: md);
     in
     {
       options = {
@@ -19,7 +18,7 @@ with lib; let
         };
 
         name = lib.mkOption {
-          description = mdDoc "File name of the key";
+          description = "File name of the key";
           default = name;
           type = types.str;
           internal = true;
