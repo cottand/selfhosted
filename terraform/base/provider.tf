@@ -34,15 +34,20 @@ provider "nomad" {
   skip_verify = true  
 }
 
-provider "aws" {
-  region                   = "eu-west-1"
-  shared_credentials_files = ["../../secret/aws/creds"]
-}
-
 data "bitwarden-secrets_secret" "cloudflareToken" {
   id = "d3f24d46-b0bd-4b63-99b5-b186013237b4"
 }
   
 provider "cloudflare" {
   api_token = data.bitwarden-secrets_secret.cloudflareToken.value
+}
+
+data "bitwarden-secrets_secret" "awsTfUser" {
+  id = "29faed54-7b0f-47ce-b233-b186014331e1"
+}
+
+provider "aws" {
+  region                   = "eu-west-1"
+  access_key = jsondecode(data.bitwarden-secrets_secret.awsTfUser.value)["access_key"]
+  secret_key = jsondecode(data.bitwarden-secrets_secret.awsTfUser.value)["secret_key"]
 }
