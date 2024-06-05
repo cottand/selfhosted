@@ -17,7 +17,7 @@ The technologies I use include
 - [NixOS](https://nixos.org/) for managing the bare-metal (and [Colmena](https://github.com/zhaofengli/colmena) for deploying remotely)
 - [SeaweedFS](https://github.com/seaweedfs/seaweedfs) as a distributed filesystem to manage highly available persistent storage
 - [CockroachDB](https://github.com/cockroachdb/cockroach) for HA distributed SQL databases
-- [Leng](https://github/cottand/leng) (which I maintain myself) for DNS service-discovery and adblocking
+- [Leng](https://github.com/cottand/leng) (which I maintain myself) for DNS service-discovery and adblocking
 
 I always set up the HA versions of the above. This means Raft storage for Vault, erasure coding for SeaweedFS, etc.
 
