@@ -157,15 +157,28 @@
 
           nixmad
           bws-get
+          keychain-get
         ];
       in
       {
+        # templates a nomad nix file into JSON and calls nomad run on it
+        # usage: nixmad path/to/job.nix
         packages.nixmad = pkgs.writeShellScriptBin "nixmad" ''
           ${pkgs.nix}/bin/nix eval -f $1 --json --show-trace | ${pkgs.nomad}/bin/nomad run -json -
         '';
 
+        # fetches a secret from bitwarden-secret by ID
+        # usage: bws-get <ID>
         packages.bws-get = pkgs.writeShellScriptBin "bws-get" ''
           ${pkgs.bws}/bin/bws secret get $1 | ${pkgs.jq}/bin/jq -r '.value'
+        '';
+
+        # returns a secret from the MacOS keychain fromatted as JSON for use in TF
+        # usage: keychain-get <SERVICE>
+        # returns {"value": "<SECRET>"}
+        packages.keychain-get = pkgs.writeShellScriptBin "keychain-get" ''
+          SECRET=$(/usr/bin/security find-generic-password -gw -l "$1")
+          ${pkgs.jq}/bin/jq -n --arg value "$SECRET" '{ "value": $value }'
         '';
 
         devShells.default = pkgs.mkShell {
