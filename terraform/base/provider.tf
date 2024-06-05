@@ -9,13 +9,20 @@ terraform {
       source  = "cloudflare/cloudflare"
       version = "~> 4.0"
     }
-    bitwarden = {
-      source  = "maxlaverse/bitwarden"
-      version = ">= 0.7.0"
+    bitwarden-secrets = {
+      source = "sebastiaan-dev/bitwarden-secrets"
+      version = "0.1.2"
     }
   }
 }
 
+data "external" "keychain-bw-token" {
+  program = [ "keychain-get", "bitwarden/secret/m3-cli" ]
+}
+
+provider "bitwarden-secrets" {
+  access_token = data.external.keychain-bw-token.result.value
+}
 
 provider "vault" {
   address = var.vault_addr
@@ -32,7 +39,11 @@ provider "aws" {
   region                   = "eu-west-1"
   shared_credentials_files = ["../../secret/aws/creds"]
 }
+
+data "bitwarden-secrets_secret" "cloudflareToken" {
+  id = "d3f24d46-b0bd-4b63-99b5-b186013237b4"
+}
   
 provider "cloudflare" {
-  api_token = file("../../secret/cloudflare/token")
+  api_token = data.bitwarden-secrets_secret.cloudflareToken.value
 }
