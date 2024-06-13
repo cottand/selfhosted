@@ -8,6 +8,9 @@ in
 rec {
   seconds = 1000000000;
   minutes = 60 * seconds;
+  hours = 60 * minutes;
+
+  kiB = 1024;
 
   localhost = "127.0.0.1";
 

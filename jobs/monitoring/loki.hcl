@@ -1,33 +1,33 @@
-job "loki" {
-  datacenters = ["*"]
-  type        = "service"
-  update {
-    max_parallel      = 1
-    health_check      = "checks"
-    min_healthy_time  = "10s"
-    healthy_deadline  = "3m"
-    progress_deadline = "5m"
+job."loki" = {
+  datacenters = ["*"];
+  type        = "service";
+  update = {
+    max_parallel      = 1;
+    health_check      = "checks";
+    min_healthy_time  = "10s";
+    healthy_deadline  = "3m";
+    progress_deadline = "5m";
   }
-  group "loki" {
+  group."loki" = {
     ephemeral_disk {
-      migrate = true
-      size    = 5000
-      sticky  = true
+      migrate = true;
+      size    = 5000;
+      sticky  = true;
     }
     count = 1
     restart {
-      attempts = 3
-      interval = "5m"
-      delay    = "25s"
-      mode     = "delay"
+      attempts = 3;
+      interval = "5m";
+      delay    = "25s";
+      mode     = "delay";
     }
     network {
       mode = "bridge"
-      port "http" {
+      port "http" = {
         host_network = "wg-mesh"
       }
     }
-    task "loki" {
+    task."loki" = {
       driver = "docker"
       user   = "root"
 

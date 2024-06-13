@@ -15,18 +15,27 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    attic = {
+      url = "github:zhaofengli/attic";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, cottand, home-manager, utils, nixpkgs-master, ... }:
+  outputs = { self, nixpkgs, cottand, home-manager, utils, nixpkgs-master, attic, ... }:
     let
       newVault = final: prev: {
         vault-bin = (import nixpkgs-master { system = prev.system; config.allowUnfree = true; }).vault-bin;
       };
-      overlays = [ (import ./overlay.nix) newVault ];
+      overlays = [ (import ./overlay.nix) newVault attic.overlays.default ];
       secretPath = "/Users/nico/dev/cottand/selfhosted/secret/";
     in
     {
+    a = ''
+    #yaml
+    a: {a:2}
+    '';
       colmena = {
         meta = {
           nixpkgs = nixpkgs.legacyPackages.x86_64-linux;
@@ -140,25 +149,6 @@
           inherit system overlays;
           config.allowUnfree = true;
         };
-        x86DarwinPkgs = import nixpkgs { system = "x86_64-darwin"; config.allowUnfree = true; };
-        roachdb = if system == "aarch64-darwin" then x86DarwinPkgs.cockroachdb else pkgs.cokcroachdb;
-        devPackages = with pkgs; with self.packages.${system}; [
-          # roachdb
-          terraform
-          colmena
-          fish
-          vault
-          nomad_1_7
-          bitwarden-cli
-          consul
-          seaweedfs
-          wander
-          bws
-
-          nixmad
-          bws-get
-          keychain-get
-        ];
       in
       {
         # templates a nomad nix file into JSON and calls nomad run on it
@@ -183,12 +173,32 @@
 
         devShells.default = pkgs.mkShell {
           name = "selfhosted-dev";
-          packages = devPackages;
+          packages = with pkgs; with self.packages.${system}; [
+            # roachdb
+            terraform
+            colmena
+            fish
+            vault
+            nomad_1_7
+            bitwarden-cli
+            consul
+            seaweedfs
+            wander
+            bws
+
+            pkgs.attic
+
+            go
+
+            nixmad
+            bws-get
+            keychain-get
+          ];
           shellHook = ''fish --init-command 'abbr -a weeds "nomad alloc exec -i -t -task seaweed-filer -job seaweed-filer weed shell -master 10.10.4.1:9333" ' && exit'';
 
           NOMAD_ADDR = "https://10.10.4.1:4646";
-          VAULT_ADDR = "https://10.10.2.1:8200";
-          # VAULT_ADDR = "https://vault.mesh.dcotta.eu:8200";
+          #          VAULT_ADDR = "https://10.10.2.1:8200";
+          VAULT_ADDR = "https://vault.mesh.dcotta.eu:8200";
         };
 
         formatter = pkgs.writeShellScriptBin "fmt" ''

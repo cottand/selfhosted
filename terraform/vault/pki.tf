@@ -107,7 +107,7 @@ resource "vault_pki_secret_backend_role" "intermediate_role" {
   issuer_ref       = vault_pki_secret_backend_issuer.intermediate.issuer_ref
   name             = "dcotta-int"
   ttl              = 2596400
-  max_ttl          = 20592000 # 8 months ish
+  max_ttl = 20592000 # 8 months ish
   allow_ip_sans    = true
   key_type         = "rsa"
   key_bits         = 4096
@@ -134,7 +134,7 @@ resource "vault_pki_secret_backend_cert" "dcotta-dot-eu2" {
     "10.10.5.1",
   ]
 
-  ttl    = 10592000
+  ttl = 10592000
   # ttl    = 89400000
   revoke = true
 }
@@ -147,11 +147,6 @@ resource "local_sensitive_file" "dcotta-dot-eu_private_key" {
 resource "local_file" "dcotta-dot-eu_issuing_ca" {
   content  = vault_pki_secret_backend_cert.dcotta-dot-eu2.issuing_ca
   filename = "../../secret/pki/vault/mesh-ca.pem"
-}
-
-resource "local_file" "dcotta-dot-eu_cert" {
-  content  = vault_pki_secret_backend_cert.dcotta-dot-eu2.certificate
-  filename = "../../secret/pki/vault/mesh-cert.pem"
 }
 
 resource "local_file" "dcotta-dot-eu_cert-chain" {
