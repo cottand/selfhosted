@@ -1,6 +1,6 @@
 let
   lib = import ../lib;
-  version = "3.64";
+  version = "3.67";
   cpu = 100;
   mem = 200;
   ports = {
@@ -15,7 +15,7 @@ let
     memoryMB = 0.25 * mem;
     memoryMaxMB = 0.25 * mem + 100;
   };
-  bind = "127.0.0.1";
+  bind = "0.0.0.0";
   otlpPort = 9001;
 in
 lib.mkJob "seaweed-filer" {
@@ -37,6 +37,7 @@ lib.mkJob "seaweed-filer" {
       reservedPorts = [
         { label = "http"; value = ports.http; }
         { label = "grpc"; value = ports.grpc; }
+        { label = "s3"; value = ports.s3; }
       ];
     };
 
@@ -108,13 +109,20 @@ lib.mkJob "seaweed-filer" {
       meta.metrics_port = "\${NOMAD_HOST_PORT_metrics}";
       meta.metrics_path = "/metrics";
     };
-    service. "seaweed-filer-s3" = {
+    service."seaweed-filer-s3" = {
       port = toString ports.s3;
       tags = [
-        "traefik.enable=true"
+        "traefik.enable=false"
         "traefik.http.routers.\${NOMAD_GROUP_NAME}-s3.entrypoints=web,websecure"
         "traefik.http.routers.\${NOMAD_GROUP_NAME}-s3.middlewares=vpn-whitelist@file"
       ];
+
+      connect.sidecarTask.resources = sidecarResources;
+      connect.sidecarService.proxy.config = lib.mkEnvoyProxyConfig {
+        otlpService = "proxy-seaweed-filer-s3";
+        otlpUpstreamPort = otlpPort;
+        protocol = "http";
+      };
     };
 
     task."seaweed-filer" = {
@@ -138,8 +146,9 @@ lib.mkJob "seaweed-filer" {
           "-s3"
           "-s3.port=${toString ports.s3}"
           "-s3.allowEmptyFolder=false"
-          "-dataCenter=\${node.datacenter}"
-          "-rack=\${node.unique.name}"
+          # see https://github.com/seaweedfs/seaweedfs/issues/3886#issuecomment-1769880124
+#           "-dataCenter=\${node.datacenter}"
+#           "-rack=\${node.unique.name}"
         ];
         mounts = [{
           type = "bind";
@@ -147,10 +156,11 @@ lib.mkJob "seaweed-filer" {
           target = "/etc/seaweedfs/filer.toml";
         }];
       };
+      vault = { };
 
       resources = {
         cpu = cpu;
-        memory = mem;
+        memoryMb = mem;
       };
       template."local/filer.toml" = {
         changeMode = "restart";
@@ -180,7 +190,7 @@ lib.mkJob "seaweed-filer" {
             hostname = "localhost"
             port = 5432
             username = "seaweed_filer"
-            password = "_"
+            password = "{{with secret "secret/data/nomad/job/seaweed-filer/db"}}{{.Data.data.password}}{{end}}"
             database = "seaweed_filer" 
             schema = ""
             sslmode = "require"

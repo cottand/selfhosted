@@ -14,23 +14,6 @@ resource "aws_kms_alias" "vault" {
 }
 
 
-
-//--------------------------------------------------------------------
-// Data Sources
-
-data "aws_iam_policy_document" "assume_role" {
-  statement {
-    effect  = "Allow"
-    actions = ["sts:AssumeRole"]
-
-    principals {
-      type        = "Service"
-      identifiers = ["ec2.amazonaws.com"]
-    }
-  }
-}
-
-
 # IAM
 
 resource "aws_iam_user" "vault-server2" {

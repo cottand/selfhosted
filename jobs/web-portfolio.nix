@@ -66,7 +66,7 @@ lib.mkJob "web-portfolio" {
 
       resources = {
         cpu = 70;
-        memory = 60;
+        memoryMb = 60;
       };
     };
   };

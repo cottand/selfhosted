@@ -1,6 +1,6 @@
 let
   lib = import ../lib;
-  version = "3.64";
+  version = "3.67";
   cpu = 100;
   mem = 200;
   sidecarResources = with builtins; mapAttrs (_: ceil) {
