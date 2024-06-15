@@ -30,3 +30,7 @@ Some of the services I host include
 - Personal storage for backups etc
 - and some more as ideas come along!
 
+Here is a screenshot of the main LGTM dashboard:
+
+<img width="1146" alt="grafana dashboard" src="https://github.com/Cottand/selfhosted/assets/45274424/f211b679-104c-4c58-a23a-10b5cfdabc41">
+
