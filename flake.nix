@@ -101,7 +101,7 @@
         };
 
         miki = { name, nodes, lib, ... }: {
-          deployment.targetHost = "${name}.vps.dcotta.eu";
+          deployment.targetHost = "${name}.mesh.dcotta.eu";
           # deployment.targetHost = "";
           deployment.tags = [ "contabo" "nomad-server" "vault" ];
           vaultNode.enable = true;

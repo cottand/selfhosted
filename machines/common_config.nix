@@ -32,7 +32,7 @@
   }];
 
   services.openssh.enable = true;
-  services.sshguard.enable = true;
+#  services.sshguard.enable = true;
   networking.enableIPv6 = true;
   programs.zsh.enable = true;
 
