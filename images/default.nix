@@ -1,3 +1,4 @@
 { pkgs, ... }: {
-  seaweedfs = pkgs.callPackage ./seaweedfs.nix { };
+#  seaweedfs = pkgs.callPackage ./seaweedfs.nix { };
+#  gh-runner =
 }

@@ -2,7 +2,7 @@ let
   version = "latest-v23.1";
   cache = "70MB";
   maxSqlMem = "${toString (mem * 0.5)}MB";
-  cpu = 400;
+  cpu = 420;
   mem = 600;
   rpcPort = 26257;
   webPort = 8080;

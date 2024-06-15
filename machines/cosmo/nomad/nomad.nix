@@ -1,6 +1,8 @@
 { config, pkgs, ... }:
 {
-  systemd.tmpfiles.rules = [ "d /grafana.d/ 1777 root root -" ];
+  systemd.tmpfiles.rules = [
+    "d /roach.d 1777 root root -"
+  ];
 
   nomadNode = {
     enable = true;
@@ -14,16 +16,6 @@
           seaweedfs_volume = true
           public_network   = true
           docker_privileged = true
-        }
-
-
-        host_volume "seaweedfs-filer" {
-          path      = "/seaweed.d/filer"
-          read_only = false
-        }
-        host_volume "lemmy-data" {
-          path      = "/lemmy.d/data"
-          read_only = false
         }
         host_volume "roach" {
           path      = "/roach.d"
