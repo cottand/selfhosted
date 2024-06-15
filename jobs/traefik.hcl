@@ -215,8 +215,10 @@ EOF
     #  [entryPoints.web.http.redirections.entryPoint]
     #    to = "websecure"
     #    scheme = "https"
+    transport.respondingTimeouts.readTimeout="5m"
   [entryPoints.websecure]
     address = ":{{ env "NOMAD_PORT_https_mesh" }}"
+    transport.respondingTimeouts.readTimeout="5m"
 
 
   # redirects 8000 (in container) to 443
