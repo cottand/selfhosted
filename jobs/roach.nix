@@ -1,5 +1,5 @@
 let
-  version = "latest-v23.1";
+  version = "v23.1.22";
   cache = "70MB";
   maxSqlMem = "${toString (mem * 0.5)}MB";
   cpu = 420;
@@ -153,6 +153,7 @@ let
           "--http-addr=0.0.0.0:${toString webPort}"
           "--store=/roach"
           "--certs-dir=/secrets"
+          "--logtostderr"
         ];
       };
       resources = {
