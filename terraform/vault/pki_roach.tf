@@ -1,39 +1,45 @@
-
 resource "vault_pki_secret_backend_role" "intermediate_role-roach-node" {
   backend            = vault_mount.pki_workload_int.path
   issuer_ref         = vault_pki_secret_backend_issuer.workloads-intermediate.issuer_ref
   name               = "dcotta-dot-eu-long-workloads"
   ttl                = 72200000
-  max_ttl            = 72200000 # 100 months ish
+  max_ttl = 72200000 # 100 months ish
   allow_ip_sans      = true
   key_type           = "rsa"
   key_bits           = 4096
-  allowed_domains    = ["roach-db.traefik", "roach-web.traefik", "node"]
+  allowed_domains    = ["roach-db.traefik", "roach-web.traefik", "node", "mesh.dcotta.eu"]
   allow_subdomains   = true
   allow_bare_domains = true
   allow_localhost    = true
+  allow_wildcard_certificates = true
 }
-
 
 
 resource "vault_pki_secret_backend_cert" "cockroachdb" {
   issuer_ref  = vault_pki_secret_backend_issuer.intermediate.issuer_ref
   backend     = vault_pki_secret_backend_role.intermediate_role-roach-node.backend
   name        = vault_pki_secret_backend_role.intermediate_role-roach-node.name
-  common_name = "cockroachdb-2023-mar-20.roach-db.traefik"
-  alt_names   = ["roach-web.traefik", "node", "roach-db.traefik", "localhost"]
+  common_name = "cockroachdb-2024-jun-14.roach-db.traefik"
+  alt_names   = [
+    "*.mesh.dcotta.eu",
+    "roach-web.traefik",
+    "node",
+    "roach-db.traefik",
+    "localhost",
+  ]
+
 
   ip_sans = [
     "127.0.0.1",
   ]
 
-  ttl    = 72200000
+  ttl    = 42200000
   revoke = true
 }
 
 resource "vault_kv_secret_v2" "cockroachdb-cert" {
-  mount = vault_mount.kv-secret.path
-  name  = "/nomad/job/roach/cert"
+  mount     = vault_mount.kv-secret.path
+  name      = "/nomad/job/roach/cert"
   data_json = jsonencode({
     key   = vault_pki_secret_backend_cert.cockroachdb.private_key
     chain = "${vault_pki_secret_backend_cert.cockroachdb.certificate}\n${vault_pki_secret_backend_cert.cockroachdb.ca_chain}"
@@ -68,8 +74,8 @@ resource "vault_pki_secret_backend_cert" "cockroachdb-client-root" {
 }
 
 resource "vault_kv_secret_v2" "cockroachdb-client-root" {
-  mount = vault_mount.kv-secret.path
-  name  = "/nomad/job/roach/users/root"
+  mount     = vault_mount.kv-secret.path
+  name      = "/nomad/job/roach/users/root"
   data_json = jsonencode({
     key   = vault_pki_secret_backend_cert.cockroachdb-client-root.private_key
     chain = "${vault_pki_secret_backend_cert.cockroachdb-client-root.certificate}\n${vault_pki_secret_backend_cert.cockroachdb-client-root.ca_chain}"
@@ -88,8 +94,8 @@ resource "vault_pki_secret_backend_cert" "cockroachdb-client-grafana" {
 }
 
 resource "vault_kv_secret_v2" "cockroachdb-client-grafana" {
-  mount = vault_mount.kv-secret.path
-  name  = "/nomad/job/roach/users/grafana"
+  mount     = vault_mount.kv-secret.path
+  name      = "/nomad/job/roach/users/grafana"
   data_json = jsonencode({
     key   = vault_pki_secret_backend_cert.cockroachdb-client-grafana.private_key
     chain = "${vault_pki_secret_backend_cert.cockroachdb-client-grafana.certificate}\n${vault_pki_secret_backend_cert.cockroachdb-client-grafana.ca_chain}"

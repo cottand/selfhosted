@@ -8,12 +8,6 @@ let
     metrics = 9001;
     oltp = 4321;
   };
-  upstreamPorts = {
-    miki = 9334;
-    maco = 9335;
-    cosmo = 9336;
-  };
-
   cpu = 120;
   mem = 250;
   sidecarResources = with builtins; mapAttrs (_: ceil) {
@@ -138,9 +132,6 @@ lib.mkJob "seaweed-volume" {
       port = ports.grpc;
       connect = {
         sidecarService.proxy = {
-          upstream."seaweed-miki-master-grpc".localBindPort = 19334;
-          upstream."seaweed-maco-master-grpc".localBindPort = 19335;
-          upstream."seaweed-cosmo-master-grpc".localBindPort = 19336;
           upstream."tempo-otlp-grpc-mesh".localBindPort = ports.oltp;
 
           config = lib.mkEnvoyProxyConfig {
@@ -168,22 +159,21 @@ lib.mkJob "seaweed-volume" {
         memoryMaxMB = builtins.ceil (mem * 2.5);
       };
       config = {
-        image = "chrislusf/seaweedfs:3.62";
+        image = "chrislusf/seaweedfs:3.68";
 
         args = [
           "-logtostderr"
           "volume"
           # from master DNS and well-known ports so that job is not reset
           (
-            with (builtins.mapAttrs (_: toString) upstreamPorts);
-            "-mserver=localhost:${cosmo},localhost:${miki},localhost:${maco}"
+            with lib;
+            "-mserver=${cosmo.ip}:9333,${miki.ip}:9333,${maco.ip}:9333"
           )
           "-dir=/volume"
           "-max=0"
           "-dataCenter=\${node.datacenter}"
           "-rack=\${node.unique.name}"
           "-ip=\${NOMAD_IP_http}"
-          "-publicUrl=seaweed-volume-http.traefik/\${node.unique.name}"
           "-ip.bind=0.0.0.0"
           "-port=${toString ports.http}"
           "-port.grpc=${toString ports.grpc}"

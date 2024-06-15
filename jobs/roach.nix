@@ -2,16 +2,16 @@ let
   version = "latest-v23.1";
   cache = "70MB";
   maxSqlMem = "${toString (mem * 0.5)}MB";
-  cpu = 500;
+  cpu = 400;
   mem = 600;
   rpcPort = 26257;
   webPort = 8080;
   sqlPort = 5432;
-  bind = "127.0.0.1";
+  bind = "0.0.0.0";
   binds = {
-    miki = 8001;
-    maco = 8002;
-    cosmo = 8003;
+    miki = 2801;
+    maco = 2802;
+    cosmo = 2803;
   };
   sidecarResources = with builtins; mapAttrs (_: ceil) {
     cpu = 0.10 * cpu;
@@ -20,7 +20,7 @@ let
   };
   advertise = "127.0.0.1";
   seconds = 1000000000;
-  advertiseOf = node: "${advertise}:${toString binds.${node}}";
+  advertiseOf = node: "${node}.mesh.dcotta.eu:${toString binds.${node}}";
   certsForUser = name: [
     {
       destPath = "/secrets/client.${name}.key";
@@ -55,10 +55,12 @@ let
     };
     networks = [{
       mode = "bridge";
-      dynamicPorts = [{
-        label = "metrics";
-        to = webPort;
-      }];
+      dynamicPorts = [
+        { label = "metrics"; to = webPort; }
+      ];
+      reservedPorts = [
+        { label = "rpc"; value = binds.${node}; }
+      ];
     }];
     services = [
       {
@@ -93,29 +95,15 @@ let
           "traefik.tcp.routers.roach-web.rule=HostSNI(`roach-web.traefik`) || HostSNI(`roach-web.tfk.nd`)"
         ];
       }
-      # {
-      #   name = "roach-rpc";
-      #   # portLabel = "rpc";
-      #   portLabel = toString rpcPort;
-      #   connect.sidecarService = { };
-      # }
+      {
+        name = "roach-rpc";
+        portLabel = toString rpcPort;
+        #        connect.sidecarService = { };
+      }
       {
         name = "${node}-roach-rpc";
         portLabel = toString rpcPort;
         taskName = "roach";
-        connect = {
-          sidecarService.proxy.upstreams = [
-            {
-              destinationName = "${other1}-roach-rpc";
-              localBindPort = binds.${other1};
-            }
-            {
-              destinationName = "${other2}-roach-rpc";
-              localBindPort = binds.${other2};
-            }
-          ];
-          sidecarTask.resources = sidecarResources // { cpu = builtins.ceil (cpu * 0.30); };
-        };
       }
       {
         name = "roach-metrics";
@@ -125,11 +113,10 @@ let
           sidecarService.proxy = { };
           sidecarTask.resources = sidecarResources;
         };
-        # cockroachdb's metrics dashboards assume a job called cockroachdb, which is not our case :'c
-         meta = {
-           metrics_port = "\${NOMAD_HOST_PORT_metrics}";
-           metrics_path = "/_status/vars";
-         };
+        meta = {
+          metrics_port = "\${NOMAD_HOST_PORT_metrics}";
+          metrics_path = "/_status/vars";
+        };
       }
     ];
 
@@ -158,7 +145,7 @@ let
           "--advertise-addr=${advertiseOf node}"
           # peers must match constraint above
           "--join=${advertiseOf other1},${advertiseOf other2}"
-          "--listen-addr=${bind}:${toString rpcPort}"
+          "--listen-addr=${bind}:${toString binds.${node}}"
           "--cache=${cache}"
           "--max-sql-memory=${maxSqlMem}"
           "--sql-addr=${bind}:${toString sqlPort}"

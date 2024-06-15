@@ -16,10 +16,10 @@ let
   otlpPort = 9001;
   bind = lib.localhost;
   kiB = 1024;
-  chunkFactor = 1;
+  chunkFactor = 2;
 in
 lib.mkJob "attic" {
-
+  datacenters = [ "dusseldorf-contabo" ];
   update = {
     maxParallel = 1;
     autoRevert = true;
@@ -35,7 +35,6 @@ lib.mkJob "attic" {
         { label = "health"; }
       ];
       reservedPorts = [
-        { label = "http"; value = ports.http; }
       ];
     };
 
@@ -59,7 +58,7 @@ lib.mkJob "attic" {
       check = {
         name = "alive";
         type = "tcp";
-        port = "http";
+        port = "health";
         interval = "20s";
         timeout = "2s";
       };
