@@ -32,10 +32,6 @@
       secretPath = "/Users/nico/dev/cottand/selfhosted/secret/";
     in
     {
-    a = ''
-    #yaml
-    a: {a:2}
-    '';
       colmena = {
         meta = {
           nixpkgs = nixpkgs.legacyPackages.x86_64-linux;
@@ -114,7 +110,7 @@
 
         maco = { name, nodes, ... }: {
           deployment.tags = [ "contabo" "nomad-server" "vault" ];
-          # deployment.targetHost = "${name}.vps6.dcotta.eu";
+           deployment.targetHost = "${name}.vps.dcotta.eu";
           vaultNode.enable = true;
           consulNode.server = true;
         };
@@ -171,6 +167,8 @@
           ${pkgs.jq}/bin/jq -n --arg value "$SECRET" '{ "value": $value }'
         '';
 
+        legacyPackages.images = (import ./images { inherit pkgs; });
+
         devShells.default = pkgs.mkShell {
           name = "selfhosted-dev";
           packages = with pkgs; with self.packages.${system}; [
@@ -194,7 +192,9 @@
             bws-get
             keychain-get
           ];
-          shellHook = ''fish --init-command 'abbr -a weeds "nomad alloc exec -i -t -task seaweed-filer -job seaweed-filer weed shell -master 10.10.4.1:9333" ' && exit'';
+          shellHook = ''
+            BWS_ACCESS_TOKEN=$(security find-generic-password -gw -l "bitwarden/secret/m3-cli")
+            fish --init-command 'abbr -a weeds "nomad alloc exec -i -t -task seaweed-filer -job seaweed-filer weed shell -master 10.10.4.1:9333" ' && exit'';
 
           NOMAD_ADDR = "https://10.10.4.1:4646";
           #          VAULT_ADDR = "https://10.10.2.1:8200";

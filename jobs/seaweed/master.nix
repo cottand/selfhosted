@@ -1,6 +1,6 @@
 let
   lib = import ../lib;
-  version = "3.67";
+  version = "3.68";
   cpu = 100;
   mem = 200;
   sidecarResources = with builtins; mapAttrs (_: ceil) {
@@ -143,7 +143,7 @@ let
           "-mdir=\${NOMAD_TASK_DIR}/master"
           "-port=${toString ports.http}"
           "-port.grpc=${toString ports.grpc}"
-          "-defaultReplication=200"
+          "-defaultReplication=100"
           "-metricsPort=${toString ports.metrics}"
           # peers must match constraint above
           "-peers=${advertiseOf other1},${advertiseOf other2}"
@@ -173,7 +173,8 @@ let
             scripts = """
               lock
 
-              ec.encode -fullPercent=95 -quietFor=48h
+              ec.encode -fullPercent=95 -quietFor=24h -collection=documents
+              ec.encode -fullPercent=95 -quietFor=24h -collection=attic
 
               ec.rebuild -force
               ec.balance -force

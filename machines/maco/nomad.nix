@@ -1,4 +1,5 @@
 { ... }: {
+  systemd.tmpfiles.rules = [ "d /nomad.d 1777 root root -" ];
   nomadNode = {
     enable = true;
     enableSeaweedFsVolume = true;

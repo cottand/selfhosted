@@ -1,4 +1,10 @@
 { pkgs, ... }: {
+  systemd.tmpfiles.rules = [
+    "d /nomad.d 1777 root root -"
+    "d /roach.d 1777 root root -"
+    "d /traefik.d 1777 root root -"
+    "d /seaweed.d 1777 root root -"
+  ];
   nomadNode = {
     enable = true;
     enableSeaweedFsVolume = true;

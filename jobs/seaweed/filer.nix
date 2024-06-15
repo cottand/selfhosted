@@ -1,6 +1,6 @@
 let
   lib = import ../lib;
-  version = "3.67";
+  version = "3.68";
   cpu = 100;
   mem = 200;
   ports = {
@@ -19,7 +19,7 @@ let
   otlpPort = 9001;
 in
 lib.mkJob "seaweed-filer" {
-
+  datacenters = [ "dusseldorf-contabo" ];
   update = {
     maxParallel = 1;
     autoRevert = true;
@@ -28,7 +28,7 @@ lib.mkJob "seaweed-filer" {
   };
 
   group."seaweed-filer" = {
-    count = 3;
+    count = 1;
     network = {
       mode = "bridge";
       dynamicPorts = [
@@ -147,8 +147,8 @@ lib.mkJob "seaweed-filer" {
           "-s3.port=${toString ports.s3}"
           "-s3.allowEmptyFolder=false"
           # see https://github.com/seaweedfs/seaweedfs/issues/3886#issuecomment-1769880124
-#           "-dataCenter=\${node.datacenter}"
-#           "-rack=\${node.unique.name}"
+          # "-dataCenter=\${node.datacenter}"
+          # "-rack=\${node.unique.name}"
         ];
         mounts = [{
           type = "bind";
