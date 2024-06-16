@@ -19,13 +19,13 @@
         "@type" = "type.googleapis.com/envoy.config.trace.v3.OpenTelemetryConfig";
         grpc_service = {
           envoy_grpc.cluster_name = "opentelemetry_collector";
-          timeout = "0.250s";
+          timeout = "0.500s";
         };
         service_name = otlpService;
       };
     };
     # see https://github.com/hashicorp/consul/pull/20973
-#    spawn_upstream_span = true;
+    spawn_upstream_span = true;
   };
 
 
