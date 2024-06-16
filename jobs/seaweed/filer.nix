@@ -28,7 +28,7 @@ lib.mkJob "seaweed-filer" {
   };
 
   group."seaweed-filer" = {
-    count = 1;
+    count = 2;
     network = {
       mode = "bridge";
       dynamicPorts = [

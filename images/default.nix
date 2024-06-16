@@ -1,4 +1,6 @@
 { pkgs, ... }: {
-#  seaweedfs = pkgs.callPackage ./seaweedfs.nix { };
-#  gh-runner =
+
+
+  oneLineYaml = "this: { is: [valid, yaml, ${1 + 1}] }";
+
 }

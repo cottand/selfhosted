@@ -32,6 +32,13 @@
       secretPath = "/Users/nico/dev/cottand/selfhosted/secret/";
     in
     {
+    a = ''
+  a = "asdd"
+  b = 3
+  c = 3
+
+    '';
+    b = "a: [1,2,3]";
       colmena = {
         meta = {
           nixpkgs = nixpkgs.legacyPackages.x86_64-linux;
