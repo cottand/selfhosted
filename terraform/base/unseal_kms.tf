@@ -31,7 +31,7 @@ resource "bitwarden-secrets_secret" "vault-kms-creds" {
 AWS_ACCESS_KEY_ID=${aws_iam_access_key.vault-server-unseal2.id}
 AWS_SECRET_ACCESS_KEY=${aws_iam_access_key.vault-server-unseal2.secret}
 EOT
-  project_id = "c8bd3b87-1369-4dfb-b2a0-b18601273dfd"
+  project_id = var.bitwarden_project_id
 }
 
 output "vault-kms-creds-bw-secret-id" {
