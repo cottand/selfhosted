@@ -28,6 +28,9 @@ resource "vault_pki_secret_backend_cert" "server-dc1-consul" {
     "127.0.0.1",
     "10.10.4.1",
     "10.10.2.1",
+    "10.10.11.1",
+    "10.10.12.1",
+    "10.10.13.1",
   ]
 
   ttl    = 12920000

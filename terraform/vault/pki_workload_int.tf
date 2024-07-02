@@ -62,11 +62,11 @@ resource "vault_pki_secret_backend_cert" "traefik-internal-wildcard-cert" {
   issuer_ref  = vault_pki_secret_backend_issuer.workloads-intermediate.issuer_ref
   backend     = vault_mount.pki_workload_int.path
   name        = vault_pki_secret_backend_role.intermediate_role-workloads.name
-  common_name = "wildcard-cert-05-24.traefik"
+  common_name = "wildcard-cert-06-24.traefik"
 
   alt_names = [ "*.tfk.nd", "*.dcotta.com", "*.dcotta.eu"]
 
-  ttl    = 1 * 1292000 # 1 month ish
+  ttl    = 6 * 1292000 # 6 months ish
   auto_renew = true
   revoke = true
 }

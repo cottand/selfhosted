@@ -21,6 +21,10 @@
           path      = "/roach.d"
           read_only = false
         }
+        host_network "public" {
+          interface           = "ens18"
+          reserved_ports      = "22"
+        }
       }
       plugin_dir = "/usr/lib/nomad/plugins"
       data_dir   = "/var/lib/nomad"

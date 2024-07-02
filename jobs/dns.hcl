@@ -54,7 +54,6 @@ job "dns" {
         "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=web, web_public, websecure, websecure_public",
 
         "traefik.http.routers.${NOMAD_TASK_NAME}.tls=true",
-        "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt",
         # expose but for now only when on VPN
         // "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=vpn-whitelist@file",
       ]
@@ -108,11 +107,14 @@ customdnsrecords = [
     #"proxy.manual.     3600      IN  A   10.10.0.1  ",
 
     "web.vps.dcotta.eu.     3600      IN  A   10.10.4.1  ",
-    "immich.vps.dcotta.eu.  3600      IN  CNAME   proxy.manual  ",
 
-    "nomad.vps.dcotta.eu.   3600      IN  CNAME   proxy.manual  ",
     "nomad.traefik.         3600      IN  A       10.10.4.1  ",
     "consul.traefik.        3600      IN  A       10.10.4.1  ",
+
+    "nomad.traefik.         3600      IN  CNAME    proxy.manual  ",
+    "consul.traefik.         3600     IN  CNAME    proxy.manual  ",
+
+    "nomad.vps.dcotta.eu.   3600      IN  CNAME   proxy.manual  ",
     "traefik.vps.dcotta.eu. 3600      IN  CNAME   proxy.manual  ",
 
     "web.vps.               3600      IN  CNAME   miki.mesh.dcotta.eu.  ",
@@ -122,17 +124,7 @@ customdnsrecords = [
     "webdav.vps            3600  IN  A   {{ .Address }}",
     {{ end }}
 
-
-    {{ range $i, $s := nomadService "seaweedfs-master-http" }}
-    "seaweedfs-master.vps  3600 IN  A   {{ .Address }}",
-    {{ end }}
     "seaweed-master.vps.dcotta.eu  3600 IN  A   10.10.0.1",
-
-    {{ range $i, $s := nomadService "seaweedfs-filer-http" }}
-    "seaweedfs-filer.vps   3600 IN A {{ .Address }}",
-    "seaweed-filer.vps.dcotta.eu   3600 IN  A   10.10.0.1",
-    {{ end }}
-
 
     {{ $rr_a := sprig_list -}}
     {{- $rr_srv := sprig_list -}}
@@ -161,6 +153,9 @@ customdnsrecords = [
     {{- range services }}
     "{{ printf "%-45s %d  %10s %10s %s" (sprig_nospace (sprig_cat .Name ".traefik" )) $ttl "IN" "A" "10.10.4.1" }}",
     "{{ printf "%-45s %d  %10s %10s %s" (sprig_nospace (sprig_cat .Name ".tfk.nd" )) $ttl "IN" "A" "10.10.4.1" }}",
+
+    "{{ printf "%-45s %d  %10s %10s %s" (sprig_nospace (sprig_cat .Name ".traefik" )) $ttl "IN" "A" "10.10.0.1" }}",
+    "{{ printf "%-45s %d  %10s %10s %s" (sprig_nospace (sprig_cat .Name ".tfk.nd" )) $ttl "IN" "A" "10.10.0.1" }}",
     {{- end -}}
 
     {{- /* Iterate over lists and print everything */ -}}

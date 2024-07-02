@@ -31,7 +31,7 @@
       overlays = [ (import ./overlay.nix) newVault attic.overlays.default ];
     in
     {
-      colmena = import ./hive.nix;
+      colmena = (import ./hive.nix) (inputs // { inherit overlays; });
     } // (utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
@@ -71,7 +71,6 @@
             fish
             vault
             nomad_1_7
-            bitwarden-cli
             consul
             seaweedfs
             wander
@@ -86,7 +85,7 @@
             keychain-get
           ];
           shellHook = ''
-            BWS_ACCESS_TOKEN=$(security find-generic-password -gw -l "bitwarden/secret/m3-cli")
+            export BWS_ACCESS_TOKEN=$(security find-generic-password -gw -l "bitwarden/secret/m3-cli")
             fish --init-command 'abbr -a weeds "nomad alloc exec -i -t -task seaweed-filer -job seaweed-filer weed shell -master 10.10.4.1:9333" ' && exit'';
 
           NOMAD_ADDR = "https://10.10.4.1:4646";

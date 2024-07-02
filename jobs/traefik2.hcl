@@ -5,18 +5,10 @@ variable "ports" {
   }
 }
 
-job "traefik" {
+job "traefik2" {
+  datacenters = ["nuremberg-hetzner"]
   group "traefik" {
-    count = 1
-    constraint {
-      attribute = "${meta.box}"
-      operator  = "regexp"
-      value     = "(miki|cosmo)"
-    }
-    constraint {
-      operator  = "distinct_hosts"
-      value     = "true"
-    }
+    count = 3
     network {
       mode = "bridge"
       port "dns-mesh" {
@@ -89,6 +81,7 @@ job "traefik" {
         "traefik.http.routers.traefik_dash.entrypoints=web,websecure",
         "traefik.http.routers.traefik_dash.rule=Host(`traefik.vps.dcotta.eu`) || PathPrefix(`/dashboard`)",
         "traefik.http.routers.traefik_dash.tls=true",
+        "traefik.http.routers.traefik_dash.tls.certResolver=lets-encrypt",
         "traefik.http.routers.traefik_dash.service=api@internal",
         // "traefik.http.routers.traefik_dash.middlewares=auth@file",
       ]
@@ -128,6 +121,10 @@ job "traefik" {
           "local/traefik.toml:/etc/traefik/traefik.toml",
           "local/traefik-dynamic.toml:/etc/traefik/dynamic/traefik-dynamic.toml",
         ]
+      }
+      constraint {
+        attribute = "${meta.box}"
+        value     = "miki"
       }
       template {
         destination = "local/traefik-dynamic.toml"

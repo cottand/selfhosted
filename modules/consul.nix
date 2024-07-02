@@ -52,7 +52,7 @@ in
 
           extraConfig = {
 
-            retry_join = with meta.ip.mesh; [ miki cosmo maco ];
+            retry_join = with meta.ip.mesh; [ miki cosmo maco hez1 hez2 hez3 ];
 
             datacenter = "dc1";
             data_dir = "/opt/consul";
@@ -79,7 +79,7 @@ in
             client_addr = ''{{ GetInterfaceIP "wg-mesh" }} {{ GetAllInterfaces | include "flags" "loopback" | join "address" " " }}'';
 
             connect.enabled = true;
-            # ports.http = -1;
+            # ports.http = -1; TODO https-only
             ports.https = 8501;
             ports.grpc = 8502;
             ports.grpc_tls = 8503;
