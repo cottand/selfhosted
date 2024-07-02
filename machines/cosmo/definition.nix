@@ -6,19 +6,8 @@
     ./ipv6.nix
   ];
 
-  boot.tmp.cleanOnBoot = true;
-  zramSwap.enable = true;
   networking.hostName = "cosmo";
   networking.domain = "";
-  services.openssh.enable = true;
-
-  users.users.cottand = {
-    isNormalUser = true;
-    description = "nico";
-    extraGroups = [ "wheel" ];
-    packages = with pkgs; [ ];
-    shell = pkgs.zsh;
-  };
 
   networking.firewall.enable = true;
   networking.firewall = {
@@ -34,13 +23,6 @@
     externalInterface = "ens18";
     internalInterfaces = [ "wg0" ];
   };
-
-  custom.wireguard."wg-gha-ci" = {
-    enable = true;
-    confPath = ../../secret/wg-ci/wg-ci.conf;
-    port = 55726;
-  };
-
 
   system.stateVersion = "23.11";
 }

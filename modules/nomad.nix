@@ -3,11 +3,31 @@
 
 # TODO add assertion for checking for wg-mesh
 
-{ pkgs, lib, config, ... }:
+{ name, pkgs, lib, config, ... }:
 with lib;
 let
   cfg = config.nomadNode;
   seaweedVolumePath = "/seaweed.d/volume";
+  inherit (lib) types;
+  volumeOptsType = { lib, name, config, ... }: {
+    options = {
+      name = lib.mkOption {
+        description = "Name of the volume";
+        default = name;
+        type = types.str;
+        internal = true;
+      };
+
+      hostPath = mkOption {
+        type = types.str;
+        example = "/roach.d";
+      };
+
+      readOnly = mkOption {
+        type = types.bool;
+      };
+    };
+  };
 in
 {
 
@@ -21,6 +41,12 @@ in
       enableSeaweedFsVolume = mkOption {
         type = types.bool;
         description = "Whether to make this nomad client capable of hosting a SeaweedFS volume";
+      };
+
+      hostVolumes = mkOption {
+        description = "Adds a host volume";
+        default = { };
+        type = types.attrsOf (types.submodule volumeOptsType);
       };
 
       extraSettingsText = mkOption {
@@ -55,9 +81,10 @@ in
     };
 
 
-    systemd.tmpfiles.rules = mkIf cfg.enableSeaweedFsVolume [
-      "d ${seaweedVolumePath} 1777 root root -"
-    ];
+    systemd.tmpfiles.rules =
+      (map (vol: "d ${vol.hostPath} 1777 root root -") (builtins.attrValues cfg.hostVolumes))
+      ++
+      (if cfg.enableSeaweedFsVolume then [ "d ${seaweedVolumePath} 1777 root root -" ] else [ ]);
 
     systemd.services.nomad.restartTriggers = [
       config.environment.etc."nomad/config/client.hcl".text
@@ -107,15 +134,16 @@ in
 
           cni_path = "${pkgs.cni-plugins}/bin";
 
-          host_volume = mkIf cfg.enableSeaweedFsVolume {
-            "seaweedfs-volume" = {
-              path = seaweedVolumePath;
-              read_only = false;
-            };
-          };
+          host_volume =
+            (builtins.mapAttrs (_: attrs: { path = attrs.hostPath; read_only = attrs.readOnly; }) cfg.hostVolumes)
+            //
+            (if cfg.enableSeaweedFsVolume then
+              { "seaweedfs-volume" = { path = seaweedVolumePath; read_only = false; }; } else { });
 
-          meta = mkIf cfg.enableSeaweedFsVolume {
-            seaweedfs_volume = true;
+          meta = {
+            box = name;
+            name = name;
+            seaweedfs_volume = cfg.enableSeaweedFsVolume;
           };
         };
 

@@ -8,16 +8,23 @@ locals {
     ziggy  = "10.10.5.1"
     xps2   = "10.10.6.1"
     bianco = "10.10.0.2"
+
+    hez = {
+      "hez1" = "10.10.11.1"
+      "hez2" = "10.10.12.1"
+      "hez3" = "10.10.13.1"
+    }
   }
-  zoneIds = jsondecode(data.bitwarden-secrets_secret.zoneIds.value)
-  pubIp = jsondecode(data.bitwarden-secrets_secret.pubIps.value)
+  zoneIds     = jsondecode(data.bitwarden-secrets_secret.zoneIds.value)
+  zoneIdsList = [local.zoneIds["eu"], local.zoneIds["com"]]
+  pubIp       = jsondecode(data.bitwarden-secrets_secret.pubIps.value)
 }
 
 
 ## Discovery
 
 module "node_miki" {
-  cf_zone_id  = local.zoneIds["eu"]
+  cf_zone_ids = local.zoneIdsList
   source      = "../modules/node"
   name        = "miki"
   ip4_mesh    = local.mesh_ip4.miki
@@ -27,7 +34,7 @@ module "node_miki" {
   is_web_ipv6 = true
 }
 module "node_maco" {
-  cf_zone_id  = local.zoneIds["eu"]
+  cf_zone_ids = local.zoneIdsList
   source      = "../modules/node"
   name        = "maco"
   ip4_mesh    = local.mesh_ip4.maco
@@ -37,7 +44,7 @@ module "node_maco" {
   is_web_ipv6 = true
 }
 module "node_cosmo" {
-  cf_zone_id  = local.zoneIds["eu"]
+  cf_zone_ids = local.zoneIdsList
   source      = "../modules/node"
   name        = "cosmo"
   ip4_mesh    = local.mesh_ip4.cosmo
@@ -48,7 +55,7 @@ module "node_cosmo" {
 }
 
 module "node_elvis" {
-  cf_zone_id  = local.zoneIds["eu"]
+  cf_zone_ids = local.zoneIdsList
   source      = "../modules/node"
   name        = "elvis"
   ip4_mesh    = local.mesh_ip4.elvis
@@ -58,7 +65,7 @@ module "node_elvis" {
   is_web_ipv6 = false
 }
 module "node_ari" {
-  cf_zone_id  = local.zoneIds["eu"]
+  cf_zone_ids = local.zoneIdsList
   source      = "../modules/node"
   name        = "ari"
   ip4_mesh    = local.mesh_ip4.ari
@@ -68,7 +75,7 @@ module "node_ari" {
   is_web_ipv6 = false
 }
 module "node_xps2" {
-  cf_zone_id  = local.zoneIds["eu"]
+  cf_zone_ids = local.zoneIdsList
   source      = "../modules/node"
   name        = "xps2"
   ip4_mesh    = local.mesh_ip4.xps2
@@ -78,7 +85,7 @@ module "node_xps2" {
   is_web_ipv6 = false
 }
 module "node_ziggy" {
-  cf_zone_id  = local.zoneIds["eu"]
+  cf_zone_ids = local.zoneIdsList
   source      = "../modules/node"
   name        = "ziggy"
   ip4_mesh    = local.mesh_ip4.ziggy
@@ -88,7 +95,7 @@ module "node_ziggy" {
   is_web_ipv6 = false
 }
 module "node_bianco" {
-  cf_zone_id  = local.zoneIds["eu"]
+  cf_zone_ids = local.zoneIdsList
   source      = "../modules/node"
   name        = "bianco"
   ip4_mesh    = local.mesh_ip4.bianco
@@ -98,6 +105,17 @@ module "node_bianco" {
   is_web_ipv6 = false
 }
 
+module "nodes_hz" {
+  for_each    = data.terraform_remote_state.metal.outputs["server_ips"]
+  cf_zone_ids = local.zoneIdsList
+  source      = "../modules/node"
+  name        = each.key
+  ip4_mesh    = local.mesh_ip4.hez[each.key]
+  ip4_pub     = each.value["ipv4"]
+  ip6_pub     = each.value["ipv6"]
+  is_web_ipv4 = true
+  is_web_ipv6 = true
+}
 
 # Websites
 

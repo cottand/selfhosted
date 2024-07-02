@@ -1,8 +1,8 @@
-{ pkgs, lib, ... }:
+{ pkgs, lib, flakeInputs, ... }:
 {
 
   security.pki.certificateFiles = [
-    ./../certs/root_2024_ca.crt
+    "${flakeInputs.self}/certs/root_2024_ca.crt"
   ];
 
 
@@ -19,6 +19,13 @@
     };
   };
 
+  users.users.cottand = {
+    isNormalUser = true;
+    description = "nico";
+    extraGroups = [ "wheel" ];
+    shell = pkgs.fish;
+  };
+
   # noop, but here for future reference in case I want to do binary caches again
   cottand.seaweedBinaryCache = {
     uploadPostBuild = false;
@@ -32,7 +39,7 @@
   }];
 
   services.openssh.enable = true;
-#  services.sshguard.enable = true;
+  services.sshguard.enable = true;
   networking.enableIPv6 = true;
   programs.zsh.enable = true;
 

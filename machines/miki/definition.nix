@@ -17,11 +17,7 @@
 
 
   users.users.cottand = {
-    isNormalUser = true;
-    description = "nico";
     extraGroups = [ "networkmanager" "wheel" "sudo" ];
-    packages = with pkgs; [ ];
-    shell = pkgs.zsh;
   };
 
   networking.firewall.enable = true;

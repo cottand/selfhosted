@@ -31,7 +31,7 @@ variable "is_web_ipv6" {
 }
 
 
-variable "cf_zone_id" {
-  type      = string
+variable "cf_zone_ids" {
+  type      = list(string)
   sensitive = true
 }

@@ -12,13 +12,15 @@ let
     miki = 2801;
     maco = 2802;
     cosmo = 2803;
+    hez1 = 2801;
+    hez2 = 2801;
+    hez3 = 2801;
   };
   sidecarResources = with builtins; mapAttrs (_: ceil) {
     cpu = 0.10 * cpu;
     memoryMB = 0.10 * mem;
     memoryMaxMB = 0.10 * mem + 100;
   };
-  advertise = "127.0.0.1";
   seconds = 1000000000;
   advertiseOf = node: "${node}.mesh.dcotta.eu:${toString binds.${node}}";
   certsForUser = name: [
@@ -201,6 +203,7 @@ in
       (mkConfig "miki" "maco" "cosmo")
       (mkConfig "maco" "miki" "cosmo")
       (mkConfig "cosmo" "miki" "maco")
+#      (mkConfig "hez1" "cosmo" "maco")
     ];
   };
 }
