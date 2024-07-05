@@ -8,7 +8,7 @@
 
   deployment = {
     replaceUnknownProfiles = lib.mkDefault true;
-    buildOnTarget = lib.mkDefault true;
+    buildOnTarget = lib.mkDefault false;
     targetHost = lib.mkDefault meta.ip.mesh."${name}";
   };
 

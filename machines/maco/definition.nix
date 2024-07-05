@@ -35,6 +35,7 @@
 
   virtualisation.docker.enable = true;
   networking.firewall.checkReversePath = false;
+  networking.firewall.trustedInterfaces = [ "nomad" "docker0" ];
 
   system.stateVersion = "23.05";
 }

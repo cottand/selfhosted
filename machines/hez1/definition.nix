@@ -20,6 +20,18 @@
           reserved_ports      = "22"
         }
       }
+      server {
+        enabled          = true
+        bootstrap_expect = 3
+        server_join {
+          retry_join = [
+            "hez2.mesh.dcotta.eu",
+            "hez3.mesh.dcotta.eu",
+          ]
+          retry_max      = 3
+          retry_interval = "15s"
+        }
+      }
     '';
     enableSeaweedFsVolume = false;
     hostVolumes."roach" = {
@@ -29,6 +41,9 @@
   };
 
   consulNode.server = true;
+  networking.firewall.trustedInterfaces = [ "nomad" "docker0" ];
+  virtualisation.docker.enable = true;
+  networking.firewall.checkReversePath = false;
 
   system.stateVersion = "23.11";
 }

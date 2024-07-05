@@ -17,12 +17,7 @@
   # Set your time zone.
   time.timeZone = "Europe/Madrid";
 
-  users.users.cottand = {
-    isNormalUser = true;
-    description = "Nico";
-    extraGroups = [ "networkmanager" "wheel" ];
-    packages = [ ];
-  };
+  users.users.cottand.extraGroups = [ "networkmanager"  ];
 
   networking.firewall.enable = false;
   services.logind.lidSwitch = "ignore";

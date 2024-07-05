@@ -28,26 +28,23 @@ in
         # node_id = "node1"
         path = "/vault/data"
 
-        # miki
         retry_join {
-          leader_api_addr         = "https://${meta.ip.mesh.miki}:8200"
-          leader_tls_servername   = "${meta.ip.mesh.miki}"
+          leader_api_addr         = "https://${meta.ip.mesh.hez1}:8200"
+          leader_tls_servername   = "${meta.ip.mesh.hez1}"
           leader_ca_cert_file     = "/opt/vault/tls/vault-ca.pem"
           leader_client_cert_file = "/opt/vault/tls/vault-cert.pem"
           leader_client_key_file  = "/opt/vault/tls/vault-key.rsa"
         }
-        # maco
         retry_join {
-          leader_api_addr         = "https://${meta.ip.mesh.maco}:8200"
-          leader_tls_servername   = "${meta.ip.mesh.maco}"
+          leader_api_addr         = "https://${meta.ip.mesh.hez2}:8200"
+          leader_tls_servername   = "${meta.ip.mesh.hez2}"
           leader_ca_cert_file     = "/opt/vault/tls/vault-ca.pem"
           leader_client_cert_file = "/opt/vault/tls/vault-cert.pem"
           leader_client_key_file  = "/opt/vault/tls/vault-key.rsa"
         }
-        # cosmo
         retry_join {
-          leader_api_addr         = "https://${meta.ip.mesh.cosmo}:8200"
-          leader_tls_servername   = "${meta.ip.mesh.maco}"
+          leader_api_addr         = "https://${meta.ip.mesh.hez3}:8200"
+          leader_tls_servername   = "${meta.ip.mesh.hez3}"
           leader_ca_cert_file     = "/opt/vault/tls/vault-ca.pem"
           leader_client_cert_file = "/opt/vault/tls/vault-cert.pem"
           leader_client_key_file  = "/opt/vault/tls/vault-key.rsa"

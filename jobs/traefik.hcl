@@ -7,11 +7,11 @@ variable "ports" {
 
 job "traefik" {
   group "traefik" {
-    count = 1
+    count = 4
     constraint {
       attribute = "${meta.box}"
       operator  = "regexp"
-      value     = "(miki|cosmo)"
+      value     = "(miki|hez1|hez2|hez3)"
     }
     constraint {
       operator  = "distinct_hosts"
@@ -53,7 +53,7 @@ job "traefik" {
         host_network = "wg-mesh"
       }
       dns {
-        servers = ["10.10.2.1", "10.10.4.1"]
+        servers = ["10.10.2.1", "10.10.4.1", "10.10.11.1"]
       }
     }
     volume "ca-certificates" {
@@ -87,7 +87,7 @@ job "traefik" {
       tags = [
         "traefik.enable=true",
         "traefik.http.routers.traefik_dash.entrypoints=web,websecure",
-        "traefik.http.routers.traefik_dash.rule=Host(`traefik.vps.dcotta.eu`) || PathPrefix(`/dashboard`)",
+        "traefik.http.routers.traefik_dash.rule=Host(`traefik.tfk.nd`) || PathPrefix(`/dashboard`)",
         "traefik.http.routers.traefik_dash.tls=true",
         "traefik.http.routers.traefik_dash.service=api@internal",
         // "traefik.http.routers.traefik_dash.middlewares=auth@file",
@@ -241,22 +241,22 @@ EOF
   dashboard = true
   insecure = true
 
-[certificatesResolvers.lets-encrypt.acme]
-  email = "nico@dcotta.eu"
-  storage = "/etc/traefik-cert/acme.json"
+# [certificatesResolvers.lets-encrypt.acme]
+#   email = "nico@dcotta.eu"
+#   storage = "/etc/traefik-cert/acme.json"
   #storage = "/etc/traefik/"
 
-  [certificatesResolvers.lets-encrypt.acme.httpChallenge]
-    # let's encrypt has to be able to reach on this entrypoint for cert
-   entryPoint = "web_public"
+#   [certificatesResolvers.lets-encrypt.acme.httpChallenge]
+#     let's encrypt has to be able to reach on this entrypoint for cert
+#    entryPoint = "web_public"
 
 
-[certificatesResolvers.dcotta-vault.acme]
-  email = "nico@dcotta.eu"
-  storage = "/etc/traefik-cert/acme-dcotta-vault.json"
-  caServer= "https://vault.mesh.dcotta.eu:8200/v1/pki_workload_int/acme/directory"
-  certificatesDuration = 720 # hours in a month
-  tlsChallenge = true
+# [certificatesResolvers.dcotta-vault.acme]
+#   email = "nico@dcotta.eu"
+#   storage = "/etc/traefik-cert/acme-dcotta-vault.json"
+#   caServer= "https://vault.mesh.dcotta.eu:8200/v1/pki_workload_int/acme/directory"
+#   certificatesDuration = 720 # hours in a month
+#   tlsChallenge = true
 
 
 [providers.consulCatalog]

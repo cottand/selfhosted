@@ -41,7 +41,7 @@ let
       perms = "0600";
     }
   ];
-  mkConfig = node: other1: other2: {
+  mkConfig = node: peers: {
     name = "${node}-roach";
     count = 1;
     constraints = [{
@@ -146,7 +146,7 @@ let
           "start"
           "--advertise-addr=${advertiseOf node}"
           # peers must match constraint above
-          "--join=${advertiseOf other1},${advertiseOf other2}"
+          "--join=${builtins.concatStringsSep "," (map advertiseOf peers)}"
           "--listen-addr=${bind}:${toString binds.${node}}"
           "--cache=${cache}"
           "--max-sql-memory=${maxSqlMem}"
@@ -186,7 +186,7 @@ let
           '';
           perms = "0600";
         }
-      ] ++ builtins.concatLists (builtins.map certsForUser [ "root" "grafana" ]);
+      ] ++ builtins.concatLists (map certsForUser [ "root" "grafana" ]);
     }];
   };
 in
@@ -200,10 +200,10 @@ in
       stagger = 12 * seconds;
     };
     taskGroups = [
-      (mkConfig "miki" "maco" "cosmo")
-      (mkConfig "maco" "miki" "cosmo")
-      (mkConfig "cosmo" "miki" "maco")
-#      (mkConfig "hez1" "cosmo" "maco")
+      # cockroach node decommission 5 --certs-dir /secrets --host miki.mesh.dcotta.eu:2801
+      (mkConfig "hez1" [ "hez2" "hez3" ])
+      (mkConfig "hez2" [ "hez1" "hez3" ])
+      (mkConfig "hez3" [ "hez1" "hez2" ])
     ];
   };
 }
