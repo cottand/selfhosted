@@ -72,6 +72,13 @@ resource "hcloud_firewall" "ssh-wireguard" {
     port       = "55820"
     source_ips = ["0.0.0.0/0", "::/0"]
   }
+
+  rule {
+    direction  = "in"
+    protocol   = "tcp"
+    port       = "443"
+    source_ips = ["0.0.0.0/0", "::/0"]
+  }
 }
 
 locals {

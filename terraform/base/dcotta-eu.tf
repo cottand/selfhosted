@@ -120,20 +120,22 @@ module "nodes_hz" {
 # Websites
 
 
+
+# resource "cloudflare_record" "vault-cname-mesh" {
+#   zone_id = local.zoneIds["eu"]
+#   name    = "vault.mesh"
+#   type    = "CNAME"
+#   value   = "hez1.mesh.dcotta.eu"
+#   ttl     = 1
+#   comment = "tf managed"
+#   proxied = true
+# }
+
 resource "cloudflare_record" "nico-cname-web" {
   zone_id = local.zoneIds["eu"]
   name    = "nico"
   type    = "CNAME"
-  value   = "miki.vps.dcotta.eu"
-  ttl     = 1
-  comment = "tf managed"
-  proxied = true
-}
-resource "cloudflare_record" "nico-test--cname-nico" {
-  zone_id = local.zoneIds["eu"]
-  name    = "test-nico"
-  type    = "CNAME"
-  value   = "miki.vps.dcotta.eu"
+  value   = "hez1.vps.dcotta.eu"
   ttl     = 1
   comment = "tf managed"
   proxied = true

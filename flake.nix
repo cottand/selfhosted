@@ -43,12 +43,14 @@
         # templates a nomad nix file into JSON and calls nomad run on it
         # usage: nixmad path/to/job.nix
         packages.nixmad = pkgs.writeShellScriptBin "nixmad" ''
+          set -e
           ${pkgs.nix}/bin/nix eval -f $1 --json --show-trace | ${pkgs.nomad}/bin/nomad run -json -
         '';
 
         # fetches a secret from bitwarden-secret by ID
         # usage: bws-get <ID>
         packages.bws-get = pkgs.writeShellScriptBin "bws-get" ''
+          set -e
           ${pkgs.bws}/bin/bws secret get $1 | ${pkgs.jq}/bin/jq -r '.value'
         '';
 
@@ -56,6 +58,7 @@
         # usage: keychain-get <SERVICE>
         # returns {"value": "<SECRET>"}
         packages.keychain-get = pkgs.writeShellScriptBin "keychain-get" ''
+          set -e
           SECRET=$(/usr/bin/security find-generic-password -gw -l "$1")
           ${pkgs.jq}/bin/jq -n --arg value "$SECRET" '{ "value": $value }'
         '';
@@ -88,7 +91,7 @@
             export BWS_ACCESS_TOKEN=$(security find-generic-password -gw -l "bitwarden/secret/m3-cli")
             fish --init-command 'abbr -a weeds "nomad alloc exec -i -t -task seaweed-filer -job seaweed-filer weed shell -master 10.10.4.1:9333" ' && exit'';
 
-          NOMAD_ADDR = "https://10.10.4.1:4646";
+          NOMAD_ADDR = "https://10.10.11.1:4646";
           #          VAULT_ADDR = "https://10.10.2.1:8200";
           VAULT_ADDR = "https://vault.mesh.dcotta.eu:8200";
         };

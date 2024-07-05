@@ -166,8 +166,8 @@ lib.mkJob "attic" {
           # Custom S3 endpoint
           #
           # Set this if you are using an S3-compatible object storage (e.g., Minio).
-          #endpoint = "http://localhost:${toString ports.upS3}"
-          endpoint = "http://10.10.0.1:13210"
+          endpoint = "http://localhost:${toString ports.upS3}"
+          #endpoint = "http://10.10.0.1:13210"
 
           # Credentials
           #

@@ -38,34 +38,27 @@ in
   };
 
   cosmo = { name, nodes, ... }: {
+    deployment.buildOnTarget = false;
     deployment.targetHost = "${name}.vps.dcotta.eu";
     deployment.tags = [ "contabo" "nomad-server" "vault" ];
-    vaultNode.enable = true;
   };
 
   miki = { name, nodes, lib, ... }: {
     deployment.targetHost = "${name}.mesh.dcotta.eu";
-    # deployment.targetHost = "";
     deployment.tags = [ "contabo" "nomad-server" "vault" ];
-    vaultNode.enable = true;
-    consulNode.server = true;
   };
 
   maco = { name, nodes, ... }: {
     deployment.tags = [ "contabo" "nomad-server" "vault" ];
     deployment.targetHost = "${name}.vps.dcotta.eu";
-    vaultNode.enable = true;
-    consulNode.server = true;
   };
 
   ari = { name, nodes, ... }: {
     networking.hostName = name;
     deployment.tags = [ "local" "nomad-client" ];
-    consulNode.server = true;
   };
 
   xps2 = { name, nodes, ... }: {
-    consulNode.server = true;
     networking.hostName = name;
     deployment.tags = [ "local" "nomad-client" ];
   };
@@ -75,14 +68,20 @@ in
   };
 
   hez1 = { name, nodes, ... }: {
+    vaultNode.enable = true;
+    deployment.buildOnTarget = false;
     deployment.tags = [ "hetzner" ];
     deployment.targetHost = "${name}.vps.dcotta.com";
   };
   hez2 = { name, nodes, ... }: {
+    vaultNode.enable = true;
+    deployment.buildOnTarget = false;
     deployment.tags = [ "hetzner" ];
     deployment.targetHost = "${name}.vps.dcotta.com";
   };
   hez3 = { name, nodes, ... }: {
+    vaultNode.enable = true;
+    deployment.buildOnTarget = false;
     deployment.tags = [ "hetzner" ];
     deployment.targetHost = "${name}.vps.dcotta.com";
   };

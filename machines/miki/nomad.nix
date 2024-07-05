@@ -33,18 +33,6 @@
           read_only = false
         }
       }
-      server {
-        enabled          = true
-        bootstrap_expect = 3
-        server_join {
-          retry_join = [
-            "cosmo.mesh.dcotta.eu",
-            "maco.mesh.dcotta.eu",
-          ]
-          retry_max      = 3
-          retry_interval = "15s"
-        }
-      }
       plugin "docker" {
         config {
           allow_caps = [

@@ -1,8 +1,9 @@
 client {
   enabled = true
   servers = [
-    "maco.mesh.dcotta.eu",
-    "cosmo.mesh.dcotta.eu",
+    "hez1.mesh.dcotta.eu",
+    "hez2.mesh.dcotta.eu",
+    "hez3.mesh.dcotta.eu",
   ]
 
   options = {
