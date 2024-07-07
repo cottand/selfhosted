@@ -1,26 +1,29 @@
 job "prometheus" {
-  datacenters = ["*"]
-  type        = "service"
-  priority    = 1
+
 
   group "monitoring" {
     count = 1
+
+    affinity {
+      attribute = "${node.meta.controlPlane}"
+      value     = "true"
+      weight    = -50
+    }
+    constraint {
+      attribute = "${attr.nomad.bridge.hairpin_mode}"
+      value     = true
+    }
 
     network {
       mode = "bridge"
       dns {
         servers = [
-          "10.10.0.1",
-          "10.10.2.1",
-          "10.10.4.1",
+          "10.10.11.1",
+          "10.10.12.1",
+          "10.10.13.1",
         ]
       }
       port "health" { to = -1 }
-    }
-
-    constraint {
-      attribute = "${attr.nomad.bridge.hairpin_mode}"
-      value     = true
     }
 
     restart {
@@ -318,9 +321,9 @@ scrape_configs:
      
     static_configs:
      - targets: [
-      'maco.mesh.dcotta.eu:8200',
-      'cosmo.mesh.dcotta.eu:8200',
-      'miki.mesh.dcotta.eu:8200',
+      'hez1.mesh.dcotta.eu:8200',
+      'hez2.mesh.dcotta.eu:8200',
+      'hez3.mesh.dcotta.eu:8200',
     ]
   - job_name: 'consul'
     metrics_path: "/v1/agent/metrics"
@@ -332,11 +335,9 @@ scrape_configs:
      
     static_configs:
      - targets: [
-      'maco.mesh.dcotta.eu:8501',
-      'cosmo.mesh.dcotta.eu:8501',
-      'miki.mesh.dcotta.eu:8501',
-      'ari.mesh.dcotta.eu:8501',
-      'xps2.mesh.dcotta.eu:8501',
+      'hez1.mesh.dcotta.eu:8501',
+      'hez2.mesh.dcotta.eu:8501',
+      'hez3.mesh.dcotta.eu:8501',
     ]
 
 

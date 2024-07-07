@@ -15,8 +15,13 @@ let
   bind = lib.localhost;
 in
 lib.mkJob "loki" {
-
   group."loki" = {
+    affinities = [{
+      lTarget = "\${node.meta.controlPlane}";
+      operand = "=";
+      rTarget = "true";
+      weight = -50;
+    }];
     count = 1;
     network = {
       mode = "bridge";
@@ -34,7 +39,8 @@ lib.mkJob "loki" {
       sticky = true;
     };
 
-    service."loki" = {
+    service."loki-http" = {
+      port = toString ports.http;
       connect.sidecarService = {
         proxy = {
           upstream."tempo-otlp-grpc-mesh".localBindPort = otlpPort;
@@ -42,12 +48,13 @@ lib.mkJob "loki" {
 
           config = lib.mkEnvoyProxyConfig {
             otlpUpstreamPort = otlpPort;
+            otlpService = "proxy-loki";
             protocol = "http";
           };
         };
       };
       connect.sidecarTask.resources = sidecarResources;
-      # TODO implement http healthcheck
+      # TODO implement http healthcheck at /ready
       #      port = toString ports.http;
       #      check = {
       #        name = "alive";
@@ -55,14 +62,23 @@ lib.mkJob "loki" {
       #        port = "http";
       #        interval = "20s";
       #        timeout = "2s";
-      #      };
+      #      };a
+      tags = [
+        "traefik.enable=true"
+        "traefik.consulcatalog.connect=true"
+        "traefik.http.routers.\${NOMAD_GROUP_NAME}.middlewares=vpn-whitelist@file"
+        "traefik.http.routers.\${NOMAD_GROUP_NAME}.entrypoints=web, websecure"
+        "traefik.http.routers.\${NOMAD_GROUP_NAME}.tls=true"
+      ];
     };
     task."loki" = {
       driver = "docker";
       vault = { };
+      user = "root:root";
 
       config = {
         image = "grafana/loki:${version}";
+        args = [ "-config.file=/local/loki.yaml" ];
       };
       volumeMounts = [{
         volume = "docker-sock";
@@ -71,7 +87,7 @@ lib.mkJob "loki" {
       }];
       # loki won't start unless the sinks(backends) configured are healthy
       env = {
-        loki_CONFIG = "/local/loki.toml";
+        loki_CONFIG = "/local/loki.yaml";
         loki_REQUIRE_HEALTHY = "true";
       };
       resources = {
@@ -79,7 +95,7 @@ lib.mkJob "loki" {
         memoryMb = mem;
         memoryMaxMb = builtins.ceil (2 * mem);
       };
-      template."local/loki.toml" = {
+      template."local/loki.yaml" = {
         changeMode = "restart";
         leftDelim = "[[";
         rightDelim = "]]";
@@ -87,7 +103,8 @@ lib.mkJob "loki" {
         embeddedTmpl = /* language=toml */ ''
           auth_enabled: false
           server:
-            http_listen_port: {{ env "NOMAD_PORT_http" }}
+            http_listen_port: ${toString ports.http}
+            http_listen_address: ${bind}
           ingester:
             wal:
               dir: /alloc/data/wal
@@ -120,7 +137,7 @@ lib.mkJob "loki" {
           storage_config:
             boltdb_shipper:
               active_index_directory: /alloc/data/boltdb-shipper-active
-              cache_location: /alloca/data/boltdb-shipper-cache
+              cache_location: /alloc/data/boltdb-shipper-cache
               cache_ttl: 24h         # Can be increased for faster performance over longer query periods, uses more disk space
               shared_store: filesystem
             filesystem:

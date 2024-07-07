@@ -41,9 +41,11 @@
       readOnly = false;
     };
   };
+  services.nomad.settings = {
+    client.meta.controlPlane = "true";
+  };
 
   consulNode.server = true;
-  networking.firewall.trustedInterfaces = [ "nomad" "docker0" ];
   virtualisation.docker.enable = true;
   networking.firewall.checkReversePath = false;
 

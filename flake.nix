@@ -73,7 +73,7 @@
             colmena
             fish
             vault
-            nomad_1_7
+            nomad_1_8
             consul
             seaweedfs
             wander

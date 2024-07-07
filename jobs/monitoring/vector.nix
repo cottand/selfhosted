@@ -5,6 +5,7 @@ let
   mem = 200;
   ports = {
     http = 8080;
+    upLoki = 9002;
   };
   sidecarResources = with builtins; mapAttrs (_: ceil) {
     cpu = 0.20 * cpu;
@@ -17,7 +18,7 @@ let
 in
 lib.mkJob "vector" {
 
-  type = "sysyem";
+  type = "system";
 
   group."vector" = {
     count = 1;
@@ -38,13 +39,16 @@ lib.mkJob "vector" {
     };
 
     service."vector" = {
+      port = ports.http;
       connect.sidecarService = {
         proxy = {
           upstream."tempo-otlp-grpc-mesh".localBindPort = otlpPort;
+          upstream."loki-http".localBindPort = ports.upLoki;
           #          upstream."seaweed-filer-s3".localBindPort = ports.upS3;
 
           config = lib.mkEnvoyProxyConfig {
             otlpUpstreamPort = otlpPort;
+            otlpService = "dector-proxy";
             protocol = "http";
           };
         };
@@ -90,14 +94,25 @@ lib.mkJob "vector" {
           data_dir = "/alloc/data/"
           [api]
             enabled = true
-            address = "0.0.0.0:[[ env "NOMAD_PORT_http" ]]"
+            address = "${bind}:${toString ports.http}"
             playground = true
           [sources.logs]
             type = "docker_logs"
+          [transforms.cleaned]
+            type = "remap"
+            inputs = ["logs"]
+            source = ''''
+                del(.label.description)
+                del(.label."io.k8s.description")
+                del(.label.url)
+                del(.label.summary)
+                del(.label."org.opencontainers.image.description")
+            ''''
+            #del(.username)
           [sinks.loki]
             type = "loki"
-            inputs = ["logs"]
-            endpoint = "http://[[ range nomadService "loki" ]][[ .Address ]]:[[ .Port ]][[ end ]]"
+            inputs = ["cleaned"]
+            endpoint = "http://localhost:${toString ports.upLoki}"
             encoding.codec = "json"
             healthcheck.enabled = true
             # since . is used by Vector to denote a parent-child relationship, and Nomad's Docker labels contain ".",
