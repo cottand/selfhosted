@@ -1,9 +1,12 @@
 job "grafana" {
-  datacenters = ["*"]
   type        = "service"
-  priority    = 1
   group "grafana" {
-    count = 1
+    affinity {
+      attribute = "${node.meta.controlPlane}"
+      value     = "true"
+      weight    = -50
+    }
+    count = 2
     network {
       mode = "bridge"
       dns {
@@ -22,6 +25,14 @@ job "grafana" {
       interval = "10m"
       delay    = "15s"
       mode     = "delay"
+    }
+    update {
+      max_parallel     = 1
+      canary           = 1
+      min_healthy_time = "30s"
+      healthy_deadline = "5m"
+      auto_revert      = true
+      auto_promote     = true
     }
 
     service {
@@ -42,6 +53,10 @@ job "grafana" {
             upstreams {
               destination_name = "tempo-http"
               local_bind_port  = 8001
+            }
+            upstreams {
+              destination_name = "loki-http"
+              local_bind_port  = 8002
             }
             upstreams {
               destination_name = "tempo-otlp-grpc-mesh"
@@ -71,9 +86,7 @@ job "grafana" {
       tags = [
         "traefik.enable=true",
         "traefik.consulcatalog.connect=true",
-        // "traefik.http.routers.${NOMAD_GROUP_NAME}.entrypoints=web",
         "traefik.http.routers.${NOMAD_GROUP_NAME}.middlewares=vpn-whitelist@file",
-
         "traefik.http.routers.${NOMAD_GROUP_NAME}.entrypoints=web, websecure",
         "traefik.http.routers.${NOMAD_GROUP_NAME}.tls=true",
       ]
