@@ -14,7 +14,8 @@ let
   };
   otlpPort = 9001;
   bind = lib.localhost;
-  chunkFactor = 1;
+  journalPath = "/var/log/journal";
+
 in
 lib.mkJob "vector" {
 
@@ -33,6 +34,11 @@ lib.mkJob "vector" {
       source = "docker-sock-ro";
       readOnly = true;
     };
+    volumes."journald-ro" = {
+      type = "host";
+      source = "journald-ro";
+      readOnly = true;
+    };
     ephemeralDisk = {
       size = 500;
       sticky = true;
@@ -48,7 +54,7 @@ lib.mkJob "vector" {
 
           config = lib.mkEnvoyProxyConfig {
             otlpUpstreamPort = otlpPort;
-            otlpService = "dector-proxy";
+            otlpService = "vector-proxy";
             protocol = "http";
           };
         };
@@ -71,11 +77,18 @@ lib.mkJob "vector" {
       config = {
         image = "timberio/vector:${version}";
       };
-      volumeMounts = [{
-        volume = "docker-sock";
-        destination = "/var/run/docker.sock";
-        readOnly = true;
-      }];
+      volumeMounts = [
+        {
+          volume = "docker-sock";
+          destination = "/var/run/docker.sock";
+          readOnly = true;
+        }
+        {
+          volume = "journald-ro";
+          destination = journalPath;
+          readOnly = true;
+        }
+      ];
       # Vector won't start unless the sinks(backends) configured are healthy
       env = {
         VECTOR_CONFIG = "/local/vector.toml";
@@ -96,11 +109,33 @@ lib.mkJob "vector" {
             enabled = true
             address = "${bind}:${toString ports.http}"
             playground = true
-          [sources.logs]
-            type = "docker_logs"
-          [transforms.cleaned]
+          [sources.journald]
+            type = "journald"
+            journal_directory = "${journalPath}"
+            exclude_units = []
+          [transforms.journald_cleaned]
             type = "remap"
-            inputs = ["logs"]
+            inputs = ["journald"]
+            source = ''''
+                del(._MACHINE_ID)
+                del(._SYSTEMD_INVOCATION_ID)
+                del(._SYSTEMD_CGROUP)
+                del(._MACHINE_ID)
+                del(._CMDLINE)
+                del(._SYSTEMD_SLICE)
+                del(._EXE)
+                .systemd_scope = del(._RUNTIME_SCOPE)
+                .systemd_unit = del(._SYSTEMD_UNIT)
+                .syslog_id = del(._SYSLOG_IDENTIFIER)
+                .transport = del(._TRANSPORT)
+                .pid = del(._pid)
+                .uid = del(._uid)
+            ''''
+          [sources.docker]
+            type = "docker_logs"
+          [transforms.docker_cleaned]
+            type = "remap"
+            inputs = ["docker"]
             source = ''''
                 del(.label.description)
                 del(.label."io.k8s.description")
@@ -109,9 +144,9 @@ lib.mkJob "vector" {
                 del(.label."org.opencontainers.image.description")
             ''''
             #del(.username)
-          [sinks.loki]
+          [sinks.loki_docker]
             type = "loki"
-            inputs = ["cleaned"]
+            inputs = ["docker_cleaned"]
             endpoint = "http://localhost:${toString ports.upLoki}"
             encoding.codec = "json"
             healthcheck.enabled = true
@@ -122,9 +157,20 @@ lib.mkJob "vector" {
             labels.alloc = "{{ label.\"com.hashicorp.nomad.alloc_id\" }}"
             labels.node  =      "{{ label.\"com.hashicorp.nomad.node_name\" }}"
             labels.task_group = "{{ label.\"com.hashicorp.nomad.task_group_name\" }}"
+            labels.source_type = "nomad_docker"
             # labels.group = "{{ label.com\\.hashicorp\\.nomad\\.task_group_name }}"
             # labels.namespace = "{{ label.com\\.hashicorp\\.nomad\\.namespace }}"
             # remove fields that have been converted to labels to avoid having the field twice
+            remove_label_fields = true
+          [sinks.loki_journald]
+            type = "loki"
+            inputs = ["journald_cleaned"]
+            endpoint = "http://localhost:${toString ports.upLoki}"
+            encoding.codec = "json"
+            healthcheck.enabled = true
+            labels.host = "{{ host }}"
+            labels.systemd_unit = "{{ systemd_unit }}"
+            labels.source_type = "journald"
             remove_label_fields = true
         '';
       };
