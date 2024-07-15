@@ -1,6 +1,6 @@
 let
   lib = import ../lib;
-  version = "3.68";
+  version = "3.69";
   cpu = 100;
   mem = 200;
   ports = {
@@ -138,7 +138,7 @@ lib.mkJob "seaweed-filer" {
           "-ip.bind=${bind}"
           (
             with lib;
-            "-master=${cosmo.ip}:9333,${miki.ip}:9333,${maco.ip}:9333"
+            "-master=${hez1.ip}:9333,${hez2.ip}:9333,${hez3.ip}:9333"
           )
           "-port=${toString ports.http}"
           "-port.grpc=${toString ports.grpc}"

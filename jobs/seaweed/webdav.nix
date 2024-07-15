@@ -65,7 +65,7 @@ lib.mkJob "seaweed-webdav" {
           # "-replication=010"
           "-port=${toString ports.webdav}"
           "-filer=localhost:${toString ports.filer}"
-          "-filer.path=/buckets"
+#          "-filer.path=/buckets"
           "-cacheDir=/alloc/data/"
           "-cacheCapacityMB=1024"
         ];
