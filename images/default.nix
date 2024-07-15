@@ -13,6 +13,11 @@ some-text:
     - ${toString (1 + 2)}
 '';
 
+a = builtins.writeShellScript "my-script.sh" ''
+  first_of_array=''${ARRAY[0]}
+  from_nix=${lib.escapeShellArg someVar}
+  '';
+
 
   someStringWithoutInjection = ''
     this has ${toString (1 + 2)}
@@ -21,9 +26,6 @@ some-text:
 
 
   anotherMuliti = ''
-  a: [1,2,3,1,2,3,4]
-
-
-  '';
+a: [1,2,3,1,2,3,4,5,6,8,9,]'';
 
 }

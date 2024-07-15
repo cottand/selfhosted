@@ -220,7 +220,7 @@ lib.mkJob "seaweed-master" {
     canary = 1;
     stagger = 10 * lib.seconds;
   };
-  group."miki-seaweed-master" = mkConfig "miki" "maco" "cosmo";
-  group."maco-seaweed-master" = mkConfig "maco" "cosmo" "miki";
-  group."cosmo-seaweed-master" = mkConfig "cosmo" "miki" "maco";
+  group."miki-seaweed-master" = mkConfig "hez1" "hez2" "hez3";
+  group."maco-seaweed-master" = mkConfig "hez2" "hez3" "hez1";
+  group."cosmo-seaweed-master" = mkConfig "hez3" "hez1" "hez2";
 }

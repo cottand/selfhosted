@@ -159,7 +159,7 @@ lib.mkJob "seaweed-volume" {
         memoryMaxMB = builtins.ceil (mem * 2.5);
       };
       config = {
-        image = "chrislusf/seaweedfs:3.68";
+        image = "chrislusf/seaweedfs:3.69";
 
         args = [
           "-logtostderr"
@@ -167,7 +167,7 @@ lib.mkJob "seaweed-volume" {
           # from master DNS and well-known ports so that job is not reset
           (
             with lib;
-            "-mserver=${cosmo.ip}:9333,${miki.ip}:9333,${maco.ip}:9333"
+            "-mserver=${hez1.ip}:9333,${hez2.ip}:9333,${hez3.ip}:9333"
           )
           "-dir=/volume"
           "-max=0"

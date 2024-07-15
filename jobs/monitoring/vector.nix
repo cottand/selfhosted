@@ -113,6 +113,8 @@ lib.mkJob "vector" {
             type = "journald"
             journal_directory = "${journalPath}"
             exclude_units = []
+            # Info and above
+            include_matches.PRIORITY = [ "0", "1", "2", "3", "4", "5", "6" ]
           [transforms.journald_cleaned]
             type = "remap"
             inputs = ["journald"]

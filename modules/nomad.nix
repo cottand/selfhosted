@@ -69,6 +69,7 @@ in
   };
   ## implementation
   config = mkIf cfg.enable {
+    systemd.services.nomad.serviceConfig.Restart = lib.mkForce "always";
     environment.etc = {
       "nomad/config/client.hcl".text = (builtins.readFile ./defaultNomadConfig/client.hcl);
       "nomad/config/server.hcl".text = (builtins.readFile ./defaultNomadConfig/server.hcl);
