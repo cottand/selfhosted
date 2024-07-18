@@ -38,6 +38,10 @@
       hostPath = "/roach.d";
       readOnly = false;
     };
+    hostVolumes."immich-db" = {
+      hostPath = "/immich-db.d";
+      readOnly = false;
+    };
   };
   services.nomad.settings = {
     client.meta.controlPlane = "true";

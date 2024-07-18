@@ -1,11 +1,12 @@
 
 variable "version" {
   type    = string
-  default = "v1.95.1"
+  default = "v1.108.0"
 }
 variable "domain" {
   type    = string
-  default = "immich.vps.dcotta.eu"
+  default = "immich-server.tfk.nd"
+#   default = "immich.vps.dcotta.eu"
 }
 
 job "immich" {
@@ -30,7 +31,7 @@ job "immich" {
       type            = "csi"
       read_only       = false
       source          = "immich-pictures"
-      access_mode     = "multi-node-multi-writer"
+      access_mode     = "single-node-writer"
       attachment_mode = "file-system"
     }
 
@@ -141,7 +142,8 @@ job "immich" {
 
       driver = "docker"
       config { image = "hello-world" }
-      resources { # TODO!
+      resources {
+        # TODO!
         cpu    = 10
         memory = 10
       }
@@ -166,26 +168,25 @@ job "immich" {
         read_only   = false
       }
 
-      resources { # TODO!
-        cpu    = 200
-        memory = 512
+      resources {
+        # TODO!
+        cpu        = 200
+        memory     = 512
         memory_max = 1024
       }
 
       service {
         name     = "immich-server"
-        provider = "nomad"
         port     = "server"
-        tags = [
+        tags     = [
           "traefik.enable=true",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=web, web_public, websecure, websecure_public",
+          "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=web, websecure",
           // "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`${var.domain}`) && PathPrefix(`/api`)",
           "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`${var.domain}`)", #" && PathPrefix(`/api`)",
           // "traefik.http.middlewares.${NOMAD_TASK_NAME}-strip.stripprefix.prefixes=/api",
           // "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=${NOMAD_TASK_NAME}-strip",
 
           "traefik.http.routers.${NOMAD_TASK_NAME}.tls=true",
-          "traefik.http.routers.${NOMAD_TASK_NAME}.tls.certresolver=lets-encrypt",
           # expose but for now only when on VPN - and can use a single middlewares= at a time
           // "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=${NOMAD_TASK_NAME}-strip,vpn-whitelist@file",
           "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=vpn-whitelist@file",
@@ -212,11 +213,11 @@ job "immich" {
         DB_USERNAME={{ .db_user }}
         DB_DATABASE_NAME="immich"
         {{ end -}}
-        {{ range nomadService "immich-db" }}
+        {{ range service "immich-db" }}
         DB_HOSTNAME={{ .Address }}
         DB_PORT={{ .Port }}
         {{ end }}
-        {{ range nomadService "immich-redis" }}
+        {{ range service "immich-redis" }}
         REDIS_HOSTNAME={{ .Address }}
         REDIS_PORT={{ .Port }}
         {{ end }}
@@ -227,79 +228,6 @@ job "immich" {
         NODE_ENV="production"
 
 
-
-        IMMICH_SERVER_URL=http://{{ env "NOMAD_IP_server" }}:{{ env "NOMAD_HOST_PORT_server" }}
-
-        ENABLE_TYPESENSE="false"
-        EOH
-      }
-    }
-    task "immich-microservices" {
-      driver = "docker"
-
-      config {
-        image   = "ghcr.io/immich-app/immich-server:${var.version}"
-        command = "start.sh"
-        args    = ["microservices"]
-      }
-      env {
-        # https://immich.app/docs/install/environment-variables
-        IMMICH_CONFIG_FILE = "${NOMAD_ALLOC_DIR}/config.json"
-        // REVERSE_GEOCODING_DUMP_DIRECTORY = TODO
-        MICROSERVICES_PORT = "${NOMAD_PORT_microservices}"
-        TYPESENSE_ENABLED  = false
-      }
-      volume_mount {
-        volume      = "immich_pictures"
-        destination = "/usr/src/app/upload"
-        read_only   = false
-      }
-
-      resources {
-        cpu        = 512
-        memory     = 1024
-        memory_max = 1500
-      }
-
-      service {
-        name     = "immich-microservices"
-        provider = "nomad"
-        port     = "microservices"
-        check {
-          name     = "alive"
-          type     = "tcp"
-          interval = "20s"
-          timeout  = "2s"
-          check_restart {
-            limit           = 3
-            grace           = "40s"
-            ignore_warnings = false
-          }
-        }
-      }
-      template {
-        destination = "config/.env"
-        env         = true
-        data        = <<EOH
-        {{ with nomadVar "nomad/jobs/immich" }}
-        TYPESENSE_API_KEY="{{ .typesense_api_key }}"
-        DB_PASSWORD="{{ .db_password }}"
-        DB_USERNAME={{ .db_user }}
-        DB_DATABASE_NAME="immich"
-        {{ end -}}
-        {{ range nomadService "immich-db" }}
-        DB_HOSTNAME={{ .Address }}
-        DB_PORT={{ .Port }}
-        {{ end }}
-        {{ range nomadService "immich-redis" }}
-        REDIS_HOSTNAME={{ .Address }}
-        REDIS_PORT={{ .Port }}
-        {{ end }}
-
-        PORT={{ env "NOMAD_PORT_web" }}
-        SERVER_PORT={{ env "NOMAD_PORT_server" }}
-        MICROSERVICES_PORT={{ env "NOMAD_PORT_microservices" }}
-        NODE_ENV="production"
 
         IMMICH_SERVER_URL=http://{{ env "NOMAD_IP_server" }}:{{ env "NOMAD_HOST_PORT_server" }}
 
@@ -312,7 +240,7 @@ job "immich" {
   group "immich-ml" {
     network {
       dns {
-        servers = ["10.10.0.1", "10.10.2.1", "10.10.4.1"]
+        servers = ["10.10.11.1", "10.10.12.1", "10.10.13.1"]
       }
       mode = "bridge"
       port "http" {
@@ -364,7 +292,7 @@ job "immich" {
       }
       service {
         name     = "immich-ml"
-        provider = "nomad"
+#         provider = "nomad"
         port     = "http"
         tags = [
           "traefik.enable=true",
@@ -386,8 +314,11 @@ job "immich" {
   }
 
 
-
   group "immich-dbs" {
+    constraint {
+      attribute = "${meta.box}"
+      value     = "hez1"
+    }
     restart {
       attempts = 4
       interval = "10m"
@@ -424,7 +355,6 @@ job "immich" {
       service {
         name     = "immich-redis"
         port     = "redis"
-        provider = "nomad"
         check {
           name     = "alive"
           type     = "tcp"
@@ -437,7 +367,9 @@ job "immich" {
       driver = "docker"
       config {
         // image = "postgres:15.2"
-        image = "tensorchord/pgvecto-rs:pg15-v0.2.0"
+        image = "tensorchord/pgvecto-rs:pg14-v0.2.0@sha256:90724186f0a3517cf6914295b5ab410db9ce23190a2d9d0b9dd6463e3fa298f0"
+        command = "postgres"
+        args = ["-c" ,"shared_preload_libraries=vectors.so", "-c", "search_path=\"$user\", public, vectors", "-c", "logging_collector=on", "-c", "max_wal_size=2GB", "-c", "shared_buffers=512MB", "-c", "wal_compression=on"]
         ports = ["postgres"]
       }
       env = {
@@ -462,7 +394,6 @@ job "immich" {
       service {
         name     = "immich-db"
         port     = "postgres"
-        provider = "nomad"
         check {
           name     = "alive"
           type     = "tcp"
