@@ -1,12 +1,6 @@
 data "vault_identity_entity" "nico" {
   entity_name = "nico"
-  # entity_id = "ee9f9ce4-870d-e761-9eea-5ba740369d3a"
 }
-
-# resource "vault_identity_entity" "nico" {
-#   name     = "nicodcotta"
-#   disabled = false
-# }
 
 resource "vault_identity_group" "group" {
   name              = "admins"
@@ -58,6 +52,29 @@ resource "vault_identity_oidc_client" "nomad" {
   access_token_ttl = 1 * 60 * 60
 }
 
+# TODO would be fun
+# locals {
+#   immich_url = "immich.tfk.nd"
+# }
+#
+# resource "vault_identity_oidc_client" "immich" {
+#   name          = "nomad"
+#   redirect_uris = [
+#     "https://${local.immich_url}/auth/login",
+#     "https://${local.immich_url}/user-settings",
+#     "${var.vault_addr}/ui/settings/tokens",
+#     "app.immich:/"
+#   ]
+#   assignments = [
+#     "allow_all"
+#     # vault_identity_oidc_assignment.assign-admins.name
+#   ]
+#
+#   key              = vault_identity_oidc_key.key1.name
+#   id_token_ttl     = 30 * 60
+#   access_token_ttl = 1 * 60 * 60
+# }
+
 resource "vault_identity_oidc_scope" "user" {
   name        = "user"
   description = "The user scope provides claims using Vault identity entity metadata"
@@ -78,11 +95,12 @@ resource "vault_identity_oidc_provider" "provider" {
   issuer_host        = "vault.mesh.dcotta.eu:8200"
   https_enabled      = true
   name               = "default-provider"
-  allowed_client_ids = [vault_identity_oidc_client.nomad.client_id]
-  scopes_supported   = [
+  allowed_client_ids = [
+    vault_identity_oidc_client.nomad.client_id,
+  ]
+  scopes_supported = [
     vault_identity_oidc_scope.groups.name,
     vault_identity_oidc_scope.user.name,
   ]
-
 }
 

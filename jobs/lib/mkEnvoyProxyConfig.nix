@@ -10,7 +10,7 @@
   envoy_listener_tracing_json = builtins.toJSON {
     "@type" = "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager.Tracing";
     custom_tags = [
-      { request_header. default_value = ""; request_header.name = "x-custom-traceid"; tag = "custom_header"; }
+      { request_header.default_value = ""; request_header.name = "x-custom-traceid"; tag = "custom_header"; }
       { environment.name = "NOMAD_ALLOC_ID"; tag = "alloc_id"; }
     ];
     provider = {

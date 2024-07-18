@@ -18,9 +18,9 @@ job "seaweedfs-plugin" {
       dns {
         servers = [
           "10.10.0.1",
-          "10.10.1.1",
-          "10.10.2.1",
-          "10.10.4.1",
+          "10.10.11.1",
+          "10.10.12.1",
+          "10.10.13.1",
         ]
       }
     }
@@ -41,7 +41,7 @@ job "seaweedfs-plugin" {
 
       config {
         network_mode = "host"
-        image        = "chrislusf/seaweedfs-csi-driver:v1.1.8"
+        image        = "chrislusf/seaweedfs-csi-driver:v1.2.0"
         force_pull   = "true"
 
         args = [
@@ -49,7 +49,7 @@ job "seaweedfs-plugin" {
           // "--node",
           "--endpoint=unix://csi/csi.sock",
           // hardcoded ports and IP so that this does not get restarted when master does
-          "--filer=seaweedfs-filer-http.nomad:8888.18888",
+          "--filer=seaweed-filer-http.nomad:8888.18888",
           "--nodeid=${node.unique.name}",
           "--cacheCapacityMB=2000",
           "--cacheDir=/data/cache_dir",
