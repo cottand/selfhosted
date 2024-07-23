@@ -19,19 +19,18 @@ lib.mkJob "grafana" {
   type = "service";
   group."grafana" = {
     affinities = [{
-      lTarget = "\${node.meta.controlPlane}";
-      operand = "!=";
+      lTarget = "\${meta.controlPlane}";
+      operand = "is";
       rTarget = "true";
-      weight = 50;
+      weight = -50;
     }];
     count = 2;
     network = {
       mode = "bridge";
       dns.servers = [
-        "10.10.0.1"
-        "10.10.2.1"
-        "10.10.4.1"
-        "10.10.1.1"
+        "10.10.13.1"
+        "10.10.12.1"
+        "10.10.11.1"
       ];
       dynamicPorts = [
         { label = "healthz"; }
@@ -85,7 +84,7 @@ lib.mkJob "grafana" {
         checkRestart = {
           limit = 3;
           grace = 30 * lib.seconds;
-          ignore_warnings = false;
+          ignoreWarnings = false;
         };
         task = "grafana";
       };

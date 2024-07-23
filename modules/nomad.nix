@@ -58,7 +58,7 @@ in
               enabled = false
               bootstrap_expect = 3
               server_join {
-                  retry_join = [ "10.10.0.1", "10.10.2.1" ]
+                  retry_join = [ "10.10.11.1", "10.10.12.1" ]
                   retry_max = 3
                   retry_interval = "15s"
               }

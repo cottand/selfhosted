@@ -17,8 +17,8 @@ in
 lib.mkJob "loki" {
   group."loki" = {
     affinities = [{
-      lTarget = "\${node.meta.controlPlane}";
-      operand = "=";
+      lTarget = "\${meta.controlPlane}";
+      operand = "is";
       rTarget = "true";
       weight = -50;
     }];
@@ -35,8 +35,9 @@ lib.mkJob "loki" {
       readOnly = true;
     };
     ephemeralDisk = {
-      size = 500;
+      sizeMb = 500;
       sticky = true;
+      migrate = true;
     };
 
     service."loki-http" = {

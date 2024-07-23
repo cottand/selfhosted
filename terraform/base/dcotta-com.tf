@@ -9,6 +9,16 @@ resource "cloudflare_record" "nico-cname-web-com" {
   proxied = true
 }
 
+resource "cloudflare_record" "immich-cname-web-com" {
+  zone_id = local.zoneIds["com"]
+  name    = "immich"
+  type    = "CNAME"
+  value   = "web.dcotta.com"
+  ttl     = 1
+  comment = "tf managed"
+  proxied = true
+}
+
 resource "cloudflare_record" "google-indexing-proof" {
   zone_id = local.zoneIds["com"]
   name    = "nico"
