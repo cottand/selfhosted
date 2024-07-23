@@ -34,12 +34,12 @@ let
   };
 in
 lib.mkJob "immich" {
-    affinities = [{
-      lTarget = "\${meta.controlPlane}";
-      operand = "is";
-      rTarget = "true";
-      weight = -50;
-    }];
+  affinities = [{
+    lTarget = "\${meta.controlPlane}";
+    operand = "is";
+    rTarget = "true";
+    weight = -50;
+  }];
   # TODO reenable when healthchecks
   #  update = {
   #    maxParallel = 1;
@@ -74,7 +74,7 @@ lib.mkJob "immich" {
           upstream."tempo-otlp-grpc-mesh".localBindPort = otlpPort;
           upstream."immich-postgres".localBindPort = ports.postgres;
           upstream."immich-redis".localBindPort = ports.redis;
-          upstream."immich-ml".localBindPort = ports.ml-http;
+          upstream."immich-ml-http".localBindPort = ports.ml-http;
 
           config = lib.mkEnvoyProxyConfig {
             otlpService = "proxy-immich-http";
@@ -99,9 +99,9 @@ lib.mkJob "immich" {
         "traefik.http.routers.\${NOMAD_TASK_NAME}.entrypoints=web,websecure,web_public,websecure_public"
         "traefik.http.routers.\${NOMAD_TASK_NAME}.rule=Host(`${domain}`) || Host(`immich-http.tfk.nd`)"
         "traefik.http.routers.\${NOMAD_TASK_NAME}.tls=true"
-#        "traefik.http.routers.\${NOMAD_TASK_NAME}.middlewares=ratelimit-immich"
-#        "traefik.http.middlewares.ratelimit-immich.ratelimit.average=120"
-#        "traefik.http.middlewares.ratelimit-immich.ratelimit.period=1m"
+        #        "traefik.http.routers.\${NOMAD_TASK_NAME}.middlewares=ratelimit-immich"
+        #        "traefik.http.middlewares.ratelimit-immich.ratelimit.average=120"
+        #        "traefik.http.middlewares.ratelimit-immich.ratelimit.period=1m"
       ];
     };
     service."immich-metrics" = {
@@ -210,60 +210,68 @@ lib.mkJob "immich" {
         rightDelim = "]]";
         embeddedTmpl = builtins.toJSON
           {
-            ffmpeg = {
-              accel = "disabled";
-              crf = 23;
-              maxBitrate = "0";
-              preset = "ultrafast";
-              targetAudioCodec = "aac";
-              targetResolution = "720";
-              targetVideoCodec = "h264";
-              threads = 0;
-              tonemap = "hable";
-              transcode = "required";
-              twoPass = false;
+            image = {
+              colorspace = "p3";
+              extractEmbedded = false;
+              previewFormat = "jpeg";
+              previewSize = 1440;
+              quality = 80;
+              thumbnailFormat = "webp";
+              thumbnailSize = 250;
             };
             job = {
               backgroundTask.concurrency = 5;
+              faceDetection.concurrency = 2;
+              library.concurrency = 5;
               metadataExtraction.concurrency = 5;
+              migration.concurrency = 5;
+              notifications.concurrency = 5;
               objectTagging.concurrency = 2;
               recognizeFaces.concurrency = 2;
               search.concurrency = 5;
               sidecar.concurrency = 5;
+              smartSearch.concurrency = 2;
               storageTemplateMigration.concurrency = 5;
               thumbnailGeneration.concurrency = 5;
               videoConversion.concurrency = 1;
             };
+            library = {
+              scan = { cronExpression = "0 0 * * *"; enabled = true; };
+              watch.enabled = false;
+            };
+            logging = { enabled = true; level = "log"; };
             machineLearning = {
-              enabled = true;
-              classification = {
-                enabled = true;
-                minScore = 0.7;
-                modelName = "microsoft/resnet-50";
-              };
+              url = "http://127.0.0.1:${toString ports.ml-http}";
+              classification = { enabled = true; minScore = 0.7; modelName = "microsoft/resnet-50"; };
               clip = { enabled = true; modelName = "ViT-B-32::openai"; };
-              facialRecognition = { enabled = true; maxDistance = 0.6; minFaces = 1; minScore = 0.7; modelName = "buffalo_l"; };
-              url = "http://${bind}:${toString ports.ml-http}";
+              duplicateDetection = { enabled = true; maxDistance = 0.01; };
+              enabled = true;
+              facialRecognition = {
+                enabled = true;
+                maxDistance = 0.6;
+                minFaces = 1;
+                minScore = 0.7;
+                modelName = "buffalo_l";
+              };
             };
-            oauth = {
-              autoLaunch = false;
-              autoRegister = true;
-              buttonText = "Login with OAuth";
-              clientId = "";
-              clientSecret = "";
-              enabled = false;
-              issuerUrl = "";
-              mobileOverrideEnabled = false;
-              mobileRedirectUri = "";
-              scope = "openid email profile";
-              storageLabelClaim = "preferred_username";
-            };
-            server.externalDomain = domain;
+            newVersionCheck.enabled = true;
             passwordLogin.enabled = true;
-            storageTemplate.template = "{{y}}-{{MM}}/{{filename}}";
-            thumbnail = { colorspace = "p3"; jpegSize = 1440; quality = 90; webpSize = 250; };
-          }
-        ;
+            reverseGeocoding.enabled = true;
+            server = { externalDomain = "immich.dcotta.com"; loginPageMessage = ""; };
+            storageTemplate = {
+              enabled = false;
+              hashVerificationEnabled = true;
+              template = "{{y}}-{{MM}}/{{filename}}";
+            };
+            thumbnail = {
+              colorspace = "p3";
+              jpegSize = 1440;
+              quality = 90;
+              webpSize = 250;
+            };
+            trash = { days = 30; enabled = true; };
+            user = { deleteDelay = 7; };
+          };
       };
     };
   };
@@ -298,13 +306,6 @@ lib.mkJob "immich" {
       connect.sidecarTask.resources = sidecarResources;
       # TODO implement http healthcheck
       port = toString ports.ml-http;
-      check = {
-        name = "alive";
-        type = "tcp";
-        port = "health";
-        interval = "20s";
-        timeout = "2s";
-      };
     };
 
     task."immich-ml" = {
