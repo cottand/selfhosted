@@ -1,7 +1,7 @@
 let
   lib = import ../lib;
-  version = "v1.108.0";
-  domain = "immich-http.tfk.nd";
+  version = "v1.109.2";
+  domain = "immich.dcotta.com";
   cpu = 220;
   mem = 512;
   ports = {
@@ -10,11 +10,18 @@ let
     upS3 = 3333;
     redis = 6379;
     postgres = 5432;
+    metrics = 9091;
+    services-mertrics = 9092;
   };
   sidecarResources = with builtins; mapAttrs (_: ceil) {
     cpu = 0.20 * cpu;
     memoryMB = 0.25 * mem;
     memoryMaxMB = 0.25 * mem + 100;
+  };
+  mkResrouces = { factor }: with builtins; mapAttrs (_: ceil) {
+    cpu = factor * cpu;
+    memoryMB = factor * mem;
+    memoryMaxMB = factor * mem + 100;
   };
   otlpPort = 9001;
   bind = lib.localhost;
@@ -27,12 +34,19 @@ let
   };
 in
 lib.mkJob "immich" {
-  update = {
-    maxParallel = 1;
-    autoRevert = true;
-    autoPromote = true;
-    canary = 1;
-  };
+    affinities = [{
+      lTarget = "\${meta.controlPlane}";
+      operand = "is";
+      rTarget = "true";
+      weight = -50;
+    }];
+  # TODO reenable when healthchecks
+  #  update = {
+  #    maxParallel = 1;
+  #    autoRevert = true;
+  #    autoPromote = true;
+  #    canary = 1;
+  #  };
 
   group."immich" = {
     inherit restartConfig;
@@ -41,6 +55,8 @@ lib.mkJob "immich" {
       mode = "bridge";
       dynamicPorts = [
         { label = "health"; }
+        { label = "metrics"; }
+        { label = "services-metrics"; }
       ];
       dns.serviers = [ "10.10.11.1" "10.10.12.1" "10.10.13.1" ];
     };
@@ -49,7 +65,7 @@ lib.mkJob "immich" {
       type = "csi";
       readOnly = false;
       source = "immich-pictures";
-      accessMode     = "single-node-writer";
+      accessMode = "single-node-writer";
       attachmentMode = "file-system";
     };
     service."immich-http" = {
@@ -80,11 +96,65 @@ lib.mkJob "immich" {
       tags = [
         "traefik.enable=true"
         "traefik.consulcatalog.connect=true"
-        "traefik.http.routers.\${NOMAD_TASK_NAME}.entrypoints=web, websecure"
-        "traefik.http.routers.\${NOMAD_TASK_NAME}.rule=Host(`${domain}`)"
+        "traefik.http.routers.\${NOMAD_TASK_NAME}.entrypoints=web,websecure,web_public,websecure_public"
+        "traefik.http.routers.\${NOMAD_TASK_NAME}.rule=Host(`${domain}`) || Host(`immich-http.tfk.nd`)"
         "traefik.http.routers.\${NOMAD_TASK_NAME}.tls=true"
-        "traefik.http.routers.\${NOMAD_TASK_NAME}.middlewares=vpn-whitelist@file"
+#        "traefik.http.routers.\${NOMAD_TASK_NAME}.middlewares=ratelimit-immich"
+#        "traefik.http.middlewares.ratelimit-immich.ratelimit.average=120"
+#        "traefik.http.middlewares.ratelimit-immich.ratelimit.period=1m"
       ];
+    };
+    service."immich-metrics" = {
+      connect.sidecarService.proxy.config = lib.mkEnvoyProxyConfig {
+        otlpService = "proxy-immich-http";
+        otlpUpstreamPort = otlpPort;
+        protocol = "http";
+      };
+      connect.sidecarTask.resources = mkResrouces { factor = 0.15; };
+      # TODO implement http healthcheck
+      port = toString ports.metrics;
+      meta.metrics_port = "\${NOMAD_HOST_PORT_metrics}";
+      meta.metrics_path = "/metrics";
+      checks = [{
+        expose = true;
+        name = "metrics";
+        portLabel = "metrics";
+        type = "http";
+        path = "/metrics";
+        interval = 30 * lib.seconds;
+        timeout = 5 * lib.seconds;
+        checkRestart = {
+          limit = 3;
+          grace = 70 * lib.seconds;
+          ignore_warnings = false;
+        };
+      }];
+    };
+    service."immich-services-metrics" = {
+      connect.sidecarService.proxy.config = lib.mkEnvoyProxyConfig {
+        otlpService = "proxy-immich-http";
+        otlpUpstreamPort = otlpPort;
+        protocol = "http";
+      };
+      connect.sidecarTask.resources = mkResrouces { factor = 0.15; };
+      # TODO implement http healthcheck
+      port = toString ports.services-mertrics;
+      meta.metrics_port = "\${NOMAD_HOST_PORT_metrics}";
+      meta.metrics_path = "/metrics";
+      checks = [{
+        expose = true;
+        name = "services-metrics";
+        portLabel = "services-metrics";
+        type = "http";
+        path = "/metrics";
+        interval = 30 * lib.seconds;
+        timeout = 5 * lib.seconds;
+        checkRestart = {
+          limit = 3;
+          grace = 70 * lib.seconds;
+          ignore_warnings = false;
+        };
+      }];
     };
     task."immich" = {
       driver = "docker";
@@ -105,6 +175,9 @@ lib.mkJob "immich" {
         IMMCH_ENV = "production";
         IMMICH_MEDIA_LOCATION = "/vol/immich-pictures";
         IMMICH_CONFIG_FILE = "/local/config.json";
+        IMMICH_METRICS = "true";
+        IMMICH_API_METRICS_PORT = toString ports.metrics;
+        IMMICH_MICROSERVICES_METRICS_PORT = toString ports.services-mertrics;
       };
       resources = {
         cpu = cpu;
@@ -118,7 +191,7 @@ lib.mkJob "immich" {
       }];
       template."config/.env" = {
         changeMode = "restart";
-        envvars  = true;
+        envvars = true;
         embeddedTmpl = ''
           {{ with nomadVar "nomad/jobs/immich" }}
           TYPESENSE_API_KEY="{{ .typesense_api_key }}"

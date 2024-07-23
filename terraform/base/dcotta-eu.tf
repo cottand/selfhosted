@@ -30,8 +30,8 @@ module "node_miki" {
   ip4_mesh    = local.mesh_ip4.miki
   ip4_pub     = local.pubIp["ip4"]["miki"]
   ip6_pub     = local.pubIp["ip6"]["miki"]
-  is_web_ipv4 = true
-  is_web_ipv6 = true
+  is_web_ipv4 = false
+  is_web_ipv6 = false
 }
 module "node_maco" {
   cf_zone_ids = local.zoneIdsList
@@ -40,8 +40,8 @@ module "node_maco" {
   ip4_mesh    = local.mesh_ip4.maco
   ip4_pub     = local.pubIp["ip4"]["maco"]
   ip6_pub     = local.pubIp["ip6"]["maco"]
-  is_web_ipv4 = true
-  is_web_ipv6 = true
+  is_web_ipv4 = false
+  is_web_ipv6 = false
 }
 module "node_cosmo" {
   cf_zone_ids = local.zoneIdsList
@@ -50,8 +50,8 @@ module "node_cosmo" {
   ip4_mesh    = local.mesh_ip4.cosmo
   ip4_pub     = local.pubIp["ip4"]["cosmo"]
   ip6_pub     = local.pubIp["ip6"]["cosmo"]
-  is_web_ipv4 = true
-  is_web_ipv6 = true
+  is_web_ipv4 = false
+  is_web_ipv6 = false
 }
 
 module "node_elvis" {
