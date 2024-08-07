@@ -4,6 +4,8 @@ let
   domain = "immich.dcotta.com";
   cpu = 220;
   mem = 512;
+  cpu-ml = 420;
+  mem-ml = 1024;
   ports = {
     http = 8080;
     ml-http = 8081;
@@ -39,7 +41,13 @@ lib.mkJob "immich" {
     operand = "is";
     rTarget = "true";
     weight = -50;
-  }];
+  }
+    {
+      lTarget = "distinct_hosts";
+      operand = "is";
+      rTarget = "true";
+      weight = 100;
+    }];
   # TODO reenable when healthchecks
   #  update = {
   #    maxParallel = 1;
@@ -163,6 +171,8 @@ lib.mkJob "immich" {
       config = {
         image = "ghcr.io/immich-app/immich-server:${version}";
         #     TODO?   args = [];
+
+        image_pull_timeout = "10m";
       };
       env = {
         IMMICH_PORT = toString ports.http;
@@ -178,6 +188,11 @@ lib.mkJob "immich" {
         IMMICH_METRICS = "true";
         IMMICH_API_METRICS_PORT = toString ports.metrics;
         IMMICH_MICROSERVICES_METRICS_PORT = toString ports.services-mertrics;
+
+        OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = "http://localhost:${toString otlpPort}";
+        OTEL_TRACES_EXPORTER = "otlp";
+        OTEL_SERVICE_NAME = "immich";
+        OTEL_SDK_DISABLED = "false";
       };
       resources = {
         cpu = cpu;
@@ -241,7 +256,7 @@ lib.mkJob "immich" {
             };
             logging = { enabled = true; level = "log"; };
             machineLearning = {
-              url = "http://127.0.0.1:${toString ports.ml-http}";
+              url = "http://${lib.localhost}:${toString ports.ml-http}";
               classification = { enabled = true; minScore = 0.7; modelName = "microsoft/resnet-50"; };
               clip = { enabled = true; modelName = "ViT-B-32::openai"; };
               duplicateDetection = { enabled = true; maxDistance = 0.01; };
@@ -271,7 +286,8 @@ lib.mkJob "immich" {
             };
             trash = { days = 30; enabled = true; };
             user = { deleteDelay = 7; };
-          };
+          }
+        ;
       };
     };
   };
@@ -304,7 +320,6 @@ lib.mkJob "immich" {
         };
       };
       connect.sidecarTask.resources = sidecarResources;
-      # TODO implement http healthcheck
       port = toString ports.ml-http;
     };
 
@@ -316,11 +331,19 @@ lib.mkJob "immich" {
         image = "ghcr.io/immich-app/immich-machine-learning:${version}";
         #     TODO?   args = [];
       };
-      env.IMMICH_PORT = toString ports.ml-http;
+      env = {
+        IMMICH_PORT = toString ports.ml-http;
+        OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = "http://localhost:${toString otlpPort}";
+        #        OTEL_EXPORTER_OTLP_ENDPOINT = "http://localhost:${toString otlpPort}";
+        OTEL_TRACES_EXPORTER = "otlp";
+        OTEL_SERVICE_NAME = "immich-ml";
+        OTEL_SDK_DISABLED = "false";
+        NODE_OPTIONS="--require @opentelemetry/auto-instrumentations-node/register";
+      };
       resources = {
-        cpu = cpu;
-        memoryMb = mem;
-        memoryMaxMb = builtins.ceil (2 * mem);
+        cpu = cpu-ml;
+        memoryMb = mem-ml;
+        memoryMaxMb = builtins.ceil (2 * mem-ml);
       };
     };
   };

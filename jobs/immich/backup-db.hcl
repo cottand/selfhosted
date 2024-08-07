@@ -5,18 +5,38 @@ job "immich-db-backup" {
     prohibit_overlap = true
   }
 
-  task "immich-backup" {
-    driver = "docker"
-    config {
-      image = "eeshugerman/postgres-backup-s3:15"
+  group "backup" {
+    network {
+      mode = "bridge"
     }
-    env {
-      BACKUP_KEEP_DAYS = 7 # optional
+
+    service {
+      name = "immich-db-backup"
+      port = "9002"
+
+      connect {
+        sidecar_service {
+          proxy {
+            upstreams {
+              destination_name = "immich-postgres"
+              local_bind_port  = 5432
+            }
+          }
+        }
+      }
     }
-    template {
-      destination = "config/.env"
-      env         = true
-      data        = <<-EOF
+    task "immich-backup" {
+      driver = "docker"
+      config {
+        image = "eeshugerman/postgres-backup-s3:15"
+      }
+      env {
+        BACKUP_KEEP_DAYS = 7 # optional
+      }
+      template {
+        destination = "config/.env"
+        env         = true
+        data        = <<-EOF
         {{ with nomadVar "secret/buckets/immich-db" }}
         S3_REGION="us-east-005"
         S3_ACCESS_KEY_ID="{{ .keyId }}"
@@ -25,16 +45,15 @@ job "immich-db-backup" {
         S3_ENDPOINT="https://{{ .endpoint }}"
         S3_PREFIX="backup"
         {{ end }}
-        {{ range nomadService "immich-db" }}
-        POSTGRES_HOST={{ .Address }}
-        POSTGRES_PORT={{ .Port }}
-        {{ end }}
+        POSTGRES_HOST=localhost
+        POSTGRES_PORT=5432
         {{ with nomadVar "nomad/jobs/immich" }}
         POSTGRES_PASSWORD={{ .db_password }}
         POSTGRES_USER={{ .db_user }}
         {{ end }}
         POSTGRES_DATABASE=immich
         EOF
+      }
     }
   }
 }

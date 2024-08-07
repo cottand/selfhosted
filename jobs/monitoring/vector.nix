@@ -141,9 +141,12 @@ lib.mkJob "vector" {
             source = ''''
                 del(.label.description)
                 del(.label."io.k8s.description")
+                del(.label."io.k8s.display_name")
                 del(.label.url)
                 del(.label.summary)
+                del(.label.vendor)
                 del(.label."org.opencontainers.image.description")
+                del(.label."vcs.ref")
             ''''
             #del(.username)
           [sinks.loki_docker]

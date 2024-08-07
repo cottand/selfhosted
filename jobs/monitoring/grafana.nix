@@ -1,6 +1,6 @@
 let
   lib = import ../lib;
-  version = "10.4.1";
+  version = "11.1.3";
   cpu = 100;
   mem = 200;
   ports = {
@@ -121,6 +121,7 @@ lib.mkJob "grafana" {
         "GF_SERVER_SERVE_FROM_SUB_PATH" = true;
         "GF_SECURITY_ALLOW_EMBEDDING" = true;
         "GF_FEATURE_TOGGLES_ENABLE" = "traceToMetrics logsExploreTableVisualisation";
+        GF_INSTALL_PLUGINS = "https://storage.googleapis.com/integration-artifacts/grafana-lokiexplore-app/grafana-lokiexplore-app-latest.zip;grafana-lokiexplore-app";
       };
 
       template."local/config.ini" = {
