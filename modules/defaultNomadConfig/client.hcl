@@ -53,6 +53,8 @@ plugin "docker" {
     volumes {
       enabled = true
     }
+
+    pull_activity_timeout = "5m"
   }
 }
 
