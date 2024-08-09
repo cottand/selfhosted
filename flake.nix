@@ -63,7 +63,8 @@
           ${pkgs.jq}/bin/jq -n --arg value "$SECRET" '{ "value": $value }'
         '';
 
-        legacyPackages.images = (import ./images { inherit pkgs; });
+#        legacyPackages.images = (import ./images { inherit pkgs; });
+        legacyPackages.services = pkgs.callPackage (import ./services) {};
 
         devShells.default = pkgs.mkShell {
           name = "selfhosted-dev";
