@@ -9,6 +9,7 @@ let
   });
   image = dockerTools.buildImage {
     inherit name;
+    tag = "latest";
     copyToRoot = buildEnv {
       inherit name;
       paths = [ bash bin ];

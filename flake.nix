@@ -65,6 +65,7 @@
 
 #        legacyPackages.images = (import ./images { inherit pkgs; });
         legacyPackages.services = pkgs.callPackage (import ./services) {};
+        legacyPackages.gh-ci = pkgs.callPackage (import ./gh-ci.nix) { inherit self; };
 
         devShells.default = pkgs.mkShell {
           name = "selfhosted-dev";
