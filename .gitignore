@@ -20,3 +20,5 @@ terraform/vault/tmp
 **/*.secret.tfvars
 
 certs/mesh**
+
+result
