@@ -28,7 +28,10 @@
       newVault = final: prev: {
         vault-bin = (import nixpkgs-master { system = prev.system; config.allowUnfree = true; }).vault-bin;
       };
-      overlays = [ (import ./overlay.nix) newVault attic.overlays.default ];
+      withScripts = final: prev: {
+       scripts = self.legacyPackages.${prev.system}.scripts;
+      };
+      overlays = [ (import ./overlay.nix) withScripts newVault attic.overlays.default ];
     in
     {
       colmena = (import ./hive.nix) (inputs // { inherit overlays; });
@@ -39,33 +42,12 @@
           config.allowUnfree = true;
         };
       in
-      {
-        # templates a nomad nix file into JSON and calls nomad run on it
-        # usage: nixmad path/to/job.nix
-        packages.nixmad = pkgs.writeShellScriptBin "nixmad" ''
-          set -e
-          ${pkgs.nix}/bin/nix eval -f $1 --json --show-trace | ${pkgs.nomad}/bin/nomad run -json -
-        '';
+      rec {
 
-        # fetches a secret from bitwarden-secret by ID
-        # usage: bws-get <ID>
-        packages.bws-get = pkgs.writeShellScriptBin "bws-get" ''
-          set -e
-          ${pkgs.bws}/bin/bws secret get $1 | ${pkgs.jq}/bin/jq -r '.value'
-        '';
+        legacyPackages.services = (import ./services) pkgs;
+        legacyPackages.scripts = (import ./scripts) (pkgs // {inherit self; });
 
-        # returns a secret from the MacOS keychain fromatted as JSON for use in TF
-        # usage: keychain-get <SERVICE>
-        # returns {"value": "<SECRET>"}
-        packages.keychain-get = pkgs.writeShellScriptBin "keychain-get" ''
-          set -e
-          SECRET=$(/usr/bin/security find-generic-password -gw -l "$1")
-          ${pkgs.jq}/bin/jq -n --arg value "$SECRET" '{ "value": $value }'
-        '';
-
-#        legacyPackages.images = (import ./images { inherit pkgs; });
-        legacyPackages.services = pkgs.callPackage (import ./services) {};
-        legacyPackages.gh-ci = pkgs.callPackage (import ./gh-ci.nix) { inherit self; };
+        packages = legacyPackages.scripts;
 
         devShells.default = pkgs.mkShell {
           name = "selfhosted-dev";

@@ -1,5 +1,3 @@
-{ callPackage, ... }: {
-  name = "services";
-
+{ callPackage, writeText, ... }: {
   portfolioStats = callPackage (import ./portfolioStats) { };
 }
