@@ -1,14 +1,15 @@
-{ buildGoModule, dockerTools, bash, buildEnv, ... }:
+{ buildGoModule, dockerTools, bash, buildEnv, writeShellScriptBin, ... }:
 let
   name = "portfolioStats";
   bin = buildGoModule ({
-    name = "portfolioStats";
+    inherit name;
     src = ../.;
-    subPackages = [ "portfolioStats" ];
+    subPackages = [ name ];
     vendorHash = null;
   });
+  start = writeShellScriptBin "start" "${bin}/bin/${name}";
   image = dockerTools.buildImage {
-    inherit name;
+    name = "service";
     tag = "latest";
     copyToRoot = buildEnv {
       inherit name;
