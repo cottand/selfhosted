@@ -30,5 +30,5 @@
     ${jq}/bin/jq -n --arg value "$SECRET" '{ "value": $value }'
   '';
 
-  allImages = callPackage (import ./allImages) { inherit self; };
+  all-images = callPackage (import ./all-images) { inherit self; };
 }
