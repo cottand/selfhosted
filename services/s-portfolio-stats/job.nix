@@ -1,6 +1,6 @@
 let
   lib = import ../../jobs/lib;
-  version = "c865dfa";
+  version = "e567bbe";
   name = "s-portfolio-stats";
   cpu = 120;
   mem = 500;
@@ -65,13 +65,10 @@ lib.mkJob name {
 
       config = {
         image = "ghcr.io/cottand/selfhosted/${name}:${version}";
-        # ports = ["http" "grpc", "metrics", "webdav"];
-#        args = [
-#          "--config"
-#          "/local/config.toml"
-#          "--listen"
-#          "${bind}:${toString ports.http}"
-#        ];
+      };
+      env = {
+        HTTP_HOST = lib.localhost;
+        HTTP_PORT = toString ports.http;
       };
       resources = {
         cpu = cpu;
