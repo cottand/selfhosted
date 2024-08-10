@@ -31,7 +31,7 @@ jobs:
 
       - name: Flake check
         run: |
-          nix check .
+          nix flake check .
 
   build-images:
     runs-on: ubuntu-latest
