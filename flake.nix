@@ -29,23 +29,22 @@
         vault-bin = (import nixpkgs-master { system = prev.system; config.allowUnfree = true; }).vault-bin;
       };
       withScripts = final: prev: {
-       scripts = self.legacyPackages.${prev.system}.scripts;
+        scripts = self.legacyPackages.${prev.system}.scripts;
       };
       overlays = [ (import ./overlay.nix) withScripts newVault attic.overlays.default ];
     in
-    {
-      colmena = (import ./hive.nix) (inputs // { inherit overlays; });
-    } // (utils.lib.eachDefaultSystem (system:
+    (utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
           inherit system overlays;
           config.allowUnfree = true;
         };
+        pkgsWithSelf = pkgs // {inherit self; };
       in
       rec {
 
         legacyPackages.services = (import ./services) pkgs;
-        legacyPackages.scripts = (import ./scripts) (pkgs // {inherit self; });
+        legacyPackages.scripts = (import ./scripts) pkgsWithSelf;
 
         packages = legacyPackages.scripts;
 
@@ -80,10 +79,14 @@
           VAULT_ADDR = "https://vault.mesh.dcotta.eu:8200";
         };
 
+        checks = (import ./checks.nix) pkgsWithSelf;
+
         formatter = pkgs.writeShellScriptBin "fmt" ''
           ${pkgs.nomad}/bin/nomad fmt
           ${pkgs.terraform}/bin/terraform fmt
         '';
       }
-    ));
+    )) // {
+    colmena = (import ./hive.nix) (inputs // { inherit overlays; }); }
+  ;
 }
