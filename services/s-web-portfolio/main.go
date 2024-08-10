@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/monzo/terrors"
-	"log/slog"
+	"log"
 	"net/http"
 )
 import "github.com/cottand/selfhosted/services/lib/bedrock"
@@ -11,16 +11,19 @@ func main() {
 	bedrock.Init()
 	conf, err := bedrock.GetBaseConfig()
 	if err != nil {
-		slog.Error(err.Error())
-		panic(err)
+		log.Fatalf(terrors.Propagate(err).Error())
 	}
 
-	fs := http.FileServer(http.Dir("/srv"))
+	root, err := bedrock.LocalNixDir()
+	if err != nil {
+		log.Fatalf(terrors.Propagate(err).Error())
+	}
+
+	fs := http.FileServer(http.Dir(root + "/srv"))
 	http.Handle("/", fs)
 
 	err = http.ListenAndServe(conf.HttpBind(), nil)
 	if err != nil {
-		slog.Error(terrors.Augment(err, "failed to start server", nil).Error())
-		panic(err)
+		log.Fatalf(terrors.Augment(err, "failed to start server", nil).Error())
 	}
 }
