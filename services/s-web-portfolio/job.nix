@@ -1,6 +1,6 @@
 let
   lib = import ../../jobs/lib;
-  version = "ec21373";
+  version = "b836c98";
   name = "s-web-portfolio";
   cpu = 120;
   mem = 500;
@@ -62,6 +62,12 @@ lib.mkJob name {
         interval = 10 * lib.seconds;
         timeout = 3 * lib.seconds;
       }];
+      tags = [
+        "traefik.enable=true"
+        "traefik.consulcatalog.connect=true"
+        "traefik.http.routers.\${NOMAD_GROUP_NAME}-com.tls=true"
+        "traefik.http.routers.\${NOMAD_GROUP_NAME}.entrypoints=web, websecure"
+      ];
     };
     task.${name} = {
       driver = "docker";

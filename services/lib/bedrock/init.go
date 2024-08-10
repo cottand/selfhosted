@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"path"
 	"strconv"
 )
 
@@ -18,7 +19,25 @@ func Init() {
 
 	//slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, nil)))
 
-	slog.Info("Bedrock initialized")
+	slog.Info("bedrock initialized")
+
+	d, err := LocalNixDir()
+	if err == nil {
+		slog.Info("using local Nix dir", "dir", d)
+	}
+}
+
+// LocalNixDir returns the parent of the parent dir the binary is in.
+// For Nix-built binaries, this usually matches
+// the root of the derivation the binary is being run from.
+//
+// Use this to access files included in the build via the Nix derivation.
+func LocalNixDir() (string, error) {
+	e, err := os.Executable()
+	if err != nil {
+		return "", terrors.Propagate(err)
+	}
+	return path.Dir(path.Dir(e)), nil
 }
 
 func GetBaseConfig() (*BaseConfig, error) {
