@@ -1,5 +1,11 @@
 name: Build Images
 
+permissions:
+  contents: read
+  packages: write
+  attestations: write
+  id-token: write
+
 on:
   push:
     branches: [ "master" ]
@@ -27,27 +33,24 @@ jobs:
         run: |
           nix build -L .#scripts.all-images
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2.2.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Install skopeo
         run: |
-          nix profile install nixpkgs#skopeo nixpkgs#python3
+          nix profile install nixpkgs#skopeo
 
-      - name: Push images
+      - name: Login to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | skopeo login -u ${{ github.actor }} --password-stdin https://ghcr.io
+
+      - name: Push all images
         shell: python
         run: |
           import os
           import json
           
-          
           images = os.popen("jq < $(nix build .#scripts.all-images --print-out-paths)").read()
-          git_sha = os.popen('git rev-parse --short "$GITHUB_SHA"').read()
+          git_sha = os.popen('git rev-parse --short "$GITHUB_SHA"').read().strip()
           
-          for tag, path in json.loads(images).items():
-            print("got k="+tag+" and v="+path)
+          for repo, path in json.loads(images).items():
+            dest_repo = f'docker://ghcr.io/cottand/selfhosted/{repo}:{git_sha}'
+            print(os.popen(f'skopeo --insecure-policy copy "docker-archive:{path}" "{dest_repo}"').read())
 
