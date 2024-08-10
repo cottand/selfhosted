@@ -1,3 +1,3 @@
 { callPackage, writeText, ... }: {
-  portfolioStats = callPackage (import ./portfolioStats) { };
+  portfolio-stats = callPackage (import ./portfolio-stats) { };
 }

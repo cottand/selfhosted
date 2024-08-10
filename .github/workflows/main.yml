@@ -25,7 +25,7 @@ jobs:
 
       - name: Build images
         run: |
-          nix build -L .#scripts.allImages
+          nix build -L .#scripts.all-images
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2.2.0
@@ -34,13 +34,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Push images
+      - name: Install skopeo
         run: |
-          nix profile install nixpkgs#skopeo
-          images=($(nix run .#scripts.allImages ))
-          git_sha=$(git rev-parse --short "$GITHUB_SHA")
-          for i in "${images[@]}"; do
-            echo $i
-            skopeo inspect docker-archive:$i
-          done
+          nix profile install nixpkgs#skopeo nixpkgs#python3
+
+      - name: Push images
+        shell: python
+        run: |
+          import os
+          import json
+          
+          
+          images = os.popen("jq < $(nix build .#scripts.all-images --print-out-paths)").read()
+          git_sha = os.popen('git rev-parse --short "$GITHUB_SHA"').read()
+          
+          for tag, path in json.loads(images).items():
+            print("got k="+tag+" and v="+path)
 
