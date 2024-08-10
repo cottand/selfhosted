@@ -4,5 +4,5 @@
 # the built binary and that itself has to have an extra `.image` attribute, which is
 # the OCI image to be built and run.
 { callPackage, writeText, ... }: {
-  s-portfolio-stats = callPackage (import ./s-portfolio-stats) { };
+  s-web-portfolio = callPackage (import ./s-web-portfolio) { };
 }
