@@ -16,9 +16,7 @@ import (
 func Init() {
 	http.Handle("/metrics", promhttp.Handler())
 
-	logger := slog.New(slog.NewJSONHandler(os.Stderr, nil))
-
-	slog.SetDefault(logger)
+	//slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, nil)))
 
 	slog.Info("Bedrock initialized")
 }
