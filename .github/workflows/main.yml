@@ -1,4 +1,4 @@
-name: Build Images
+name: Main
 
 permissions:
   contents: read
@@ -18,6 +18,21 @@ env:
   REGISTRY_IMAGE: "ghcr.io/cottand/selfhosted"
 
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: cachix/install-nix-action@v22
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Flake check
+        run: |
+          nix check .
+
   build-images:
     runs-on: ubuntu-latest
     steps:

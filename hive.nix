@@ -25,7 +25,7 @@ in
     imports = [
       ./machines/${name}/definition.nix
       ./machines/_default
-      ./modules
+      ./machines/modules
       home-manager.nixosModules.home-manager
       cottand.nixosModules.seaweedBinaryCache
       cottand.nixosModules.dcottaRootCa

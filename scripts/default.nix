@@ -1,11 +1,9 @@
 { self, callPackage, nomad, jq, nix, bws, writeShellScriptBin, writeScriptBin, yaegi, ... }: rec {
 
-  #    buildAllImages = callPackage (import ./buildAllImages) {};
-
-  buildYaegiScript = name: filePath: writeScriptBin name ''
-    #! ${yaegi}/bin/yaegi
-    ${builtins.readFile filePath}
-  '';
+#  buildYaegiScript = name: filePath: writeScriptBin name ''
+#    #! ${yaegi}/bin/yaegi
+#    ${builtins.readFile filePath}
+#  '';
 
   # templates a nomad nix file into JSON and calls nomad run on it
   # usage: nixmad path/to/job.nix
@@ -30,5 +28,5 @@
     ${jq}/bin/jq -n --arg value "$SECRET" '{ "value": $value }'
   '';
 
-  all-images = callPackage (import ./all-images) { inherit self; };
+  all-images = callPackage ./all-images { inherit self; };
 }
