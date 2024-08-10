@@ -1,7 +1,7 @@
 let
   lib = import ../../jobs/lib;
   version = "ec21373";
-  name = "s-portfolio-stats";
+  name = "s-web-portfolio";
   cpu = 120;
   mem = 500;
   ports = {
@@ -30,13 +30,13 @@ lib.mkJob name {
     network = {
       mode = "bridge";
       dynamicPorts = [
-        { label = "health"; }
+        { label = "metrics"; }
       ];
       reservedPorts = [
       ];
     };
 
-    service.${name} = {
+    service.${name} = rec {
       connect.sidecarService = {
         proxy = {
           upstream."tempo-otlp-grpc-mesh".localBindPort = otlpPort;
@@ -51,13 +51,17 @@ lib.mkJob name {
       connect.sidecarTask.resources = sidecarResources;
       # TODO implement http healthcheck
       port = toString ports.http;
-      #      tags = [
-      #        "traefik.enable=true"
-      #        "traefik.consulcatalog.connect=true"
-      #        "traefik.http.routers.\${NOMAD_GROUP_NAME}-http.entrypoints=web,websecure"
-      #        "traefik.http.routers.\${NOMAD_GROUP_NAME}-http.tls=true"
-      #        "traefik.http.routers.\${NOMAD_GROUP_NAME}-http.middlewares=mesh-whitelist@file"
-      #      ];
+      meta.metrics_port = "\${NOMAD_HOST_PORT_metrics}";
+      meta.metrics_path = "/metrics";
+      checks = [{
+        expose = true;
+        name = "metrics";
+        portLabel = "metrics";
+        type = "http";
+        path = meta.metrics_path;
+        interval = 10 * lib.seconds;
+        timeout = 3 * lib.seconds;
+      }];
     };
     task.${name} = {
       driver = "docker";

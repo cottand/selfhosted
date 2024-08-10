@@ -15,6 +15,9 @@ func main() {
 		panic(err)
 	}
 
+	fs := http.FileServer(http.Dir("/srv"))
+	http.Handle("/", fs)
+
 	err = http.ListenAndServe(conf.HttpBind(), nil)
 	if err != nil {
 		slog.Error(terrors.Augment(err, "failed to start server", nil).Error())
