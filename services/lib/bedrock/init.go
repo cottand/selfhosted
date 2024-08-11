@@ -20,16 +20,17 @@ func Init() {
 
 	slog.Info("bedrock initialized")
 
-	d, err := AssetsNixDir()
+	d, err := NixAssetsDir()
 	if err == nil {
-		slog.Info("using local Nix dir", "dir", d)
+		slog.Info("using Nix assets", "dir", d)
 	}
 }
 
 func GetBaseConfig() (*BaseConfig, error) {
 	port, ok := os.LookupEnv("HTTP_PORT")
 	if !ok {
-		return nil, terrors.New("no_env", "missing env config for http port", nil)
+		slog.Warn("missing HTT_PORT environment variable, defaulting to 8080")
+		port = "8080"
 	}
 	portNum, err := strconv.Atoi(port)
 	if err != nil {
