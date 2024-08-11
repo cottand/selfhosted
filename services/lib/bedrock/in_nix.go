@@ -3,5 +3,5 @@
 package bedrock
 
 func init() {
-	assetsNixDir = "_TO_REPLACE_BY_NIX"
+	nixAssetsDir = "_TO_REPLACE_BY_NIX__ASSETS_ENV"
 }

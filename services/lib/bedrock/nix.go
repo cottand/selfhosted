@@ -6,15 +6,15 @@ import (
 	"path"
 )
 
-var assetsNixDir = ""
+var nixAssetsDir = ""
 
-// AssetsNixDir returns the assets folder added by Nix at runtime.
+// NixAssetsDir returns the assets folder added by Nix at runtime.
 //
 // When running outside of Nix, this simply returns the dir the binary
 // is in.
-func AssetsNixDir() (string, error) {
-	if assetsNixDir != "" {
-		return assetsNixDir, nil
+func NixAssetsDir() (string, error) {
+	if nixAssetsDir != "" {
+		return nixAssetsDir, nil
 	}
 
 	e, err := os.Executable()
