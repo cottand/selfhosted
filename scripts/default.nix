@@ -1,5 +1,7 @@
 { self, callPackage, nomad, jq, nix, bws, writeShellScriptBin, writeScriptBin, yaegi, ... }: rec {
 
+  # TODO look into https://noogle.dev/f/lib/filesystem/packagesFromDirectoryRecursive
+
 #  buildYaegiScript = name: filePath: writeScriptBin name ''
 #    #! ${yaegi}/bin/yaegi
 #    ${builtins.readFile filePath}
@@ -29,4 +31,6 @@
   '';
 
   all-images = callPackage ./all-images { inherit self; };
+
+  gen-protos = callPackage ./gen-protos.nix { inherit self; };
 }

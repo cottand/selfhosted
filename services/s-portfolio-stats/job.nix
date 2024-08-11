@@ -77,7 +77,7 @@ lib.mkJob name {
         image = "ghcr.io/cottand/selfhosted/${name}:${version}";
       };
       env = {
-        HTTP_HOST = lib.localhost;
+        HTTP_HOST = bind;
         HTTP_PORT = toString ports.http;
       };
       resources = {
