@@ -22,3 +22,5 @@ terraform/vault/tmp
 certs/mesh**
 
 result
+
+**/**.pb.go

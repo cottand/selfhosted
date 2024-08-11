@@ -21,17 +21,25 @@
     };
 
     utils.url = "github:numtide/flake-utils";
+    filters.url = "github:numtide/nix-filter";
   };
 
-  outputs = inputs@{ self, nixpkgs, cottand, home-manager, utils, nixpkgs-master, attic, ... }:
+  outputs = inputs@{ self, nixpkgs, cottand, home-manager, utils, nixpkgs-master, attic, filters, ... }:
     let
       newVault = final: prev: {
         vault-bin = (import nixpkgs-master { system = prev.system; config.allowUnfree = true; }).vault-bin;
       };
       withScripts = final: prev: {
         scripts = self.legacyPackages.${prev.system}.scripts;
+        util = self.legacyPackages.${prev.system}.util;
       };
-      overlays = [ (import ./overlay.nix) withScripts newVault attic.overlays.default ];
+      overlays = [
+        (import ./overlay.nix)
+        withScripts
+        newVault
+        attic.overlays.default
+        filters.overlays.default
+      ];
     in
     (utils.lib.eachDefaultSystem (system:
       let
@@ -39,18 +47,19 @@
           inherit system overlays;
           config.allowUnfree = true;
         };
-        pkgsWithSelf = pkgs // {inherit self; };
+        pkgsWithSelf = pkgs // { inherit self; };
       in
       rec {
 
         legacyPackages.services = (import ./services) pkgs;
         legacyPackages.scripts = (import ./scripts) pkgsWithSelf;
+        legacyPackages.util = (import ./util.nix) pkgsWithSelf;
 
         packages = legacyPackages.scripts;
 
         devShells.default = pkgs.mkShell {
           name = "selfhosted-dev";
-          packages = with pkgs; with self.packages.${system}; [
+          packages = (with pkgs; with self.packages.${system}; [
             # roachdb
             terraform
             colmena
@@ -69,7 +78,7 @@
             nixmad
             bws-get
             keychain-get
-          ];
+          ]);
           shellHook = ''
             export BWS_ACCESS_TOKEN=$(security find-generic-password -gw -l "bitwarden/secret/m3-cli")
             fish --init-command 'abbr -a weeds "nomad alloc exec -i -t -task seaweed-filer -job seaweed-filer weed shell -master 10.10.11.1:9333" ' && exit'';
@@ -87,6 +96,7 @@
         '';
       }
     )) // {
-    colmena = (import ./hive.nix) (inputs // { inherit overlays; }); }
+      colmena = (import ./hive.nix) (inputs // { inherit overlays; });
+    }
   ;
 }
