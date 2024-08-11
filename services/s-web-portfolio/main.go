@@ -14,7 +14,7 @@ func main() {
 		log.Fatalf(terrors.Propagate(err).Error())
 	}
 
-	root, err := bedrock.LocalNixDir()
+	root, err := bedrock.AssetsNixDir()
 	if err != nil {
 		log.Fatalf(terrors.Propagate(err).Error())
 	}
