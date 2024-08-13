@@ -5,6 +5,7 @@ go 1.22.3
 require (
 	github.com/monzo/terrors v0.0.0-20240312165114-073654f2beb9
 	github.com/prometheus/client_golang v1.19.1
+	google.golang.org/protobuf v1.33.0
 )
 
 require (
@@ -15,5 +16,4 @@ require (
 	github.com/prometheus/common v0.48.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect
-	google.golang.org/protobuf v1.33.0 // indirect
 )
