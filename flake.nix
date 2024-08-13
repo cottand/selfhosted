@@ -57,36 +57,7 @@
 
         packages = legacyPackages.scripts;
 
-        devShells.default = pkgs.mkShell {
-          name = "selfhosted-dev";
-          packages = (with pkgs; with self.packages.${system}; [
-            # roachdb
-            terraform
-            colmena
-            fish
-            vault
-            nomad_1_8
-            consul
-            seaweedfs
-            wander
-            bws
-
-            pkgs.attic
-
-            go
-
-            nixmad
-            bws-get
-            keychain-get
-          ]);
-          shellHook = ''
-            export BWS_ACCESS_TOKEN=$(security find-generic-password -gw -l "bitwarden/secret/m3-cli")
-            fish --init-command 'abbr -a weeds "nomad alloc exec -i -t -task seaweed-filer -job seaweed-filer weed shell -master 10.10.11.1:9333" ' && exit'';
-
-          NOMAD_ADDR = "https://10.10.11.1:4646";
-          #          VAULT_ADDR = "https://10.10.2.1:8200";
-          VAULT_ADDR = "https://vault.mesh.dcotta.eu:8200";
-        };
+        devShells.default = (import ./shell.nix) pkgsWithSelf;
 
         checks = (import ./checks.nix) pkgsWithSelf;
 
