@@ -79,6 +79,8 @@ lib.mkJob name {
       env = {
         HTTP_HOST = lib.localhost;
         HTTP_PORT = toString ports.http;
+        OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = "http://localhost:${toString otlpPort}";
+        OTEL_SERVICE_NAME = name;
       };
       resources = {
         cpu = cpu;
