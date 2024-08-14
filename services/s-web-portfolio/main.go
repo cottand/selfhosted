@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"github.com/monzo/terrors"
 	"log"
 	"net/http"
@@ -8,7 +9,10 @@ import (
 import "github.com/cottand/selfhosted/services/lib/bedrock"
 
 func main() {
-	bedrock.Init()
+	ctx := context.Background()
+	shutdown := bedrock.Init(ctx)
+	defer shutdown(ctx)
+
 	conf, err := bedrock.GetBaseConfig()
 	if err != nil {
 		log.Fatalf(terrors.Propagate(err).Error())

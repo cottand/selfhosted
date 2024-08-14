@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"github.com/cottand/selfhosted/services/lib/bedrock"
 	proto "github.com/cottand/selfhosted/services/lib/proto/s-portfolio-stats"
 	"github.com/monzo/terrors"
@@ -9,7 +10,11 @@ import (
 )
 
 func main() {
-	bedrock.Init()
+	ctx := context.Background()
+	shutdown := bedrock.Init(ctx)
+
+	defer shutdown(ctx)
+
 	conf, err := bedrock.GetBaseConfig()
 	if err != nil {
 		log.Fatalf(terrors.Propagate(err).Error())

@@ -1,7 +1,9 @@
 package bedrock
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -13,17 +15,26 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-func Init() {
+func Init(ctx context.Context) (shutdown func(ctx2 context.Context) error) {
 	http.Handle("/metrics", promhttp.Handler())
 
-	//slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, nil)))
+	shutdown, err := setupOTelSDK(ctx)
+
+	if err != nil {
+		err = terrors.Augment(err, "failed to start otlp sdk", nil)
+		log.Fatalln(err)
+	}
 
 	slog.Info("bedrock initialized")
 
 	d, err := NixAssetsDir()
-	if err == nil {
-		slog.Info("using Nix assets", "dir", d)
+	if err != nil {
+		err = terrors.Augment(err, "failed to init bedrock nixAssetsDir", nil)
+		log.Fatalln(err)
 	}
+	slog.Info("using Nix assets", "dir", d)
+
+	return shutdown
 }
 
 func GetBaseConfig() (*BaseConfig, error) {
