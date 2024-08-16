@@ -3,11 +3,14 @@ package bedrock
 import (
 	"context"
 	"fmt"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"log"
 	"log/slog"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 )
 
 import (
@@ -65,4 +68,27 @@ type BaseConfig struct {
 
 func (c *BaseConfig) HttpBind() string {
 	return fmt.Sprint(c.HttpHost, ":", strconv.Itoa(c.HttpPort))
+}
+
+func Serve(ctx context.Context, mux *http.ServeMux) {
+	otelMux := otelhttp.NewHandler(mux, "/")
+
+	config, err := GetBaseConfig()
+	if err != nil {
+		log.Fatalf(terrors.Augment(err, "failed to get config", nil).Error())
+	}
+
+	srv := &http.Server{
+		Addr:         config.HttpHost + ":" + strconv.Itoa(config.HttpPort),
+		BaseContext:  func(_ net.Listener) context.Context { return ctx },
+		ReadTimeout:  time.Second,
+		WriteTimeout: 10 * time.Second,
+		Handler:      otelMux,
+	}
+
+	err = srv.ListenAndServe()
+
+	if err != nil {
+		log.Fatalf(terrors.Augment(err, "failed to run server", nil).Error())
+	}
 }
