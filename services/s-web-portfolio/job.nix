@@ -1,6 +1,6 @@
 let
   lib = import ../../jobs/lib;
-  version = "856bf76";
+  version = "e77083e";
   name = "s-web-portfolio";
   cpu = 120;
   mem = 500;

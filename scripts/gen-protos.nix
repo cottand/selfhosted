@@ -4,10 +4,12 @@ let
   perServiceCommand = map
     (name: (if (self.legacyPackages.${system}.services.${name} ? "protos") then
       ''
-        generated=$(nix build .#services.${name}.protos --no-link --print-out-paths -L)/def.pb.go
+        generated=$(nix build .#services.${name}.protos --no-link --print-out-paths -L)
         rm services/lib/proto/${name}/* || 0
         mkdir -p services/lib/proto/${name}
-        cat $generated >> services/lib/proto/${name}/def.pb.go
+
+        cat $generated/def.pb.go >> services/lib/proto/${name}/def.pb.go
+        cat $generated/def_grpc.pb.go >> services/lib/proto/${name}/def_grpc.pb.go
       '' else ""
     ))
     services;
