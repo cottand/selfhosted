@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/monzo/terrors"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"log"
 	"net/http"
 )
@@ -13,25 +14,20 @@ func main() {
 	shutdown := bedrock.Init(ctx)
 	defer shutdown(ctx)
 
-	conf, err := bedrock.GetBaseConfig()
-	if err != nil {
-		log.Fatalf(terrors.Propagate(err).Error())
-	}
-
 	root, err := bedrock.NixAssetsDir()
 	if err != nil {
 		log.Fatalf(terrors.Propagate(err).Error())
 	}
 
-	fs := http.FileServer(http.Dir(root + "/srv"))
-	http.Handle("/static/", fs)
-	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-		request.URL.Path = "/"
-		fs.ServeHTTP(writer, request)
-	})
+	mux := http.NewServeMux()
 
-	err = http.ListenAndServe(conf.HttpBind(), nil)
-	if err != nil {
-		log.Fatalf(terrors.Augment(err, "failed to start server", nil).Error())
-	}
+	fs := http.FileServer(http.Dir(root + "/srv"))
+
+	mux.Handle("/static/", otelhttp.WithRouteTag("/static/", fs))
+	mux.Handle("/", otelhttp.WithRouteTag("/", http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		req.URL.Path = "/"
+		fs.ServeHTTP(rw, req)
+	})))
+
+	bedrock.Serve(ctx, mux)
 }

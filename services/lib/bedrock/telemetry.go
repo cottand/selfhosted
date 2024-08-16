@@ -63,6 +63,8 @@ func newTraceProvider(ctx context.Context) (*trace.TracerProvider, error) {
 		return nil, terrors.Propagate(err)
 	}
 
-	traceProvider := trace.NewTracerProvider(trace.WithBatcher(traceExporter))
+	traceProvider := trace.NewTracerProvider(
+		trace.WithBatcher(traceExporter),
+	)
 	return traceProvider, nil
 }
