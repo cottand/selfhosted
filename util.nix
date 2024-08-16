@@ -3,6 +3,7 @@
 , runCommand
 , protobuf
 , protoc-gen-go
+, protoc-gen-go-grpc
 , ...
 }:
 let
@@ -31,10 +32,14 @@ rec {
     in
     runCommand "protos-for-${serviceName}"
       {
-        nativeBuildInputs = [ protobuf protoc-gen-go ];
+        nativeBuildInputs = [ protobuf protoc-gen-go protoc-gen-go-grpc ];
       }
       ''
         mkdir $out
-        ${if (builtins.pathExists protoPath) then "protoc -I=${svc} --go_out=$out --go_opt=paths=source_relative def.proto" else ""}
+        ${if (builtins.pathExists protoPath)
+        then
+         "protoc -I=${svc} --go_out=$out --go_opt=paths=source_relative --go-grpc_out=$out --go-grpc_opt=paths=source_relative def.proto"
+          else
+           ""}
       '';
 }
