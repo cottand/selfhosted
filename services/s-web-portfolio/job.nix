@@ -40,6 +40,7 @@ lib.mkJob name {
       connect.sidecarService = {
         proxy = {
           upstream."tempo-otlp-grpc-mesh".localBindPort = otlpPort;
+          upstream."s-portfolio-stats".localBindPort = otlpPort;
 
           config = lib.mkEnvoyProxyConfig {
             otlpService = "proxy-${name}";

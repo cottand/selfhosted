@@ -3,6 +3,7 @@ package bedrock
 import (
 	"context"
 	"fmt"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"google.golang.org/grpc"
 	"log"
@@ -16,13 +17,11 @@ import (
 
 import (
 	"github.com/monzo/terrors"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type ShutdownFunc = func(ctx context.Context) error
 
 func Init(ctx context.Context) ShutdownFunc {
-	http.Handle("/metrics", promhttp.Handler())
 
 	shutdown, err := setupOTelSDK(ctx)
 
@@ -85,6 +84,7 @@ func (c *BaseConfig) HttpBind() string {
 }
 
 func Serve(ctx context.Context, mux *http.ServeMux) {
+	mux.Handle("/metrics", promhttp.Handler())
 	otelMux := otelhttp.NewHandler(mux, "/")
 
 	config, err := GetBaseConfig()

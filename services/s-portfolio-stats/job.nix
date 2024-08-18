@@ -6,6 +6,7 @@ let
   mem = 500;
   ports = {
     http = 8888;
+    grpc = 8081;
     upDb = 5432;
     upS3 = 3333;
   };
@@ -69,6 +70,20 @@ lib.mkJob name {
         "traefik.http.routers.\${NOMAD_GROUP_NAME}.entrypoints=web, websecure"
       ];
     };
+    service."${name}-grpc" = {
+      connect.sidecarService = {
+        proxy = {
+          config = lib.mkEnvoyProxyConfig {
+            otlpService = "proxy-${name}";
+            otlpUpstreamPort = otlpPort;
+            protocol = "grpc";
+          };
+        };
+      };
+      connect.sidecarTask.resources = sidecarResources;
+      port = toString ports.grpc;
+    };
+
     task.${name} = {
       driver = "docker";
       vault = { };
