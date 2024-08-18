@@ -6,6 +6,7 @@ import (
 	"github.com/monzo/terrors"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"net/http"
 	"os"
@@ -22,12 +23,11 @@ func main() {
 		log.Fatalf(terrors.Propagate(err).Error())
 	}
 
-	var opts []grpc.DialOption
 	addr, ok := os.LookupEnv("NOMAD_UPSTREAM_ADDR_s_portfolio_stats_grpc")
 	if !ok {
 		log.Fatalf("Failed to find upstream env var")
 	}
-	conn, err := grpc.NewClient(addr, opts...)
+	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf(terrors.Propagate(err).Error())
 	}
