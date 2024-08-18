@@ -45,7 +45,7 @@ func Init(ctx context.Context) ShutdownFunc {
 func GetBaseConfig() (*BaseConfig, error) {
 	port, ok := os.LookupEnv("HTTP_PORT")
 	if !ok {
-		slog.Warn("missing HTT_PORT environment variable, defaulting to 8080")
+		slog.Warn("missing HTTP_PORT environment variable, defaulting to 8080")
 		port = "8080"
 	}
 	portNum, err := strconv.Atoi(port)
@@ -55,7 +55,7 @@ func GetBaseConfig() (*BaseConfig, error) {
 	grpcPort, ok := os.LookupEnv("GRPC_PORT")
 	if !ok {
 		slog.Warn("missing GRPC_PORT environment variable, defaulting to 8081")
-		port = "8081"
+		grpcPort = "8081"
 	}
 	grpcPortNum, err := strconv.Atoi(grpcPort)
 	if err != nil {

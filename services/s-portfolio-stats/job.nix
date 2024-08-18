@@ -1,14 +1,12 @@
 let
   lib = import ../../jobs/lib;
-  version = "f7029bd";
-  name = "s-web-portfolio";
+  version = "69dbd9f";
+  name = "s-portfolio-stats";
   cpu = 120;
   mem = 500;
   ports = {
-    http = 8888;
+    http = 8080;
     grpc = 8081;
-    upDb = 5432;
-    upS3 = 3333;
   };
   sidecarResources = with builtins; mapAttrs (_: ceil) {
     cpu = 0.20 * cpu;
@@ -33,13 +31,12 @@ lib.mkJob name {
       dynamicPorts = [
         { label = "metrics"; }
       ];
-      reservedPorts = [
-      ];
+      reservedPorts = [ ];
     };
 
     service.${name} = rec {
-      connect.sidecarService = {
-        proxy = {
+      connect = {
+        sidecarService.proxy = {
           upstream."tempo-otlp-grpc-mesh".localBindPort = otlpPort;
 
           config = lib.mkEnvoyProxyConfig {
@@ -48,8 +45,8 @@ lib.mkJob name {
             protocol = "http";
           };
         };
+        sidecarTask.resources = sidecarResources;
       };
-      connect.sidecarTask.resources = sidecarResources;
       # TODO implement http healthcheck
       port = toString ports.http;
       meta.metrics_port = "\${NOMAD_HOST_PORT_metrics}";
@@ -71,16 +68,14 @@ lib.mkJob name {
       ];
     };
     service."${name}-grpc" = {
-      connect.sidecarService = {
-        proxy = {
-          config = lib.mkEnvoyProxyConfig {
-            otlpService = "proxy-${name}";
-            otlpUpstreamPort = otlpPort;
-            protocol = "grpc";
-          };
+      connect = {
+        sidecarService.proxy.config = lib.mkEnvoyProxyConfig {
+          otlpService = "proxy-${name}";
+          otlpUpstreamPort = otlpPort;
+          protocol = "grpc";
         };
+        sidecarTask.resources = sidecarResources;
       };
-      connect.sidecarTask.resources = sidecarResources;
       port = toString ports.grpc;
     };
 
@@ -94,6 +89,8 @@ lib.mkJob name {
       env = {
         HTTP_HOST = bind;
         HTTP_PORT = toString ports.http;
+        OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = "http://localhost:${toString otlpPort}";
+        OTEL_SERVICE_NAME = name;
       };
       resources = {
         cpu = cpu;

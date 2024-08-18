@@ -23,7 +23,7 @@ func main() {
 	}
 
 	var opts []grpc.DialOption
-	addr, ok := os.LookupEnv("NOMAD_UPSTREAM_ADDR_s_portfolio_stats")
+	addr, ok := os.LookupEnv("NOMAD_UPSTREAM_ADDR_s_portfolio_stats_grpc")
 	if !ok {
 		log.Fatalf("Failed to find upstream env var")
 	}

@@ -1,13 +1,12 @@
 let
   lib = import ../../jobs/lib;
-  version = "e77083e";
+  version = "69dbd9f";
   name = "s-web-portfolio";
   cpu = 120;
   mem = 500;
   ports = {
-    http = 8888;
-    upDb = 5432;
-    upS3 = 3333;
+    http = 8080;
+    upStats = 9090;
   };
   sidecarResources = with builtins; mapAttrs (_: ceil) {
     cpu = 0.20 * cpu;
@@ -40,7 +39,7 @@ lib.mkJob name {
       connect.sidecarService = {
         proxy = {
           upstream."tempo-otlp-grpc-mesh".localBindPort = otlpPort;
-          upstream."s-portfolio-stats".localBindPort = otlpPort;
+          upstream."s-portfolio-stats-grpc".localBindPort = ports.upStats;
 
           config = lib.mkEnvoyProxyConfig {
             otlpService = "proxy-${name}";
