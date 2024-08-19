@@ -54,13 +54,6 @@ lib.mkJob "tempo" {
       #        interval = "20s";
       #        timeout = "2s";
       #      };a
-      tags = [
-        "traefik.enable=true"
-        "traefik.consulcatalog.connect=true"
-        "traefik.http.routers.\${NOMAD_GROUP_NAME}.middlewares=vpn-whitelist@file"
-        "traefik.http.routers.\${NOMAD_GROUP_NAME}.entrypoints=web, websecure"
-        "traefik.http.routers.\${NOMAD_GROUP_NAME}.tls=true"
-      ];
       checks = [{
         expose = true;
         name = "tempo healthcheck";

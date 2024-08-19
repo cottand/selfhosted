@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"google.golang.org/grpc"
 	"log"
@@ -63,7 +64,8 @@ func GetBaseConfig() (*BaseConfig, error) {
 	}
 	host, ok := os.LookupEnv("HTTP_HOST")
 	if !ok {
-		return nil, terrors.New("no_env", "missing env config for http host", nil)
+		slog.Warn("missing HTTP_HOST environment variable, defaulting to localhost")
+		host = "localhost"
 	}
 
 	return &BaseConfig{
@@ -84,8 +86,12 @@ func (c *BaseConfig) HttpBind() string {
 }
 
 func Serve(ctx context.Context, mux *http.ServeMux) {
-	mux.Handle("/metrics", promhttp.Handler())
-	otelMux := otelhttp.NewHandler(mux, "/")
+
+	muxWithMetrics := http.NewServeMux()
+	// instrument the root
+	muxWithMetrics.Handle("/", otelhttp.NewHandler(mux, "/"))
+	// add un-instrumented metrics endpoint
+	muxWithMetrics.Handle("/metrics", promhttp.Handler())
 
 	config, err := GetBaseConfig()
 	if err != nil {
@@ -97,7 +103,7 @@ func Serve(ctx context.Context, mux *http.ServeMux) {
 		BaseContext:  func(_ net.Listener) context.Context { return ctx },
 		ReadTimeout:  time.Second,
 		WriteTimeout: 10 * time.Second,
-		Handler:      otelMux,
+		Handler:      muxWithMetrics,
 	}
 
 	err = srv.ListenAndServe()
@@ -118,9 +124,8 @@ func ServeWithGrpc(ctx context.Context, mux *http.ServeMux, registerGrpcHook fun
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	var opts []grpc.ServerOption
 
-	grpcServer := grpc.NewServer(opts...)
+	grpcServer := grpc.NewServer(grpc.StatsHandler(otelgrpc.NewServerHandler()))
 
 	registerGrpcHook(grpcServer)
 

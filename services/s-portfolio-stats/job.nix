@@ -1,9 +1,9 @@
 let
   lib = import ../../jobs/lib;
-  version = "3137b15";
+  version = "3d512e8";
   name = "s-portfolio-stats";
-  cpu = 120;
-  mem = 500;
+  cpu = 80;
+  mem = 200;
   ports = {
     http = 8080;
     grpc = 8081;
@@ -63,7 +63,7 @@ lib.mkJob name {
       tags = [
         "traefik.enable=true"
         "traefik.consulcatalog.connect=true"
-        "traefik.http.routers.\${NOMAD_GROUP_NAME}-com.tls=true"
+        "traefik.http.routers.\${NOMAD_GROUP_NAME}.tls=true"
         "traefik.http.routers.\${NOMAD_GROUP_NAME}.entrypoints=web, websecure"
       ];
     };
