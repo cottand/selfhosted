@@ -100,7 +100,14 @@ job "traefik" {
       //   timeout  = "2s"
       // }
       connect {
-        sidecar_service {}
+        sidecar_service {
+          proxy {
+            upstreams {
+              destination_name = "tempo-otlp-grpc-mesh"
+              local_bind_port  = 9031
+            }
+          }
+        }
       }
     }
     service {
@@ -291,12 +298,10 @@ EOF
 [providers.file]
   filename = "/etc/traefik/dynamic/traefik-dynamic.toml"
 
-    {{ range service "tempo-otlp-grpc" -}}
 
     [tracing]
-        otlp.grpc.endpoint = "{{ .Address }}:{{ .Port }}"
+        otlp.grpc.endpoint = "{{ env "NOMAD_UPSTREAM_ADDR_tempo_otlp_grpc_mesh" }}"
         otlp.grpc.insecure = true
-    {{ end -}}
 
 EOF
         change_mode = "restart"
