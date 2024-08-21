@@ -91,7 +91,7 @@ func Serve(ctx context.Context, mux *http.ServeMux) {
 	// instrument the root
 	muxWithMetrics.Handle("/", otelhttp.NewHandler(mux, "/"))
 	// add un-instrumented metrics endpoint
-	muxWithMetrics.Handle("/metrics", promhttp.Handler())
+	muxWithMetrics.Handle("/metrics/", promhttp.Handler())
 
 	config, err := GetBaseConfig()
 	if err != nil {
