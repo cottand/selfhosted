@@ -44,6 +44,10 @@ func main() {
 	mux := http.NewServeMux()
 
 	fs := http.FileServer(http.Dir(root + "/srv"))
+	fs = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		fs.ServeHTTP(writer, request)
+		writer.Header().Set("Cache-Control", "max-age=600")
+	})
 	mux.Handle("/static/", otelhttp.WithRouteTag("/static/", fs))
 	mux.Handle("/assets/", otelhttp.WithRouteTag("/assets/", fs))
 	mux.Handle("/", otelhttp.WithRouteTag("/", http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
