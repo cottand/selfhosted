@@ -116,7 +116,7 @@ rec {
   };
 
   mkServiceJob =
-    { name
+    args@{ name
     , cpu
     , memMb
       /**
@@ -126,12 +126,14 @@ rec {
       */
     , upstream
     , version
+    , ports
     , httpTags ? [ ]
     , count ? 1
+    , env ? { }
     ,
     }:
     let
-      ports.otlp = 9001;
+      ports = assert (args.ports ? "http") ; (args.ports // { otlp = 9001; });
       sidecarResources = with builtins; mapAttrs (_: ceil) {
         cpu = 0.20 * cpu;
         memoryMB = 0.25 * memMb;
@@ -155,48 +157,50 @@ rec {
           ];
           reservedPorts = [ ];
         };
+        service = {
+          ${name} = rec {
+            connect = {
+              sidecarService.proxy = {
+                upstream = upstream // {
+                  "tempo-otlp-grpc-mesh".localBindPort = ports.otlp;
+                };
 
-        service.${name} = rec {
-          connect = {
-            sidecarService.proxy = {
-              upstream = upstream // {
-                "tempo-otlp-grpc-mesh".localBindPort = ports.otlp;
+                config = mkEnvoyProxyConfig {
+                  otlpService = "proxy-${name}";
+                  otlpUpstreamPort = ports.otlp;
+                  protocol = "http";
+                };
               };
-
-              config = lib.mkEnvoyProxyConfig {
+              sidecarTask.resources = sidecarResources;
+            };
+            # TODO implement http healthcheck
+            port = toString ports.http;
+            meta.metrics_port = "\${NOMAD_HOST_PORT_metrics}";
+            meta.metrics_path = "/metrics";
+            checks = [{
+              expose = true;
+              name = "metrics";
+              portLabel = "metrics";
+              type = "http";
+              path = meta.metrics_path;
+              interval = 10 * seconds;
+              timeout = 3 * seconds;
+            }];
+            tags = httpTags;
+          };
+        } // (if ports ? "grpc" then {
+          "${name}-grpc" = {
+            connect = {
+              sidecarService.proxy.config = mkEnvoyProxyConfig {
                 otlpService = "proxy-${name}";
                 otlpUpstreamPort = ports.otlp;
-                protocol = "http";
+                protocol = "grpc";
               };
+              sidecarTask.resources = sidecarResources;
             };
-            sidecarTask.resources = sidecarResources;
+            port = toString ports.grpc;
           };
-          # TODO implement http healthcheck
-          port = toString ports.http;
-          meta.metrics_port = "\${NOMAD_HOST_PORT_metrics}";
-          meta.metrics_path = "/metrics";
-          checks = [{
-            expose = true;
-            name = "metrics";
-            portLabel = "metrics";
-            type = "http";
-            path = meta.metrics_path;
-            interval = 10 * lib.seconds;
-            timeout = 3 * lib.seconds;
-          }];
-          tags = httpTags;
-        };
-        service."${name}-grpc" = {
-          connect = {
-            sidecarService.proxy.config = lib.mkEnvoyProxyConfig {
-              otlpService = "proxy-${name}";
-              otlpUpstreamPort = ports.otlp;
-              protocol = "grpc";
-            };
-            sidecarTask.resources = sidecarResources;
-          };
-          port = toString ports.grpc;
-        };
+        } else { });
 
         task.${name} = {
           driver = "docker";
@@ -205,12 +209,12 @@ rec {
           config = {
             image = "ghcr.io/cottand/selfhosted/${name}:${version}";
           };
-          env = {
+          env = env // ({
             HTTP_HOST = localhost;
             HTTP_PORT = toString ports.http;
             OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = "http://localhost:${toString ports.otlp}";
             OTEL_SERVICE_NAME = name;
-          };
+          }) // (if ports ? "grpc" then { GRPC_PORT = ports.grpc; } else { });
           resources = {
             cpu = cpu;
             memoryMb = memMb;
