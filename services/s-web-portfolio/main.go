@@ -5,7 +5,6 @@ import (
 	s_portfolio_stats "github.com/cottand/selfhosted/services/lib/proto/s-portfolio-stats"
 	"github.com/monzo/terrors"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
@@ -41,16 +40,16 @@ func main() {
 	defer conn.Close()
 	stats := s_portfolio_stats.NewPortfolioStatsClient(conn)
 
-	mux := http.NewServeMux()
-
-	fs := http.FileServer(http.Dir(root + "/srv"))
-	fs = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-		fs.ServeHTTP(writer, request)
+	fsWithNoCache := http.FileServer(http.Dir(root + "/srv"))
+	fs := http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		writer.Header().Set("Cache-Control", "max-age=600")
+		fsWithNoCache.ServeHTTP(writer, request)
 	})
-	mux.Handle("/static/", otelhttp.WithRouteTag("/static/", fs))
-	mux.Handle("/assets/", otelhttp.WithRouteTag("/assets/", fs))
-	mux.Handle("/", otelhttp.WithRouteTag("/", http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+
+	mux := http.NewServeMux()
+	mux.Handle("/static/", fs)
+	mux.Handle("/assets/", fs)
+	mux.Handle("/", http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		originalPath := req.URL.Path
 		req.URL.Path = "/"
 		fs.ServeHTTP(rw, req)
@@ -64,7 +63,7 @@ func main() {
 				})
 			}
 		}()
-	})))
+	}))
 
 	bedrock.Serve(ctx, mux)
 }
