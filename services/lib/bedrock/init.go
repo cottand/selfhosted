@@ -87,11 +87,7 @@ func (c *BaseConfig) HttpBind() string {
 
 func Serve(ctx context.Context, mux *http.ServeMux) {
 
-	muxWithMetrics := http.NewServeMux()
-	// instrument the root
-	muxWithMetrics.Handle("/", otelhttp.NewHandler(mux, "/"))
-	// add un-instrumented metrics endpoint
-	muxWithMetrics.Handle("/metrics/", promhttp.Handler())
+	mux.Handle("/metrics", promhttp.Handler())
 
 	config, err := GetBaseConfig()
 	if err != nil {
@@ -103,7 +99,7 @@ func Serve(ctx context.Context, mux *http.ServeMux) {
 		BaseContext:  func(_ net.Listener) context.Context { return ctx },
 		ReadTimeout:  time.Second,
 		WriteTimeout: 10 * time.Second,
-		Handler:      muxWithMetrics,
+		Handler:      otelhttp.NewHandler(mux, "http"),
 	}
 
 	err = srv.ListenAndServe()
