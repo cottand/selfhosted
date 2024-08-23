@@ -3,7 +3,7 @@ resource "cloudflare_record" "nico-cname-web-com" {
   zone_id = local.zoneIds["com"]
   name    = "nico"
   type    = "CNAME"
-  value   = "miki.vps.dcotta.com"
+  value   = "web.dcotta.com"
   ttl     = 1
   comment = "tf managed"
   proxied = true

@@ -4,7 +4,7 @@ in
 lib.mkServiceJob {
   upstream."s-portfolio-stats-grpc".localBindPort = 9083;
   name = "s-web-portfolio";
-  version = "b8e6fca";
+  version = "c228e50";
   cpu = 80;
   memMb = 200;
   ports.http = 8080;

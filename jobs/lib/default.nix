@@ -214,7 +214,7 @@ rec {
             HTTP_PORT = toString ports.http;
             OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = "http://localhost:${toString ports.otlp}";
             OTEL_SERVICE_NAME = name;
-          }) // (if ports ? "grpc" then { GRPC_PORT = ports.grpc; } else { });
+          }) // (if ports ? "grpc" then { GRPC_PORT = toString ports.grpc; } else { });
           resources = {
             cpu = cpu;
             memoryMb = memMb;
