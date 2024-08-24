@@ -12,6 +12,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 )
@@ -133,4 +134,8 @@ func ServeWithGrpc(ctx context.Context, mux *http.ServeMux, registerGrpcHook fun
 	}()
 
 	Serve(ctx, mux)
+}
+
+func ServiceName() string {
+	return filepath.Base(os.Args[0])
 }
