@@ -130,6 +130,7 @@ rec {
     , httpTags ? [ ]
     , count ? 1
     , env ? { }
+    , extraTaskConfig ? { }
     ,
     }:
     let
@@ -139,6 +140,7 @@ rec {
         memoryMB = 0.25 * memMb;
         memoryMaxMB = 0.25 * memMb + 100;
       };
+      inherit (lib.attrsets) recursiveUpdate;
     in
     mkJob name {
       update = {
@@ -202,25 +204,29 @@ rec {
           };
         } else { });
 
-        task.${name} = {
-          driver = "docker";
-          vault = { };
+        task.${name} = (
+          recursiveUpdate
+            {
+              driver = "docker";
+              vault = { };
 
-          config = {
-            image = "ghcr.io/cottand/selfhosted/${name}:${version}";
-          };
-          env = env // ({
-            HTTP_HOST = localhost;
-            HTTP_PORT = toString ports.http;
-            OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = "http://localhost:${toString ports.otlp}";
-            OTEL_SERVICE_NAME = name;
-          }) // (if ports ? "grpc" then { GRPC_PORT = toString ports.grpc; } else { });
-          resources = {
-            cpu = cpu;
-            memoryMb = memMb;
-            memoryMaxMb = builtins.ceil (2 * memMb);
-          };
-        };
+              config = {
+                image = "ghcr.io/cottand/selfhosted/${name}:${version}";
+              };
+              env = env // ({
+                HTTP_HOST = localhost;
+                HTTP_PORT = toString ports.http;
+                OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = "http://localhost:${toString ports.otlp}";
+                OTEL_SERVICE_NAME = name;
+              }) // (if ports ? "grpc" then { GRPC_PORT = toString ports.grpc; } else { });
+              resources = {
+                cpu = cpu;
+                memoryMb = memMb;
+                memoryMaxMb = builtins.ceil (2 * memMb);
+              };
+            }
+            extraTaskConfig
+        );
       };
     };
 

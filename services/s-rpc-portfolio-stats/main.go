@@ -5,7 +5,7 @@ import (
 	"github.com/cottand/selfhosted/services/lib/bedrock"
 	s_portfolio_stats "github.com/cottand/selfhosted/services/lib/proto/s-portfolio-stats"
 	"google.golang.org/grpc"
-	"log/slog"
+	"log"
 	"net/http"
 )
 
@@ -19,8 +19,7 @@ func main() {
 	mux := http.NewServeMux()
 	db, err := GetMigratedDB()
 	if err != nil {
-		slog.Warn(err.Error())
-		//log.Fatal(err.Error())
+		log.Fatal(err.Error())
 	}
 	bedrock.ServeWithGrpc(ctx, mux, func(srv *grpc.Server) {
 		s_portfolio_stats.RegisterPortfolioStatsServer(srv, &ProtoHandler{db: db})
