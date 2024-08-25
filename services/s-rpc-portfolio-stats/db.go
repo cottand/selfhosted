@@ -30,7 +30,7 @@ func Migrate(db *sql.DB) error {
 		return terrors.Augment(err, "failed to create migration instance client", errParams)
 	}
 	// TODO use this like below but with embedded?
-	sourceDriver, err := iofs.New(embeddedMigrations, ".")
+	sourceDriver, err := iofs.New(embeddedMigrations, "migrations")
 	if err != nil {
 		return terrors.Augment(err, "failed to open db migrations embedded fs", errParams)
 	}
