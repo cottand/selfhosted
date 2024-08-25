@@ -158,7 +158,7 @@ rec {
           reservedPorts = [ ];
         };
         service = {
-          ${name} = rec {
+          "${name}-http" = rec {
             connect = {
               sidecarService.proxy = {
                 upstream = upstream // {
@@ -166,7 +166,7 @@ rec {
                 };
 
                 config = mkEnvoyProxyConfig {
-                  otlpService = "proxy-${name}";
+                  otlpService = "proxy-${name}-http";
                   otlpUpstreamPort = ports.otlp;
                   protocol = "http";
                 };
@@ -192,7 +192,7 @@ rec {
           "${name}-grpc" = {
             connect = {
               sidecarService.proxy.config = mkEnvoyProxyConfig {
-                otlpService = "proxy-${name}";
+                otlpService = "proxy-${name}-grpc";
                 otlpUpstreamPort = ports.otlp;
                 protocol = "grpc";
               };
