@@ -131,8 +131,6 @@ let
         changeMode = "restart";
         name = "roach";
         TTL = 3600 * seconds;
-        # "Env": true
-        # "File": true,
       }];
       volumeMounts = [{
         volume = "roach";
