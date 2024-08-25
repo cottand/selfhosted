@@ -27,7 +27,7 @@ func Migrate(db *sql.DB) error {
 
 	driver, err := cockroachdb.WithInstance(db, &cockroachdb.Config{DatabaseName: dbname})
 	if err != nil {
-		return terrors.Propagate(err)
+		return terrors.Augment(err, "failed to create migration instance client", errParams)
 	}
 	// TODO use this like below but with embedded?
 	sourceDriver, err := iofs.New(embeddedMigrations, "/")
@@ -63,7 +63,7 @@ func GetMigratedDB() (*sql.DB, error) {
 	}
 	err = Migrate(db)
 	if err != nil {
-		return nil, terrors.Propagate(err)
+		return nil, terrors.Augment(err, "failed to migrate database", nil)
 	}
 
 	return db, nil

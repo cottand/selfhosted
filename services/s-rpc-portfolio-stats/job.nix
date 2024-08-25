@@ -5,7 +5,7 @@ let
 in
 lib.mkServiceJob {
   name = "s-rpc-portfolio-stats";
-  version = "1652149";
+  version = "8b8cd2d";
   upstream."roach-db".localBindPort = dbPort;
   cpu = 80;
   memMb = 200;
@@ -17,16 +17,19 @@ lib.mkServiceJob {
       changeMode = "restart";
       envvars = true;
       embeddedTmpl = ''
-        {{with secret "secret/data/nomad/job/roach/users/grafana"}}
-        CRDB_CONN_URL="postgres://{{.Data.data.username}}:{{.Data.data.password}}@localhost:${toString dbPort}?ssl_sni=roach-db.traefik"
+        {{with secret "secret/data/services/db-rw-default"}}
+        CRDB_CONN_URL="postgres://{{.Data.data.username}}:{{.Data.data.password}}@localhost:${toString dbPort}/services?ssl_sni=roach-db.traefik"
         {{end}}
       '';
     };
-    identities = [{
-      audience = [ "vault.io" ];
-      changeMode = "restart";
-      name = "service-db-rw-default";
-      TTL = 3600 * lib.seconds;
-    }];
+    vault.env = true;
+    vault.role = "service-db-rw-default";
+    vault.changeMode = "restart";
+#    identities = [{
+#      audience = [ "vault.io" ];
+#      changeMode = "restart";
+#      name = "service-db-rw-default";
+#      TTL = 3600 * lib.seconds;
+#    }];
   };
 }
