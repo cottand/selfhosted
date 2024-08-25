@@ -5,7 +5,7 @@ let
 in
 lib.mkServiceJob {
   name = "s-rpc-portfolio-stats";
-  version = "8b8cd2d";
+  version = "33837b2";
   upstream."roach-db".localBindPort = dbPort;
   cpu = 80;
   memMb = 200;
@@ -25,11 +25,5 @@ lib.mkServiceJob {
     vault.env = true;
     vault.role = "service-db-rw-default";
     vault.changeMode = "restart";
-#    identities = [{
-#      audience = [ "vault.io" ];
-#      changeMode = "restart";
-#      name = "service-db-rw-default";
-#      TTL = 3600 * lib.seconds;
-#    }];
   };
 }
