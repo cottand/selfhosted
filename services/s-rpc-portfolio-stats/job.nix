@@ -4,7 +4,7 @@ in
 lib.mkServiceJob {
   upstream = {};
   name = "s-rpc-portfolio-stats";
-  version = "c228e50";
+  version = "37242c1";
   cpu = 80;
   memMb = 200;
   ports.http = 8080;
