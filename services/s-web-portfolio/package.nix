@@ -1,6 +1,8 @@
-{ buildGoModule, dockerTools, bash, buildEnv, system, ... }:
+{ buildGoModule, dockerTools, bash, buildEnv, system, util, ... }:
 let
   name = "s-web-portfolio";
+
+  src = util.cleanSourceForService name;
 
   assetsEnv = buildEnv {
     name = "${name}-assets";
@@ -11,8 +13,7 @@ let
   };
 
   bin = buildGoModule {
-    inherit name;
-    src = ./..;
+    inherit name src;
     subPackages = [ name ];
     vendorHash = null;
     GOFLAGS = [ "-tags=in_nix" ];
