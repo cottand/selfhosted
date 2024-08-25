@@ -2,7 +2,7 @@ let
   lib = import ../../jobs/lib;
 in
 lib.mkServiceJob {
-  upstream."s-portfolio-stats-grpc".localBindPort = 9083;
+  upstream."s-rpc-portfolio-stats-grpc".localBindPort = 9083;
   name = "s-web-portfolio";
   version = "c228e50";
   cpu = 80;

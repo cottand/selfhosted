@@ -3,7 +3,7 @@ let
 in
 lib.mkServiceJob {
   upstream = {};
-  name = "s-portfolio-stats";
+  name = "s-rpc-portfolio-stats";
   version = "c228e50";
   cpu = 80;
   memMb = 200;

@@ -24,9 +24,9 @@ func main() {
 		log.Fatalf(terrors.Propagate(err).Error())
 	}
 
-	addr, enableGrpcReporting := os.LookupEnv("NOMAD_UPSTREAM_ADDR_s_portfolio_stats_grpc")
+	addr, enableGrpcReporting := os.LookupEnv("NOMAD_UPSTREAM_ADDR_s_rpc_portfolio_stats_grpc")
 	if !enableGrpcReporting {
-		slog.Warn("Failed to find upstream env var", "var", "NOMAD_UPSTREAM_ADDR_s_portfolio_stats_grpc")
+		slog.Warn("Failed to find upstream env var", "var", "NOMAD_UPSTREAM_ADDR_s_rpc_portfolio_stats_grpc")
 	}
 	conn, err := grpc.NewClient(
 		addr,
