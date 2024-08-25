@@ -1,11 +1,10 @@
-package main
+package bedrock
 
 import (
 	"database/sql"
 	"embed"
 	"errors"
 	"github.com/XSAM/otelsql"
-	"github.com/cottand/selfhosted/services/lib/bedrock"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/cockroachdb"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
@@ -14,23 +13,18 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"log/slog"
 	"os"
-
-	_ "github.com/golang-migrate/migrate/v4/database/cockroachdb"
 )
 
-//go:embed migrations
-var embeddedMigrations embed.FS
-
-func Migrate(db *sql.DB) error {
-	dbname := bedrock.ServiceName()
+// Migrate expects the first argument to have a folder called 'migrations'
+func Migrate(db *sql.DB, migrations embed.FS) error {
+	dbname := ServiceName()
 	errParams := map[string]string{"db": dbname}
 
 	driver, err := cockroachdb.WithInstance(db, &cockroachdb.Config{DatabaseName: dbname})
 	if err != nil {
 		return terrors.Augment(err, "failed to create migration instance client", errParams)
 	}
-	// TODO use this like below but with embedded?
-	sourceDriver, err := iofs.New(embeddedMigrations, "migrations")
+	sourceDriver, err := iofs.New(migrations, "migrations")
 	if err != nil {
 		return terrors.Augment(err, "failed to open db migrations embedded fs", errParams)
 	}
@@ -56,12 +50,13 @@ func GetDb() (*sql.DB, error) {
 	return db, terrors.Augment(err, "failed to start db client", nil)
 }
 
-func GetMigratedDB() (*sql.DB, error) {
+// GetMigratedDB (like Migrate) expects the first argument to have a folder called 'migrations'
+func GetMigratedDB(migrations embed.FS) (*sql.DB, error) {
 	db, err := GetDb()
 	if err != nil {
 		return nil, terrors.Propagate(err)
 	}
-	err = Migrate(db)
+	err = Migrate(db, migrations)
 	if err != nil {
 		return nil, terrors.Augment(err, "failed to migrate database", nil)
 	}
