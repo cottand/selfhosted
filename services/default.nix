@@ -9,5 +9,5 @@
 {
   s-web-portfolio = callPackage (import ./s-web-portfolio/package.nix) { };
 
-  s-portfolio-stats = callPackage (import ./s-portfolio-stats/package.nix) { };
+  s-rpc-portfolio-stats = callPackage (import ./s-rpc-portfolio-stats/package.nix) { };
 }

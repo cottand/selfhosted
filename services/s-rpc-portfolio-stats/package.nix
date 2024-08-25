@@ -1,6 +1,6 @@
 { lib, util, buildGoModule, dockerTools, bash, buildEnv, system, protobuf, protoc-gen-go, ... }:
 let
-  name = "s-portfolio-stats";
+  name = "s-rpc-portfolio-stats";
 
   src = util.cleanSourceForService name;
 

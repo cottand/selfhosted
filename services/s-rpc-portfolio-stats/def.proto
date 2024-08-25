@@ -1,7 +1,7 @@
 syntax = "proto3";
 package s_portfolio_stats;
 
-option go_package = "github.com/Cottand/selfosted/services/lib/proto/s-portfolio-stats";
+option go_package = "github.com/Cottand/selfosted/services/lib/proto/s-rpc-portfolio-stats";
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
