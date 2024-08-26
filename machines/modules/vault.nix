@@ -1,4 +1,4 @@
-{ name, config, pkgs, secretPath, lib, meta, ... }:
+{ flakeInputs, name, config, pkgs, secretPath, lib, meta, ... }:
 with lib; let
   bind = meta.ip.mesh."${name}";
   cfg = config.vaultNode;
@@ -16,7 +16,7 @@ in
   config = mkIf cfg.enable {
     deployment.tags = [ "vault-server" ];
     security.pki.certificateFiles = [
-      ./../certs/root_2024_ca.crt
+      "${flakeInputs.self}/certs/root_2024_ca.crt"
     ];
     systemd.tmpfiles.rules = [ "d /vault/data 1777 root root -" ];
     services.vault = {

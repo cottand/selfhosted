@@ -1,4 +1,4 @@
 alter table "s-rpc-portfolio-stats".visit
-    ADD COLUMN inserted_at timestamp not null default 0
+    ADD COLUMN inserted_at timestamp not null default now()
 ;
 
