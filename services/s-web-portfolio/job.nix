@@ -3,7 +3,7 @@ let
 in
 lib.mkServiceJob {
   name = "s-web-portfolio";
-  version = "1652149";
+  version = "86a9ae4";
   upstream."s-rpc-portfolio-stats-grpc".localBindPort = 9083;
   cpu = 80;
   memMb = 200;

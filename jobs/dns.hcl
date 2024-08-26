@@ -106,10 +106,7 @@ customdnsrecords = [
     "proxy.manual.     3600      IN  A   10.10.11.1  ",
     #"proxy.manual.     3600      IN  A   10.10.0.1  ",
 
-    "web.vps.dcotta.eu.     3600      IN  A   10.10.4.1  ",
-
-#     "nomad.traefik.         3600      IN  A       10.10.4.1  ",
-#     "consul.traefik.        3600      IN  A       10.10.4.1  ",
+    "web.vps.dcotta.eu.     3600      IN  A   10.10.11.1  ",
 
     "nomad.traefik.         3600      IN  CNAME    proxy.manual  ",
     "consul.traefik.         3600     IN  CNAME    proxy.manual  ",
@@ -151,28 +148,19 @@ customdnsrecords = [
     {{- end -}}
 
     {{- range services }}
-#     "{{ printf "%-45s %d  %10s %10s %s" (sprig_nospace (sprig_cat .Name ".traefik" )) $ttl "IN" "A" "10.10.4.1" }}",
-#     "{{ printf "%-45s %d  %10s %10s %s" (sprig_nospace (sprig_cat .Name ".tfk.nd" )) $ttl "IN" "A" "10.10.4.1" }}",
-
-    "{{ printf "%-45s %d  %10s %10s %s" (sprig_nospace (sprig_cat .Name ".traefik" )) $ttl "IN" "CNAME" "proxy.manual" }}",
-    "{{ printf "%-45s %d  %10s %10s %s" (sprig_nospace (sprig_cat .Name ".tfk.nd" )) $ttl "IN" "CNAME" "proxy.manual" }}",
+    "{{ printf "%s %d  %10s %10s %s" (sprig_nospace (sprig_cat .Name ".traefik" )) $ttl "IN" "CNAME" "proxy.manual" }}",
+    "{{ printf "%s %d  %10s %10s %s" (sprig_nospace (sprig_cat .Name ".tfk.nd" )) $ttl "IN" "CNAME" "proxy.manual" }}",
     {{- end -}}
 
     {{- /* Iterate over lists and print everything */ -}}
 
     {{ range $rr_srv -}}
-    "{{ printf "%-45s %s %s %d %d %6d %s" (sprig_nospace (sprig_cat (index . 0) $base_domain ".srv")) "IN" "SRV" 0 0 (index . 1) (sprig_nospace (sprig_cat (index . 2) $base_domain )) }}",
+    "{{ printf "%s %s %s %d %d %6d %s" (sprig_nospace (sprig_cat (index . 0) $base_domain ".srv")) "IN" "SRV" 0 0 (index . 1) (sprig_nospace (sprig_cat (index . 2) $base_domain )) }}",
     {{ end -}}
 
     {{- range $rr_a | sprig_uniq -}}
-    "{{ printf "%-45s %4d %s %4s %s" (sprig_nospace (sprig_cat (index . 0) $base_domain)) $ttl "IN" "A" (sprig_last . ) }}",
-
-    {{- /* A records to proxy: */ -}}
-#    "{{ printf "%-45s %4d %s %4s %s" (sprig_nospace (sprig_cat (index . 0) ".traefik")) $ttl "IN" "A" "10.10.4.1" }}",
-#    "{{ printf "%-45s %4d %s %4s %s" (sprig_nospace (sprig_cat (index . 0) ".traefik")) $ttl "IN" "A" "10.10.0.1" }}",
+    "{{ printf "%s %4d %s %4s %s" (sprig_nospace (sprig_cat (index . 0) $base_domain)) $ttl "IN" "A" (sprig_last . ) }}",
     {{ end }}
-
-
 ]
 
 [Upstream]

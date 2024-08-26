@@ -1,6 +1,7 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    # pinned because https://github.com/NixOS/nixpkgs/issues/332957 breaks bws
+    nixpkgs.url = "github:nixos/nixpkgs/c3392ad349a5227f4a3464dce87bcc5046692fce";
     nixpkgs-master.url = "github:nixos/nixpkgs";
 
     cottand = {

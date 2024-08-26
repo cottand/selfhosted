@@ -28,3 +28,15 @@ resource "cloudflare_record" "google-indexing-proof" {
   comment = "tf managed"
   proxied = false
 }
+
+# resource "cloudflare_load_balancer" "web-dcotta-com" {
+#   default_pool_ids = []
+#   fallback_pool_id = ""
+#   name             = "web"
+#   zone_id          = local.zoneIds["com"]
+# }
+#
+# resource "cloudflare_load_balancer_pool" "hetzner-origins" {
+#   account_id = l
+#   name       = ""
+# }
