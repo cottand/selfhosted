@@ -5,7 +5,7 @@ let
 in
 lib.mkServiceJob {
   name = "s-rpc-portfolio-stats";
-  version = "26da98c";
+  version = "a6ad78d";
   upstream."roach-db".localBindPort = dbPort;
   cpu = 80;
   memMb = 200;
@@ -20,7 +20,6 @@ lib.mkServiceJob {
         {{with secret "secret/data/services/db-rw-default"}}
         CRDB_CONN_URL="postgres://{{.Data.data.username}}:{{.Data.data.password}}@localhost:${toString dbPort}/services?ssl_sni=roach-db.traefik"
         {{end}}
-        
       '';
     };
     vault.env = true;
