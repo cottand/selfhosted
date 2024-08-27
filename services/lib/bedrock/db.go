@@ -37,6 +37,10 @@ func Migrate(db *sql.DB, migrations embed.FS) error {
 	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		return terrors.Augment(err, "failed to apply migrations", errParams)
 	}
+	if err != nil {
+		slog.Info("no DB migrations to apply", "db", dbname)
+		return nil
+	}
 	slog.Info("db migrations applied successfully", "db", dbname)
 	return nil
 }

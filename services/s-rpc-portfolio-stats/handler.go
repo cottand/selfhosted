@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto"
 	"database/sql"
+	"encoding/binary"
 	s_portfolio_stats "github.com/cottand/selfhosted/services/lib/proto/s-portfolio-stats"
 	"github.com/monzo/terrors"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -26,7 +27,7 @@ var excludeUrls = []string{
 	"/assets",
 }
 
-var salt = 1934810995777492095
+var salt = uint64(9431096920698204420)
 var sha256 = crypto.SHA256.New()
 
 func (p *ProtoHandler) Report(ctx context.Context, visit *s_portfolio_stats.Visit) (*emptypb.Empty, error) {
@@ -38,8 +39,10 @@ func (p *ProtoHandler) Report(ctx context.Context, visit *s_portfolio_stats.Visi
 		}
 	}
 
-	var visitor = []byte(visit.Ip)
-	visitor = append(visitor, []byte(visit.Url)...)
+	var visitor []byte
+	visitor = binary.LittleEndian.AppendUint64(visitor, salt)
+	visitor = append(visitor, visit.Ip...)
+	visitor = append(visitor, visit.UserAgent...)
 	hashed, err := sha256.Write(visitor)
 	if err != nil {
 		return nil, terrors.Augment(err, "error hashing visit ", map[string]string{"url": visit.Url})
