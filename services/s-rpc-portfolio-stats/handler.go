@@ -32,7 +32,7 @@ func (p *ProtoHandler) Report(ctx context.Context, visit *s_portfolio_stats.Visi
 			return &emptypb.Empty{}, nil
 		}
 	}
-	_, err := p.db.ExecContext(ctx, "INSERT INTO  \"s-rpc-portfolio-stats\".visit (url, inserted_at) VALUES (?, ?);", visit.Url, time.Now())
+	_, err := p.db.ExecContext(ctx, "INSERT INTO  \"s-rpc-portfolio-stats\".visit (url, inserted_at) VALUES ($1, $2)", visit.Url, time.Now())
 
 	if err != nil {
 		return nil, terrors.Augment(err, "failed to insert visit into db", nil)
