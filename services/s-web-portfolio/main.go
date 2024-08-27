@@ -47,23 +47,11 @@ func main() {
 	})
 
 	mux := http.NewServeMux()
+
 	mux.Handle("/static/", fs)
 	mux.Handle("/assets/", fs)
-	mux.Handle("/", http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		originalPath := req.URL.Path
-		req.URL.Path = "/"
-		fs.ServeHTTP(rw, req)
-
-		go func() {
-			if enableGrpcReporting {
-				_, _ = stats.Report(context.WithoutCancel(req.Context()), &s_portfolio_stats.Visit{
-					Url:       originalPath,
-					Ip:        req.Header.Get("X-Forwarded-For"),
-					UserAgent: req.Header.Get("User-Agent"),
-				})
-			}
-		}()
-	}))
+	mux.Handle("/", handleRoot(fs, stats, false))
+	mux.Handle("/api/browse", handleBrowse(stats, enableGrpcReporting))
 
 	bedrock.Serve(ctx, mux)
 }
