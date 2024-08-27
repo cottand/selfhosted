@@ -9,6 +9,7 @@ import (
 
 func handleRoot(fs http.HandlerFunc, stats s_portfolio_stats.PortfolioStatsClient, grpcUpstream bool) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+
 		originalPath := req.URL.Path
 		req.URL.Path = "/"
 		fs.ServeHTTP(rw, req)

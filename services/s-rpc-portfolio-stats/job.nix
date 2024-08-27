@@ -5,7 +5,7 @@ let
 in
 lib.mkServiceJob {
   name = "s-rpc-portfolio-stats";
-  version = "6c2575b";
+  version = "e196355";
   upstream."roach-db".localBindPort = dbPort;
   cpu = 80;
   memMb = 200;
