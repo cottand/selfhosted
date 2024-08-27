@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto"
 	"database/sql"
-	"encoding/binary"
+	"encoding/hex"
 	s_portfolio_stats "github.com/cottand/selfhosted/services/lib/proto/s-portfolio-stats"
 	"github.com/monzo/terrors"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -27,8 +27,7 @@ var excludeUrls = []string{
 	"/assets",
 }
 
-var salt = uint64(9431096920698204420)
-var sha256 = crypto.SHA256.New()
+var salt = []byte{4, 49, 127, 104, 174, 252, 225, 13}
 
 func (p *ProtoHandler) Report(ctx context.Context, visit *s_portfolio_stats.Visit) (*emptypb.Empty, error) {
 	slog.Info("Received visit! ", "ip", visit.Ip)
@@ -38,17 +37,13 @@ func (p *ProtoHandler) Report(ctx context.Context, visit *s_portfolio_stats.Visi
 			return &emptypb.Empty{}, nil
 		}
 	}
+	var sha256 = crypto.SHA256.New()
+	sha256.Write(salt)
+	sha256.Write([]byte(visit.Ip))
+	sha256.Write([]byte(visit.UserAgent))
+	hashAsString := hex.EncodeToString(sha256.Sum(nil))
 
-	var visitor []byte
-	visitor = binary.LittleEndian.AppendUint64(visitor, salt)
-	visitor = append(visitor, visit.Ip...)
-	visitor = append(visitor, visit.UserAgent...)
-	hashed, err := sha256.Write(visitor)
-	if err != nil {
-		return nil, terrors.Augment(err, "error hashing visit ", map[string]string{"url": visit.Url})
-	}
-
-	_, err = p.db.ExecContext(ctx, "INSERT INTO  \"s-rpc-portfolio-stats\".visit (url, inserted_at, fingerprint_v1) VALUES ($1, $2, $3)", visit.Url, time.Now(), int64(hashed))
+	_, err := p.db.ExecContext(ctx, "INSERT INTO  \"s-rpc-portfolio-stats\".visit (url, inserted_at, fingerprint_v1) VALUES ($1, $2, $3)", visit.Url, time.Now(), hashAsString)
 
 	if err != nil {
 		return nil, terrors.Augment(err, "failed to insert visit into db", nil)

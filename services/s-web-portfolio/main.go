@@ -50,6 +50,9 @@ func main() {
 
 	mux.Handle("/static/", fs)
 	mux.Handle("/assets/", fs)
+	mux.Handle("/styles/", fs)
+	mux.Handle("/robots.txt", fs)
+	mux.Handle("/CNAME", fs)
 	mux.Handle("/", handleRoot(fs, stats, false))
 	mux.Handle("/api/browse", handleBrowse(stats, enableGrpcReporting))
 
