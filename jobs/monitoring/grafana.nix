@@ -20,7 +20,7 @@ lib.mkJob "grafana" {
   group."grafana" = {
     affinities = [{
       lTarget = "\${meta.controlPlane}";
-      operand = "is";
+      operand = "=";
       rTarget = "true";
       weight = -50;
     }];

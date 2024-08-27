@@ -1,5 +1,11 @@
 job "whoami" {
+  affinity {
+    attribute = "${meta.controlPlane}"
+    value     = "true"
+    weight    = -50
+  }
   group "whoami" {
+    count = 1
     network {
       mode = "bridge"
       port "http" {

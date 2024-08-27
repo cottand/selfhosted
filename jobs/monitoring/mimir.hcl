@@ -19,6 +19,11 @@ job "mimir" {
   }
   group "mimir" {
     count = 1
+    affinity {
+      attribute = "${meta.controlPlane}"
+      value     = "true"
+      weight    = -50
+    }
     restart {
       attempts = 3
       interval = "5m"
