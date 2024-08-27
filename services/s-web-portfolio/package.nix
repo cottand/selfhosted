@@ -8,7 +8,7 @@ let
     name = "${name}-assets";
     paths = [
       # has files under /srv
-      (builtins.getFlake "github:cottand/web-portfolio/358589649f70067da8f782c36ffbfff97cc5fe7b").packages.${system}.static
+      (builtins.getFlake "github:cottand/web-portfolio/b3a332df247ba997cd7da4aa0ed05e0ef98ec30c").packages.${system}.static
     ];
   };
 

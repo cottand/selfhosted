@@ -151,6 +151,12 @@ rec {
       };
 
       group.${name} = {
+        affinities = [{
+          lTarget = "\${meta.controlPlane}";
+          operand = "=";
+          rTarget = "true";
+          weight = -50;
+        }];
         inherit count;
         network = {
           mode = "bridge";
