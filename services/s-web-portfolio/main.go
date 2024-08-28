@@ -11,21 +11,25 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 )
 import "github.com/cottand/selfhosted/services/lib/bedrock"
 
-func init() {
+func InitService() {
+	if strings.HasSuffix(os.Args[0], ".test") {
+		return
+	}
 	root, err := bedrock.NixAssetsDir()
 	if err != nil {
 		log.Fatalf(terrors.Propagate(err).Error())
 	}
 
-	addr, enableGrpcReporting := os.LookupEnv("NOMAD_UPSTREAM_ADDR_s_rpc_portfolio_stats_grpc")
+	port, enableGrpcReporting := os.LookupEnv("GRPC_PORT")
 	if !enableGrpcReporting {
 		slog.Warn("Failed to find upstream env var", "var", "NOMAD_UPSTREAM_ADDR_s_rpc_portfolio_stats_grpc")
 	}
 	conn, err := grpc.NewClient(
-		addr,
+		"localhost:"+port,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithStatsHandler(otelgrpc.NewClientHandler()),
 	)

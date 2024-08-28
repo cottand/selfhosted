@@ -11,5 +11,5 @@
 #
 #  s-rpc-portfolio-stats = callPackage ./s-rpc-portfolio-stats/package.nix { };
 
-  monolith = callPackage ./package.nix { };
+  services = callPackage ./package.nix { };
 }

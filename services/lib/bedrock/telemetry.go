@@ -7,9 +7,8 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/propagation"
-	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
+	//semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
 )
 
 // see https://opentelemetry.io/docs/languages/go/getting-started/
@@ -65,12 +64,12 @@ func newTraceProvider(ctx context.Context, serviceName string) (*trace.TracerPro
 		return nil, terrors.Propagate(err)
 	}
 
-	res, err := resource.Merge(resource.Default(),
-		resource.NewWithAttributes(
-			semconv.SchemaURL,
-			semconv.ServiceName(serviceName),
-		),
-	)
+	//res, err := resource.Merge(resource.Default(),
+	//resource.NewWithAttributes(
+	//	semconv.SchemaURL,
+	//	semconv.ServiceName(serviceName),
+	//),
+	//)
 
 	if err != nil {
 		return nil, terrors.Propagate(err)
@@ -78,7 +77,7 @@ func newTraceProvider(ctx context.Context, serviceName string) (*trace.TracerPro
 
 	traceProvider := trace.NewTracerProvider(
 		trace.WithBatcher(traceExporter),
-		trace.WithResource(res),
+		//trace.WithResource(res),
 	)
 	return traceProvider, nil
 }

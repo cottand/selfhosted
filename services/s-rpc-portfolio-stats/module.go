@@ -8,6 +8,8 @@ import (
 	"github.com/monzo/terrors"
 	"google.golang.org/grpc"
 	"log"
+	"os"
+	"strings"
 )
 
 //go:embed migrations
@@ -15,7 +17,11 @@ var dbMigrations embed.FS
 
 var ModuleName = "s-rpc-portfolio-stats"
 
-func init() {
+func InitService() {
+	if strings.HasSuffix(os.Args[0], ".test") {
+		return
+	}
+
 	db, err := bedrock.GetMigratedDB(dbMigrations)
 	if err != nil {
 		log.Fatal(err.Error())

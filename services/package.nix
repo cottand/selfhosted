@@ -1,6 +1,6 @@
 { buildGoModule, dockerTools, bash, buildEnv, system, util, ... }:
 let
-  name = "module";
+  name = "services";
   src = ./.;
 
   assetsEnv = buildEnv {
@@ -13,7 +13,7 @@ let
 
   bin = buildGoModule {
     inherit name src;
-    subPackages = [ "mono" ];
+#    subPackages = [ "mono" ];
     vendorHash = null;
     GOFLAGS = [ "-tags=in_nix" ];
     postPatch = ''

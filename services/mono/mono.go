@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/cottand/selfhosted/services/lib/bedrock"
-	_ "github.com/cottand/selfhosted/services/s-rpc-portfolio-stats"
-	_ "github.com/cottand/selfhosted/services/s-web-portfolio"
 	"github.com/monzo/terrors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -19,7 +17,7 @@ import (
 	"time"
 )
 
-var services map[string]Service
+var services = map[string]Service{}
 
 type Service struct {
 	Name         string
@@ -37,7 +35,7 @@ func Get(name string) Service {
 	return services[name]
 }
 
-func Run() {
+func RunRegistered() {
 	ctx := context.Background()
 	bedrock.Init(ctx)
 	grpcServer := grpc.NewServer(grpc.StatsHandler(otelgrpc.NewServerHandler()))
