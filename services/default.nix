@@ -7,7 +7,9 @@
 #
 { callPackage, ... }:
 {
-  s-web-portfolio = callPackage (import ./s-web-portfolio/package.nix) { };
+#  s-web-portfolio = callPackage ./s-web-portfolio/package.nix { };
+#
+#  s-rpc-portfolio-stats = callPackage ./s-rpc-portfolio-stats/package.nix { };
 
-  s-rpc-portfolio-stats = callPackage (import ./s-rpc-portfolio-stats/package.nix) { };
+  monolith = callPackage ./package.nix { };
 }

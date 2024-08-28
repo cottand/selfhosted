@@ -1,8 +1,8 @@
-package main
+package mono
 
 import (
-	"context"
-	s_portfolio_stats "github.com/cottand/selfhosted/services/lib/proto/s-portfolio-stats"
+	s_rpc_portfolio_stats "github.com/cottand/selfhosted/services/lib/proto/s-rpc-portfolio-stats"
+	"github.com/cottand/selfhosted/services/mono"
 	"github.com/monzo/terrors"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
@@ -14,11 +14,7 @@ import (
 )
 import "github.com/cottand/selfhosted/services/lib/bedrock"
 
-func main() {
-	ctx := context.Background()
-	shutdown := bedrock.Init(ctx)
-	defer shutdown(ctx)
-
+func init() {
 	root, err := bedrock.NixAssetsDir()
 	if err != nil {
 		log.Fatalf(terrors.Propagate(err).Error())
@@ -37,8 +33,7 @@ func main() {
 		log.Fatalf(terrors.Propagate(err).Error())
 	}
 
-	defer conn.Close()
-	stats := s_portfolio_stats.NewPortfolioStatsClient(conn)
+	stats := s_rpc_portfolio_stats.NewPortfolioStatsClient(conn)
 
 	fsWithNoCache := http.FileServer(http.Dir(root + "/srv"))
 	fs := http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
@@ -56,5 +51,11 @@ func main() {
 	mux.Handle("/", handleRoot(fs, stats, false))
 	mux.Handle("/api/browse", handleBrowse(stats, enableGrpcReporting))
 
-	bedrock.Serve(ctx, mux)
+	mono.Register(mono.Service{
+		Name: "s-web-portfolio",
+		Http: mux,
+		Close: func() error {
+			return terrors.Propagate(conn.Close())
+		},
+	})
 }

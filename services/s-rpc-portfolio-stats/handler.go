@@ -1,11 +1,11 @@
-package main
+package module
 
 import (
 	"context"
 	"crypto"
 	"database/sql"
 	"encoding/hex"
-	s_portfolio_stats "github.com/cottand/selfhosted/services/lib/proto/s-portfolio-stats"
+	s_rpc_portfolio_stats "github.com/cottand/selfhosted/services/lib/proto/s-rpc-portfolio-stats"
 	"github.com/monzo/terrors"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"log/slog"
@@ -14,13 +14,13 @@ import (
 )
 
 type ProtoHandler struct {
-	s_portfolio_stats.UnimplementedPortfolioStatsServer
+	s_rpc_portfolio_stats.UnimplementedPortfolioStatsServer
 
 	db   *sql.DB
 	hash *crypto.Hash
 }
 
-var _ s_portfolio_stats.PortfolioStatsServer = &ProtoHandler{}
+var _ s_rpc_portfolio_stats.PortfolioStatsServer = &ProtoHandler{}
 
 var excludeUrls = []string{
 	"/static",
@@ -29,7 +29,7 @@ var excludeUrls = []string{
 
 var salt = []byte{4, 49, 127, 104, 174, 252, 225, 13}
 
-func (p *ProtoHandler) Report(ctx context.Context, visit *s_portfolio_stats.Visit) (*emptypb.Empty, error) {
+func (p *ProtoHandler) Report(ctx context.Context, visit *s_rpc_portfolio_stats.Visit) (*emptypb.Empty, error) {
 	slog.Info("Received visit! ", "ip", visit.Ip)
 
 	for _, urlSub := range excludeUrls {

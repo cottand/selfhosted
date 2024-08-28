@@ -25,7 +25,7 @@ type ShutdownFunc = func(ctx context.Context) error
 
 func Init(ctx context.Context) ShutdownFunc {
 
-	shutdown, err := setupOTelSDK(ctx)
+	shutdown, err := setupOTelSDK(ctx, "name-todo")
 
 	if err != nil {
 		err = terrors.Augment(err, "failed to start otlp sdk", nil)
@@ -33,13 +33,6 @@ func Init(ctx context.Context) ShutdownFunc {
 	}
 
 	slog.Info("bedrock initialized")
-
-	d, err := NixAssetsDir()
-	if err != nil {
-		err = terrors.Augment(err, "failed to init bedrock nixAssetsDir", nil)
-		log.Fatalln(err)
-	}
-	slog.Info("using Nix assets", "dir", d)
 
 	return shutdown
 }

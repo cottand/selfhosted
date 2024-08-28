@@ -8,7 +8,7 @@ permissions:
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "monolith" ]
 
 env:
   # Use docker.io for Docker Hub if empty

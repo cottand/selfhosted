@@ -4,7 +4,7 @@
 // - protoc             v4.25.3
 // source: def.proto
 
-package s_portfolio_stats
+package s_rpc_portfolio_stats
 
 import (
 	context "context"
@@ -20,7 +20,7 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	PortfolioStats_Report_FullMethodName = "/s_portfolio_stats.PortfolioStats/Report"
+	PortfolioStats_Report_FullMethodName = "/s_rpc_portfolio_stats.PortfolioStats/Report"
 )
 
 // PortfolioStatsClient is the client API for PortfolioStats service.
@@ -97,7 +97,7 @@ func _PortfolioStats_Report_Handler(srv interface{}, ctx context.Context, dec fu
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var PortfolioStats_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "s_portfolio_stats.PortfolioStats",
+	ServiceName: "s_rpc_portfolio_stats.PortfolioStats",
 	HandlerType: (*PortfolioStatsServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
