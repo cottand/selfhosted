@@ -20,12 +20,6 @@ let
     inherit name;
     paths = [ bin assetsEnv bash ];
   };
-
-  image = dockerTools.buildImage {
-    inherit name;
-    copyToRoot = binaryEnv;
-    config.Cmd = [ "/bin/${name}" ];
-  };
   protos = util.protosFor name;
 in
-binaryEnv // { inherit image bin protos; }
+binaryEnv // { inherit bin protos; }

@@ -6,10 +6,8 @@
 # which points to the codegenerated proto code for that specific service.
 #
 { callPackage, ... }:
-{
+rec {
   s-web-portfolio = callPackage ./s-web-portfolio/package.nix { };
-#
   s-rpc-portfolio-stats = callPackage ./s-rpc-portfolio-stats/package.nix { };
-
   services-go = callPackage ./package.nix { };
 }
