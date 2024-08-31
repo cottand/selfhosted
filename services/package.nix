@@ -1,4 +1,4 @@
-{ buildGoModule, dockerTools, bash, buildEnv, system, util, ... }:
+{ buildGoModule, dockerTools, bash, buildEnv, system, util, curlMinimal, ... }:
 let
   name = "services-go";
   src = util.servicesSrc;
@@ -21,7 +21,7 @@ let
   };
   binaryEnv = buildEnv {
     inherit name;
-    paths = [ (bin.overrideAttrs { doCheck = false; }) assetsEnv bash ];
+    paths = [ (bin.overrideAttrs { doCheck = false; }) assetsEnv bash curlMinimal ];
   };
   image = dockerTools.buildImage {
     inherit name;
