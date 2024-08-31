@@ -4,7 +4,7 @@ let
 in
 lib.mkServiceJob {
   name = "services-go";
-  version = "a79ff9c";
+  version = "b316d3d";
   upstream."roach-db".localBindPort = dbPort;
   cpu = 200;
   memMb = 200;

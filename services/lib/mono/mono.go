@@ -6,12 +6,15 @@ import (
 	"fmt"
 	"github.com/cottand/selfhosted/services/lib/bedrock"
 	"github.com/monzo/terrors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 	"log"
 	"log/slog"
 	"net"
 	"net/http"
+	"os"
+	"time"
 )
 
 var services = map[string]Service{}
@@ -57,18 +60,45 @@ func RunRegistered() {
 	if err != nil {
 		log.Fatalf("failed to listen grpc: %v", err)
 	}
-
-	err = grpcServer.Serve(lis)
-
 	shutdownServices := func() {
 		for _, service := range services {
 			close(service.registration.notify)
 		}
 	}
+
 	defer shutdownServices()
+
+	go func() {
+		err := SetupAndServeMetrics(ctx)
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+	}()
+
+	err = grpcServer.Serve(lis)
 
 	if err != nil && !errors.Is(err, grpc.ErrServerStopped) {
 		log.Fatalf(err.Error())
 	}
+}
 
+func SetupAndServeMetrics(ctx context.Context) error {
+
+	port, ok := os.LookupEnv("HTTP_PORT")
+	if !ok {
+		return terrors.Propagate(errors.New("no environment variable HTTP_PORT"))
+	}
+
+	srv := &http.Server{
+		Addr:         "localhost:" + port,
+		BaseContext:  func(_ net.Listener) context.Context { return ctx },
+		ReadTimeout:  time.Second,
+		WriteTimeout: 10 * time.Second,
+		Handler:      promhttp.Handler(),
+	}
+	err := srv.ListenAndServe()
+	if !errors.Is(err, http.ErrServerClosed) {
+		return terrors.Propagate(err)
+	}
+	return nil
 }
