@@ -3,11 +3,12 @@ package module
 import (
 	"embed"
 	"github.com/cottand/selfhosted/services/lib/bedrock"
+	"github.com/cottand/selfhosted/services/lib/mono"
 	s_rpc_portfolio_stats "github.com/cottand/selfhosted/services/lib/proto/s-rpc-portfolio-stats"
-	"github.com/cottand/selfhosted/services/mono"
 	"github.com/monzo/terrors"
 	"google.golang.org/grpc"
 	"log"
+	"log/slog"
 	"os"
 	"strings"
 )
@@ -15,7 +16,7 @@ import (
 //go:embed migrations
 var dbMigrations embed.FS
 
-var ModuleName = "s-rpc-portfolio-stats"
+var Name = "s-rpc-portfolio-stats"
 
 func InitService() {
 	if strings.HasSuffix(os.Args[0], ".test") {
@@ -27,14 +28,18 @@ func InitService() {
 		log.Fatal(err.Error())
 	}
 	this := mono.Service{
-		Name: ModuleName,
+		Name: Name,
 		RegisterGrpc: func(srv *grpc.Server) {
 			s_rpc_portfolio_stats.RegisterPortfolioStatsServer(srv, &ProtoHandler{db: db})
 		},
-		Http: nil,
-		Close: func() error {
-			return terrors.Propagate(db.Close())
-		},
 	}
-	mono.Register(this)
+
+	notify := mono.Register(this)
+
+	go func() {
+		_, _ = <-notify
+		if db.Close() != nil {
+			slog.Error(terrors.Propagate(err).Error(), "Failed to close DB", "module", Name)
+		}
+	}()
 }

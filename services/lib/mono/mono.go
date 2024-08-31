@@ -5,16 +5,12 @@ import (
 	"fmt"
 	"github.com/cottand/selfhosted/services/lib/bedrock"
 	"github.com/monzo/terrors"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"google.golang.org/grpc"
 	"log"
 	"log/slog"
 	"net"
 	"net/http"
-	"strconv"
-	"time"
 )
 
 var services = map[string]Service{}
@@ -22,13 +18,18 @@ var services = map[string]Service{}
 type Service struct {
 	Name         string
 	PromMetrics  http.Handler
-	Http         http.Handler
 	RegisterGrpc func(grpcServer *grpc.Server)
-	Close        func() error
+	registration Registration
 }
 
-func Register(new Service) {
+type Registration struct {
+	notify chan struct{}
+}
+
+func Register(new Service) <-chan struct{} {
+	new.registration.notify = make(chan struct{})
 	services[new.Name] = new
+	return new.registration.notify
 }
 
 func Get(name string) Service {
@@ -39,20 +40,13 @@ func RunRegistered() {
 	ctx := context.Background()
 	bedrock.Init(ctx)
 	grpcServer := grpc.NewServer(grpc.StatsHandler(otelgrpc.NewServerHandler()))
-	mux := http.NewServeMux()
 	defer grpcServer.GracefulStop()
 	for name, module := range services {
 		if module.RegisterGrpc != nil {
 			module.RegisterGrpc(grpcServer)
 		}
-
-		if module.Http != nil {
-			pattern := "/" + name
-			mux.Handle(pattern, http.StripPrefix(pattern, module.Http))
-		}
 		slog.Info("registered mono", "service", name)
 	}
-	mux.Handle("/metrics", promhttp.Handler())
 
 	config, err := bedrock.GetBaseConfig()
 	if err != nil {
@@ -71,13 +65,4 @@ func RunRegistered() {
 
 	}()
 
-	srv := &http.Server{
-		Addr:         config.HttpHost + ":" + strconv.Itoa(config.HttpPort),
-		BaseContext:  func(_ net.Listener) context.Context { return ctx },
-		ReadTimeout:  time.Second,
-		WriteTimeout: 10 * time.Second,
-		Handler:      otelhttp.NewHandler(mux, "http"),
-	}
-
-	err = srv.ListenAndServe()
 }

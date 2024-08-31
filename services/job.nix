@@ -3,8 +3,8 @@ let
   dbPort = 5432;
 in
 lib.mkServiceJob {
-  name = "services";
-  version = "e2f365f";
+  name = "services-go";
+  version = "ef470f3";
   upstream."roach-db".localBindPort = dbPort;
   cpu = 200;
   memMb = 200;
@@ -30,4 +30,24 @@ lib.mkServiceJob {
     vault.role = "service-db-rw-default";
     vault.changeMode = "restart";
   };
+
+  # first declare here then import from each service's subfolder!
+  service."s-web-portfolio-http" =
+    let
+      name = "s-web-portfolio";
+    in
+    {
+      connect = {
+        sidecarService.proxy = {
+          config = lib.mkEnvoyProxyConfig {
+            otlpService = "proxy-${name}-http";
+            otlpUpstreamPort = 9001;
+            protocol = "http";
+          };
+        };
+        #      sidecarTask.resources = sidecarResources;
+      };
+      port = "7001";
+      tags = [ ];
+    };
 }

@@ -131,6 +131,7 @@ rec {
     , count ? 1
     , env ? { }
     , extraTaskConfig ? { }
+    , service ? { }
     ,
     }:
     let
@@ -196,7 +197,7 @@ rec {
             }];
             tags = httpTags;
           };
-        } // (if ports ? "grpc" then {
+        } // service // (if ports ? "grpc" then {
           "${name}-grpc" = {
             connect = {
               sidecarService.proxy.config = mkEnvoyProxyConfig {
