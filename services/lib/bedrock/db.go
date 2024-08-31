@@ -16,8 +16,8 @@ import (
 )
 
 // Migrate expects the first argument to have a folder called 'migrations'
-func Migrate(db *sql.DB, migrations embed.FS) error {
-	dbname := ServiceName()
+func Migrate(db *sql.DB, serviceName string, migrations embed.FS) error {
+	dbname := serviceName
 	errParams := map[string]string{"db": dbname}
 
 	driver, err := cockroachdb.WithInstance(db, &cockroachdb.Config{DatabaseName: dbname})
@@ -55,12 +55,12 @@ func GetDb() (*sql.DB, error) {
 }
 
 // GetMigratedDB (like Migrate) expects the first argument to have a folder called 'migrations'
-func GetMigratedDB(migrations embed.FS) (*sql.DB, error) {
+func GetMigratedDB(serviceName string, migrations embed.FS) (*sql.DB, error) {
 	db, err := GetDb()
 	if err != nil {
 		return nil, terrors.Propagate(err)
 	}
-	err = Migrate(db, migrations)
+	err = Migrate(db, serviceName, migrations)
 	if err != nil {
 		return nil, terrors.Augment(err, "failed to migrate database", nil)
 	}

@@ -23,7 +23,7 @@ func InitService() {
 		return
 	}
 
-	db, err := bedrock.GetMigratedDB(dbMigrations)
+	db, err := bedrock.GetMigratedDB(Name, dbMigrations)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -39,7 +39,7 @@ func InitService() {
 	go func() {
 		_, _ = <-notify
 		if db.Close() != nil {
-			slog.Error(terrors.Propagate(err).Error(), "Failed to close DB", "module", Name)
+			slog.Error(terrors.Propagate(err).Error(), "Failed to close DB", "service", Name)
 		}
 	}()
 }

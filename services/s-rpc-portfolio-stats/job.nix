@@ -18,7 +18,7 @@ lib.mkServiceJob {
       envvars = true;
       embeddedTmpl = ''
         {{with secret "secret/data/services/db-rw-default"}}
-        CRDB_CONN_URL="postgres://{{.Data.data.username}}:{{.Data.data.password}}@localhost:${toString dbPort}/services?ssl_sni=roach-db.traefik"
+        CRDB_CONN_URL="postgres://{{.Data.data.username}}:{{.Data.data.password}}@127.0.0.1:${toString dbPort}/services?ssl_sni=roach-db.traefik"
         {{end}}
       '';
     };

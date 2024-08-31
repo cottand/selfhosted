@@ -4,18 +4,12 @@ let
 in
 lib.mkServiceJob {
   name = "services-go";
-  version = "ef470f3";
+  version = "a79ff9c";
   upstream."roach-db".localBindPort = dbPort;
   cpu = 200;
   memMb = 200;
   ports.http = 8080;
   ports.grpc = 8081;
-  httpTags = [
-    "traefik.enable=true"
-    "traefik.consulcatalog.connect=true"
-    "traefik.http.routers.\${NOMAD_GROUP_NAME}.tls=true"
-    "traefik.http.routers.\${NOMAD_GROUP_NAME}.entrypoints=web, websecure"
-  ];
   extraTaskConfig = {
     template."db-env" = {
       changeMode = "restart";
@@ -30,6 +24,12 @@ lib.mkServiceJob {
     vault.role = "service-db-rw-default";
     vault.changeMode = "restart";
   };
+  httpTags = [
+    "traefik.enable=true"
+    "traefik.consulcatalog.connect=true"
+    "traefik.http.routers.\${NOMAD_GROUP_NAME}.tls=true"
+    "traefik.http.routers.\${NOMAD_GROUP_NAME}.entrypoints=web, websecure"
+  ];
 
   # first declare here then import from each service's subfolder!
   service."s-web-portfolio-http" =

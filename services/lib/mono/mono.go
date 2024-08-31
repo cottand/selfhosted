@@ -2,6 +2,7 @@ package mono
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/cottand/selfhosted/services/lib/bedrock"
 	"github.com/monzo/terrors"
@@ -57,12 +58,17 @@ func RunRegistered() {
 		log.Fatalf("failed to listen grpc: %v", err)
 	}
 
-	go func() {
-		err = grpcServer.Serve(lis)
-		if err != nil {
-			log.Fatalf(err.Error())
-		}
+	err = grpcServer.Serve(lis)
 
-	}()
+	shutdownServices := func() {
+		for _, service := range services {
+			close(service.registration.notify)
+		}
+	}
+	defer shutdownServices()
+
+	if err != nil && !errors.Is(err, grpc.ErrServerStopped) {
+		log.Fatalf(err.Error())
+	}
 
 }
