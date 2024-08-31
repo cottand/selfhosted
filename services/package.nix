@@ -15,8 +15,9 @@ let
     inherit name src;
     vendorHash = null;
     GOFLAGS = [ "-tags=in_nix" ];
-    postPatch = ''
-      sed -i 's|_TO_REPLACE_BY_NIX__ASSETS_ENV|${assetsEnv.outPath}|g' lib/bedrock/in_nix.go
+    ldflags = [ "-X github.com/cottand/selfhosted/services/lib/bedrock.nixAssetsDir=${assetsEnv.outPath}" ];
+    postInstall = ''
+      mv $out/bin/services $out/bin/${name}
     '';
   };
   binaryEnv = buildEnv {
