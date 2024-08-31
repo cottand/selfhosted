@@ -14,7 +14,6 @@ let
   bin = buildGoModule {
     inherit name src;
     vendorHash = null;
-    GOFLAGS = [ "-tags=in_nix" ];
     ldflags = [ "-X github.com/cottand/selfhosted/services/lib/bedrock.nixAssetsDir=${assetsEnv.outPath}" ];
     postInstall = ''
       mv $out/bin/services $out/bin/${name}

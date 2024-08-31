@@ -46,7 +46,7 @@ jobs:
 
       - name: Build services image
         run: |
-          nix build -L .#services.services-go
+          nix build -L .#scripts.all-images
 
       - name: Install skopeo
         run: |

@@ -13,10 +13,7 @@ let
     inherit name src;
     subPackages = [ name ];
     vendorHash = null;
-    GOFLAGS = [ "-tags=in_nix" ];
-    preBuild = ''
-      sed -i 's|_TO_REPLACE_BY_NIX__ASSETS_ENV|${assetsEnv.outPath}|g' lib/bedrock/in_nix.go
-    '';
+    ldflags = [ "-X github.com/cottand/selfhosted/services/lib/bedrock.nixAssetsDir=${assetsEnv.outPath}" ];
   };
 
   binaryEnv = buildEnv {
