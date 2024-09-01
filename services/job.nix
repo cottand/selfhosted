@@ -1,7 +1,7 @@
 let
-  lib = (import ../jobs/lib) {};
+  lib = (import ../jobs/lib) { };
   name = "services-go";
-  version = "d912800";
+  version = "d9b2485";
   cpu = 120;
   mem = 500;
   ports = {
@@ -16,9 +16,7 @@ let
   };
   otlpPort = 9001;
 in
-lib.mkJob
-  name
-{
+lib.mkJob name {
   affinities = [{
     lTarget = "\${meta.controlPlane}";
     operand = "=";
@@ -77,6 +75,7 @@ lib.mkJob
     };
 
     service."s-web-portfolio-http" = (import ./s-web-portfolio/consulService.nix) { inherit lib sidecarResources; };
+    service."s-web-github-webhook-http" = (import ./s-web-github-webhook/consulService.nix) { inherit lib sidecarResources; };
 
     task.${name} = {
       driver = "docker";
