@@ -1,6 +1,6 @@
 { lib, sidecarResources, ... }:
 let
-  name = "s-web-github";
+  name = "s-web-github-webhook";
 in
 {
   inherit name;
