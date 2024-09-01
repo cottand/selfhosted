@@ -15,6 +15,13 @@ import (
 
 type ShutdownFunc = func(ctx context.Context) error
 
+func init() {
+	// set a json logger:
+	logger := slog.New(slog.NewJSONHandler(os.Stderr, nil))
+
+	slog.SetDefault(logger)
+}
+
 func Init(ctx context.Context) ShutdownFunc {
 
 	shutdown, err := setupOTelSDK(ctx, "name-todo")
@@ -23,7 +30,6 @@ func Init(ctx context.Context) ShutdownFunc {
 		err = terrors.Augment(err, "failed to start otlp sdk", nil)
 		log.Fatalln(err)
 	}
-
 	slog.Info("bedrock initialized")
 
 	return shutdown

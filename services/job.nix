@@ -1,7 +1,7 @@
 let
   lib = import ../jobs/lib;
   name = "services-go";
-  version = "86358d4";
+  version = "c0b52b8";
   cpu = 120;
   mem = 500;
   ports = {
@@ -16,7 +16,9 @@ let
   };
   otlpPort = 9001;
 in
-lib.mkJob name {
+lib.mkJob
+  name
+{
   affinities = [{
     lTarget = "\${meta.controlPlane}";
     operand = "=";
@@ -74,41 +76,8 @@ lib.mkJob name {
       ];
     };
 
-    # first declare here then import from each service's subfolder!
-    service."s-web-portfolio-http" =
-      let
-        name = "s-web-portfolio";
-      in
-      {
-        connect = {
-          sidecarService.proxy = {
-            config = lib.mkEnvoyProxyConfig {
-              otlpService = "proxy-${name}-http";
-              otlpUpstreamPort = 9001;
-              protocol = "http";
-            };
-          };
-          sidecarTask.resources = sidecarResources;
-        };
-        port = "7001";
-        tags = [
-          "traefik.enable=true"
-          "traefik.consulcatalog.connect=true"
-          "traefik.http.routers.${name}.tls=true"
-          "traefik.http.routers.${name}.entrypoints=web, websecure"
+    service."s-web-portfolio-http" = (import ./s-web-portfolio/consulService.nix) { inherit lib sidecarResources; };
 
-          "traefik.http.routers.${name}.middlewares=cloudflarewarp@file,${name}-redir"
-#          "traefik.http.routers.${name}.middlewares=${name}-redir"
-
-          "traefik.http.routers.${name}.rule=Host(`nico.dcotta.eu`) || Host(`nico.dcotta.com`)"
-          "traefik.http.routers.${name}.entrypoints=web, web_public, websecure, websecure_public"
-          "traefik.http.routers.${name}.tls=true"
-
-          "traefik.http.middlewares.${name}-redir.redirectregex.regex=nico.dcotta.eu/(.*)"
-          "traefik.http.middlewares.${name}-redir.redirectregex.replacement=nico.dcotta.com/\${1}"
-          "traefik.http.middlewares.${name}-redir.redirectregex.permanent=true"
-        ];
-      };
     task.${name} = {
       driver = "docker";
       vault = { };
