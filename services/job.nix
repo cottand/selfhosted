@@ -1,7 +1,7 @@
 let
   lib = import ../jobs/lib;
   name = "services-go";
-  version = "964c204";
+  version = "81026de";
   cpu = 120;
   mem = 500;
   ports = {

@@ -14,7 +14,7 @@ import (
 
 // setupOTelSDK bootstraps the OpenTelemetry pipeline.
 // If it does not return an error, make sure to call shutdown for proper cleanup.
-func setupOTelSDK(ctx context.Context, serviceName string) (shutdown func(context.Context) error, err error) {
+func setupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, err error) {
 	var shutdownFuncs []func(context.Context) error
 
 	// shutdown calls cleanup functions registered via shutdownFuncs.
@@ -39,7 +39,7 @@ func setupOTelSDK(ctx context.Context, serviceName string) (shutdown func(contex
 	otel.SetTextMapPropagator(prop)
 
 	// Set up trace provider - TODO do not set it globally
-	tracerProvider, err := newTraceProvider(ctx, serviceName)
+	tracerProvider, err := newTraceProvider(ctx)
 	if err != nil {
 		handleErr(terrors.Propagate(err))
 		return
@@ -57,21 +57,11 @@ func newPropagator() propagation.TextMapPropagator {
 	)
 }
 
-func newTraceProvider(ctx context.Context, serviceName string) (*trace.TracerProvider, error) {
+func newTraceProvider(ctx context.Context) (*trace.TracerProvider, error) {
 	traceExporter, err := otlptracegrpc.New(ctx)
 	if err != nil {
 		return nil, terrors.Propagate(err)
 	}
-
-	//res, err := resource.Merge(resource.Default(),
-	//	resource.NewWithAttributes(
-	//		semconv.SchemaURL,
-	//		semconv.ServiceName(serviceName),
-	//	),
-	//)
-	//if err != nil {
-	//	return nil, terrors.Propagate(err)
-	//}
 
 	traceProvider := trace.NewTracerProvider(
 		trace.WithBatcher(traceExporter),
