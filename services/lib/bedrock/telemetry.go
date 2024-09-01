@@ -69,10 +69,9 @@ func newTraceProvider(ctx context.Context, serviceName string) (*trace.TracerPro
 	//		semconv.ServiceName(serviceName),
 	//	),
 	//)
-
-	if err != nil {
-		return nil, terrors.Propagate(err)
-	}
+	//if err != nil {
+	//	return nil, terrors.Propagate(err)
+	//}
 
 	traceProvider := trace.NewTracerProvider(
 		trace.WithBatcher(traceExporter),
