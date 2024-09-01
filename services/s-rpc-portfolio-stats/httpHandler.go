@@ -62,14 +62,17 @@ func refreshSince(ctx context.Context, db *sql.DB, since time.Duration) error {
 	}
 	errParams := map[string]string{"since": sinceString}
 	query := `select count(*) from "s-rpc-portfolio-stats".visit where inserted_at > ($1)::timestamp`
-	res, err := db.QueryContext(ctx, query, sinceAbsolute)
+	rows, err := db.QueryContext(ctx, query, sinceAbsolute)
 	if err != nil {
 		return terrors.Augment(err, "failed to query visits", errParams)
 	}
+	defer rows.Close()
 	var counted int64
-	err = res.Scan(counted)
-	if err != nil {
-		return terrors.Augment(err, "failed to scan visits query result", nil)
+	for rows.Next() {
+		err = rows.Scan(&counted)
+		if err != nil {
+			return terrors.Augment(err, "failed to scan visits query result", nil)
+		}
 	}
 	visits.With(prometheus.Labels{"since": sinceString}).Set(float64(counted))
 	return nil
