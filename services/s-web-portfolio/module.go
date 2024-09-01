@@ -17,6 +17,8 @@ import "github.com/cottand/selfhosted/services/lib/bedrock"
 
 var Name = "s-web-portfolio"
 
+var logger = slog.With("service_module", Name)
+
 func InitService() {
 	ctx := context.Background()
 	root, err := bedrock.NixAssetsDir()
@@ -59,7 +61,7 @@ func InitService() {
 	go func() {
 		err := srv.ListenAndServe()
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
-			slog.Error("failed to start HTTP: "+terrors.Propagate(err).Error(), "service", Name)
+			logger.Error("failed to start HTTP: "+terrors.Propagate(err).Error(), "service", Name)
 		}
 	}()
 
@@ -69,10 +71,10 @@ func InitService() {
 	go func() {
 		_, _ = <-notify
 		if conn.Close() != nil {
-			slog.Error(terrors.Propagate(err).Error(), "Failed to close gRPC conn", "service", Name)
+			logger.Error(terrors.Propagate(err).Error(), "Failed to close gRPC conn", "service", Name)
 		}
 		if serverErr != nil {
-			slog.Error(terrors.Propagate(err).Error(), "Failed to close gRPC conn", "service", Name)
+			logger.Error(terrors.Propagate(err).Error(), "Failed to close gRPC conn", "service", Name)
 		}
 	}()
 }

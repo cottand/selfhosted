@@ -80,7 +80,6 @@ job "prometheus" {
         "traefik.http.routers.${NOMAD_GROUP_NAME}.entrypoints=web,websecure",
         "traefik.http.routers.${NOMAD_GROUP_NAME}.middlewares=vpn-whitelist@file",
         "traefik.http.routers.${NOMAD_GROUP_NAME}.tls=true",
-        "traefik.http.routers.${NOMAD_GROUP_NAME}.tls.certresolver=dcotta-vault"
       ]
     }
 
