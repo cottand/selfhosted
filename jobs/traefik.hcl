@@ -282,7 +282,7 @@ EOF
   # The service name below should match the nomad/consul service above
   # and is used for intentions in consul
   servicename="traefik-ingress"
-  refreshInterval = "10s"
+  refreshInterval = "5s"
   exposedByDefault = false
   connectAware = true
   connectByDefault = true

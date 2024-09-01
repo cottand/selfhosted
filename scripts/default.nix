@@ -2,17 +2,15 @@
 
   # TODO look into https://noogle.dev/f/lib/filesystem/packagesFromDirectoryRecursive
 
-#  buildYaegiScript = name: filePath: writeScriptBin name ''
-#    #! ${yaegi}/bin/yaegi
-#    ${builtins.readFile filePath}
-#  '';
 
   # templates a nomad nix file into JSON and calls nomad run on it
   # usage: nixmad path/to/job.nix
-  nixmad = writeShellScriptBin "nixmad" ''
-    set -e
-    ${nix}/bin/nix eval -f $1 --json --show-trace | ${nomad}/bin/nomad run -json -
-  '';
+#  nixmad = writeShellScriptBin "nixmad" ''
+#    set -e
+#    ${nix}/bin/nix eval -f $1 --json --show-trace | ${nomad}/bin/nomad run -json -
+#  '';
+
+    nixmad = callPackage ./nixmad/package.nix {};
 
   # fetches a secret from bitwarden-secret by ID
   # usage: bws-get <ID>
