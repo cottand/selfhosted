@@ -1,9 +1,14 @@
 { lib
+, self
+, system
 , nix-filter
 , runCommand
+, runCommandLocal
 , protobuf
 , protoc-gen-go
 , protoc-gen-go-grpc
+, buildEnv
+, symlinkJoin
 , ...
 }:
 let
@@ -42,4 +47,21 @@ rec {
           else
            ""}
       '';
+
+  protosForAllServices =
+    let
+      services = builtins.attrNames self.legacyPackages.${system}.services;
+      perServiceCommand = map
+        (name: (if (self.legacyPackages.${system}.services.${name} ? "protos") then
+          ''
+            generated=${protosFor name}
+            dest="$out/${name}"
+            mkdir -p $dest
+            cp -r $generated/*.pb.go $dest
+          '' else ""
+        ))
+        services;
+      concatted = builtins.concatStringsSep "\n" perServiceCommand;
+    in
+    runCommandLocal "protos-all-services" { } concatted;
 }

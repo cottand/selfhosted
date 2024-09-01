@@ -3,17 +3,10 @@ package bedrock
 import (
 	"context"
 	"fmt"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	"google.golang.org/grpc"
 	"log"
 	"log/slog"
-	"net"
-	"net/http"
 	"os"
 	"strconv"
-	"time"
 )
 
 import (
@@ -76,54 +69,4 @@ type BaseConfig struct {
 
 func (c *BaseConfig) HttpBind() string {
 	return fmt.Sprint(c.HttpHost, ":", strconv.Itoa(c.HttpPort))
-}
-
-func Serve(ctx context.Context, mux *http.ServeMux) {
-
-	mux.Handle("/metrics", promhttp.Handler())
-
-	config, err := GetBaseConfig()
-	if err != nil {
-		log.Fatalf(terrors.Augment(err, "failed to get config", nil).Error())
-	}
-
-	srv := &http.Server{
-		Addr:         config.HttpHost + ":" + strconv.Itoa(config.HttpPort),
-		BaseContext:  func(_ net.Listener) context.Context { return ctx },
-		ReadTimeout:  time.Second,
-		WriteTimeout: 10 * time.Second,
-		Handler:      otelhttp.NewHandler(mux, "http"),
-	}
-
-	err = srv.ListenAndServe()
-
-	if err != nil {
-		log.Fatalf(terrors.Augment(err, "failed to run server", nil).Error())
-	}
-
-}
-
-func ServeWithGrpc(ctx context.Context, mux *http.ServeMux, registerGrpcHook func(srv *grpc.Server)) {
-	config, err := GetBaseConfig()
-	if err != nil {
-		log.Fatalf(terrors.Augment(err, "failed to get config", nil).Error())
-	}
-
-	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", config.HttpHost, config.GrpcPort))
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	}
-
-	grpcServer := grpc.NewServer(grpc.StatsHandler(otelgrpc.NewServerHandler()))
-
-	registerGrpcHook(grpcServer)
-
-	go func() {
-		err = grpcServer.Serve(lis)
-		if err != nil {
-			log.Fatalf(err.Error())
-		}
-	}()
-
-	Serve(ctx, mux)
 }

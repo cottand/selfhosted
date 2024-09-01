@@ -21,7 +21,7 @@ lib.mkJob name {
     lTarget = "\${meta.controlPlane}";
     operand = "=";
     rTarget = "true";
-    weight = -50;
+    weight = -70;
   }];
   update = {
     maxParallel = 1;
@@ -31,14 +31,13 @@ lib.mkJob name {
   };
 
   group.${name} = {
-    count = 1;
+    count = 2;
     network = {
       mode = "bridge";
       dynamicPorts = [
         { label = "metrics"; }
       ];
-      reservedPorts = [
-      ];
+      reservedPorts = [ ];
     };
 
     service."${name}-http" = rec {
@@ -110,6 +109,8 @@ lib.mkJob name {
         HTTP_HOST = lib.localhost;
         HTTP_PORT = toString ports.http;
         GRPC_PORT = toString ports.grpc;
+        OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = "http://localhost:${toString otlpPort}";
+        OTEL_SERVICE_NAME = name;
       };
       resources = {
         cpu = cpu;

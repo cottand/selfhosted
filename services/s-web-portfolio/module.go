@@ -6,15 +6,11 @@ import (
 	"github.com/cottand/selfhosted/services/lib/mono"
 	s_rpc_portfolio_stats "github.com/cottand/selfhosted/services/lib/proto/s-rpc-portfolio-stats"
 	"github.com/monzo/terrors"
-	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"log/slog"
 	"net"
 	"net/http"
-	"os"
 	"time"
 )
 import "github.com/cottand/selfhosted/services/lib/bedrock"
@@ -28,15 +24,7 @@ func InitService() {
 		log.Fatalf(terrors.Propagate(err).Error())
 	}
 
-	port, enableGrpcReporting := os.LookupEnv("GRPC_PORT")
-	if !enableGrpcReporting {
-		slog.Warn("Failed to find upstream env var", "var", "GRPC_PORT")
-	}
-	conn, err := grpc.NewClient(
-		"localhost:"+port,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithStatsHandler(otelgrpc.NewClientHandler()),
-	)
+	conn, err := bedrock.NewGrpcConn()
 	if err != nil {
 		log.Fatalf(terrors.Propagate(err).Error())
 	}
@@ -57,7 +45,7 @@ func InitService() {
 	mux.Handle("/robots.txt", fs)
 	mux.Handle("/CNAME", fs)
 	mux.Handle("/", handleRoot(fs, stats, false))
-	mux.Handle("/api/browse", handleBrowse(stats, enableGrpcReporting))
+	mux.Handle("/api/browse", handleBrowse(stats, conn != nil))
 
 	srv := &http.Server{
 		Addr:         "localhost:7001",
