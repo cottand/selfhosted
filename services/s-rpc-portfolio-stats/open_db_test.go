@@ -1,4 +1,4 @@
-package main
+package module
 
 import (
 	"github.com/golang-migrate/migrate/v4/source/iofs"

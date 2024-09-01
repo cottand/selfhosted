@@ -1,13 +1,13 @@
-package main
+package module
 
 import (
 	"context"
 	"encoding/json"
-	s_portfolio_stats "github.com/cottand/selfhosted/services/lib/proto/s-portfolio-stats"
+	s_rpc_portfolio_stats "github.com/cottand/selfhosted/services/lib/proto/s-rpc-portfolio-stats"
 	"net/http"
 )
 
-func handleRoot(fs http.HandlerFunc, stats s_portfolio_stats.PortfolioStatsClient, grpcUpstream bool) http.Handler {
+func handleRoot(fs http.HandlerFunc, stats s_rpc_portfolio_stats.PortfolioStatsClient, grpcUpstream bool) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 
 		originalPath := req.URL.Path
@@ -16,7 +16,7 @@ func handleRoot(fs http.HandlerFunc, stats s_portfolio_stats.PortfolioStatsClien
 
 		go func() {
 			if grpcUpstream {
-				_, _ = stats.Report(context.WithoutCancel(req.Context()), &s_portfolio_stats.Visit{
+				_, _ = stats.Report(context.WithoutCancel(req.Context()), &s_rpc_portfolio_stats.Visit{
 					Url:       originalPath,
 					Ip:        req.Header.Get("X-Forwarded-For"),
 					UserAgent: req.Header.Get("User-Agent"),
@@ -30,7 +30,7 @@ type BrowseRequest struct {
 	Url string `json:"url"`
 }
 
-func handleBrowse(stats s_portfolio_stats.PortfolioStatsClient, grpcUpstream bool) http.Handler {
+func handleBrowse(stats s_rpc_portfolio_stats.PortfolioStatsClient, grpcUpstream bool) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		parsed := &BrowseRequest{}
 		err := json.NewDecoder(req.Body).Decode(parsed)
@@ -39,7 +39,7 @@ func handleBrowse(stats s_portfolio_stats.PortfolioStatsClient, grpcUpstream boo
 		}
 		go func() {
 			if grpcUpstream {
-				_, _ = stats.Report(context.WithoutCancel(req.Context()), &s_portfolio_stats.Visit{
+				_, _ = stats.Report(context.WithoutCancel(req.Context()), &s_rpc_portfolio_stats.Visit{
 					Url:       parsed.Url,
 					Ip:        req.Header.Get("X-Forwarded-For"),
 					UserAgent: req.Header.Get("User-Agent"),

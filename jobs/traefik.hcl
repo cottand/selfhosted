@@ -174,6 +174,17 @@ job "traefik" {
     [http.middlewares.replace-enc.replacePathRegex]
       regex = "/___enc_/(.*)"
       replacement = ""
+
+    [http.middlewares.cloudflarewarp.plugin.cloudflarewarp]
+      disableDefault = false
+      # Trust IPS not required if disableDefault is false - we will allocate Cloud Flare IPs automatically
+      trustip = [
+        '10.10.0.1/16', # WG mesh
+        '10.2.0.1/16', # VPN guests
+        '127.1.0.0/24', # VPN clients
+        '172.26.64.18/20', # Containers
+      ]
+
 # Nomad terminates TLS, so we let traefik just forward TCP
 [tcp.routers]
   [tcp.routers.nomad]
@@ -196,6 +207,7 @@ job "traefik" {
   [tcp.services.consul.loadBalancer]
     [[tcp.services.consul.loadBalancer.servers]]
       address = "miki.mesh.dcotta.eu:8501"
+
 EOF
         change_mode = "signal"
       }
@@ -302,6 +314,11 @@ EOF
     [tracing]
         otlp.grpc.endpoint = "{{ env "NOMAD_UPSTREAM_ADDR_tempo_otlp_grpc_mesh" }}"
         otlp.grpc.insecure = true
+
+[experimental.plugins]
+    [experimental.plugins.cloudflarewarp]
+      modulename = "github.com/BetterCorp/cloudflarewarp"
+      version = "v1.3.0"
 
 EOF
         change_mode = "restart"
