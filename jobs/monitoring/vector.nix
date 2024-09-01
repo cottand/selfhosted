@@ -1,5 +1,5 @@
 let
-  lib = import ../lib;
+  lib = (import ../lib) {};
   version = "0.32.X-debian";
   cpu = 120;
   mem = 200;

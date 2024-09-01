@@ -1,5 +1,5 @@
 let
-  lib = import ../lib;
+  lib = (import ../lib) {};
   version = "11.1.3";
   cpu = 100;
   mem = 200;
@@ -22,7 +22,7 @@ lib.mkJob "grafana" {
       lTarget = "\${meta.controlPlane}";
       operand = "=";
       rTarget = "true";
-      weight = -50;
+      weight = -80;
     }];
     count = 2;
     network = {

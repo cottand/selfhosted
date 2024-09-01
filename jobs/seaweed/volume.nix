@@ -1,6 +1,6 @@
 # modified original from https://github.com/watsonian/seaweedfs-nomad
 let
-  lib = import ./../lib;
+  lib = (import ./../lib) {};
 
   ports = {
     http = 7002;

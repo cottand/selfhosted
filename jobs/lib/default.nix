@@ -1,6 +1,7 @@
-# utilities to write Jobs in Nix
+{ nixpkgs ? (builtins.getFlake "github:nixos/nixpkgs/0ef93bf")
+, ...
+}: # utilities to write Jobs in Nix
 let
-  nixpkgs = builtins.getFlake "github:nixos/nixpkgs/0ef93bf";
   lib = nixpkgs.legacyPackages.${builtins.currentSystem}.lib;
   check = have: expected:
     if have != expected then (throw "assertion failed: got ${builtins.toJSON have} but expected ${builtins.toJSON expected}") else "ok";
@@ -114,129 +115,6 @@ rec {
       id = name;
     };
   };
-
-  mkServiceJob =
-    args@{ name
-    , cpu
-    , memMb
-      /**
-      * see https://developer.hashicorp.com/nomad/docs/job-specification/upstreams#upstreams-parameters
-      * for example:
-      * { name = <name>; localBindPort = <port>; }
-      */
-    , upstream
-    , version
-    , ports
-    , httpTags ? [ ]
-    , count ? 1
-    , env ? { }
-    , extraTaskConfig ? { }
-    , service ? { }
-    ,
-    }:
-    let
-      ports = assert (args.ports ? "http") ; (args.ports // { otlp = 9001; });
-      sidecarResources = with builtins; mapAttrs (_: ceil) {
-        cpu = 0.20 * cpu;
-        memoryMB = 0.25 * memMb;
-        memoryMaxMB = 0.25 * memMb + 100;
-      };
-      inherit (lib.attrsets) recursiveUpdate;
-    in
-    mkJob name {
-      update = {
-        maxParallel = 1;
-        autoRevert = true;
-        autoPromote = true;
-        canary = 1;
-      };
-
-      group.${name} = {
-        affinities = [{
-          lTarget = "\${meta.controlPlane}";
-          operand = "=";
-          rTarget = "true";
-          weight = -50;
-        }];
-        inherit count;
-        network = {
-          mode = "bridge";
-          dynamicPorts = [
-            { label = "metrics"; }
-          ];
-          reservedPorts = [ ];
-        };
-        service = {
-          "${name}-http" = rec {
-            connect = {
-              sidecarService.proxy = {
-                upstream = upstream // {
-                  "tempo-otlp-grpc-mesh".localBindPort = ports.otlp;
-                };
-
-                config = mkEnvoyProxyConfig {
-                  otlpService = "proxy-${name}-http";
-                  otlpUpstreamPort = ports.otlp;
-                  protocol = "http";
-                };
-              };
-              sidecarTask.resources = sidecarResources;
-            };
-            # TODO implement http healthcheck
-            port = toString ports.http;
-            meta.metrics_port = "\${NOMAD_HOST_PORT_metrics}";
-            meta.metrics_path = "/metrics";
-            checks = [{
-              expose = true;
-              name = "metrics";
-              portLabel = "metrics";
-              type = "http";
-              path = meta.metrics_path;
-              interval = 10 * seconds;
-              timeout = 3 * seconds;
-            }];
-            tags = httpTags;
-          };
-        } // service // (if ports ? "grpc" then {
-          "${name}-grpc" = {
-            connect = {
-              sidecarService.proxy.config = mkEnvoyProxyConfig {
-                otlpService = "proxy-${name}-grpc";
-                otlpUpstreamPort = ports.otlp;
-                protocol = "grpc";
-              };
-              sidecarTask.resources = sidecarResources;
-            };
-            port = toString ports.grpc;
-          };
-        } else { });
-
-        task.${name} = (
-          recursiveUpdate
-            {
-              driver = "docker";
-              vault = { };
-
-              config = {
-                image = "ghcr.io/cottand/selfhosted/${name}:${version}";
-              };
-              env = env // ({
-                HTTP_HOST = localhost;
-                HTTP_PORT = toString ports.http;
-                OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = "http://localhost:${toString ports.otlp}";
-                OTEL_SERVICE_NAME = name;
-              }) // (if ports ? "grpc" then { GRPC_PORT = toString ports.grpc; } else { });
-              resources = {
-                cpu = cpu;
-                memoryMb = memMb;
-                memoryMaxMb = builtins.ceil (2 * memMb);
-              };
-            }
-            extraTaskConfig
-        );
-      };
-    };
-
 
   cosmo.ip = "10.10.0.1";
   elvis.ip = "10.10.1.1";
