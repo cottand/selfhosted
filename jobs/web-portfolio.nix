@@ -18,7 +18,7 @@ lib.mkJob "web-portfolio" {
       lTarget = "\${meta.controlPlane}";
       operand = "=";
       rTarget = "true";
-      weight = -50;
+      weight = -80;
     }];
     count = 2;
     network = {

@@ -23,4 +23,4 @@ certs/mesh**
 
 result
 
-services/lib/proto/**/**.pbp.go
+#services/lib/proto/**/**.pb.go

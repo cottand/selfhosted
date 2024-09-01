@@ -1,26 +1,25 @@
-package main
+package module
 
 import (
 	"context"
 	"crypto"
 	"database/sql"
 	"encoding/hex"
-	s_portfolio_stats "github.com/cottand/selfhosted/services/lib/proto/s-portfolio-stats"
+	s_rpc_portfolio_stats "github.com/cottand/selfhosted/services/lib/proto/s-rpc-portfolio-stats"
 	"github.com/monzo/terrors"
 	"google.golang.org/protobuf/types/known/emptypb"
-	"log/slog"
 	"strings"
 	"time"
 )
 
 type ProtoHandler struct {
-	s_portfolio_stats.UnimplementedPortfolioStatsServer
+	s_rpc_portfolio_stats.UnimplementedPortfolioStatsServer
 
 	db   *sql.DB
 	hash *crypto.Hash
 }
 
-var _ s_portfolio_stats.PortfolioStatsServer = &ProtoHandler{}
+var _ s_rpc_portfolio_stats.PortfolioStatsServer = &ProtoHandler{}
 
 var excludeUrls = []string{
 	"/static",
@@ -29,9 +28,7 @@ var excludeUrls = []string{
 
 var salt = []byte{4, 49, 127, 104, 174, 252, 225, 13}
 
-func (p *ProtoHandler) Report(ctx context.Context, visit *s_portfolio_stats.Visit) (*emptypb.Empty, error) {
-	slog.Info("Received visit! ", "ip", visit.Ip)
-
+func (p *ProtoHandler) Report(ctx context.Context, visit *s_rpc_portfolio_stats.Visit) (*emptypb.Empty, error) {
 	for _, urlSub := range excludeUrls {
 		if strings.Contains(visit.Url, urlSub) {
 			return &emptypb.Empty{}, nil
@@ -39,7 +36,7 @@ func (p *ProtoHandler) Report(ctx context.Context, visit *s_portfolio_stats.Visi
 	}
 	var sha256 = crypto.SHA256.New()
 	sha256.Write(salt)
-	sha256.Write([]byte(visit.Ip))
+	sha256.Write([]byte(normaliseIp(visit.Ip)))
 	sha256.Write([]byte(visit.UserAgent))
 	hashAsString := hex.EncodeToString(sha256.Sum(nil))
 
@@ -50,4 +47,16 @@ func (p *ProtoHandler) Report(ctx context.Context, visit *s_portfolio_stats.Visi
 	}
 
 	return &emptypb.Empty{}, nil
+}
+
+// cloudflare may report several IPs, so we take the first one only
+func normaliseIp(str string) string {
+	if !strings.Contains(str, ",") {
+		return str
+	}
+	split := strings.Split(str, ", ")
+	if len(split) != 2 {
+		return str
+	}
+	return split[0]
 }

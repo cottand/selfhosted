@@ -2,7 +2,7 @@ job "whoami" {
   affinity {
     attribute = "${meta.controlPlane}"
     value     = "true"
-    weight    = -50
+    weight    = -70
   }
   group "whoami" {
     count = 1

@@ -5,6 +5,7 @@
 { self, system, stdenvNoCC, lib, ... }:
 let
   inherit (lib.asserts) assertMsg;
+  inherit (self.legacyPackages.${system}) services;
   noDerivationTest = { name, errorMsg, checkPhase ? "", assertThat ? true, }:
     stdenvNoCC.mkDerivation {
       inherit checkPhase name;
@@ -16,17 +17,5 @@ let
       '';
       _ASSERT = assertMsg assertThat errorMsg;
     };
-in
-{
-  servicesHaveImageAttribute = noDerivationTest {
-    name = "services-have-image-attribute";
-    assertThat = with builtins;
-      let
-        services = self.legacyPackages.${system}.services;
-        hasImageAttr = name: svc: assertMsg (svc ? "image") "expected to find .image attribute in ${svc}";
-      in
-      all (x: x) (attrValues (mapAttrs hasImageAttr services));
-    errorMsg = "expected all services to have a .image attribute";
-  };
-
-}
+  servicesBins = builtins.mapAttrs (_: svc: svc.bin) services;
+in servicesBins

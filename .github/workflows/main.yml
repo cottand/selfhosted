@@ -8,7 +8,7 @@ permissions:
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "monolith" ]
 
 env:
   # Use docker.io for Docker Hub if empty
@@ -44,7 +44,7 @@ jobs:
 
       - uses: DeterminateSystems/magic-nix-cache-action@main
 
-      - name: Build images
+      - name: Build services image
         run: |
           nix build -L .#scripts.all-images
 

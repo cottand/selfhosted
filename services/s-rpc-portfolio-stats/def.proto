@@ -1,5 +1,5 @@
 syntax = "proto3";
-package s_portfolio_stats;
+package s_rpc_portfolio_stats;
 
 option go_package = "github.com/Cottand/selfosted/services/lib/proto/s-rpc-portfolio-stats";
 

@@ -71,14 +71,12 @@ lib.mkJob "seaweed-volume" {
         # load-balanced as usual
         "traefik.http.routers.\${NOMAD_GROUP_NAME}-http.entrypoints=web,websecure"
         "traefik.http.routers.\${NOMAD_GROUP_NAME}-http.tls=true"
-        "traefik.http.routers.\${NOMAD_GROUP_NAME}-http.tls.certresolver=dcotta-vault"
         "traefik.http.routers.\${NOMAD_GROUP_NAME}-http.middlewares=mesh-whitelist@file"
         "traefik.http.routers.\${NOMAD_GROUP_NAME}-http.rule=Host(`seaweed-volume-http.traefik`) && PathPrefix(`/seaweedfsstatic`)"
 
         # node specific
         "traefik.http.routers.${router}.entrypoints=web,websecure"
         "traefik.http.routers.${router}.tls=true"
-        "traefik.http.routers.${router}.tls.certresolver=dcotta-vault"
         "traefik.http.routers.${router}.middlewares=mesh-whitelist@file,${router}-stripprefix"
         "traefik.http.routers.${router}.rule=Host(`seaweed-volume-http.traefik`) && PathPrefix(`/\${node.unique.name}`)"
         "traefik.http.middlewares.${router}-stripprefix.stripprefix.prefixes=/\${node.unique.name}"

@@ -47,7 +47,6 @@ lib.mkJob "seaweed-webdav" {
         "traefik.consulcatalog.connect=true"
         "traefik.http.routers.\${NOMAD_GROUP_NAME}-http.entrypoints=web,websecure"
         "traefik.http.routers.\${NOMAD_GROUP_NAME}-http.tls=true"
-        "traefik.http.routers.\${NOMAD_GROUP_NAME}-http.tls.certresolver=dcotta-vault"
         "traefik.http.routers.\${NOMAD_GROUP_NAME}-http.middlewares=mesh-whitelist@file"
       ];
     };

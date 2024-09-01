@@ -53,7 +53,6 @@ let
         "traefik.consulcatalog.connect=true"
         "traefik.http.routers.seaweed-master.entrypoints=web,websecure"
         "traefik.http.routers.seaweed-master.tls=true"
-        "traefik.http.routers.seaweed-master.tls.certresolver=dcotta-vault"
       ];
     };
     service."seaweed-master-grpc" = {
@@ -68,7 +67,6 @@ let
         "traefik.consulcatalog.connect=true"
         "traefik.http.routers.seaweed-master-grpc.entrypoints=web,websecure"
         "traefik.http.routers.seaweed-master-grpc.tls=true"
-        "traefik.http.routers.seaweed-master-grpc.tls.certresolver=dcotta-vault"
         "traefik.http.services.seaweed-master-grpc.loadbalancer.server.scheme=h2c"
       ];
     };
@@ -104,7 +102,6 @@ let
         "traefik.consulcatalog.connect=true"
         "traefik.http.routers.seaweed-master-http-${node}.entrypoints=web,websecure"
         "traefik.http.routers.seaweed-master-http-${node}.tls=true"
-        "traefik.http.routers.seaweed-master-http-${node}.tls.certresolver=dcotta-vault"
       ];
     };
     service."seaweed-master-metrics" = rec {
