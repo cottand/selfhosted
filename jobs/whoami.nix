@@ -1,4 +1,4 @@
-let lib = import ./lib; in
+let lib = (import ./lib) {}; in
 {
   job = lib.transformJob {
     name = "whoami";

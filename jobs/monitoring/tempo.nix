@@ -1,5 +1,5 @@
 let
-  lib = import ../lib;
+  lib = (import ../lib) {};
   version = "2.3.1";
   cpu = 256;
   mem = 700;

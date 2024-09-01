@@ -1,5 +1,5 @@
 let
-  lib = import ./lib;
+  lib = (import ./lib) {};
   otlpPort = 9001;
 in
 lib.mkJob "debug" {

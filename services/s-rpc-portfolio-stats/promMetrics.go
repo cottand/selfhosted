@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"github.com/cottand/selfhosted/services/lib/bedrock"
 	"github.com/monzo/terrors"
 	"github.com/prometheus/client_golang/prometheus"
@@ -33,11 +34,11 @@ func RefreshPromStats(ctx context.Context, db *sql.DB) {
 	day := 24 * time.Hour
 	for {
 		accumulatedErr := errors.Join(
-			refreshSince(ctx, db, 0),
-			refreshSince(ctx, db, day),
-			refreshSince(ctx, db, 7*day),
-			refreshSince(ctx, db, 30*day),
-			refreshSince(ctx, db, 90*day),
+			refreshPageVisitsSince(ctx, db, 0),
+			refreshPageVisitsSince(ctx, db, day),
+			refreshPageVisitsSince(ctx, db, 7*day),
+			refreshPageVisitsSince(ctx, db, 30*day),
+			refreshPageVisitsSince(ctx, db, 90*day),
 		)
 		if accumulatedErr != nil {
 			logger.Warn("failed to refresh stats", "errMsg", accumulatedErr)
@@ -53,11 +54,17 @@ func RefreshPromStats(ctx context.Context, db *sql.DB) {
 	}
 }
 
-func refreshSince(ctx context.Context, db *sql.DB, since time.Duration) error {
-	sinceString := since.String()
+func fmtDuration(t time.Duration) string {
+	if t == time.Duration(0) {
+		return "ever"
+	}
+	return fmt.Sprintf("%dd", int(t.Hours()/24))
+}
+
+func refreshPageVisitsSince(ctx context.Context, db *sql.DB, since time.Duration) error {
+	sinceString := fmtDuration(since)
 	sinceAbsolute := time.Now().Add(-since)
 	if since == time.Duration(0) {
-		sinceString = "ever"
 		sinceAbsolute = time.UnixMilli(0)
 	}
 	errParams := map[string]string{"since": sinceString}

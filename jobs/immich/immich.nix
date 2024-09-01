@@ -1,5 +1,5 @@
 let
-  lib = import ../lib;
+  lib = (import ../lib) {};
   version = "v1.109.2";
   domain = "immich.dcotta.com";
   cpu = 220;

@@ -3,7 +3,7 @@ let
   cache = "70MB";
   maxSqlMem = "${toString (mem * 0.5)}MB";
   cpu = 420;
-  mem = 600;
+  mem = 720;
   rpcPort = 26257;
   webPort = 8080;
   sqlPort = 5432;
