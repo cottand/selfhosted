@@ -1,0 +1,76 @@
+package module
+
+import (
+	"context"
+	"database/sql"
+	"errors"
+	"github.com/cottand/selfhosted/services/lib/bedrock"
+	"github.com/monzo/terrors"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+	"time"
+)
+
+var (
+	refreshRate = 30 * time.Second
+	//uniqueVisitInterval = 1 * time.Hour
+
+	visits = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: bedrock.KebabToSnakeCase(Name),
+		Name:      "page_visits",
+		Help:      "Page visits to web_portfolio",
+	}, []string{"since"})
+
+	visitsUnique = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: bedrock.KebabToSnakeCase(Name),
+		Name:      "page_visits_unique",
+		Help:      "Unique page visits to web_portfolio",
+	}, []string{"since"})
+)
+
+// RefreshPromStats returns when ctx is cancelled or done
+func RefreshPromStats(ctx context.Context, db *sql.DB) {
+	day := 24 * time.Hour
+	for {
+		accumulatedErr := errors.Join(
+			refreshSince(ctx, db, 0),
+			refreshSince(ctx, db, day),
+			refreshSince(ctx, db, 7*day),
+			refreshSince(ctx, db, 30*day),
+			refreshSince(ctx, db, 90*day),
+		)
+		if accumulatedErr != nil {
+			logger.Warn("failed to refresh stats", "errMsg", accumulatedErr)
+		}
+		select {
+		case <-ctx.Done():
+			return
+
+		default:
+			time.Sleep(refreshRate)
+			continue
+		}
+	}
+}
+
+func refreshSince(ctx context.Context, db *sql.DB, since time.Duration) error {
+	sinceString := since.String()
+	sinceAbsolute := time.Now().Add(-since)
+	if since == time.Duration(0) {
+		sinceString = "ever"
+		sinceAbsolute = time.UnixMilli(0)
+	}
+	errParams := map[string]string{"since": sinceString}
+	query := `select count(*) from "s-rpc-portfolio-stats".visit where inserted_at > ($1)::timestamp`
+	res, err := db.QueryContext(ctx, query, sinceAbsolute)
+	if err != nil {
+		return terrors.Augment(err, "failed to query visits", errParams)
+	}
+	var counted int64
+	err = res.Scan(counted)
+	if err != nil {
+		return terrors.Augment(err, "failed to scan visits query result", nil)
+	}
+	visits.With(prometheus.Labels{"since": sinceString}).Set(float64(counted))
+	return nil
+}

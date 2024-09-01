@@ -1,6 +1,7 @@
 package module
 
 import (
+	"context"
 	"embed"
 	"github.com/cottand/selfhosted/services/lib/bedrock"
 	"github.com/cottand/selfhosted/services/lib/mono"
@@ -32,8 +33,13 @@ func InitService() {
 
 	notify := mono.Register(this)
 
+	refreshCtx, refreshCancel := context.WithCancel(context.Background())
+
+	go RefreshPromStats(refreshCtx, db)
+
 	go func() {
 		_, _ = <-notify
+		refreshCancel()
 		if db.Close() != nil {
 			logger.Error(terrors.Propagate(err).Error(), "Failed to close DB", "service", Name)
 		}

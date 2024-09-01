@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"os"
 	"strconv"
+	"strings"
 )
 
 import (
@@ -14,6 +15,10 @@ import (
 )
 
 type ShutdownFunc = func(ctx context.Context) error
+
+func KebabToSnakeCase(name string) string {
+	return strings.ReplaceAll(name, "-", "_")
+}
 
 func init() {
 	// set a json logger:
@@ -24,7 +29,7 @@ func init() {
 
 func Init(ctx context.Context) ShutdownFunc {
 
-	shutdown, err := setupOTelSDK(ctx, "name-todo")
+	shutdown, err := setupOTelSDK(ctx)
 
 	if err != nil {
 		err = terrors.Augment(err, "failed to start otlp sdk", nil)
