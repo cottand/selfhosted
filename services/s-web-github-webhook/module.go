@@ -14,7 +14,7 @@ import (
 )
 import "github.com/cottand/selfhosted/services/lib/bedrock"
 
-var Name = "s-web-github"
+var Name = "s-web-github-webhook"
 
 var logger = slog.With("service_module", Name)
 
@@ -27,6 +27,7 @@ func InitService() {
 	}
 
 	mux := http.NewServeMux()
+	mux.Handle("/", handlePush())
 
 	srv := &http.Server{
 		Addr:         "localhost:7002",

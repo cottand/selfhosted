@@ -9,7 +9,7 @@
 {
   s-rpc-portfolio-stats = callPackage ./s-rpc-portfolio-stats/package.nix { };
 
-  s-web-github = callPackage ./s-web-github/package.nix { };
+  s-web-github-webhook = callPackage ./s-web-github-webhook/package.nix { };
   s-web-portfolio = callPackage ./s-web-portfolio/package.nix { };
 
   services-go = callPackage ./package.nix { };
