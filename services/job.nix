@@ -1,7 +1,9 @@
+{ version ? "d9b2485"
+, ...
+}:
 let
   lib = (import ../jobs/lib) { };
   name = "services-go";
-  version = "d9b2485";
   cpu = 120;
   mem = 500;
   ports = {

@@ -7,8 +7,8 @@
 , protobuf
 , protoc-gen-go
 , protoc-gen-go-grpc
-, buildEnv
-, symlinkJoin
+, writeScriptBin
+, yaegi
 , ...
 }:
 let
@@ -64,4 +64,10 @@ rec {
       concatted = builtins.concatStringsSep "\n" perServiceCommand;
     in
     runCommandLocal "protos-all-services" { } concatted;
+
+  buildYaegiScript = name: filePath: writeScriptBin name ''
+    #! ${yaegi}/bin/yaegi
+
+    ${builtins.readFile filePath}
+  '';
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/cottand/selfhosted/services/lib/mono"
 	"github.com/monzo/terrors"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel"
 	"log"
 	"log/slog"
 	"net"
@@ -17,6 +18,8 @@ import "github.com/cottand/selfhosted/services/lib/bedrock"
 var Name = "s-web-github-webhook"
 
 var logger = slog.With("service_module", Name)
+
+var tracer = otel.Tracer(Name)
 
 func InitService() {
 	ctx := context.Background()
