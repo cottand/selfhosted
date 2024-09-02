@@ -5,12 +5,12 @@
 
   # templates a nomad nix file into JSON and calls nomad run on it
   # usage: nixmad path/to/job.nix
-#  nixmad = writeShellScriptBin "nixmad" ''
-#    set -e
-#    ${nix}/bin/nix eval -f $1 --json --show-trace | ${nomad}/bin/nomad run -json -
-#  '';
+  #  nixmad = writeShellScriptBin "nixmad" ''
+  #    set -e
+  #    ${nix}/bin/nix eval -f $1 --json --show-trace | ${nomad}/bin/nomad run -json -
+  #  '';
 
-    nixmad = callPackage ./nixmad/package.nix {};
+  nixmad = callPackage ./nixmad/package.nix { inherit self; };
 
   # fetches a secret from bitwarden-secret by ID
   # usage: bws-get <ID>
