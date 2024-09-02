@@ -1,7 +1,18 @@
-{ buildGoModule, dockerTools, bash, buildEnv, system, util, curlMinimal, ... }:
+{ buildGoModule
+, dockerTools
+, bash
+, buildEnv
+, system
+, util
+, curlMinimal
+, pkg-config
+, nixVersions
+, ...
+}:
 let
   name = "services-go";
   src = util.servicesSrc;
+
 
   assetsEnv = buildEnv {
     name = "${name}-assets";
@@ -15,6 +26,9 @@ let
     inherit name src;
     vendorHash = null;
     ldflags = [ "-X github.com/cottand/selfhosted/services/lib/bedrock.nixAssetsDir=${assetsEnv.outPath}" ];
+    nativeBuildInputs = [ pkg-config ];
+    buildInputs = [  nixVersions.latest ];
+    CGO_ENABLED = 1;
     postInstall = ''
       mv $out/bin/services $out/bin/${name}
     '';

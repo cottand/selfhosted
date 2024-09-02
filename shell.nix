@@ -11,6 +11,8 @@
 , attic
 , bws
 , go
+, pkg-config
+, nixVersions
 , ...
 }: mkShell {
   name = "selfhosted-dev";
@@ -26,7 +28,12 @@
     wander
     attic
     bws
+
+    # for development
     go
+    pkg-config
+    nixVersions.latest
+
 
     scripts.nixmad
     scripts.bws-get

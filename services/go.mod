@@ -4,6 +4,7 @@ go 1.22.3
 
 require (
 	github.com/XSAM/otelsql v0.32.0
+	github.com/farcaller/gonix v0.3.2
 	github.com/golang-migrate/migrate/v4 v4.17.1
 	github.com/jackc/pgx/v5 v5.6.0
 	github.com/monzo/terrors v0.0.0-20240312165114-073654f2beb9
