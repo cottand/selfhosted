@@ -20,11 +20,11 @@ rec {
     exclude = [ (nix-filter.matchExt "nix") ];
   };
 
-  servicesSrc = cleanNixFiles (sources.cleanSource ./services);
+  devGoSrc = cleanNixFiles (sources.cleanSource ./dev-go);
 
-  cleanSourceForService = name: nix-filter {
-    root = servicesSrc;
-    include = [ "lib" "vendor" "go.mod" "go.sum" name ];
+  cleanSourceForGoService = name: nix-filter {
+    root = devGoSrc;
+    include = [ "lib" "vendor" "go.mod" "go.sum" "services/${name}" ];
   };
 
   /**
@@ -32,7 +32,7 @@ rec {
   */
   protosFor = serviceName:
     let
-      svc = "${cleanSourceForService serviceName}/${serviceName}";
+      svc = "${cleanSourceForGoService serviceName}/services/${serviceName}";
       protoPath = "${svc}/def.proto";
     in
     runCommand "protos-for-${serviceName}"

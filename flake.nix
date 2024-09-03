@@ -52,7 +52,7 @@
       in
       rec {
 
-        legacyPackages.services = (import ./services) pkgs;
+        legacyPackages.services = (import ./dev-go/services) pkgs;
         legacyPackages.scripts = (import ./scripts) pkgsWithSelf;
         legacyPackages.util = (import ./util.nix) pkgsWithSelf;
 

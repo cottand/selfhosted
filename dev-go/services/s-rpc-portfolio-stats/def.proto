@@ -1,0 +1,19 @@
+syntax = "proto3";
+package s_rpc_portfolio_stats;
+
+option go_package = "github.com/Cottand/selfosted/dev-go/lib/proto/s-rpc-portfolio-stats";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+
+message Visit {
+  google.protobuf.Timestamp last_updated = 1;
+  string ip = 2;
+  string url = 3;
+  string userAgent = 4;
+}
+
+service PortfolioStats {
+  rpc Report (Visit) returns (google.protobuf.Empty) {}
+}
