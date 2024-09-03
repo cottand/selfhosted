@@ -68,6 +68,7 @@ func jobFileToSpec(ctx context.Context, job *pb.Job) (*nomad.Job, error) {
 	if err != nil {
 		return nil, terrors.Augment(err, "failed to decode job json", errParams)
 	}
+	return parsed, nil
 }
 
 func downloadJobFileFor(ctx context.Context, jobPath string, commitSha string) (*string, error) {
