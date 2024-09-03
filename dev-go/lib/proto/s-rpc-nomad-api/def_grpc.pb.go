@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v4.25.3
-// source: def.proto
+// source: s-rpc-nomad-api/def.proto
 
 package s_rpc_nomad_api
 
@@ -20,7 +20,7 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	NomadApi_Deploy_FullMethodName = "/s_rpc_nomad_api.NomadApi/Deploy"
+	NomadApi_Deploy_FullMethodName = "/s_rpc_nomad_api2.NomadApi/Deploy"
 )
 
 // NomadApiClient is the client API for NomadApi service.
@@ -97,7 +97,7 @@ func _NomadApi_Deploy_Handler(srv interface{}, ctx context.Context, dec func(int
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var NomadApi_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "s_rpc_nomad_api.NomadApi",
+	ServiceName: "s_rpc_nomad_api2.NomadApi",
 	HandlerType: (*NomadApiServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -106,5 +106,5 @@ var NomadApi_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "def.proto",
+	Metadata: "s-rpc-nomad-api/def.proto",
 }

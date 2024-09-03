@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v4.25.3
-// source: def.proto
+// source: s-rpc-portfolio-stats/def.proto
 
 package s_rpc_portfolio_stats
 
@@ -106,5 +106,5 @@ var PortfolioStats_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "def.proto",
+	Metadata: "s-rpc-portfolio-stats/def.proto",
 }

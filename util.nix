@@ -32,8 +32,10 @@ rec {
   */
   protosFor = serviceName:
     let
-      svc = "${cleanSourceForGoService serviceName}/services/${serviceName}";
-      protoPath = "${svc}/def.proto";
+      svc = "${cleanSourceForGoService serviceName}/services";
+      protoPath = "${svc}/${serviceName}/def.proto";
+#      go_opt = "module=github.com/Cottand/selfosted/dev-go/lib/proto";
+            go_opt="paths=source_relative";
     in
     runCommand "protos-for-${serviceName}"
       {
@@ -43,7 +45,13 @@ rec {
         mkdir $out
         ${if (builtins.pathExists protoPath)
         then
-         "protoc -I=${svc} --go_out=$out --go_opt=paths=source_relative --go-grpc_out=$out --go-grpc_opt=paths=source_relative def.proto"
+         ''
+           pushd ${svc}
+           protoc -I=./ --go_out=$out --go_opt=${go_opt} --go-grpc_out=$out --go-grpc_opt=${go_opt} ${serviceName}/*.proto
+           popd
+           mv $out/${serviceName}/* $out
+           rm -rf $out/${serviceName}
+           ''
           else
            ""}
       '';
