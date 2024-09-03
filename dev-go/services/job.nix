@@ -1,8 +1,8 @@
-{ version ? "d9b2485"
+{ version ? "da21824"
 , ...
 }:
 let
-  lib = (import ../jobs/lib) { };
+  lib = (import ../../jobs/lib) { };
   name = "services-go";
   cpu = 120;
   mem = 500;

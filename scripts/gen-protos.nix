@@ -5,11 +5,11 @@ let
     (name: (if (self.legacyPackages.${system}.services.${name} ? "protos") then
       ''
         generated=$(nix build .#services.${name}.protos --no-link --print-out-paths -L)
-        rm services/lib/proto/${name}/* || 0
-        mkdir -p services/lib/proto/${name}
+        rm dev-go/lib/proto/${name}/* || 0
+        mkdir -p dev-go/lib/proto/${name}
 
-        cat $generated/def.pb.go >> services/lib/proto/${name}/def.pb.go
-        cat $generated/def_grpc.pb.go >> services/lib/proto/${name}/def_grpc.pb.go
+        cat $generated/def.pb.go >> dev-go/lib/proto/${name}/def.pb.go
+        cat $generated/def_grpc.pb.go >> dev-go/lib/proto/${name}/def_grpc.pb.go
       '' else ""
     ))
     services;
@@ -23,7 +23,7 @@ writeShellScriptBin "gen-protos" ''
     exit -1
   fi
 
-  proto="services/lib/proto"
+  proto="dev-go/services/lib/proto"
   mkdir -p $proto
 
   ${concatted}

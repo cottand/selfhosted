@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"github.com/cottand/selfhosted/dev-go/lib/nix"
 	"github.com/farcaller/gonix"
 	"github.com/monzo/terrors"
@@ -31,12 +32,12 @@ func RunCommand(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if val.Type() == gonix.NixTypeThunk && versionFlag == "" {
-		importedWithParams := `(import ./) { }`
+	if val.Type() == gonix.NixTypeFunction && versionFlag == "" {
+		importedWithParams := fmt.Sprintf(`(import ./%s ) { }`, jobFile)
 		json, err = nix.EvalJson(importedWithParams, pwd)
 	}
-	if val.Type() == gonix.NixTypeThunk && versionFlag != "" {
-		importedWithParams := `(import ./) { version = "` + versionFlag + `"; }`
+	if val.Type() == gonix.NixTypeFunction && versionFlag != "" {
+		importedWithParams := fmt.Sprintf(`(import ./%s ) { version = "%s"; }`, jobFile, versionFlag)
 		json, err = nix.EvalJson(importedWithParams, pwd)
 	} else if val.Type() == gonix.NixTypeAttrs {
 		json, err = nix.EvalJson(importedFile, pwd)
@@ -48,9 +49,9 @@ func RunCommand(cmd *cobra.Command, args []string) error {
 		return errors.New("failed to evaluate imported template JSON: " + err.Error())
 	}
 
-	cmd.Printf("done.")
-	if versionFlag != "" {
-		cmd.Printf("warning: ignoring version flag as job does not take arguments")
+	cmd.Println("done.")
+	if versionFlag != "" && val.Type() != gonix.NixTypeFunction {
+		cmd.Println("warning: ignoring version flag as job does not take arguments")
 	}
 	b := bytes.NewBufferString(json)
 

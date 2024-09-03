@@ -27,6 +27,9 @@ func Eval(expr, evalPath string) (*gonix.Value, error) {
 func EvalJson(expr, evalPath string) (string, error) {
 	withJson := "builtins.toJSON ( " + expr + " )"
 	val, err := Eval(withJson, evalPath)
+	if err != nil {
+		return "", terrors.Propagate(err)
+	}
 
 	strVal, err := val.GetString()
 	if err != nil {

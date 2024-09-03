@@ -13,6 +13,7 @@
 , go
 , pkg-config
 , nixVersions
+, pkgs
 , ...
 }: mkShell {
   name = "selfhosted-dev";
@@ -39,6 +40,8 @@
     scripts.bws-get
     scripts.keychain-get
     scripts.gen-protos
+
+    pkgs.protoc-gen-go
   ];
   shellHook = ''
     export BWS_ACCESS_TOKEN=$(security find-generic-password -gw -l "bitwarden/secret/m3-cli")

@@ -1,5 +1,5 @@
 syntax = "proto3";
-package s_rpc_nomad_api;
+package s_rpc_nomad_api2;
 
 option go_package = "github.com/Cottand/selfosted/dev-go/lib/proto/s-rpc-nomad-api";
 
