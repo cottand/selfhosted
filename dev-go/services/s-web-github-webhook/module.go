@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/cottand/selfhosted/dev-go/lib/mono"
+	s_rpc_nomad_api "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-nomad-api"
 	"github.com/monzo/terrors"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
@@ -16,10 +17,12 @@ import (
 import "github.com/cottand/selfhosted/dev-go/lib/bedrock"
 
 var Name = "s-web-github-webhook"
-
 var logger = slog.With("service_module", Name)
-
 var tracer = otel.Tracer(Name)
+
+type scaffold struct {
+	nomad s_rpc_nomad_api.NomadApiClient
+}
 
 func InitService() {
 	ctx := context.Background()
@@ -29,15 +32,16 @@ func InitService() {
 		log.Fatalf(terrors.Propagate(err).Error())
 	}
 
-	mux := http.NewServeMux()
-	mux.Handle("/", handlePush())
+	s := &scaffold{
+		nomad: s_rpc_nomad_api.NewNomadApiClient(conn),
+	}
 
 	srv := &http.Server{
 		Addr:         "localhost:7002",
 		BaseContext:  func(_ net.Listener) context.Context { return ctx },
 		ReadTimeout:  time.Second,
 		WriteTimeout: 10 * time.Second,
-		Handler:      otelhttp.NewHandler(mux, Name+"-http"),
+		Handler:      otelhttp.NewHandler(s.MakeHTTPHandler(), Name+"-http"),
 	}
 
 	var serverErr error
