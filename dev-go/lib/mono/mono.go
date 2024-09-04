@@ -75,7 +75,7 @@ func RunRegistered() {
 		}
 	}()
 
-	slog.Info("successfully registered all services in mono, listening grpc", "host", config.HttpHost, "port", config.GrpcPort)
+	slog.Info("successfully registered all services in mono 🐒, listening grpc", "host", config.HttpHost, "port", config.GrpcPort)
 
 	err = grpcServer.Serve(lis)
 
