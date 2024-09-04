@@ -10,9 +10,17 @@ import (
 	"time"
 )
 
-type PushEvent struct {
-	Ref   string `json:"ref"`
-	After string `json:"after"`
+type WorkflowJobEntity struct {
+	HeadBranch string `json:"head_branch"`
+	HeadSha    string `json:"head_sha"`
+	Status     string `json:"status"`
+	Conclusion string `json:"conclusion"`
+	Name       string `json:"name"`
+}
+
+type WorkflowJobEvent struct {
+	Action      string             `json:"action"`
+	WorkflowJob *WorkflowJobEntity `json:"workflow_job,omitempty"`
 }
 
 var lastApplied = time.Unix(0, 0)
@@ -33,29 +41,39 @@ func (s *scaffold) handlePush(writer http.ResponseWriter, request *http.Request)
 	defer func() {
 		lastApplied = time.Now()
 	}()
-	pushEvent := PushEvent{}
+	event := WorkflowJobEvent{}
 	decoder := json.NewDecoder(request.Body)
-	err := terrors.Propagate(decoder.Decode(&pushEvent))
+	err := terrors.Propagate(decoder.Decode(&event))
 	if err != nil {
 		logger.Warn("could not handle push event", "errorMsg", err.Error())
 		return
 	}
+	if !shouldAcceptEvent(&event) {
+		return
+	}
 	newCtx := context.WithoutCancel(request.Context())
-	go s.deploy(newCtx, pushEvent)
+	go s.deploy(newCtx, event.WorkflowJob.HeadSha)
 }
 
-func (s *scaffold) deploy(ctx context.Context, event PushEvent) {
+func shouldAcceptEvent(event *WorkflowJobEvent) bool {
+	if event.Action != "completed" ||
+		event.WorkflowJob == nil ||
+		event.WorkflowJob.HeadBranch != "master" ||
+		event.WorkflowJob.Name != "build-images" ||
+		event.WorkflowJob.Status != "complete" ||
+		event.WorkflowJob.Conclusion != "success" {
+		return false
+	}
+	return true
+}
+
+func (s *scaffold) deploy(ctx context.Context, commit string) {
 
 	ctx, span := tracer.Start(ctx, "deployOnPush")
 	defer span.End()
 
-	if event.Ref != "refs/heads/master" {
-		logger.Info("push event is not master branch, baling", "ref", event.Ref)
-		return
-	}
-
 	deployRequest := &s_rpc_nomad_api.Job{
-		Version:       &s_rpc_nomad_api.Job_Commit{Commit: event.After},
+		Version:       &s_rpc_nomad_api.Job_Commit{Commit: commit},
 		JobPathInRepo: "dev-go/services/job.nix",
 	}
 	_, err := s.nomad.Deploy(ctx, deployRequest)
