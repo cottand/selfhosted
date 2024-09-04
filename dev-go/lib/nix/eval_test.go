@@ -5,7 +5,7 @@ import (
 )
 
 func TestEval42(t *testing.T) {
-	str, err := EvalJson("{ answer = 42; }.answer", ".")
+	str, err := EvalJson("{ answer = 42; }.answer", ".", "dummy")
 	if err != nil {
 		t.Fatalf("error during eval: %v", err)
 	}
@@ -15,7 +15,7 @@ func TestEval42(t *testing.T) {
 }
 
 func TestEvalNested42(t *testing.T) {
-	str, err := EvalJson("{ answer.nested.aa = 42; }", ".")
+	str, err := EvalJson("{ answer.nested.aa = 42; }", ".", "dummy")
 	if err != nil {
 		t.Fatalf("error during eval: %v", err)
 	}
@@ -26,7 +26,7 @@ func TestEvalNested42(t *testing.T) {
 }
 
 func TestEvalPathExists(t *testing.T) {
-	str, err := EvalJson("builtins.pathExists ./nix", "/")
+	str, err := EvalJson("builtins.pathExists ./nix", "/", "dummy")
 	if err != nil {
 		t.Fatalf("error during eval: %v", err)
 	}

@@ -6,12 +6,12 @@ import (
 	"path"
 )
 
-func Eval(expr, evalPath string) (*gonix.Value, error) {
+func Eval(expr, evalPath, nixStore string) (*gonix.Value, error) {
 	evalPath = path.Clean(evalPath)
 	errParams := map[string]string{"evalPath": evalPath}
 
 	ctx := gonix.NewContext()
-	store, err := gonix.NewStore(ctx, "daemon", nil)
+	store, err := gonix.NewStore(ctx, nixStore, nil)
 	if err != nil {
 		return nil, terrors.Augment(err, "failed to create a store", errParams)
 	}
@@ -24,9 +24,9 @@ func Eval(expr, evalPath string) (*gonix.Value, error) {
 	return val, nil
 }
 
-func EvalJson(expr, evalPath string) (string, error) {
+func EvalJson(expr, evalPath, nixStore string) (string, error) {
 	withJson := "builtins.toJSON ( " + expr + " )"
-	val, err := Eval(withJson, evalPath)
+	val, err := Eval(withJson, evalPath, nixStore)
 	if err != nil {
 		return "", terrors.Propagate(err)
 	}

@@ -27,20 +27,20 @@ func RunCommand(cmd *cobra.Command, args []string) error {
 
 	cmd.Printf("Evaluating job... ")
 	json := ""
-	val, err := nix.Eval(importedFile, pwd)
+	val, err := nix.Eval(importedFile, pwd, "daemon")
 	if err != nil {
 		return err
 	}
 
 	if val.Type() == gonix.NixTypeFunction && versionFlag == "" {
 		importedWithParams := fmt.Sprintf(`(import ./%s ) { }`, jobFile)
-		json, err = nix.EvalJson(importedWithParams, pwd)
+		json, err = nix.EvalJson(importedWithParams, pwd, "daemon")
 	}
 	if val.Type() == gonix.NixTypeFunction && versionFlag != "" {
 		importedWithParams := fmt.Sprintf(`(import ./%s ) { version = "%s"; }`, jobFile, versionFlag)
-		json, err = nix.EvalJson(importedWithParams, pwd)
+		json, err = nix.EvalJson(importedWithParams, pwd, "daemon")
 	} else if val.Type() == gonix.NixTypeAttrs {
-		json, err = nix.EvalJson(importedFile, pwd)
+		json, err = nix.EvalJson(importedFile, pwd, "daemon")
 	} else {
 		err = errors.New("unexpected type for job: expected a thunk or an attrSet")
 	}
