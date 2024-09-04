@@ -18,12 +18,17 @@ var stagger = 20 * time.Second
 
 func handlePush() http.Handler {
 	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-		go deploy(context.WithoutCancel(request.Context()), request.Body)
+		newCtx := context.WithoutCancel(request.Context())
+		go deploy(newCtx, request.Clone(newCtx).Body)
 		writer.WriteHeader(http.StatusNoContent)
 	})
 }
 
 func deploy(ctx context.Context, body io.ReadCloser) {
+	defer func() {
+		_ = body.Close()
+	}()
+
 	ctx, span := tracer.Start(ctx, "deployOnPush")
 	defer span.End()
 
@@ -32,7 +37,6 @@ func deploy(ctx context.Context, body io.ReadCloser) {
 	}
 	defer func() {
 		lastApplied = time.Now()
-		_ = body.Close()
 	}()
 
 	pushEvent := PushEvent{}
