@@ -39,22 +39,18 @@ func InitService() {
 		fsWithNoCache.ServeHTTP(writer, request)
 	})
 
-	mux := http.NewServeMux()
-
-	mux.Handle("/static/", fs)
-	mux.Handle("/assets/", fs)
-	mux.Handle("/styles/", fs)
-	mux.Handle("/robots.txt", fs)
-	mux.Handle("/CNAME", fs)
-	mux.Handle("/", handleRoot(fs, stats, false))
-	mux.Handle("/api/browse", handleBrowse(stats, conn != nil))
+	scaff := &scaffold{
+		fs:             fs,
+		stats:          stats,
+		doGrpcUpstream: true,
+	}
 
 	srv := &http.Server{
 		Addr:         "localhost:7001",
 		BaseContext:  func(_ net.Listener) context.Context { return ctx },
 		ReadTimeout:  time.Second,
 		WriteTimeout: 10 * time.Second,
-		Handler:      otelhttp.NewHandler(mux, Name+"-http"),
+		Handler:      otelhttp.NewHandler(scaff.MakeHandler(), Name+"-http"),
 	}
 
 	var serverErr error
