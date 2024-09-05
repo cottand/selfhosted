@@ -77,14 +77,14 @@ func evalNixJobJSON(ctx context.Context, jobFilePath string, repoSha string, ver
 
 	evalString := fmt.Sprintf(`
 		let 
-		  flake = builtins.getFlake "github:selfhosted/cottand/%s";
+		  flake = builtins.getFlake "github:cottand/selfhosted/%s";
 		  jobFile = import "${flake}/%s";
 		  withVersion = jobFile { version = "%s"; };
 		in
 		  builtins.toJSON withVersion
 	`, repoSha, jobFilePath, version)
 
-	jobVal, err := state.EvalExpr(fmt.Sprintf(evalString, jobFilePath, version), "/")
+	jobVal, err := state.EvalExpr(evalString, "/")
 	if err != nil {
 		return "", terrors.Augment(err, "failed to eval job expression", errParams)
 	}
