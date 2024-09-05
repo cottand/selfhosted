@@ -49,6 +49,7 @@ func (s *scaffold) handlePush(writer http.ResponseWriter, request *http.Request)
 		return
 	}
 	if !shouldAcceptEvent(&event) {
+		logger.Info("skipping invalid push event")
 		return
 	}
 	newCtx := context.WithoutCancel(request.Context())
@@ -60,7 +61,7 @@ func shouldAcceptEvent(event *WorkflowJobEvent) bool {
 		event.WorkflowJob == nil ||
 		event.WorkflowJob.HeadBranch != "master" ||
 		event.WorkflowJob.Name != "build-images" ||
-		event.WorkflowJob.Status != "complete" ||
+		event.WorkflowJob.Status != "completed" ||
 		event.WorkflowJob.Conclusion != "success" {
 		return false
 	}

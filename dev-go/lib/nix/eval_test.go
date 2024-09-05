@@ -2,6 +2,7 @@ package nix
 
 import (
 	"os"
+	"path"
 	"testing"
 )
 
@@ -46,5 +47,27 @@ func TestEvalPathExists(t *testing.T) {
 	}
 	if str != "true" {
 		t.Fatalf("error during eval: expected `true`, got `%v`", str)
+	}
+}
+
+func TestEvalFlake(t *testing.T) {
+	if inNixBuild() {
+		t.Skip("test requires non nix environment")
+	}
+
+	evalStr := `
+let 
+  flake = builtins.getFlake "github:cottand/selfhosted/9bfc3723cde87da31b385afa49ea7fe4d6d354c4";
+in
+ "${flake}/README.md"
+`
+
+	str, err := EvalJson(evalStr, "/", "dummy")
+	if err != nil {
+		t.Fatalf("error during eval: %v", err)
+	}
+
+	if path.Base(path.Clean(str)) != `"README.md"` {
+		t.Fatalf("expected a path ending in README.md, got `%v`", str)
 	}
 }
