@@ -7,6 +7,7 @@
 , curlMinimal
 , pkg-config
 , nixVersions
+, cacert
 , ...
 }:
 let
@@ -27,7 +28,7 @@ let
     vendorHash = null;
     ldflags = [ "-X github.com/cottand/selfhosted/dev-go/lib/bedrock.nixAssetsDir=${assetsEnv.outPath}" ];
     nativeBuildInputs = [ pkg-config ];
-    buildInputs = [  nixVersions.latest ];
+    buildInputs = [ nixVersions.latest ];
     CGO_ENABLED = 1;
     postInstall = ''
       mv $out/bin/services $out/bin/${name}
@@ -41,6 +42,7 @@ let
     inherit name;
     copyToRoot = binaryEnv;
     config.Cmd = [ "/bin/${name}" ];
+    config.Env = [ "SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt" ];
   };
 in
 binaryEnv // { inherit image bin; }
