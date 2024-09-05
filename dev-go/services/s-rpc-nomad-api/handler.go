@@ -1,7 +1,6 @@
 package module
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -9,7 +8,6 @@ import (
 	"github.com/farcaller/gonix"
 	nomad "github.com/hashicorp/nomad/api"
 	"github.com/monzo/terrors"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"path"
 )
@@ -42,23 +40,17 @@ func jobFileToSpec(ctx context.Context, job *pb.Job) (*nomad.Job, error) {
 	if path.Ext(jobPath) != ".nix" {
 		return nil, terrors.New("not_implemented", "for now only nixmad is supported", nil)
 	}
-	shaToDeploy := job.GetCommit()
-	shortSha := shaToDeploy[:7]
+	longSha := job.GetCommit()
+	shortSha := longSha[:7]
 
 	errParams := map[string]string{
 		"file":     jobPath,
 		"shortSha": shortSha,
 	}
 
-	logger.Info("resolved commit", "sha", shaToDeploy, "shortSha", shortSha)
+	logger.Info("resolved commit", "sha", longSha, "shortSha", shortSha)
 
-	f, err := downloadJobFileFor(ctx, jobPath, shortSha)
-
-	if err != nil {
-		return nil, terrors.Augment(err, "failed to download job file", errParams)
-	}
-
-	jobJSON, err := evalNixJobJSON(ctx, *f, shortSha, errParams)
+	jobJSON, err := evalNixJobJSON(ctx, jobPath, longSha, shortSha, errParams)
 	if err != nil {
 		return nil, terrors.Augment(err, "failed to evaluate job file", errParams)
 	}
@@ -71,22 +63,7 @@ func jobFileToSpec(ctx context.Context, job *pb.Job) (*nomad.Job, error) {
 	return parsed, nil
 }
 
-func downloadJobFileFor(ctx context.Context, jobPath string, commitSha string) (*string, error) {
-	jobPath = path.Clean(jobPath)
-	get, err := otelhttp.Get(ctx, "https://github.com/Cottand/selfhosted/raw/"+commitSha+"/"+jobPath)
-	if err != nil {
-		return nil, terrors.Augment(err, "failed to fetch job from GitHub", nil)
-	}
-	bs := new(bytes.Buffer)
-	_, err = bs.ReadFrom(get.Body)
-	if err != nil {
-		return nil, terrors.Augment(err, "failed to read job file into memory", nil)
-	}
-	str := bs.String()
-	return &str, nil
-}
-
-func evalNixJobJSON(ctx context.Context, jobNixStr string, version string, errParams map[string]string) (string, error) {
+func evalNixJobJSON(ctx context.Context, jobFilePath string, repoSha string, version string, errParams map[string]string) (string, error) {
 	ctx, span := tracer.Start(ctx, "evalNixJobJSON")
 	defer span.End()
 
@@ -97,7 +74,17 @@ func evalNixJobJSON(ctx context.Context, jobNixStr string, version string, errPa
 		return "", terrors.Augment(err, "failed to create a store", errParams)
 	}
 	state := store.NewState(nil)
-	jobVal, err := state.EvalExpr(fmt.Sprintf(`builtins.toJSON(( %s ) { version = "%s"; })`, jobNixStr, version), "/")
+
+	evalString := fmt.Sprintf(`
+		let 
+		  flake = builtins.getFlake "github:selfhosted/cottand/%s";
+		  jobFile = import "${flake}/%s";
+		  withVersion = jobFile { version = "%s"; };
+		in
+		  builtins.toJSON withVersion
+	`, repoSha, jobFilePath, version)
+
+	jobVal, err := state.EvalExpr(fmt.Sprintf(evalString, jobFilePath, version), "/")
 	if err != nil {
 		return "", terrors.Augment(err, "failed to eval job expression", errParams)
 	}
