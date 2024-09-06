@@ -16,7 +16,6 @@ import (
 var dbMigrations embed.FS
 
 var Name = "s-rpc-portfolio-stats"
-
 var logger = slog.With("service_module", Name)
 
 func InitService() {
