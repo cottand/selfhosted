@@ -1,5 +1,3 @@
-
-
 resource "nomad_acl_policy" "anonymous" {
   name        = "anonymous"
   description = "Anonymous (unauthenticated) policy"
@@ -43,5 +41,13 @@ resource "nomad_acl_policy" "immich-backup-read-buckets" {
   rules_hcl = file("policies/read-buckets.hcl")
   job_acl {
     job_id = "immich-db-backup"
+  }
+}
+
+resource "nomad_acl_policy" "job-submitter" {
+  name      = "job-submitter"
+  rules_hcl = file("policies/job-submitter.hcl")
+  job_acl {
+    job_id = "services-go"
   }
 }
