@@ -32,16 +32,17 @@ var (
 // RefreshPromStats returns when ctx is cancelled or done
 func RefreshPromStats(ctx context.Context, db *sql.DB) {
 	day := 24 * time.Hour
+	durations := []time.Duration{0, day, 7 * day, 30 * day, 90 * day}
 	for {
-		accumulatedErr := errors.Join(
-			refreshPageVisitsSince(ctx, db, 0),
-			refreshPageVisitsSince(ctx, db, day),
-			refreshPageVisitsSince(ctx, db, 7*day),
-			refreshPageVisitsSince(ctx, db, 30*day),
-			refreshPageVisitsSince(ctx, db, 90*day),
-		)
-		if accumulatedErr != nil {
-			logger.Warn("failed to refresh stats", "err", accumulatedErr)
+		var errs []error
+		for _, duration := range durations {
+			err1 := refreshPageVisitsSince(ctx, db, duration)
+			err2 := refreshUniquePageVisitsSince(ctx, db, duration)
+			errs = append(errs, err1, err2)
+		}
+		accumulated := errors.Join(errs...)
+		if accumulated != nil {
+			logger.Warn("failed to refresh stats", "err", accumulated)
 		}
 		select {
 		case <-ctx.Done():
@@ -82,5 +83,29 @@ func refreshPageVisitsSince(ctx context.Context, db *sql.DB, since time.Duration
 		}
 	}
 	visits.With(prometheus.Labels{"since": sinceString}).Set(float64(counted))
+	return nil
+}
+
+func refreshUniquePageVisitsSince(ctx context.Context, db *sql.DB, since time.Duration) error {
+	sinceString := fmtDuration(since)
+	sinceAbsolute := time.Now().Add(-since)
+	if since == time.Duration(0) {
+		sinceAbsolute = time.UnixMilli(0)
+	}
+	errParams := map[string]string{"since": sinceString}
+	query := `select count(distinct fingerprint_v1) from "s-rpc-portfolio-stats".visit where inserted_at > ($1)::timestamp`
+	rows, err := db.QueryContext(ctx, query, sinceAbsolute)
+	if err != nil {
+		return terrors.Augment(err, "failed to query unique visits", errParams)
+	}
+	defer rows.Close()
+	var counted int64
+	for rows.Next() {
+		err = rows.Scan(&counted)
+		if err != nil {
+			return terrors.Augment(err, "failed to scan unique visits query result", nil)
+		}
+	}
+	visitsUnique.With(prometheus.Labels{"since": sinceString}).Set(float64(counted))
 	return nil
 }
