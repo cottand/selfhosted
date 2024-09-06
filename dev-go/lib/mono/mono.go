@@ -36,10 +36,6 @@ func Register(new Service) <-chan struct{} {
 	return new.registration.notify
 }
 
-func Get(name string) Service {
-	return services[name]
-}
-
 func RunRegistered() {
 	ctx := context.Background()
 	bedrock.Init(ctx)

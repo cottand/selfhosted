@@ -15,7 +15,11 @@ import (
 
 func RunCommand(cmd *cobra.Command, args []string) error {
 	jobFile := path.Clean(args[0])
-	cmd.Printf("Deploying %s ...\n", jobFile)
+	cmd.Printf("Deploying %s", jobFile)
+	if versionFlag != "" {
+		cmd.Printf(" @ %s\n", versionFlag)
+	}
+	cmd.Println("...\n")
 
 	// check if file exists:
 	if _, err := os.Stat(jobFile); errors.Is(err, os.ErrNotExist) {

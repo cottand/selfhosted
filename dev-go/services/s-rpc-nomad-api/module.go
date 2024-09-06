@@ -1,6 +1,7 @@
 package module
 
 import (
+	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
 	"github.com/cottand/selfhosted/dev-go/lib/mono"
 	s_rpc_nomad_api "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-nomad-api"
 	_ "github.com/farcaller/gonix"
@@ -19,15 +20,21 @@ var tracer = otel.Tracer(Name)
 func InitService() {
 	token, ok := os.LookupEnv("NOMAD_TOKEN")
 	if !ok {
-		slog.Error("failed to get NOMAD_TOKEN, aborting init of " + Name)
+		logger.Error("failed to get NOMAD_TOKEN, aborting init")
+		return
+	}
+	rootCa, err := bedrock.GetRootCa()
+	if err != nil {
+		logger.Error("failed to get root ca, aborting init")
 		return
 	}
 	nomadClient, err := nomad.NewClient(&nomad.Config{
-		Address:  "nomad.traefik",
-		SecretID: token,
+		Address:   "https://nomad.traefik/",
+		SecretID:  token,
+		TLSConfig: &nomad.TLSConfig{CACert: rootCa},
 	})
 	if err != nil {
-		slog.Error("failed to create Nomad client, aborting init of " + Name)
+		logger.Error("failed to create Nomad client, aborting init")
 		return
 	}
 	protoHandler := &ProtoHandler{
