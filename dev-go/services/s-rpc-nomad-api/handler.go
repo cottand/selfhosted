@@ -68,8 +68,9 @@ func evalNixJobJSON(ctx context.Context, jobFilePath string, repoSha string, ver
 	defer span.End()
 
 	nixCtx := gonix.NewContext()
+	_ = gonix.SetSetting(nixCtx, "extra-experimental-features", "flakes")
 
-	store, err := gonix.NewStore(nixCtx, "/nix/store", errParams)
+	store, err := gonix.NewStore(nixCtx, "dummy", nil)
 	if err != nil {
 		return "", terrors.Augment(err, "failed to create a store", errParams)
 	}
