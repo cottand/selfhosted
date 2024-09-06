@@ -49,7 +49,7 @@ func (s *scaffold) handlePush(writer http.ResponseWriter, request *http.Request)
 		return
 	}
 	if !shouldAcceptEvent(&event) {
-		logger.Info("skipping invalid push event")
+		logger.Debug("skipping invalid push event")
 		return
 	}
 	newCtx := context.WithoutCancel(request.Context())
