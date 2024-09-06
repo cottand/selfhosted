@@ -30,10 +30,11 @@ lib.mkJob name {
     autoRevert = true;
     autoPromote = true;
     canary = 1;
+    stagger = 5 * lib.seconds;
   };
 
   group.${name} = {
-    count = 2;
+    count = 3;
     network = {
       mode = "bridge";
       dynamicPorts = [

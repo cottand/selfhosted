@@ -41,7 +41,7 @@ func RefreshPromStats(ctx context.Context, db *sql.DB) {
 			refreshPageVisitsSince(ctx, db, 90*day),
 		)
 		if accumulatedErr != nil {
-			logger.Warn("failed to refresh stats", "errMsg", accumulatedErr)
+			logger.Warn("failed to refresh stats", "err", accumulatedErr)
 		}
 		select {
 		case <-ctx.Done():
