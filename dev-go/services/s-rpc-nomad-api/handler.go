@@ -48,7 +48,7 @@ func jobFileToSpec(ctx context.Context, job *pb.Job) (*nomad.Job, error) {
 		"shortSha": shortSha,
 	}
 
-	logger.Info("resolved commit", "sha", longSha, "shortSha", shortSha)
+	logger.Debug("resolved commit", "sha", longSha, "shortSha", shortSha)
 
 	jobJSON, err := evalNixJobJSON(ctx, jobPath, longSha, shortSha, errParams)
 	if err != nil {
