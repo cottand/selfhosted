@@ -23,18 +23,13 @@ func InitService() {
 		logger.Error("failed to get NOMAD_TOKEN, aborting init")
 		return
 	}
-	rootCa, err := bedrock.GetRootCa()
-	if err != nil {
-		logger.Error("failed to get root ca, aborting init")
-		return
-	}
 	nomadClient, err := nomad.NewClient(&nomad.Config{
 		Address:   "https://nomad.traefik/",
 		SecretID:  token,
-		TLSConfig: &nomad.TLSConfig{CACert: rootCa},
+		TLSConfig: &nomad.TLSConfig{CACert: bedrock.GetRootCaFilePath()},
 	})
 	if err != nil {
-		logger.Error("failed to create Nomad client, aborting init")
+		logger.Error("failed to create Nomad client, aborting init", "err", err.Error())
 		return
 	}
 	protoHandler := &ProtoHandler{
