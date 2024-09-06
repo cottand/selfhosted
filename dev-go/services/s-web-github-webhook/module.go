@@ -17,7 +17,7 @@ import (
 import "github.com/cottand/selfhosted/dev-go/lib/bedrock"
 
 var Name = "s-web-github-webhook"
-var logger = slog.With("service_module", Name)
+var logger = slog.With("service", Name)
 var tracer = otel.Tracer(Name)
 
 type scaffold struct {

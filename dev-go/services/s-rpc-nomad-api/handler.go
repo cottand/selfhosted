@@ -55,8 +55,19 @@ func jobFileToSpec(ctx context.Context, job *pb.Job) (*nomad.Job, error) {
 		return nil, terrors.Augment(err, "failed to evaluate job file", errParams)
 	}
 
-	parsed := &nomad.Job{}
-	err = json.Unmarshal([]byte(jobJSON), parsed)
+	// trick to support jobs with and without a job: key
+	// see https://github.com/hashicorp/nomad/blob/main/command/helpers.go#L399
+	eitherJob := struct {
+		NestedJob *nomad.Job `json:"Job"`
+		nomad.Job
+	}{}
+	err = json.Unmarshal([]byte(jobJSON), &eitherJob)
+	var parsed *nomad.Job
+	if eitherJob.NestedJob != nil {
+		parsed = eitherJob.NestedJob
+	} else {
+		parsed = &eitherJob.Job
+	}
 	if err != nil {
 		return nil, terrors.Augment(err, "failed to decode job json", errParams)
 	}
