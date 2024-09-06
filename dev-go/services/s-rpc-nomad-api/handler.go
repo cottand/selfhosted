@@ -72,6 +72,7 @@ func evalNixJobJSON(ctx context.Context, jobFilePath string, repoSha string, ver
 
 	store, err := gonix.NewStore(nixCtx, "dummy", nil)
 	if err != nil {
+		span.RecordError(err)
 		return "", terrors.Augment(err, "failed to create a store", errParams)
 	}
 	state := store.NewState(nil)
@@ -87,14 +88,15 @@ func evalNixJobJSON(ctx context.Context, jobFilePath string, repoSha string, ver
 
 	jobVal, err := state.EvalExpr(evalString, "/")
 	if err != nil {
+		span.RecordError(err)
 		return "", terrors.Augment(err, "failed to eval job expression", errParams)
 	}
 
 	jobJson, err := jobVal.GetString()
 	if err != nil {
+		span.RecordError(err)
 		return "", terrors.Augment(err, "failed to resolve job json to string", errParams)
 	}
 
 	return jobJson, nil
-
 }

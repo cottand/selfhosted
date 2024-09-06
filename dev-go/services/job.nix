@@ -26,7 +26,7 @@ lib.mkJob name {
     weight = -70;
   }];
   update = {
-    maxParallel = 1;
+    maxParallel = 2;
     autoRevert = true;
     autoPromote = true;
     canary = 1;
@@ -41,6 +41,11 @@ lib.mkJob name {
         { label = "metrics"; }
       ];
       reservedPorts = [ ];
+      dns.servers = [
+        "10.10.13.1"
+        "10.10.12.1"
+        "10.10.11.1"
+      ];
     };
 
     service."${name}-http" = rec {
