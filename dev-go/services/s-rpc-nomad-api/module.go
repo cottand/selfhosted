@@ -14,7 +14,7 @@ import (
 
 var Name = "s-rpc-nomad-api"
 
-var logger = slog.With("service_module", Name)
+var logger = slog.With("service", Name)
 var tracer = otel.Tracer(Name)
 
 func InitService() {
