@@ -74,10 +74,9 @@ func shouldIncludeUrl(url string) bool {
 			return false
 		}
 	}
+	matched := false
 	for _, urlSub := range includeList {
-		if !strings.Contains(url, urlSub) {
-			return false
-		}
+		matched = matched || strings.Contains(urlSub, url)
 	}
-	return true
+	return matched
 }
