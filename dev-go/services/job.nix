@@ -127,6 +127,7 @@ lib.mkJob name {
       identities = [{
         env = true;
         changeMode = "restart";
+        ttl = 12 * lib.hours;
       }];
     };
   };
