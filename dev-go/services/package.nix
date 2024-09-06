@@ -42,7 +42,9 @@ let
     inherit name;
     copyToRoot = binaryEnv;
     config.Cmd = [ "/bin/${name}" ];
-    config.Env = [ "SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt" ];
+    config.Env = [
+      "SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt"
+    ];
   };
 in
 binaryEnv // { inherit image bin; }

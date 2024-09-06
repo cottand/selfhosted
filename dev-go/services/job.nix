@@ -92,6 +92,7 @@ lib.mkJob name {
         GRPC_PORT = toString ports.grpc;
         OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = "http://localhost:${toString otlpPort}";
         OTEL_SERVICE_NAME = name;
+        SELFHOSTED_SSL_ROOT_CA = "/local/root_ca.crt";
       };
       resources = {
         cpu = cpu;
@@ -105,6 +106,13 @@ lib.mkJob name {
           {{with secret "secret/data/services/db-rw-default"}}
           CRDB_CONN_URL="postgres://{{.Data.data.username}}:{{.Data.data.password}}@localhost:${toString ports.upDb}/services?ssl_sni=roach-db.traefik"
           {{end}}
+        '';
+      };
+      template."ssl-root-ca" = {
+        changeMode = "restart";
+        destPath = "local/root_ca.crt";
+        embeddedTmpl = ''
+          {{- with secret "secret/data/nomad/infra/root_ca" -}}{{ .Data.data.value }}{{- end -}}
         '';
       };
       vault.env = true;
