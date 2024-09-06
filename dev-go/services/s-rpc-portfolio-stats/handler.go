@@ -21,18 +21,11 @@ type ProtoHandler struct {
 
 var _ s_rpc_portfolio_stats.PortfolioStatsServer = &ProtoHandler{}
 
-var excludeUrls = []string{
-	"/static",
-	"/assets",
-}
-
 var salt = []byte{4, 49, 127, 104, 174, 252, 225, 13}
 
 func (p *ProtoHandler) Report(ctx context.Context, visit *s_rpc_portfolio_stats.Visit) (*emptypb.Empty, error) {
-	for _, urlSub := range excludeUrls {
-		if strings.Contains(visit.Url, urlSub) {
-			return &emptypb.Empty{}, nil
-		}
+	if !shouldIncludeUrl(visit.Url) {
+		return &emptypb.Empty{}, nil
 	}
 	var sha256 = crypto.SHA256.New()
 	sha256.Write(salt)
@@ -59,4 +52,32 @@ func normaliseIp(str string) string {
 		return str
 	}
 	return split[0]
+}
+
+var excludeUrls = []string{
+	"/static",
+	"/assets",
+	".",
+}
+
+var includeList = []string{
+	"/blog",
+	"/projects",
+}
+
+func shouldIncludeUrl(url string) bool {
+	if url == "/" {
+		return true
+	}
+	for _, urlSub := range excludeUrls {
+		if strings.Contains(url, urlSub) {
+			return false
+		}
+	}
+	for _, urlSub := range includeList {
+		if !strings.Contains(url, urlSub) {
+			return false
+		}
+	}
+	return true
 }
