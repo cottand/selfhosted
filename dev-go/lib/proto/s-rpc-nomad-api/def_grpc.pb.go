@@ -20,7 +20,7 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	NomadApi_Deploy_FullMethodName = "/s_rpc_nomad_api2.NomadApi/Deploy"
+	NomadApi_Deploy_FullMethodName = "/s_rpc_nomad_api.NomadApi/Deploy"
 )
 
 // NomadApiClient is the client API for NomadApi service.
@@ -97,7 +97,7 @@ func _NomadApi_Deploy_Handler(srv interface{}, ctx context.Context, dec func(int
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var NomadApi_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "s_rpc_nomad_api2.NomadApi",
+	ServiceName: "s_rpc_nomad_api.NomadApi",
 	HandlerType: (*NomadApiServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

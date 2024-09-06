@@ -17,7 +17,7 @@ func RunCommand(cmd *cobra.Command, args []string) error {
 	jobFile := path.Clean(args[0])
 	cmd.Printf("Deploying %s", jobFile)
 	if versionFlag != "" {
-		cmd.Printf(" @ %s\n", versionFlag)
+		cmd.Printf(" @ %s", versionFlag)
 	}
 	cmd.Println("...\n")
 

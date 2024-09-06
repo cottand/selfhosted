@@ -23,7 +23,7 @@ writeShellScriptBin "gen-protos" ''
     exit -1
   fi
 
-  proto="dev-go/services/lib/proto"
+  proto="dev-go/lib/proto"
   mkdir -p $proto
 
   ${concatted}
