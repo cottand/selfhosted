@@ -30,6 +30,7 @@ let
     nativeBuildInputs = [ pkg-config ];
     buildInputs = [ nixVersions.latest ];
     CGO_ENABLED = 1;
+    subPackages = [ "services" ];
     postInstall = ''
       mv $out/bin/services $out/bin/${name}
     '';
