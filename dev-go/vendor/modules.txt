@@ -142,6 +142,9 @@ github.com/prometheus/common/model
 github.com/prometheus/procfs
 github.com/prometheus/procfs/internal/fs
 github.com/prometheus/procfs/internal/util
+# github.com/remychantenay/slog-otel v1.3.2
+## explicit; go 1.21
+github.com/remychantenay/slog-otel
 # github.com/spf13/cobra v1.8.1
 ## explicit; go 1.15
 github.com/spf13/cobra

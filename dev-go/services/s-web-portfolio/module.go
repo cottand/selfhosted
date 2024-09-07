@@ -8,7 +8,6 @@ import (
 	"github.com/monzo/terrors"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"log"
-	"log/slog"
 	"net"
 	"net/http"
 	"time"
@@ -17,7 +16,7 @@ import "github.com/cottand/selfhosted/dev-go/lib/bedrock"
 
 var Name = "s-web-portfolio"
 
-var logger = slog.With("service_module", Name)
+var slog = bedrock.LoggerFor(Name)
 
 func InitService() {
 	ctx := context.Background()
@@ -57,7 +56,7 @@ func InitService() {
 	go func() {
 		err := srv.ListenAndServe()
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
-			logger.Error("failed to start HTTP: "+terrors.Propagate(err).Error(), "service", Name)
+			slog.Error("failed to start HTTP: "+terrors.Propagate(err).Error(), "service", Name)
 		}
 	}()
 
@@ -67,10 +66,10 @@ func InitService() {
 	go func() {
 		_, _ = <-notify
 		if conn.Close() != nil {
-			logger.Error(terrors.Propagate(err).Error(), "Failed to close gRPC conn", "service", Name)
+			slog.Error(terrors.Propagate(err).Error(), "Failed to close gRPC conn", "service", Name)
 		}
 		if serverErr != nil {
-			logger.Error(terrors.Propagate(err).Error(), "Failed to close gRPC conn", "service", Name)
+			slog.Error(terrors.Propagate(err).Error(), "Failed to close gRPC conn", "service", Name)
 		}
 	}()
 }
