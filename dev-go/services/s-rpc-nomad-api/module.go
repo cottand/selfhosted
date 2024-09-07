@@ -8,19 +8,19 @@ import (
 	nomad "github.com/hashicorp/nomad/api"
 	"go.opentelemetry.io/otel"
 	"google.golang.org/grpc"
-	"log/slog"
 	"os"
 )
 
 var Name = "s-rpc-nomad-api"
 
-var logger = slog.With("service", Name)
+var slog = bedrock.LoggerFor(Name)
+
 var tracer = otel.Tracer(Name)
 
 func InitService() {
 	token, ok := os.LookupEnv("NOMAD_TOKEN")
 	if !ok {
-		logger.Error("failed to get NOMAD_TOKEN, aborting init")
+		slog.Error("failed to get NOMAD_TOKEN, aborting init")
 		return
 	}
 	nomadClient, err := nomad.NewClient(&nomad.Config{
@@ -29,7 +29,7 @@ func InitService() {
 		TLSConfig: &nomad.TLSConfig{CACert: bedrock.GetRootCaFilePath()},
 	})
 	if err != nil {
-		logger.Error("failed to create Nomad client, aborting init", "err", err.Error())
+		slog.Error("failed to create Nomad client, aborting init", "err", err.Error())
 		return
 	}
 	protoHandler := &ProtoHandler{

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	s_rpc_nomad_api "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-nomad-api"
 	"github.com/monzo/terrors"
-	"log/slog"
 	"net/http"
 	"time"
 )
@@ -41,18 +40,21 @@ func (s *scaffold) handlePush(writer http.ResponseWriter, request *http.Request)
 	defer func() {
 		lastApplied = time.Now()
 	}()
+
+	ctx := request.Context()
 	event := WorkflowJobEvent{}
 	decoder := json.NewDecoder(request.Body)
 	err := terrors.Propagate(decoder.Decode(&event))
+
 	if err != nil {
-		logger.Warn("could not handle push event", "errorMsg", err.Error())
+		slog.WarnContext(ctx, "could not handle push event", "errorMsg", err.Error())
 		return
 	}
 	if !shouldAcceptEvent(&event) {
-		logger.Debug("skipping invalid push event")
+		slog.Debug("skipping invalid push event")
 		return
 	}
-	newCtx := context.WithoutCancel(request.Context())
+	newCtx := context.WithoutCancel(ctx)
 	go s.deploy(newCtx, event.WorkflowJob.HeadSha)
 }
 

@@ -4,11 +4,29 @@ import (
 	"context"
 	"errors"
 	"github.com/monzo/terrors"
+	slogotel "github.com/remychantenay/slog-otel"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/trace"
+	"log/slog"
+	"os"
 )
+
+func init() {
+	// set a json logger:
+	logger := slog.New(slogotel.OtelHandler{
+		Next:          slog.NewJSONHandler(os.Stderr, nil),
+		NoBaggage:     false,
+		NoTraceEvents: false,
+	})
+
+	slog.SetDefault(logger)
+}
+
+func LoggerFor(serviceName string) *slog.Logger {
+	return slog.With("service_module", serviceName)
+}
 
 // see https://opentelemetry.io/docs/languages/go/getting-started/
 

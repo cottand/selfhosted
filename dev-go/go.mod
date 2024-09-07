@@ -10,6 +10,7 @@ require (
 	github.com/jackc/pgx/v5 v5.6.0
 	github.com/monzo/terrors v0.0.0-20240312165114-073654f2beb9
 	github.com/prometheus/client_golang v1.20.0
+	github.com/remychantenay/slog-otel v1.3.2
 	github.com/spf13/cobra v1.8.1
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.53.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.53.0

@@ -9,14 +9,13 @@ import (
 	"github.com/monzo/terrors"
 	"google.golang.org/grpc"
 	"log"
-	"log/slog"
 )
 
 //go:embed migrations
 var dbMigrations embed.FS
 
 var Name = "s-rpc-portfolio-stats"
-var logger = slog.With("service_module", Name)
+var slog = bedrock.LoggerFor(Name)
 
 func InitService() {
 	db, err := bedrock.GetMigratedDB(Name, dbMigrations)
@@ -40,7 +39,7 @@ func InitService() {
 		_, _ = <-notify
 		refreshCancel()
 		if db.Close() != nil {
-			logger.Error(terrors.Propagate(err).Error(), "Failed to close DB", "service", Name)
+			slog.Error(terrors.Propagate(err).Error(), "Failed to close DB", "service", Name)
 		}
 	}()
 }

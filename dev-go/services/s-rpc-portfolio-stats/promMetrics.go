@@ -42,7 +42,7 @@ func RefreshPromStats(ctx context.Context, db *sql.DB) {
 		}
 		accumulated := errors.Join(errs...)
 		if accumulated != nil {
-			logger.Warn("failed to refresh stats", "err", accumulated)
+			slog.WarnContext(ctx, "failed to refresh stats", "err", accumulated)
 		}
 		select {
 		case <-ctx.Done():

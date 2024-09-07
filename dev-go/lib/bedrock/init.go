@@ -20,15 +20,7 @@ func KebabToSnakeCase(name string) string {
 	return strings.ReplaceAll(name, "-", "_")
 }
 
-func init() {
-	// set a json logger:
-	logger := slog.New(slog.NewJSONHandler(os.Stderr, nil))
-
-	slog.SetDefault(logger)
-}
-
 func Init(ctx context.Context) ShutdownFunc {
-
 	shutdown, err := setupOTelSDK(ctx)
 
 	if err != nil {
