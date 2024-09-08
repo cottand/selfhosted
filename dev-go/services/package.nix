@@ -14,7 +14,6 @@ let
   name = "services-go";
   src = util.devGoSrc;
 
-
   assetsEnv = buildEnv {
     name = "${name}-assets";
     paths = [
@@ -35,6 +34,7 @@ let
       mv $out/bin/services $out/bin/${name}
     '';
   };
+
   binaryEnv = buildEnv {
     inherit name;
     paths = [ (bin.overrideAttrs { doCheck = false; }) assetsEnv bash curlMinimal ];

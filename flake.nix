@@ -21,11 +21,16 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    go-cache = {
+      url = "github:numtide/build-go-cache";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     utils.url = "github:numtide/flake-utils";
     filters.url = "github:numtide/nix-filter";
   };
 
-  outputs = inputs@{ self, nixpkgs, cottand, home-manager, utils, nixpkgs-master, attic, filters, ... }:
+  outputs = inputs@{ self, nixpkgs, cottand, home-manager, utils, nixpkgs-master, attic, filters, go-cache, ... }:
     let
       newVault = final: prev: {
         vault-bin = (import nixpkgs-master { system = prev.system; config.allowUnfree = true; }).vault-bin;
@@ -40,6 +45,9 @@
         newVault
         attic.overlays.default
         filters.overlays.default
+        (_: prev: {
+          inherit (go-cache.legacyPackages.${prev.system}) buildGoCache get-external-imports;
+        })
       ];
     in
     (utils.lib.eachDefaultSystem (system:

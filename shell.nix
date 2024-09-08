@@ -33,7 +33,7 @@
     # for development
     go
     pkg-config
-    nixVersions.latest
+    nixVersions.nix_2_19
 
 
     scripts.nixmad
