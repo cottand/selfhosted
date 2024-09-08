@@ -1,4 +1,4 @@
-{ self, callPackage, nomad, jq, nix, bws, writeShellScriptBin, writeScriptBin, yaegi, ... }: rec {
+{ self, callPackage, jq, bws, writeShellScriptBin, get-external-imports, ... }: rec {
 
   # TODO look into https://noogle.dev/f/lib/filesystem/packagesFromDirectoryRecursive
 
@@ -26,4 +26,6 @@
   all-images = callPackage ./all-images { inherit self; };
 
   gen-protos = callPackage ./gen-protos.nix { inherit self; };
+
+  inherit get-external-imports;
 }

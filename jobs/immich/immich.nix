@@ -1,6 +1,6 @@
 let
   lib = (import ../lib) {};
-  version = "v1.109.2";
+  version = "v1.114.0";
   domain = "immich.dcotta.com";
   cpu = 220;
   mem = 512;
@@ -170,8 +170,6 @@ lib.mkJob "immich" {
 
       config = {
         image = "ghcr.io/immich-app/immich-server:${version}";
-        #     TODO?   args = [];
-
         image_pull_timeout = "10m";
       };
       env = {
@@ -272,7 +270,7 @@ lib.mkJob "immich" {
             newVersionCheck.enabled = true;
             passwordLogin.enabled = true;
             reverseGeocoding.enabled = true;
-            server = { externalDomain = "immich.dcotta.com"; loginPageMessage = ""; };
+            server = { externalDomain = "https://immich.dcotta.com"; loginPageMessage = ""; };
             storageTemplate = {
               enabled = false;
               hashVerificationEnabled = true;
