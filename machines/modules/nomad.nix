@@ -94,6 +94,11 @@ in
     ];
     systemd.services.nomad.after = [
       "wg-quick-wg-mesh.service"
+      "tailscaled.service"
+    ];
+
+    systemd.services.nomad.wants = mkIf config.services.tailscale.enable [
+      "tailscaled.service"
     ];
 
     vaultSecrets =
@@ -140,6 +145,15 @@ in
             //
             (if cfg.enableSeaweedFsVolume then
               { "seaweedfs-volume" = { path = seaweedVolumePath; read_only = false; }; } else { });
+
+
+          host_network =
+            if config.services.tailscale.enable then {
+              "ts" = {
+                cidr = "100.64.0.0/10";
+                reserved_ports = "${ toString config.services.tailscale.port },22";
+              };
+            } else { };
 
           meta = {
             box = name;

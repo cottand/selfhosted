@@ -1,6 +1,19 @@
 inputs@{ self, nixpkgs, cottand, home-manager, utils, nixpkgs-master, attic, overlays, ... }:
 let
   secretPath = "/Users/nico/dev/cottand/selfhosted/secret/";
+
+  mkNodePool = { tags ? [ ], names, nodeType, ... }: builtins.listToAttrs (builtins.map
+    (name: rec {
+      inherit name;
+      value = { ... }: {
+        deployment.tags = tags;
+        deployment.targetHost = "${name}.vps.dcotta.com";
+        nodeType.${nodeType} = true;
+      };
+    })
+    names);
+
+
 in
 {
   meta = {
@@ -48,11 +61,6 @@ in
     deployment.tags = [ "contabo" "nomad-server" "vault" ];
   };
 
-  maco = { name, nodes, ... }: {
-    deployment.tags = [ "contabo" "nomad-server" "vault" ];
-    deployment.targetHost = "${name}.vps.dcotta.eu";
-  };
-
   ari = { name, nodes, ... }: {
     networking.hostName = name;
     deployment.tags = [ "local" "nomad-client" ];
@@ -85,4 +93,7 @@ in
     deployment.tags = [ "hetzner" ];
     deployment.targetHost = "${name}.vps.dcotta.com";
   };
-}
+} // (mkNodePool {
+  names = [  ];
+  nodeType = "ociPool1Worker";
+})

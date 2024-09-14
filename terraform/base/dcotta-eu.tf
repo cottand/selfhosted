@@ -2,18 +2,20 @@ locals {
   mesh_ip4 = {
     cosmo  = "10.10.0.1"
     elvis  = "10.10.1.1"
-    maco   = "10.10.2.1"
+#     maco   = "10.10.2.1"
     ari    = "10.10.3.1"
     miki   = "10.10.4.1"
     ziggy  = "10.10.5.1"
     xps2   = "10.10.6.1"
     bianco = "10.10.11.2"
 
-    hez = {
-      "hez1" = "10.10.11.1"
-      "hez2" = "10.10.12.1"
-      "hez3" = "10.10.13.1"
-    }
+    hez1 = "10.10.11.1"
+    hez2 = "10.10.12.1"
+    hez3 = "10.10.13.1"
+
+    inst-xdmqm-pool1 = "10.10.21.1"
+    inst-rzc4b-pool1 = "10.10.22.1"
+
   }
   zoneIds     = jsondecode(data.bitwarden-secrets_secret.zoneIds.value)
   zoneIdsList = [local.zoneIds["eu"], local.zoneIds["com"]]
@@ -30,16 +32,6 @@ module "node_miki" {
   ip4_mesh    = local.mesh_ip4.miki
   ip4_pub     = local.pubIp["ip4"]["miki"]
   ip6_pub     = local.pubIp["ip6"]["miki"]
-  is_web_ipv4 = false
-  is_web_ipv6 = false
-}
-module "node_maco" {
-  cf_zone_ids = local.zoneIdsList
-  source      = "../modules/node"
-  name        = "maco"
-  ip4_mesh    = local.mesh_ip4.maco
-  ip4_pub     = local.pubIp["ip4"]["maco"]
-  ip6_pub     = local.pubIp["ip6"]["maco"]
   is_web_ipv4 = false
   is_web_ipv6 = false
 }
@@ -106,19 +98,33 @@ module "node_bianco" {
 }
 
 module "nodes_hz" {
-  for_each    = data.terraform_remote_state.metal.outputs["server_ips"]
+  for_each = {
+    for name in ["hez1", "hez2", "hez3"] : name => data.terraform_remote_state.metal.outputs["hez_server_ips"][name]
+  }
   cf_zone_ids = local.zoneIdsList
   source      = "../modules/node"
   name        = each.key
-  ip4_mesh    = local.mesh_ip4.hez[each.key]
+  ip4_mesh    = local.mesh_ip4[each.key]
   ip4_pub     = each.value["ipv4"]
   ip6_pub     = each.value["ipv6"]
   is_web_ipv4 = true
   is_web_ipv6 = true
 }
 
-# Websites
+module "nodes_oci_pool1" {
+  for_each    = data.terraform_remote_state.metal.outputs["oci_server_ips"]
+  cf_zone_ids = local.zoneIdsList
+  source      = "../modules/node"
+  name        = each.key
+  ip4_mesh    = local.mesh_ip4[each.key]
+  ip4_pub     = each.value["ipv4"]
+  ip6_pub     = each.value["ipv6"]
+  is_web_ipv4 = false
+  is_web_ipv6 = false
+}
 
+
+# Websites
 
 
 # resource "cloudflare_record" "vault-cname-mesh" {

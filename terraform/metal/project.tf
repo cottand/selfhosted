@@ -75,37 +75,22 @@ resource "hcloud_firewall" "ssh-wireguard" {
 
   rule {
     direction  = "in"
+    protocol   = "udp"
+    port       = "46461"
+    source_ips = ["0.0.0.0/0", "::/0"]
+  }
+
+  rule {
+    direction  = "in"
     protocol   = "tcp"
     port       = "443"
     source_ips = ["0.0.0.0/0", "::/0"]
   }
+
   rule {
     direction  = "in"
     protocol   = "tcp"
     port       = "80"
     source_ips = ["0.0.0.0/0", "::/0"]
   }
-}
-
-locals {
-  server_ips = {
-    for i in range(3) : hcloud_server.hez1[i].name => {
-      ipv4 = hcloud_server.hez1[i].ipv4_address
-      ipv6 = hcloud_server.hez1[i].ipv6_address
-    }
-  }
-}
-
-output "server_ips" {
-  value = local.server_ips
-}
-
-resource "bitwarden-secrets_secret" "ips" {
-  key        = "hetzner/hez/ips"
-  value      = jsonencode(local.server_ips)
-  project_id = var.bitwarden_project_id
-}
-
-output "bitwarden_ips_id" {
-  value = bitwarden-secrets_secret.ips.id
 }
