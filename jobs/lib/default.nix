@@ -109,12 +109,12 @@ rec {
 
   mkEnvoyProxyConfig = import ./mkEnvoyProxyConfig.nix;
 
-  mkJob = name: job: {
-    job = (transformJob job) // {
+  mkJob = name: job:
+    (transformJob job) //
+    {
       inherit name;
       id = name;
     };
-  };
 
   cosmo.ip = "10.10.0.1";
   elvis.ip = "10.10.1.1";

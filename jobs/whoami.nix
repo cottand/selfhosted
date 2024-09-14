@@ -1,4 +1,4 @@
-let lib = (import ./lib) {}; in
+let lib = (import ./lib) { }; in
 {
   job = lib.transformJob {
     name = "whoami";
@@ -6,7 +6,9 @@ let lib = (import ./lib) {}; in
     group."whoami" = {
       network = {
         mode = "bridge";
-        port."http" = { };
+        dynamicPorts = [
+          { label = "http"; hostNetwork = "ts"; }
+        ];
       };
       service."whoami" = {
         tags = [

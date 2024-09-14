@@ -2,6 +2,7 @@
 
   imports = [
     ./common_config.nix
+    ./tailscale.nix
   ];
 
   networking.hostName = lib.mkDefault name;

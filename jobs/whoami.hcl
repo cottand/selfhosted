@@ -9,6 +9,7 @@ job "whoami" {
     network {
       mode = "bridge"
       port "http" {
+        host_network = "ts-mesh"
       }
     }
       service {

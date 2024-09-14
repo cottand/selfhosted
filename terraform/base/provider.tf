@@ -16,6 +16,10 @@ terraform {
       source  = "integrations/github"
       version = "6.2.3"
     }
+    tailscale = {
+      source  = "tailscale/tailscale"
+      version = "0.16.2"
+    }
   }
 }
 
@@ -55,4 +59,13 @@ provider "aws" {
   region     = "eu-west-1"
   access_key = jsondecode(data.bitwarden-secrets_secret.awsTfUser.value)["access_key"]
   secret_key = jsondecode(data.bitwarden-secrets_secret.awsTfUser.value)["secret_key"]
+}
+
+// expires 12 dec '24
+data "bitwarden-secrets_secret" "tailscale_api" {
+  id = "a3f637ca-58f0-4bf7-b8d4-b1ea0118edd7"
+}
+
+provider "tailscale" {
+  api_key = data.bitwarden-secrets_secret.tailscale_api.value
 }
