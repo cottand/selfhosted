@@ -5,12 +5,6 @@ job "seaweedfs-backup" {
   group "backup" {
     network {
       mode = "bridge"
-      dns {
-        servers = [
-          "10.10.11.1",
-          "10.10.12.1",
-        ]
-      }
       port "metrics" {}
     }
     count = 1

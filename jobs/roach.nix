@@ -1,4 +1,5 @@
 let
+  lib = (import ./lib) { };
   version = "v23.1.22";
   cache = "70MB";
   maxSqlMem = "${toString (mem * 0.5)}MB";
@@ -22,7 +23,11 @@ let
     memoryMaxMB = 0.10 * mem + 100;
   };
   seconds = 1000000000;
-  advertiseOf = node: "${node}.mesh.dcotta.eu:${toString binds.${node}}";
+  inMigrate = node:
+  false &&
+  node == "hez1"
+  ;
+  advertiseOf = node: if !(inMigrate node) then "${node}.mesh.dcotta.eu:${toString binds.${node}}" else "${node}.${lib.tailscaleDns}:${toString binds.${node}}";
   certsForUser = name: [
     {
       destPath = "/secrets/client.${name}.key";
@@ -58,10 +63,10 @@ let
     networks = [{
       mode = "bridge";
       dynamicPorts = [
-        { label = "metrics"; to = webPort; }
+        { label = "metrics"; to = webPort; hostNetwork = if (inMigrate node) then "ts" else "wg-mesh";  }
       ];
       reservedPorts = [
-        { label = "rpc"; value = binds.${node}; }
+        { label = "rpc"; value = binds.${node}; hostNetwork =if (inMigrate node) then "ts" else "wg-mesh"; }
       ];
     }];
     services = [

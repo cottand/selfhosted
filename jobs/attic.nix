@@ -32,7 +32,7 @@ lib.mkJob "attic" {
     network = {
       mode = "bridge";
       dynamicPorts = [
-        { label = "health"; }
+        { label = "health"; hostNetwork = "ts"; }
       ];
       reservedPorts = [
       ];

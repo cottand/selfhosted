@@ -1,5 +1,5 @@
 let
-  lib = (import ../lib) {};
+  lib = (import ../lib) { };
   version = "3.69";
   cpu = 100;
   mem = 200;
@@ -32,12 +32,12 @@ lib.mkJob "seaweed-filer" {
     network = {
       mode = "bridge";
       dynamicPorts = [
-        { label = "metrics"; }
+        { label = "metrics"; hostNetwork = "ts"; }
       ];
       reservedPorts = [
-        { label = "http"; value = ports.http; }
-        { label = "grpc"; value = ports.grpc; }
-        { label = "s3"; value = ports.s3; }
+        { label = "http"; value = ports.http; hostNetwork = "ts"; }
+        { label = "grpc"; value = ports.grpc; hostNetwork = "ts"; }
+        { label = "s3"; value = ports.s3; hostNetwork = "ts"; }
       ];
     };
 
@@ -137,7 +137,7 @@ lib.mkJob "seaweed-filer" {
           "-ip.bind=${bind}"
           (
             with lib;
-            "-master=${hez1.ip}:9333,${hez2.ip}:9333,${hez3.ip}:9333"
+            "-master=hez1.${tailscaleDns}:9333,hez2.${tailscaleDns}:9333,hez3.${tailscaleDns}:9333"
           )
           "-port=${toString ports.http}"
           "-port.grpc=${toString ports.grpc}"

@@ -39,11 +39,11 @@ lib.mkJob "seaweed-volume" {
     network = {
       mode = "bridge";
       dynamicPorts = [
-        { label = "metrics"; }
+        { label = "metrics"; hostNetwork = "ts"; }
       ];
       reservedPorts = [
-        { label = "http"; value = ports.http; }
-        { label = "grpc"; value = ports.grpc; }
+        { label = "http"; value = ports.http;hostNetwork = "ts"; }
+        { label = "grpc"; value = ports.grpc;hostNetwork = "ts"; }
       ];
     };
 
@@ -165,7 +165,7 @@ lib.mkJob "seaweed-volume" {
           # from master DNS and well-known ports so that job is not reset
           (
             with lib;
-            "-mserver=${hez1.ip}:9333,${hez2.ip}:9333,${hez3.ip}:9333"
+            "-mserver=hez1.${tailscaleDns}:9333,hez2.${tailscaleDns}:9333,hez3.${tailscaleDns}:9333"
           )
           "-dir=/volume"
           "-max=0"

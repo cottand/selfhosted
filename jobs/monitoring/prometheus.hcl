@@ -1,6 +1,4 @@
 job "prometheus" {
-
-
   group "monitoring" {
     count = 1
 
@@ -23,7 +21,10 @@ job "prometheus" {
           "10.10.13.1",
         ]
       }
-      port "health" { to = -1 }
+      port "health" {
+        to = -1
+        host_network = "ts"
+      }
     }
 
     restart {
@@ -278,7 +279,10 @@ scrape_configs:
       - labels: {'cluster': 'dcotta'}
      
     nomad_sd_configs:
-    - server: 'https://miki.mesh.dcotta.eu:4646'
+    - server: 'https://hez1.golden-dace.ts.net:4646'
+      tls_config:
+        insecure_skip_verify: true
+    - server: 'https://hez2.golden-dace.ts.net:4646'
       tls_config:
         insecure_skip_verify: true
 
@@ -320,9 +324,9 @@ scrape_configs:
      
     static_configs:
      - targets: [
-      'hez1.mesh.dcotta.eu:8200',
-      'hez2.mesh.dcotta.eu:8200',
-      'hez3.mesh.dcotta.eu:8200',
+      'hez1.golden-dace.ts.net:8200',
+      'hez2.golden-dace.ts.netu:8200',
+      'hez3.golden-dace.ts.net:8200',
     ]
   - job_name: 'consul'
     metrics_path: "/v1/agent/metrics"
@@ -334,9 +338,9 @@ scrape_configs:
      
     static_configs:
      - targets: [
-      'hez1.mesh.dcotta.eu:8501',
-      'hez2.mesh.dcotta.eu:8501',
-      'hez3.mesh.dcotta.eu:8501',
+      'hez1.golden-dace.ts.net:8501',
+      'hez2.golden-dace.ts.net:8501',
+      'hez3.golden-dace.ts.net:8501',
     ]
 
 
