@@ -1,9 +1,7 @@
 client {
   enabled = true
   servers = [
-    "hez1.mesh.dcotta.eu",
-    "hez2.mesh.dcotta.eu",
-    "hez3.mesh.dcotta.eu",
+    # consul should discover nodes!
   ]
 
   options = {
@@ -59,24 +57,24 @@ plugin "docker" {
 }
 
 vault {
-  enabled = true
-  address = "https://vault.mesh.dcotta.eu:8200"
+  enabled               = true
+  address = "https://vault.mesh.dcotta.eu:8200" # TODO vault-in-ts?
   jwt_auth_backend_path = "jwt-nomad" # must match tf
 
   # Provide a default workload identity configuration so jobs don't need to
   # specify one.
   default_identity {
-    aud  = [ "vault.io" ]
+    aud  = ["vault.io"]
     env  = false
     file = false
-    ttl  = "1h"
+    ttl  = "2h"
   }
 }
 
 consul {
-  address = "127.0.0.1:8501"
-  grpc_address = "127.0.0.1:8503"
+  address              = "127.0.0.1:8501"
+  grpc_address         = "127.0.0.1:8503"
   checks_use_advertise = true
-  ssl = true
-  verify_ssl = false
+  ssl                  = true
+  verify_ssl           = false
 }

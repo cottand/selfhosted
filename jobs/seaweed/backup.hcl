@@ -7,9 +7,8 @@ job "seaweedfs-backup" {
       mode = "bridge"
       dns {
         servers = [
-          "10.10.0.1",
-          "10.10.2.1",
-          "10.10.1.1",
+          "10.10.11.1",
+          "10.10.12.1",
         ]
       }
       port "metrics" {}

@@ -164,7 +164,7 @@ customdnsrecords = [
 ]
 
 [Upstream]
-  nameservers = ["1.1.1.1:53", "1.0.0.1:53", "10.10.4.1:8600", "10.10.2.1:8600"]
+  nameservers = ["1.1.1.1:53", "1.0.0.1:53", "10.10.4.1:8600"]
   # query timeout for dns lookups in seconds
   timeout = 5
   # cache entry lifespan in seconds

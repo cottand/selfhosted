@@ -111,7 +111,8 @@ resource "vault_pki_secret_backend_role" "intermediate_role" {
   allow_ip_sans    = true
   key_type         = "rsa"
   key_bits         = 4096
-  allowed_domains  = ["dcotta.eu", "dcotta.com"]
+  allowed_domains  = ["dcotta.eu", "dcotta.com", local.tsDomain]
+  allow_glob_domains = true
   allow_subdomains = true
 }
 
@@ -121,9 +122,9 @@ resource "vault_pki_secret_backend_cert" "dcotta-dot-eu2" {
   issuer_ref  = vault_pki_secret_backend_issuer.intermediate.issuer_ref
   backend     = vault_pki_secret_backend_role.intermediate_role.backend
   name        = vault_pki_secret_backend_role.intermediate_role.name
-  common_name = "vault-server-may-05-2.mesh.dcotta.eu"
+  common_name = "vault-server-sep-14-1.mesh.dcotta.eu"
 
-  alt_names = ["vault.mesh.dcotta.eu"]
+  alt_names = ["vault.mesh.dcotta.eu", "vault.ts.dcotta.com", "*.${local.tsDomain}"]
 
   ip_sans = [
     "10.10.0.1",

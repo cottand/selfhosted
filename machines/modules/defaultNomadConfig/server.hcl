@@ -1,11 +1,13 @@
 data_dir = "/var/lib/nomad"
 
-bind_addr = "{{GetInterfaceIP \"wg-mesh\"}}"
+# bind_addr = "{{GetInterfaceIP \"wg-mesh\"}}"
+# bind_addr = "{{GetInterfaceIP \"ts0\"}}"
+bind_addr = "0.0.0.0"
 
 advertise {
-  http = "{{GetInterfaceIP \"wg-mesh\"}}"
-  rpc  = "{{GetInterfaceIP \"wg-mesh\"}}"
-  serf = "{{GetInterfaceIP \"wg-mesh\"}}"
+  http = "{{GetInterfaceIP \"ts0\"}}"
+  rpc  = "{{GetInterfaceIP \"ts0\"}}"
+  serf = "{{GetInterfaceIP \"ts0\"}}"
 }
 
 log_rotate_bytes = 1024000

@@ -14,8 +14,8 @@ job "traefik" {
       value     = "(miki|hez1|hez2|hez3)"
     }
     constraint {
-      operator  = "distinct_hosts"
-      value     = "true"
+      operator = "distinct_hosts"
+      value    = "true"
     }
     network {
       mode = "bridge"
@@ -34,6 +34,16 @@ job "traefik" {
         static       = 443
         host_network = "wg-mesh"
       }
+      port "http-ts" {
+        static       = 80
+        to           = 8001
+        host_network = "ts"
+      }
+      port "https-ts" {
+        static       = 443
+        to           = 44301
+        host_network = "ts"
+      }
       port "http_public" {
         static       = 80
         to           = 8000
@@ -46,14 +56,14 @@ job "traefik" {
       }
       port "sql" {
         static       = 5432
-        host_network = "wg-mesh"
+        host_network = "ts"
       }
       port "metrics" {
         static = 31934 # hardcoded so that prometheus can find it after restart
         host_network = "wg-mesh"
       }
       dns {
-        servers = ["10.10.2.1", "10.10.4.1", "10.10.11.1"]
+        servers = ["10.10.11.1", "10.10.12.1"]
       }
     }
     volume "ca-certificates" {
@@ -144,14 +154,6 @@ job "traefik" {
   keyFile =  "/secrets/internal_cert/key"
 
 [http.middlewares]
-    # Middleware that only allows requests after the authentication with credentials specified in usersFile
-    [http.middlewares.auth.basicauth]
-        users = [
-          # see https://doc.traefik.io/traefik/middlewares/http/basicauth/
-          {{ with nomadVar "nomad/jobs/traefik" -}}
-          "{{ .basicAuth_cottand }}"
-          {{- end }}
-        ]
     # Middleware that only allows requests from inside the VPN
     # https://doc.traefik.io/traefik/middlewares/http/ipwhitelist/
     [http.middlewares.vpn-whitelist.IPAllowList]
@@ -161,8 +163,7 @@ job "traefik" {
             '10.2.0.1/16', # VPN guests
             '127.1.0.0/24', # VPN clients
             '172.26.64.18/20', # containers
-            '185.216.203.147', # comsmo's public contabo IP (will be origin when using sshuttle)
-            '138.201.153.245', # miki's public contabo IP (will be origin when using sshuttle or VPN guest)
+            '100.64.0.0/10',  # ts
         ]
     [http.middlewares.mesh-whitelist.IPAllowList]
         sourcerange = [
@@ -170,6 +171,7 @@ job "traefik" {
             '127.1.0.0/24', # VPN clients
             '172.26.64.18/20', # containers
             '185.216.203.147', # comsmo's public contabo IP (will be origin when using sshuttle)
+            '100.64.0.0/10',  # ts
         ]
     [http.middlewares.replace-enc.replacePathRegex]
       regex = "/___enc_/(.*)"
@@ -183,6 +185,7 @@ job "traefik" {
         '10.2.0.1/16', # VPN guests
         '127.1.0.0/24', # VPN clients
         '172.26.64.18/20', # Containers
+        '100.64.0.0/10',  # ts
       ]
 
 # Nomad terminates TLS, so we let traefik just forward TCP
@@ -197,9 +200,6 @@ job "traefik" {
     service = "consul"
     entrypoints= "web,websecure"
     tls.passthrough = true
-#    tls = true
-#    tls.certresolver= "lets-encrypt"
-#     middlewares = "vpn-whitelist@file"
 [tcp.services]
   [tcp.services.nomad.loadBalancer]
     [[tcp.services.nomad.loadBalancer.servers]]
@@ -223,14 +223,18 @@ EOF
 
   [entrypoints.web]
     address = ":{{ env "NOMAD_PORT_http_mesh" }}"
-    #  [entryPoints.web.http.redirections.entryPoint]
-    #    to = "websecure"
-    #    scheme = "https"
     transport.respondingTimeouts.readTimeout="5m"
   [entryPoints.websecure]
     address = ":{{ env "NOMAD_PORT_https_mesh" }}"
     transport.respondingTimeouts.readTimeout="5m"
 
+  [entrypoints.web_ts]
+    address = ":{{ env "NOMAD_PORT_http_ts" }}"
+    transport.respondingTimeouts.readTimeout="5m"
+
+  [entryPoints.websecure_ts]
+    address = ":{{ env "NOMAD_PORT_https_ts" }}"
+    transport.respondingTimeouts.readTimeout="5m"
 
   # redirects 8000 (in container) to 443
   [entryPoints.web_public]
@@ -260,24 +264,6 @@ EOF
   dashboard = true
   insecure = true
 
-# [certificatesResolvers.lets-encrypt.acme]
-#   email = "nico@dcotta.eu"
-#   storage = "/etc/traefik-cert/acme.json"
-  #storage = "/etc/traefik/"
-
-#   [certificatesResolvers.lets-encrypt.acme.httpChallenge]
-#     let's encrypt has to be able to reach on this entrypoint for cert
-#    entryPoint = "web_public"
-
-
-# [certificatesResolvers.dcotta-vault.acme]
-#   email = "nico@dcotta.eu"
-#   storage = "/etc/traefik-cert/acme-dcotta-vault.json"
-#   caServer= "https://vault.mesh.dcotta.eu:8200/v1/pki_workload_int/acme/directory"
-#   certificatesDuration = 720 # hours in a month
-#   tlsChallenge = true
-
-
 [providers.consulCatalog]
   # The service name below should match the nomad/consul service above
   # and is used for intentions in consul
@@ -287,7 +273,6 @@ EOF
   connectAware = true
   connectByDefault = true
 
-  #endpoint.address = "10.10.4.1:8501"
   endpoint.tls.insecureSkipVerify = true # TODO add SAN for this IP!
   endpoint.datacenter = "dc1"
 
@@ -302,9 +287,9 @@ EOF
   defaultRule = "Host(`{{"{{ .Name }}"}}.traefik`)"
 
   [providers.nomad.endpoint]
-    address = "https://miki.mesh.dcotta.eu:4646"
+    address = "https://hez3.golden-dace.ts.net:4646"
     # TODO make vault with secret work
-    tls.insecureSkipVerify = true
+    tls.insecureSkipVerify = false
     token = "{{ env "NOMAD_TOKEN" }}"
 
 [providers.file]
