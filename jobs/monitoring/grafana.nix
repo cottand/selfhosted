@@ -1,5 +1,5 @@
 let
-  lib = (import ../lib) {};
+  lib = (import ../lib) { };
   version = "11.2.0";
   cpu = 100;
   mem = 200;
@@ -27,13 +27,8 @@ lib.mkJob "grafana" {
     count = 2;
     network = {
       mode = "bridge";
-      dns.servers = [
-        "10.10.13.1"
-        "10.10.12.1"
-        "10.10.11.1"
-      ];
       dynamicPorts = [
-        { label = "healthz"; }
+        { label = "healthz"; hostNetwork = "ts"; }
       ];
     };
 
