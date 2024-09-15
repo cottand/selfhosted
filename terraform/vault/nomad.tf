@@ -17,15 +17,21 @@ resource "vault_kv_secret_backend_v2" "kv" {
 ## PKI
 
 resource "vault_pki_secret_backend_role" "nomad_intermediate_role" {
-  backend            = vault_mount.pki_int.path
-  issuer_ref         = vault_pki_secret_backend_issuer.intermediate.issuer_ref
-  name               = "nomad-dcotta"
-  max_ttl            = 25920000
-  ttl                = 25920000
-  allow_ip_sans      = true
-  key_type           = "rsa"
-  key_bits           = 4096
-  allowed_domains    = ["*.mesh.dcotta.eu", "nomad.traefik", "server.global.nomad", "client.global.nomad"]
+  backend         = vault_mount.pki_int.path
+  issuer_ref      = vault_pki_secret_backend_issuer.intermediate.issuer_ref
+  name            = "nomad-dcotta"
+  max_ttl         = 25920000
+  ttl             = 25920000
+  allow_ip_sans   = true
+  key_type        = "rsa"
+  key_bits        = 4096
+  allowed_domains = [
+    "*.mesh.dcotta.eu",
+    "nomad.traefik",
+    "server.global.nomad",
+    "client.global.nomad",
+    "*.${local.tsDomain}",
+  ]
   allow_subdomains   = true
   allow_glob_domains = true
   allow_bare_domains = true
@@ -42,7 +48,6 @@ resource "vault_pki_secret_backend_cert" "nomad-dcotta" {
     "10.10.0.1",
     "10.10.0.2",
     "10.10.1.1",
-    "10.10.2.1",
     "10.10.3.1",
     "10.10.4.1",
     "10.10.5.1",
@@ -51,9 +56,15 @@ resource "vault_pki_secret_backend_cert" "nomad-dcotta" {
     "10.10.12.1",
     "10.10.13.1",
   ]
-  alt_names = ["nomad.traefik", "client.global.nomad", "*.mesh.dcotta.eu", "meta1.mesh.dcotta.eu"]
-  ttl       = 8640000
-  revoke    = true
+  alt_names = [
+    "nomad.traefik",
+    "client.global.nomad",
+    "*.mesh.dcotta.eu",
+    "meta1.mesh.dcotta.eu",
+    "*.${local.tsDomain}"
+  ]
+  ttl    = 8640000
+  revoke = true
 }
 
 # Put new cert in KV

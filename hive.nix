@@ -36,7 +36,6 @@ in
 
   defaults = { pkgs, lib, name, nodes, meta, ... }: {
     imports = [
-      ./machines/${name}/definition.nix
       ./machines/_default
       ./machines/modules
       home-manager.nixosModules.home-manager
@@ -51,49 +50,57 @@ in
   };
 
   cosmo = { name, nodes, ... }: {
+    imports = [ ./machines/${name}/definition.nix ];
     deployment.buildOnTarget = false;
     deployment.targetHost = "${name}.vps.dcotta.eu";
     deployment.tags = [ "contabo" "nomad-server" "vault" ];
   };
 
   miki = { name, nodes, lib, ... }: {
+    imports = [ ./machines/${name}/definition.nix ];
     deployment.targetHost = "${name}.mesh.dcotta.eu";
     deployment.tags = [ "contabo" "nomad-server" "vault" ];
   };
 
   ari = { name, nodes, ... }: {
+    imports = [ ./machines/${name}/definition.nix ];
     networking.hostName = name;
     deployment.tags = [ "local" "nomad-client" ];
   };
 
   xps2 = { name, nodes, ... }: {
+    imports = [ ./machines/${name}/definition.nix ];
     networking.hostName = name;
     deployment.tags = [ "local" "nomad-client" ];
   };
 
   bianco = { name, nodes, ... }: {
+    imports = [ ./machines/${name}/definition.nix ];
     deployment.tags = [ "madrid" "nomad-client" ];
   };
 
   hez1 = { name, nodes, ... }: {
+    imports = [ ./machines/${name}/definition.nix ];
     vaultNode.enable = true;
     deployment.buildOnTarget = false;
     deployment.tags = [ "hetzner" ];
     deployment.targetHost = "${name}.vps.dcotta.com";
   };
   hez2 = { name, nodes, ... }: {
+    imports = [ ./machines/${name}/definition.nix ];
     vaultNode.enable = true;
     deployment.buildOnTarget = false;
     deployment.tags = [ "hetzner" ];
     deployment.targetHost = "${name}.vps.dcotta.com";
   };
   hez3 = { name, nodes, ... }: {
+    imports = [ ./machines/${name}/definition.nix ];
     vaultNode.enable = true;
     deployment.buildOnTarget = false;
     deployment.tags = [ "hetzner" ];
     deployment.targetHost = "${name}.vps.dcotta.com";
   };
 } // (mkNodePool {
-  names = [  ];
+  names = [ ];
   nodeType = "ociPool1Worker";
 })

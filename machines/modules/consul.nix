@@ -39,15 +39,15 @@ in
         deployment.tags = mkIf cfg.server [ "consul-server" ];
         systemd.services.consul = {
           serviceConfig.Environment = "HOME=/root";
-          after = [ "wg-quick-wg-mesh.service" ];
+          after = [
+            "wg-quick-wg-mesh.service"
+          ] ++ (if config.services.tailscale.enable then [ "tailscaled.service" ] else [ ]);
         };
 
         services.consul = {
           dropPrivileges = false;
           enable = true;
           webUi = true;
-          # interface.bind = "{{GetInterfaceIP \"wg-mesh\"}}";
-          interface.bind = "wg-mesh";
           forceAddrFamily = "ipv4";
 
           extraConfig = {
@@ -77,6 +77,9 @@ in
             };
 
             client_addr = ''{{ GetInterfaceIP "wg-mesh" }} {{ GetAllInterfaces | include "flags" "loopback" | join "address" " " }}'';
+            bind_addr = ''{{ GetInterfaceIP "wg-mesh" }}'';
+            #            client_addr = ''{{ GetInterfaceIP "ts0" }} {{ GetInterfaceIP "wg-mesh" }} {{ GetAllInterfaces | include "flags" "loopback" | join "address" " " }}'';
+            #            bind_addr = ''{{ GetInterfaceIP "ts0" }}'';
 
             connect.enabled = true;
             # ports.http = -1; TODO https-only
