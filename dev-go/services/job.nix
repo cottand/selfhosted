@@ -38,14 +38,9 @@ lib.mkJob name {
     network = {
       mode = "bridge";
       dynamicPorts = [
-        { label = "metrics"; }
+        { label = "metrics"; hostNetwork = "ts"; }
       ];
       reservedPorts = [ ];
-      dns.servers = [
-        "10.10.13.1"
-        "10.10.12.1"
-        "10.10.11.1"
-      ];
     };
 
     service."${name}-http" = rec {

@@ -23,9 +23,8 @@ func InitService() {
 		return
 	}
 	nomadClient, err := nomad.NewClient(&nomad.Config{
-		Address:   "https://nomad.traefik/",
-		SecretID:  token,
-		TLSConfig: &nomad.TLSConfig{CACert: bedrock.GetRootCaFilePath()},
+		Address:  "/secrets/api.sock",
+		SecretID: token,
 	})
 	if err != nil {
 		slog.Error("failed to create Nomad client, aborting init", "err", err.Error())
