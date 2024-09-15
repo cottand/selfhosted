@@ -3,7 +3,9 @@ job "node-exporter" {
   group "node-exporter" {
     network {
       mode = "bridge"
-      port "metrics" {}
+      port "metrics" {
+        host_network = "ts"
+      }
     }
 
     service {
