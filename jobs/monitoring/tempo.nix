@@ -33,9 +33,8 @@ lib.mkJob "tempo" {
     network = {
       mode = "bridge";
       dynamicPorts = [
-        { label = "metrics"; }
+        { label = "metrics"; hostNetwork = "ts"; }
       ];
-      dns.servers = [ "10.10.11.1" "10.10.12.1" ];
     };
     service."tempo-metrics" = {
       port = toString ports.http;

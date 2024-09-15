@@ -128,6 +128,8 @@ rec {
   hez2.ip = "10.10.12.1";
   hez3.ip = "10.10.13.1";
 
+  tailscaleDns = "golden-dace.ts.net";
+
 
   tests = {
     asHclList = check (setAsHclList { lol = { a = 1; }; }) [{ name = "lol"; a = 1; }];

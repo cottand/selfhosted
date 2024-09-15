@@ -14,7 +14,7 @@ let
     grpc = http + 10000;
   };
 
-  advertiseOf = node: "${lib.${node}.ip}:${toString ports.http}";
+  advertiseOf = node: "${node}.${lib.tailscaleDns}:${toString ports.http}";
 
   mkConfig = node: other1: other2: {
     name = "${node}-seaweed-master";
@@ -28,10 +28,11 @@ let
       mode = "bridge";
       dynamicPorts = [{
         label = "metrics";
+        hostNetwork = "ts";
       }];
       reservedPorts = [
-        { label = "http"; value = ports.http; }
-        { label = "grpc"; value = ports.grpc; }
+        { label = "http"; value = ports.http; hostNetwork = "ts"; }
+        { label = "grpc"; value = ports.grpc; hostNetwork = "ts";}
       ];
     };
     service."seaweed-master-http" = {
