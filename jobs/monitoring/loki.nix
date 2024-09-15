@@ -26,7 +26,7 @@ lib.mkJob "loki" {
     network = {
       mode = "bridge";
       dynamicPorts = [
-        { label = "health"; }
+        { label = "health"; hostNetwork = "ts"; }
       ];
     };
     volumes."docker-sock" = {

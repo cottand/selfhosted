@@ -23,7 +23,7 @@ func InitService() {
 		return
 	}
 	nomadClient, err := nomad.NewClient(&nomad.Config{
-		Address:  "/secrets/api.sock",
+		Address:  "unix:///secrets/api.sock",
 		SecretID: token,
 	})
 	if err != nil {

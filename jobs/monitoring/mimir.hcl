@@ -39,18 +39,18 @@ job "mimir" {
       mode = "bridge"
       port "healthz" {
         to           = -1
-        host_network = "wg-mesh"
+        host_network = "ts"
       }
       port "metrics" {
         to           = -1
-        host_network = "wg-mesh"
+        host_network = "ts"
       }
       port "memberlist" {
-        host_network = "wg-mesh"
+        host_network = "ts"
         to           = 7946
       }
       port "grpc" {
-        host_network = "wg-mesh"
+        host_network = "ts"
       }
     }
     service {
