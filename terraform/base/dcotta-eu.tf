@@ -1,22 +1,4 @@
 locals {
-  mesh_ip4 = {
-    cosmo  = "10.10.0.1"
-    elvis  = "10.10.1.1"
-#     maco   = "10.10.2.1"
-    ari    = "10.10.3.1"
-    miki   = "10.10.4.1"
-    ziggy  = "10.10.5.1"
-    xps2   = "10.10.6.1"
-    bianco = "10.10.11.2"
-
-    hez1 = "10.10.11.1"
-    hez2 = "10.10.12.1"
-    hez3 = "10.10.13.1"
-
-    inst-xdmqm-pool1 = "10.10.21.1"
-    inst-rzc4b-pool1 = "10.10.22.1"
-
-  }
   zoneIds     = jsondecode(data.bitwarden-secrets_secret.zoneIds.value)
   zoneIdsList = [local.zoneIds["eu"], local.zoneIds["com"]]
   pubIp       = jsondecode(data.bitwarden-secrets_secret.pubIps.value)
@@ -29,7 +11,6 @@ module "node_miki" {
   cf_zone_ids = local.zoneIdsList
   source      = "../modules/node"
   name        = "miki"
-  ip4_mesh    = local.mesh_ip4.miki
   ip4_pub     = local.pubIp["ip4"]["miki"]
   ip6_pub     = local.pubIp["ip6"]["miki"]
   is_web_ipv4 = false
@@ -39,7 +20,6 @@ module "node_cosmo" {
   cf_zone_ids = local.zoneIdsList
   source      = "../modules/node"
   name        = "cosmo"
-  ip4_mesh    = local.mesh_ip4.cosmo
   ip4_pub     = local.pubIp["ip4"]["cosmo"]
   ip6_pub     = local.pubIp["ip6"]["cosmo"]
   is_web_ipv4 = false
@@ -50,7 +30,6 @@ module "node_elvis" {
   cf_zone_ids = local.zoneIdsList
   source      = "../modules/node"
   name        = "elvis"
-  ip4_mesh    = local.mesh_ip4.elvis
   ip4_pub     = null
   ip6_pub     = local.pubIp["ip6"]["elvis"]
   is_web_ipv4 = false
@@ -60,7 +39,6 @@ module "node_ari" {
   cf_zone_ids = local.zoneIdsList
   source      = "../modules/node"
   name        = "ari"
-  ip4_mesh    = local.mesh_ip4.ari
   ip4_pub     = null
   ip6_pub     = local.pubIp["ip6"]["ari"]
   is_web_ipv4 = false
@@ -70,7 +48,6 @@ module "node_xps2" {
   cf_zone_ids = local.zoneIdsList
   source      = "../modules/node"
   name        = "xps2"
-  ip4_mesh    = local.mesh_ip4.xps2
   ip4_pub     = null
   ip6_pub     = local.pubIp["ip6"]["xps2"]
   is_web_ipv4 = false
@@ -80,7 +57,6 @@ module "node_ziggy" {
   cf_zone_ids = local.zoneIdsList
   source      = "../modules/node"
   name        = "ziggy"
-  ip4_mesh    = local.mesh_ip4.ziggy
   ip4_pub     = null
   ip6_pub     = local.pubIp["ip6"]["ziggy"]
   is_web_ipv4 = false
@@ -90,7 +66,6 @@ module "node_bianco" {
   cf_zone_ids = local.zoneIdsList
   source      = "../modules/node"
   name        = "bianco"
-  ip4_mesh    = local.mesh_ip4.bianco
   ip4_pub     = null
   ip6_pub     = null
   is_web_ipv4 = false
@@ -104,19 +79,17 @@ module "nodes_hz" {
   cf_zone_ids = local.zoneIdsList
   source      = "../modules/node"
   name        = each.key
-  ip4_mesh    = local.mesh_ip4[each.key]
   ip4_pub     = each.value["ipv4"]
   ip6_pub     = each.value["ipv6"]
   is_web_ipv4 = true
   is_web_ipv6 = true
 }
 
-module "nodes_oci_pool1" {
-  for_each    = data.terraform_remote_state.metal.outputs["oci_server_ips"]
+module "nodes_oci_control_pool" {
+  for_each    = data.terraform_remote_state.metal.outputs["oci_control_pool_server_ips"]
   cf_zone_ids = local.zoneIdsList
   source      = "../modules/node"
   name        = each.key
-  ip4_mesh    = local.mesh_ip4[each.key]
   ip4_pub     = each.value["ipv4"]
   ip6_pub     = each.value["ipv6"]
   is_web_ipv4 = false

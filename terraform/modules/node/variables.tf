@@ -4,10 +4,6 @@ variable "name" {
   type = string
 }
 
-variable "ip4_mesh" {
-  type = string
-}
-
 variable "ip4_pub" {
   type      = string
   nullable  = true

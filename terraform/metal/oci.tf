@@ -1,6 +1,6 @@
 locals {
   base_sub_cidr  = "10.2.0.0/24"
-  oci_pool1_size = 2
+  oci_control_pool_size = 3
   ADs            = data.oci_identity_availability_domains.home.availability_domains
 }
 
@@ -82,7 +82,7 @@ resource "oci_core_instance_configuration" "base" {
   }
 }
 
-resource "oci_core_instance_pool" "pool1" {
+resource "oci_core_instance_pool" "control" {
   lifecycle {
     create_before_destroy = true
     ignore_changes        = [load_balancers, freeform_tags]
@@ -90,7 +90,7 @@ resource "oci_core_instance_pool" "pool1" {
   }
   compartment_id                  = local.ociRoot
   instance_configuration_id       = oci_core_instance_configuration.base.id
-  display_name                    = "pool1"
+  display_name                    = "control"
   instance_display_name_formatter = ""
 
 
@@ -100,7 +100,7 @@ resource "oci_core_instance_pool" "pool1" {
       subnet_id = oci_core_subnet.base.id
     }
   }
-  size = local.oci_pool1_size
+  size = local.oci_control_pool_size
 }
 
 resource "oci_core_default_security_list" "base_ipv6" {
