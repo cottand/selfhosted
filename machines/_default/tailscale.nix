@@ -15,6 +15,4 @@
   };
 
   networking.firewall.trustedInterfaces = [ config.services.tailscale.interfaceName ];
-
-  systemd.services.tailscale.after = [ "wg-quick-wg-mesh.service" ];
 }

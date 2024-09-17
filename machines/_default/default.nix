@@ -10,7 +10,7 @@
   deployment = {
     replaceUnknownProfiles = lib.mkDefault true;
     buildOnTarget = lib.mkDefault false;
-    targetHost = lib.mkDefault meta.ip.mesh."${name}";
+    targetHost = "${name}.golden-dace.ts.net";
   };
 
   home-manager = {
@@ -26,13 +26,5 @@
     };
   };
 
-  # mesh VPN
-  custom.wireguard = lib.mkDefault {
-    "wg-mesh" = {
-      enable = true;
-      confPath = secretPath + "wg-mesh/${name}.conf";
-      port = 55820;
-    };
-  };
   consulNode.enable = lib.mkDefault true;
 }

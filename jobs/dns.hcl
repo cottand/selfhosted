@@ -5,17 +5,17 @@ job "dns" {
       mode = "bridge"
       port "dns" {
         static       = 53
-        host_network = "wg-mesh"
+        host_network = "ts"
       }
       port "dns-public" {
         // static = 53
       }
       port "metrics" {
         to           = 4000
-        host_network = "wg-mesh"
+        host_network = "ts"
       }
       port "http_doh" {
-        host_network = "wg-mesh"
+        host_network = "ts"
       }
     }
     update {
@@ -102,26 +102,17 @@ metrics.enabled = true
 
 # manual custom dns entries
 customdnsrecords = [
-    #"proxy.manual.     3600      IN  A   10.10.4.1  ",
-    "proxy.manual.     3600      IN  A   10.10.11.1  ",
-    #"proxy.manual.     3600      IN  A   10.10.0.1  ",
-
-    "web.vps.dcotta.eu.     3600      IN  A   10.10.11.1  ",
+    "proxy.manual.     3600      IN  A   100.92.69.51  ",
+    "proxy.manual.     3600      IN  A   100.82.72.56",
 
     "nomad.traefik.         3600      IN  CNAME    proxy.manual  ",
     "consul.traefik.         3600     IN  CNAME    proxy.manual  ",
 
-    "nomad.vps.dcotta.eu.   3600      IN  CNAME   proxy.manual  ",
-    "traefik.vps.dcotta.eu. 3600      IN  CNAME   proxy.manual  ",
-
-    "web.vps.               3600      IN  CNAME   miki.mesh.dcotta.eu.  ",
     "_http._tcp.seaweedfs-master.nomad IN SRV 0 0 80 seaweed-master.vps.dcotta.eu",
 
     {{ range $i, $s := nomadService "seaweedfs-webdav" }}
     "webdav.vps            3600  IN  A   {{ .Address }}",
     {{ end }}
-
-    "seaweed-master.vps.dcotta.eu  3600 IN  A   10.10.0.1",
 
     {{ $rr_a := sprig_list -}}
     {{- $rr_srv := sprig_list -}}

@@ -9,7 +9,7 @@ lib.mkJob "debug" {
       mode = "bridge";
       port."web" = {
         to = 80;
-        hostNetwork = "wg-mesh";
+        hostNetwork = "ts";
       };
     };
 

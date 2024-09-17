@@ -1,8 +1,3 @@
-# sets up a Nomad node with options to run specifically in the mesh.dcotta.eu fleet
-# binds specifically to wg-mesh interface
-
-# TODO add assertion for checking for wg-mesh
-
 { name, pkgs, lib, config, ... }:
 with lib;
 let
@@ -58,7 +53,7 @@ in
               enabled = false
               bootstrap_expect = 3
               server_join {
-                  retry_join = [ "10.10.11.1", "10.10.12.1" ]
+                  retry_join = [  ]
                   retry_max = 3
                   retry_interval = "15s"
               }
@@ -92,8 +87,7 @@ in
       config.environment.etc."nomad/config/server.hcl".text
       config.environment.etc."nomad/config/extraSettings.hcl".text
     ];
-    systemd.services.nomad.after = [
-      "wg-quick-wg-mesh.service"
+    systemd.services.nomad.after = mkIf config.services.tailscale.enable [
       "tailscaled.service"
     ];
 
@@ -136,7 +130,7 @@ in
       ];
       settings = {
         client = {
-          network_interface = "wg-mesh";
+          network_interface = config.services.tailscale.interfaceName;
 
           cni_path = "${pkgs.cni-plugins}/bin";
 

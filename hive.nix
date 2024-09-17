@@ -51,26 +51,21 @@ in
 
   cosmo = { name, nodes, ... }: {
     imports = [ ./machines/${name}/definition.nix ];
-    deployment.buildOnTarget = false;
-    deployment.targetHost = "${name}.vps.dcotta.eu";
     deployment.tags = [ "contabo" "nomad-server" "vault" ];
   };
 
   miki = { name, nodes, lib, ... }: {
     imports = [ ./machines/${name}/definition.nix ];
-    deployment.targetHost = "${name}.mesh.dcotta.eu";
     deployment.tags = [ "contabo" "nomad-server" "vault" ];
   };
 
   ari = { name, nodes, ... }: {
     imports = [ ./machines/${name}/definition.nix ];
-    networking.hostName = name;
     deployment.tags = [ "local" "nomad-client" ];
   };
 
   xps2 = { name, nodes, ... }: {
     imports = [ ./machines/${name}/definition.nix ];
-    networking.hostName = name;
     deployment.tags = [ "local" "nomad-client" ];
   };
 
@@ -84,21 +79,18 @@ in
     vaultNode.enable = true;
     deployment.buildOnTarget = false;
     deployment.tags = [ "hetzner" ];
-    deployment.targetHost = "${name}.vps.dcotta.com";
   };
   hez2 = { name, nodes, ... }: {
     imports = [ ./machines/${name}/definition.nix ];
     vaultNode.enable = true;
     deployment.buildOnTarget = false;
     deployment.tags = [ "hetzner" ];
-    deployment.targetHost = "${name}.vps.dcotta.com";
   };
   hez3 = { name, nodes, ... }: {
     imports = [ ./machines/${name}/definition.nix ];
     vaultNode.enable = true;
     deployment.buildOnTarget = false;
     deployment.tags = [ "hetzner" ];
-    deployment.targetHost = "${name}.vps.dcotta.com";
   };
 } // (mkNodePool {
   names = [ ];
