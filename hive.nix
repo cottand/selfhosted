@@ -2,13 +2,13 @@ inputs@{ self, nixpkgs, cottand, home-manager, utils, nixpkgs-master, attic, ove
 let
   secretPath = "/Users/nico/dev/cottand/selfhosted/secret/";
 
-  mkNodePool = { tags ? [ ], names, nodeType, ... }: builtins.listToAttrs (builtins.map
+  mkNodePool = { tags ? [ ], names, imports, ... }: builtins.listToAttrs (builtins.map
     (name: rec {
       inherit name;
       value = { ... }: {
+        inherit imports;
         deployment.tags = tags;
         deployment.targetHost = "${name}.vps.dcotta.com";
-        nodeType.${nodeType} = true;
       };
     })
     names);
@@ -20,18 +20,6 @@ in
     nixpkgs = nixpkgs.legacyPackages.x86_64-linux;
     specialArgs.secretPath = secretPath;
     specialArgs.flakeInputs = inputs;
-    specialArgs.meta.ip.mesh = {
-      cosmo = "10.10.0.1";
-      maco = "10.10.2.1";
-      ari = "10.10.3.1";
-      miki = "10.10.4.1";
-      xps2 = "10.10.6.1";
-      bianco = "10.10.11.2";
-
-      hez1 = "10.10.11.1";
-      hez2 = "10.10.12.1";
-      hez3 = "10.10.13.1";
-    };
   };
 
   defaults = { pkgs, lib, name, nodes, meta, ... }: {
@@ -93,6 +81,7 @@ in
     deployment.tags = [ "hetzner" ];
   };
 } // (mkNodePool {
-  names = [ ];
-  nodeType = "ociPool1Worker";
+  names = [ "inst-uhudp-control" "inst-abrey-control" "inst-gb5kd-control" ];
+  imports = [ ./machines/ociControlWorker ];
+  tags = [ "oci-control" ];
 })

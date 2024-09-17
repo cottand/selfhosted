@@ -10,10 +10,10 @@ locals {
 
 // used in /base to create DNS records
 output "hez_server_ips" {
-  value = local.server_ips
+  value = local.hez_server_ips
 }
 
-output "oci_server_ips" {
+output "oci_control_pool_server_ips" {
   value = local.oci_servers_ips
 }
 

@@ -12,18 +12,6 @@ terraform {
 }
 
 
-resource "cloudflare_record" "node_mesh" {
-  count   = length(var.cf_zone_ids)
-  zone_id = var.cf_zone_ids[count.index]
-  name    = "${var.name}.mesh"
-  type    = "A"
-  value   = var.ip4_mesh
-  ttl     = 1
-  comment = local.dns_comment
-  proxied = false
-}
-
-
 resource "cloudflare_record" "node_vps4" {
   count   = var.ip4_pub == null ? 0 : length(var.cf_zone_ids)
   zone_id = var.cf_zone_ids[count.index]

@@ -10,7 +10,7 @@
   deployment = {
     replaceUnknownProfiles = lib.mkDefault true;
     buildOnTarget = lib.mkDefault false;
-    targetHost = "${name}.golden-dace.ts.net";
+    targetHost = lib.mkDefault "${name}.golden-dace.ts.net";
   };
 
   home-manager = {
