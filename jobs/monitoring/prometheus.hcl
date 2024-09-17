@@ -14,13 +14,6 @@ job "prometheus" {
 
     network {
       mode = "bridge"
-      dns {
-        servers = [
-          "10.10.11.1",
-          "10.10.12.1",
-          "10.10.13.1",
-        ]
-      }
       port "health" {
         to = -1
         host_network = "ts"
@@ -325,7 +318,7 @@ scrape_configs:
     static_configs:
      - targets: [
       'hez1.golden-dace.ts.net:8200',
-      'hez2.golden-dace.ts.netu:8200',
+      'hez2.golden-dace.ts.net:8200',
       'hez3.golden-dace.ts.net:8200',
     ]
   - job_name: 'consul'

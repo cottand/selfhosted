@@ -1,6 +1,6 @@
 { flakeInputs, name, config, pkgs, secretPath, lib, meta, ... }:
 with lib; let
-  bind = meta.ip.mesh."${name}";
+  bind = "0.0.0.0";
   cfg = config.vaultNode;
 in
 {
@@ -27,33 +27,34 @@ in
         # node_id = "node1"
         path = "/vault/data"
 
+
         retry_join {
-          leader_api_addr         = "https://${meta.ip.mesh.hez1}:8200"
-          leader_tls_servername   = "${meta.ip.mesh.hez1}"
+          leader_api_addr         = "https://hez3.golden-dace.ts.net:8200"
+          leader_tls_servername   = "hez3.golden-dace.ts.net"
           leader_ca_cert_file     = "/opt/vault/tls/vault-ca.pem"
           leader_client_cert_file = "/opt/vault/tls/vault-cert.pem"
           leader_client_key_file  = "/opt/vault/tls/vault-key.rsa"
         }
         retry_join {
-          leader_api_addr         = "https://${meta.ip.mesh.hez2}:8200"
-          leader_tls_servername   = "${meta.ip.mesh.hez2}"
+          leader_api_addr         = "https://hez2.golden-dace.ts.net:8200"
+          leader_tls_servername   = "hez2.golden-dace.ts.net"
           leader_ca_cert_file     = "/opt/vault/tls/vault-ca.pem"
           leader_client_cert_file = "/opt/vault/tls/vault-cert.pem"
           leader_client_key_file  = "/opt/vault/tls/vault-key.rsa"
         }
         retry_join {
-          leader_api_addr         = "https://${meta.ip.mesh.hez3}:8200"
-          leader_tls_servername   = "${meta.ip.mesh.hez3}"
+          leader_api_addr         = "https://hez1.golden-dace.ts.net:8200"
+          leader_tls_servername   = "hez1.golden-dace.ts.net"
           leader_ca_cert_file     = "/opt/vault/tls/vault-ca.pem"
           leader_client_cert_file = "/opt/vault/tls/vault-cert.pem"
           leader_client_key_file  = "/opt/vault/tls/vault-key.rsa"
         }
       '';
       # for listener tcp
-      address = "${bind}:8200";
+      address = ''{{ GetInterfaceIP \"ts0\" }}:8200'';
       extraConfig = ''
-        api_addr = "https://${bind}:8200"
-        cluster_addr = "https://${bind}:8201"
+        api_addr = "https://{{ GetInterfaceIP \"ts0\" }}:8200"
+        cluster_addr = "https://{{ GetInterfaceIP \"ts0\" }}:8201"
         ui = true
         disable_mlock = true
         seal "awskms" {
@@ -104,7 +105,7 @@ in
       permissions = "0644";
     };
     deployment.keys."vault-aws.env" = {
-      keyCommand = [ "bws-get"  "d9709fc0-8f24-4e51-9435-b186014a5e6b"];
+      keyCommand = [ "bws-get" "d9709fc0-8f24-4e51-9435-b186014a5e6b" ];
       destDir = "/opt/vault/aws";
       user = "root";
       group = "vault";
@@ -116,7 +117,12 @@ in
         "vault-cert.pem.service"
         "vault-ca.pem.service"
       ];
-      after = [ "wg-quick-wg-mesh.service" ];
+      wants = mkIf config.services.tailscale.enable [
+        "tailscaled.service"
+      ];
+      after = mkIf config.services.tailscale.enable [
+        "tailscaled.service"
+      ];
       # for KMS auto unseal
       serviceConfig.EnvironmentFile = config.deployment.keys."vault-aws.env".path;
     };

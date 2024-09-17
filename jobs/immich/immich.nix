@@ -1,5 +1,5 @@
 let
-  lib = (import ../lib) {};
+  lib = (import ../lib) { };
   version = "v1.114.0";
   domain = "immich.dcotta.com";
   cpu = 220;
@@ -62,9 +62,9 @@ lib.mkJob "immich" {
     network = {
       mode = "bridge";
       dynamicPorts = [
-        { label = "health"; }
-        { label = "metrics"; }
-        { label = "services-metrics"; }
+        { label = "health"; hostNetwork = "ts"; }
+        { label = "metrics"; hostNetwork = "ts"; }
+        { label = "services-metrics"; hostNetwork = "ts"; }
       ];
       dns.serviers = [ "10.10.11.1" "10.10.12.1" "10.10.13.1" ];
     };
@@ -296,9 +296,8 @@ lib.mkJob "immich" {
     network = {
       mode = "bridge";
       dynamicPorts = [
-        { label = "health"; }
+        { label = "health"; hostNetwork = "ts"; }
       ];
-      dns.serviers = [ "10.10.11.1" "10.10.12.1" "10.10.13.1" ];
     };
     ephemerealDisk = {
       size = 5000; # MB
@@ -336,7 +335,7 @@ lib.mkJob "immich" {
         OTEL_TRACES_EXPORTER = "otlp";
         OTEL_SERVICE_NAME = "immich-ml";
         OTEL_SDK_DISABLED = "false";
-        NODE_OPTIONS="--require @opentelemetry/auto-instrumentations-node/register";
+        NODE_OPTIONS = "--require @opentelemetry/auto-instrumentations-node/register";
       };
       resources = {
         cpu = cpu-ml;
@@ -365,9 +364,8 @@ lib.mkJob "immich" {
     network = {
       mode = "bridge";
       dynamicPorts = [
-        { label = "health"; }
+        { label = "health"; hostNetwork = "ts"; }
       ];
-      dns.serviers = [ "10.10.11.1" "10.10.12.1" "10.10.13.1" ];
     };
     service."immich-redis" = {
       port = toString ports.redis;

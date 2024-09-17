@@ -23,11 +23,7 @@ let
     memoryMaxMB = 0.10 * mem + 100;
   };
   seconds = 1000000000;
-  inMigrate = node:
-  false &&
-  node == "hez1"
-  ;
-  advertiseOf = node: if !(inMigrate node) then "${node}.mesh.dcotta.eu:${toString binds.${node}}" else "${node}.${lib.tailscaleDns}:${toString binds.${node}}";
+  advertiseOf = node: "${node}.${lib.tailscaleDns}:${toString binds.${node}}";
   certsForUser = name: [
     {
       destPath = "/secrets/client.${name}.key";
@@ -63,10 +59,10 @@ let
     networks = [{
       mode = "bridge";
       dynamicPorts = [
-        { label = "metrics"; to = webPort; hostNetwork = if (inMigrate node) then "ts" else "wg-mesh";  }
+        { label = "metrics"; to = webPort; hostNetwork = "ts"; }
       ];
       reservedPorts = [
-        { label = "rpc"; value = binds.${node}; hostNetwork =if (inMigrate node) then "ts" else "wg-mesh"; }
+        { label = "rpc"; value = binds.${node}; hostNetwork = "ts"; }
       ];
     }];
     services = [
@@ -207,6 +203,8 @@ in
       (mkConfig "hez1" [ "hez2" "hez3" ])
       (mkConfig "hez2" [ "hez1" "hez3" ])
       (mkConfig "hez3" [ "hez1" "hez2" ])
+
+      # add nodes here (miki?) to perform DB node migrations as you need 4 nodes to decommission
     ];
   };
 }

@@ -116,18 +116,6 @@ rec {
       id = name;
     };
 
-  cosmo.ip = "10.10.0.1";
-  elvis.ip = "10.10.1.1";
-  maco.ip = "10.10.2.1";
-  ari.ip = "10.10.3.1";
-  miki.ip = "10.10.4.1";
-  ziggy.ip = "10.10.5.1";
-  xps2.ip = "10.10.6.1";
-  bianco.ip = "10.10.0.2";
-  hez1.ip = "10.10.11.1";
-  hez2.ip = "10.10.12.1";
-  hez3.ip = "10.10.13.1";
-
   tailscaleDns = "golden-dace.ts.net";
 
 

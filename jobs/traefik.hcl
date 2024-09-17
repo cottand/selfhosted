@@ -19,20 +19,13 @@ job "traefik" {
     }
     network {
       mode = "bridge"
-      port "dns-mesh" {
+      port "dns-ts" {
         // static = 53
+        host_network = "ts"
       }
       port "http-ui" {
         to           = 8080
-        host_network = "wg-mesh"
-      }
-      port "http-mesh" {
-        static       = 80
-        host_network = "wg-mesh"
-      }
-      port "https-mesh" {
-        static       = 443
-        host_network = "wg-mesh"
+        host_network = "ts"
       }
       port "http-ts" {
         static       = 80
@@ -60,10 +53,7 @@ job "traefik" {
       }
       port "metrics" {
         static = 31934 # hardcoded so that prometheus can find it after restart
-        host_network = "wg-mesh"
-      }
-      dns {
-        servers = ["10.10.11.1", "10.10.12.1"]
+        host_network = "ts"
       }
     }
     volume "ca-certificates" {
@@ -122,7 +112,7 @@ job "traefik" {
     }
     service {
       name = "traefik-ingress"
-      port = "http-mesh"
+      port = "http-ts"
       task = "traefik"
 
       connect {
@@ -203,10 +193,19 @@ job "traefik" {
 [tcp.services]
   [tcp.services.nomad.loadBalancer]
     [[tcp.services.nomad.loadBalancer.servers]]
-      address = "miki.mesh.dcotta.eu:4646"
+      address = "hez1.golden-dace.ts.net:4646"
+    [[tcp.services.nomad.loadBalancer.servers]]
+      address = "hez2.golden-dace.ts.net:4646"
+    [[tcp.services.nomad.loadBalancer.servers]]
+      address = "hez3.golden-dace.ts.net:4646"
+
   [tcp.services.consul.loadBalancer]
     [[tcp.services.consul.loadBalancer.servers]]
-      address = "miki.mesh.dcotta.eu:8501"
+      address = "hez1.golden-dace.ts.net:8501"
+    [[tcp.services.consul.loadBalancer.servers]]
+      address = "hez2.golden-dace.ts.net:8501"
+    [[tcp.services.consul.loadBalancer.servers]]
+      address = "hez3.golden-dace.ts.net:8501"
 
 EOF
         change_mode = "signal"
@@ -218,21 +217,13 @@ EOF
   [entrypoints.sql]
         address = ":{{ env "NOMAD_PORT_sql" }}"
   [entryPoints.dns]
-        address = ":{{ env "NOMAD_PORT_dns_mesh" }}/udp"
-
+        address = ":{{ env "NOMAD_PORT_dns_ts" }}/udp"
 
   [entrypoints.web]
-    address = ":{{ env "NOMAD_PORT_http_mesh" }}"
-    transport.respondingTimeouts.readTimeout="5m"
-  [entryPoints.websecure]
-    address = ":{{ env "NOMAD_PORT_https_mesh" }}"
-    transport.respondingTimeouts.readTimeout="5m"
-
-  [entrypoints.web_ts]
     address = ":{{ env "NOMAD_PORT_http_ts" }}"
     transport.respondingTimeouts.readTimeout="5m"
 
-  [entryPoints.websecure_ts]
+  [entryPoints.websecure]
     address = ":{{ env "NOMAD_PORT_https_ts" }}"
     transport.respondingTimeouts.readTimeout="5m"
 

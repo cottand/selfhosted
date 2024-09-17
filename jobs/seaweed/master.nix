@@ -1,5 +1,5 @@
 let
-  lib = (import ../lib) {};
+  lib = (import ../lib) { };
   version = "3.68";
   cpu = 100;
   mem = 200;
@@ -26,13 +26,12 @@ let
     }];
     network = {
       mode = "bridge";
-      dynamicPorts = [{
-        label = "metrics";
-        hostNetwork = "ts";
-      }];
+      dynamicPorts = [
+        { label = "metrics"; hostNetwork = "ts"; }
+      ];
       reservedPorts = [
         { label = "http"; value = ports.http; hostNetwork = "ts"; }
-        { label = "grpc"; value = ports.grpc; hostNetwork = "ts";}
+        { label = "grpc"; value = ports.grpc; hostNetwork = "ts"; }
       ];
     };
     service."seaweed-master-http" = {
@@ -135,7 +134,7 @@ let
         args = [
           "-logtostderr"
           "master"
-          "-ip=${lib.${node}.ip}"
+          "-ip=${node}.${lib.tailscaleDns}"
           "-ip.bind=0.0.0.0"
           #   "-mdir=/data"
           "-mdir=\${NOMAD_TASK_DIR}/master"

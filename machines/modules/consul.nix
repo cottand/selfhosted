@@ -37,9 +37,9 @@ in
     deployment.tags = mkIf cfg.server [ "consul-server" ];
     systemd.services.consul = {
       serviceConfig.Environment = "HOME=/root";
-      after = [
-        "wg-quick-wg-mesh.service"
-      ] ++ (if config.services.tailscale.enable then [ "tailscaled.service" ] else [ ]);
+      after = mkIf config.services.tailscale.enable [
+        "tailscaled.service"
+      ];
     };
 
     services.consul = {
@@ -74,7 +74,7 @@ in
           # metrics_proxy.path_allowlist = ["/prometheus/api/v1/query_range" "/prometheus/api/v1/query"];
         };
 
-        client_addr = ''{{ GetInterfaceIP "ts0" }} {{ GetInterfaceIP "wg-mesh" }} {{ GetAllInterfaces | include "flags" "loopback" | join "address" " " }}'';
+        client_addr = ''{{ GetInterfaceIP "ts0" }} {{ GetAllInterfaces | include "flags" "loopback" | join "address" " " }}'';
         bind_addr = ''{{ GetInterfaceIP "ts0" }}'';
 
         connect.enabled = true;
