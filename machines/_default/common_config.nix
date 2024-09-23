@@ -67,9 +67,7 @@
   ];
 
   environment.systemPackages = with pkgs; [
-    wireguard-tools
     python3 # required for sshuttle
-    seaweedfs # makes 'weed' bin available
     pciutils # for setpci, lspci
     dig
     iw

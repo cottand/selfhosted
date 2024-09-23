@@ -15,7 +15,7 @@ buildGoModule {
   src = util.devGoSrc;
   vendorHash = null;
   nativeBuildInputs = [ pkg-config makeWrapper ];
-  buildInputs = [ nixVersions.latest ];
+  buildInputs = [ nixVersions.nix_2_22 ];
   subPackages = [ "cmd/${name}" ];
   CGO_ENABLED = 1;
   postInstall = ''

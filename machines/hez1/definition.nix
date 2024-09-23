@@ -25,8 +25,8 @@
         bootstrap_expect = 3
         server_join {
           retry_join = [
-            "hez2.mesh.dcotta.eu",
-            "hez3.mesh.dcotta.eu",
+            "hez2.golden-dace.ts.net",
+            "hez3.golden-dace.ts.net",
           ]
           retry_max      = 3
           retry_interval = "15s"
