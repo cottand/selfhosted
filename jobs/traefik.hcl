@@ -7,11 +7,11 @@ variable "ports" {
 
 job "traefik" {
   group "traefik" {
-    count = 4
+    count = 3
     constraint {
       attribute = "${meta.box}"
       operator  = "regexp"
-      value     = "(miki|hez1|hez2|hez3)"
+      value     = "(hez1|hez2|hez3)"
     }
     constraint {
       operator = "distinct_hosts"
@@ -87,10 +87,9 @@ job "traefik" {
       tags = [
         "traefik.enable=true",
         "traefik.http.routers.traefik_dash.entrypoints=web,websecure",
-        "traefik.http.routers.traefik_dash.rule=Host(`traefik.tfk.nd`) || PathPrefix(`/dashboard`)",
+        "traefik.http.routers.traefik_dash.rule=Host(`traefik.tfk.nd`)",
         "traefik.http.routers.traefik_dash.tls=true",
         "traefik.http.routers.traefik_dash.service=api@internal",
-        // "traefik.http.routers.traefik_dash.middlewares=auth@file",
       ]
       port = "http-ui"
       // check {
@@ -129,8 +128,7 @@ job "traefik" {
         propagation_mode = "host-to-task"
       }
       config {
-        image = "traefik:3.0"
-        # needs to be in host wireguard network so that it can reach other VPN members
+        image = "traefik:3.1"
         volumes = [
           "local/traefik.toml:/etc/traefik/traefik.toml",
           "local/traefik-dynamic.toml:/etc/traefik/dynamic/traefik-dynamic.toml",
@@ -236,6 +234,7 @@ EOF
       
   [entryPoints.websecure_public]
     address = ":{{ env "NOMAD_PORT_https_public" }}"
+    http.middlewares = ["cloudflarewarp@file"]
 
     # redirects 44300 (in container) to 443
     [entryPoints.websecure_public.http.redirections.entryPoint]
