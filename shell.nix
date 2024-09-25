@@ -35,8 +35,8 @@
     fish --init-command 'abbr -a weeds "nomad alloc exec -i -t -task seaweed-filer -job seaweed-filer weed shell -master 10.10.11.1:9333" ' && exit
   '';
 
-  NOMAD_ADDR = "https://hez1.golden-dace.ts.net:4646";
-  #          VAULT_ADDR = "https://10.10.2.1:8200";
+  NOMAD_ADDR = "https://inst-kzsrv-control.golden-dace.ts.net:4646";
+  CONSUL_ADDR = "https://inst-kzsrv-control.golden-dace.ts.net:8501";
   VAULT_ADDR = "https://vault.mesh.dcotta.eu:8200";
 
   NIX_PATH = "";

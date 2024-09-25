@@ -14,16 +14,6 @@ job "seaweedfs-plugin" {
   }
 
   group "plugin" {
-    network {
-      dns {
-        servers = [
-          "10.10.0.1",
-          "10.10.11.1",
-          "10.10.12.1",
-          "10.10.13.1",
-        ]
-      }
-    }
     ephemeral_disk {
       migrate = false
       size    = 5000

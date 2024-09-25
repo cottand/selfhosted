@@ -37,17 +37,11 @@ let
 in
 lib.mkJob "immich" {
   affinities = [{
-    lTarget = "\${meta.controlPlane}";
+    lTarget = "distinct_hosts";
     operand = "is";
     rTarget = "true";
-    weight = -50;
-  }
-    {
-      lTarget = "distinct_hosts";
-      operand = "is";
-      rTarget = "true";
-      weight = 100;
-    }];
+    weight = 100;
+  }];
   # TODO reenable when healthchecks
   #  update = {
   #    maxParallel = 1;
@@ -66,7 +60,6 @@ lib.mkJob "immich" {
         { label = "metrics"; hostNetwork = "ts"; }
         { label = "services-metrics"; hostNetwork = "ts"; }
       ];
-      dns.serviers = [ "10.10.11.1" "10.10.12.1" "10.10.13.1" ];
     };
     volumes."immich-pictures" = {
       name = "immich-pictures";
@@ -83,7 +76,6 @@ lib.mkJob "immich" {
           upstream."immich-postgres".localBindPort = ports.postgres;
           upstream."immich-redis".localBindPort = ports.redis;
           upstream."immich-ml-http".localBindPort = ports.ml-http;
-
           config = lib.mkEnvoyProxyConfig {
             otlpService = "proxy-immich-http";
             otlpUpstreamPort = otlpPort;

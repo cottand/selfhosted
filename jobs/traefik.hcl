@@ -319,8 +319,8 @@ EOF
       }
       identity { env = true }
       resources {
-        cpu    = 256
-        memory = 256
+        cpu    = 300
+        memory = 300
       }
     }
   }
