@@ -25,7 +25,7 @@ resource "cloudflare_record" "node_vps4" {
 
 
 resource "cloudflare_record" "node_web4" {
-  count   = (!var.do_ip4_pub && var.is_web_ipv4) ? length(var.cf_zone_ids) : 0
+  count   = (var.do_ip4_pub && var.is_web_ipv4) ? length(var.cf_zone_ids) : 0
   zone_id = var.cf_zone_ids[count.index]
   name    = "web"
   type    = "A"
@@ -36,7 +36,7 @@ resource "cloudflare_record" "node_web4" {
 }
 
 resource "cloudflare_record" "node_web6" {
-  count   = (!var.do_ip6_pub && var.is_web_ipv6) ? length(var.cf_zone_ids) : 0
+  count   = (var.do_ip6_pub && var.is_web_ipv6) ? length(var.cf_zone_ids) : 0
   zone_id = var.cf_zone_ids[count.index]
   name    = "web"
   type    = "AAAA"
@@ -47,7 +47,7 @@ resource "cloudflare_record" "node_web6" {
 }
 
 resource "cloudflare_record" "node_vps6" {
-  count   = !var.do_ip4_pub ? 0 : length(var.cf_zone_ids)
+  count   = !var.do_ip6_pub ? 0 : length(var.cf_zone_ids)
   zone_id = var.cf_zone_ids[count.index]
   name    = "${var.name}.vps6"
   type    = "AAAA"

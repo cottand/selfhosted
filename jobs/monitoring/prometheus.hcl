@@ -331,9 +331,9 @@ scrape_configs:
      
     static_configs:
      - targets: [
-      'hez1.golden-dace.ts.net:8501',
-      'hez2.golden-dace.ts.net:8501',
-      'hez3.golden-dace.ts.net:8501',
+      'inst-ad2ir-control.golden-dace.ts.net:8501',
+      'inst-hqswv-control.golden-dace.ts.net:8501',
+      'inst-kzsrv-control.golden-dace.ts.net:8501',
     ]
 
 

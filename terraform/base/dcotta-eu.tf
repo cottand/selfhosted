@@ -15,6 +15,9 @@ module "node_miki" {
   ip6_pub     = local.pubIp["ip6"]["miki"]
   is_web_ipv4 = false
   is_web_ipv6 = false
+
+  do_ip4_pub = true
+  do_ip6_pub = true
 }
 module "node_cosmo" {
   cf_zone_ids = local.zoneIdsList
@@ -24,17 +27,10 @@ module "node_cosmo" {
   ip6_pub     = local.pubIp["ip6"]["cosmo"]
   is_web_ipv4 = false
   is_web_ipv6 = false
+  do_ip4_pub = true
+  do_ip6_pub = true
 }
 
-module "node_elvis" {
-  cf_zone_ids = local.zoneIdsList
-  source      = "../modules/node"
-  name        = "elvis"
-  ip4_pub     = null
-  ip6_pub     = local.pubIp["ip6"]["elvis"]
-  is_web_ipv4 = false
-  is_web_ipv6 = false
-}
 module "node_ari" {
   cf_zone_ids = local.zoneIdsList
   source      = "../modules/node"
@@ -43,6 +39,9 @@ module "node_ari" {
   ip6_pub     = local.pubIp["ip6"]["ari"]
   is_web_ipv4 = false
   is_web_ipv6 = false
+
+  do_ip4_pub = false
+  do_ip6_pub = true
 }
 module "node_xps2" {
   cf_zone_ids = local.zoneIdsList
@@ -52,16 +51,11 @@ module "node_xps2" {
   ip6_pub     = local.pubIp["ip6"]["xps2"]
   is_web_ipv4 = false
   is_web_ipv6 = false
+
+  do_ip4_pub = false
+  do_ip6_pub = true
 }
-module "node_ziggy" {
-  cf_zone_ids = local.zoneIdsList
-  source      = "../modules/node"
-  name        = "ziggy"
-  ip4_pub     = null
-  ip6_pub     = local.pubIp["ip6"]["ziggy"]
-  is_web_ipv4 = false
-  is_web_ipv6 = false
-}
+
 module "node_bianco" {
   cf_zone_ids = local.zoneIdsList
   source      = "../modules/node"
@@ -70,6 +64,8 @@ module "node_bianco" {
   ip6_pub     = null
   is_web_ipv4 = false
   is_web_ipv6 = false
+  do_ip4_pub = false
+  do_ip6_pub = false
 }
 
 module "nodes_hz" {
@@ -83,32 +79,10 @@ module "nodes_hz" {
   ip6_pub     = each.value["ipv6"]
   is_web_ipv4 = true
   is_web_ipv6 = true
+
+  do_ip4_pub = true
+  do_ip6_pub = true
 }
-
-# module "nodes_oci_control_pool" {
-#   for_each    = data.terraform_remote_state.metal.outputs["oci_control_pool_server_ips"]
-#   cf_zone_ids = local.zoneIdsList
-#   source      = "../modules/node"
-#   name        = each.key
-#   ip4_pub     = each.value["ipv4"]
-#   ip6_pub     = each.value["ipv6"]
-#   is_web_ipv4 = false
-#   is_web_ipv6 = false
-# }
-#
-
-# Websites
-
-
-# resource "cloudflare_record" "vault-cname-mesh" {
-#   zone_id = local.zoneIds["eu"]
-#   name    = "vault.mesh"
-#   type    = "CNAME"
-#   value   = "hez1.mesh.dcotta.eu"
-#   ttl     = 1
-#   comment = "tf managed"
-#   proxied = true
-# }
 
 resource "cloudflare_record" "nico-cname-web" {
   zone_id = local.zoneIds["eu"]
