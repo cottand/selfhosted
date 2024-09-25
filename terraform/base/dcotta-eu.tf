@@ -85,17 +85,17 @@ module "nodes_hz" {
   is_web_ipv6 = true
 }
 
-module "nodes_oci_control_pool" {
-  for_each    = data.terraform_remote_state.metal.outputs["oci_control_pool_server_ips"]
-  cf_zone_ids = local.zoneIdsList
-  source      = "../modules/node"
-  name        = each.key
-  ip4_pub     = each.value["ipv4"]
-  ip6_pub     = each.value["ipv6"]
-  is_web_ipv4 = false
-  is_web_ipv6 = false
-}
-
+# module "nodes_oci_control_pool" {
+#   for_each    = data.terraform_remote_state.metal.outputs["oci_control_pool_server_ips"]
+#   cf_zone_ids = local.zoneIdsList
+#   source      = "../modules/node"
+#   name        = each.key
+#   ip4_pub     = each.value["ipv4"]
+#   ip6_pub     = each.value["ipv6"]
+#   is_web_ipv4 = false
+#   is_web_ipv6 = false
+# }
+#
 
 # Websites
 

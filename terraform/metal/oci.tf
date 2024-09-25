@@ -1,7 +1,11 @@
 locals {
-  base_sub_cidr  = "10.2.0.0/24"
+  base_sub_cidr         = "10.2.0.0/24"
   oci_control_pool_size = 3
-  ADs            = data.oci_identity_availability_domains.home.availability_domains
+  ADs                   = data.oci_identity_availability_domains.home.availability_domains
+}
+locals {
+  zoneIds     = jsondecode(data.bitwarden-secrets_secret.zoneIds.value)
+  zoneIdsList = [local.zoneIds["eu"], local.zoneIds["com"]]
 }
 
 data "oci_identity_availability_domains" "home" {
@@ -72,7 +76,10 @@ resource "oci_core_instance_configuration" "base" {
       source_details {
         source_type = "image"
         # from https://docs.oracle.com/en-us/iaas/images/image/2c243e52-ed4b-4bc5-b7ce-2a94063d2a19/index.htm
-        image_id = "ocid1.image.oc1.eu-frankfurt-1.aaaaaaaaylcz7y7w6uolelzd6ruexuqkufkqqgg2nrr6xnvhtukysuolzv4q"
+        #         image_id = "ocid1.image.oc1.eu-frankfurt-1.aaaaaaaanhfnlxfc6hoco52puzimxvge4emlmwyqtxw5sflqya4sewpko6dq" # oracle
+        #         image_id = "ocid1.image.oc1.eu-frankfurt-1.aaaaaaaa3rxaqcvwe2vxxffm4dfivmfb3apn4inqehxgntjrx3f7p4hzk5rq" # ubuntu
+        image_id    = "ocid1.image.oc1.eu-frankfurt-1.aaaaaaaa62wbair5a6s42sucffg4die3gdsaubtfgjq2tazt262bovnoeymq"
+        # ubuntu 20.04
       }
       metadata = {
         ssh_authorized_keys : "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHcVLH2EH/aAkul8rNWrDoBTjUTL3Y+6vvlVw5FSh8Gt"
@@ -103,26 +110,40 @@ resource "oci_core_instance_pool" "control" {
   size = local.oci_control_pool_size
 }
 
+module "nodes_oci_control" {
+  count       = local.oci_control_pool_size
+  cf_zone_ids = local.zoneIdsList
+  source      = "../modules/node"
+  name        = local.oci_servers_ips_list[count.index].name
+  ip4_pub     = local.oci_servers_ips_list[count.index].ipv4
+  ip6_pub     = local.oci_servers_ips_list[count.index].ipv6
+  do_ip4_pub = true
+  do_ip6_pub = true
+  is_web_ipv4 = false
+  is_web_ipv6 = false
+}
+
+
 resource "oci_core_default_security_list" "base_ipv6" {
   manage_default_resource_id = oci_core_vcn.base.default_security_list_id
   compartment_id             = local.ociRoot
 
-  ingress_security_rules {
-    protocol = "6" // tcp
-    source = "0.0.0.0/0"
-    tcp_options {
-      max = 22
-      min = 22
-    }
-  }
-  ingress_security_rules {
-    protocol = "6" // tcp
-    source = "::/0"
-    tcp_options {
-      max = 22
-      min = 22
-    }
-  }
+#   ingress_security_rules {
+#     protocol = "6" // tcp
+#     source = "0.0.0.0/0"
+#     tcp_options {
+#       max = 22
+#       min = 22
+#     }
+#   }
+#   ingress_security_rules {
+#     protocol = "6" // tcp
+#     source = "::/0"
+#     tcp_options {
+#       max = 22
+#       min = 22
+#     }
+#   }
 
   ingress_security_rules {
     protocol = "17" // udp
@@ -132,6 +153,7 @@ resource "oci_core_default_security_list" "base_ipv6" {
       min = 46461
     }
   }
+
   ingress_security_rules {
     protocol = "17" // udp
     source = "0.0.0.0/0"

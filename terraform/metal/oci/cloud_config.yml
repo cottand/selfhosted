@@ -6,6 +6,9 @@ write_files:
       {pkgs, ...}:
       {
         environment.systemPackages = with pkgs; [ ];
+        
+        # only 1 kernel fits, because by default /boot is 100MB
+        boot.loader.grub.configurationLimit = 1;
       }
 runcmd:
   - curl https://raw.githubusercontent.com/elitak/nixos-infect/master/nixos-infect | NIXOS_IMPORT=./host.nix NIX_CHANNEL=nixos-24.05 bash 2>&1 | tee /tmp/infect.log

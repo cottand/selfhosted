@@ -25,8 +25,22 @@ locals {
     #     for i in data.oci_core_instance.pool1_instances :
     for index in range(local.oci_control_pool_size) :
     data.oci_core_instance_pool_instances.pool1.instances[index].display_name => {
+      name = data.oci_core_instance_pool_instances.pool1.instances[index].display_name
       ipv4 = data.oci_core_vnic.pool1_vnics[index].public_ip_address
       ipv6 = data.oci_core_vnic.pool1_vnics[index].ipv6addresses[0]
     }
   }
+  oci_servers_ips_list = [
+    #     for i in data.oci_core_instance.pool1_instances :
+    for index in range(local.oci_control_pool_size) : {
+      name = data.oci_core_instance_pool_instances.pool1.instances[index].display_name
+      ipv4 = data.oci_core_vnic.pool1_vnics[index].public_ip_address
+      ipv6 = data.oci_core_vnic.pool1_vnics[index].ipv6addresses[0]
+    }
+  ]
+}
+
+resource "local_file" "oci_control_records" {
+  filename = "oci_control.json"
+  content  = jsonencode([for index in range(local.oci_control_pool_size) : local.oci_servers_ips_list[index].name])
 }

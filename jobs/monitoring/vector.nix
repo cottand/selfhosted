@@ -20,6 +20,7 @@ in
 lib.mkJob "vector" {
 
   type = "system";
+  nodePool = "all";
 
   group."vector" = {
     count = 1;

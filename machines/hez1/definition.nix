@@ -20,18 +20,6 @@
           reserved_ports      = "22"
         }
       }
-      server {
-        enabled          = true
-        bootstrap_expect = 3
-        server_join {
-          retry_join = [
-            "hez2.golden-dace.ts.net",
-            "hez3.golden-dace.ts.net",
-          ]
-          retry_max      = 3
-          retry_interval = "15s"
-        }
-      }
     '';
     enableSeaweedFsVolume = false;
     hostVolumes."roach" = {
@@ -47,7 +35,6 @@
     client.meta.controlPlane = "true";
   };
 
-  consulNode.server = true;
   virtualisation.docker.enable = true;
   networking.firewall.checkReversePath = false;
 

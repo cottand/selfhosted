@@ -51,3 +51,8 @@ resource "nomad_acl_policy" "job-submitter" {
     job_id = "services-go"
   }
 }
+
+resource "nomad_node_pool" "control-plane" {
+  name = "control-plane"
+  description = "Nodes that participate in the control plane and already have high CPU load due to non-Nomad workloads"
+}

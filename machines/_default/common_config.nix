@@ -5,6 +5,8 @@
     "${flakeInputs.self}/certs/root_2024_ca.crt"
   ];
 
+  boot.tmp.cleanOnBoot = true;
+  zramSwap.enable = true;
 
   nix = {
     settings.experimental-features = [ "nix-command" "flakes" ];
@@ -26,13 +28,6 @@
     shell = pkgs.fish;
   };
 
-  # noop, but here for future reference in case I want to do binary caches again
-  cottand.seaweedBinaryCache = {
-    uploadPostBuild = false;
-    useSubstituter = false;
-    cacheUrl = "s3://nix-cache?profile=cache-upload&endpoint=10.10.0.1:13210&scheme=http";
-  };
-
   swapDevices = [{
     device = "/var/lib/swapfile";
     size = 1 * 1024;
@@ -41,14 +36,6 @@
   services.openssh.enable = true;
   services.sshguard.enable = true;
   networking.enableIPv6 = true;
-  programs.zsh.enable = true;
-
-  # Enable Oh-my-zsh
-  programs.zsh.ohMyZsh = {
-    enable = true;
-    theme = "fishy";
-    plugins = [ "git" "sudo" "docker" "systemadmin" ];
-  };
 
   users.users."cottand".openssh.authorizedKeys.keys = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGes99PbsDcHDl3Jwg4GYqYRkzd6tZPH4WX4/ThP//BN"

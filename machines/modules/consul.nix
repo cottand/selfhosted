@@ -50,7 +50,11 @@ in
 
       extraConfig = {
 
-        retry_join = [ "hez1.golden-dace.ts.net" "hez2.golden-dace.ts.net" "hez3.golden-dace.ts.net" ];
+        retry_join = [
+          "inst-ad2ir-control"
+          "inst-hqswv-control"
+          "inst-kzsrv-control"
+        ];
 
         datacenter = "dc1";
         data_dir = "/opt/consul";
