@@ -1,10 +1,13 @@
 job "node-exporter" {
   type = "system"
+
+  node_pool = "all"
   group "node-exporter" {
     network {
       mode = "bridge"
       port "metrics" {
         host_network = "ts"
+        static = 59219
       }
     }
 

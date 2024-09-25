@@ -76,3 +76,8 @@ provider "oci" {
 
   region = "eu-frankfurt-1"
 }
+
+data "bitwarden-secrets_secret" "zoneIds" {
+  id = "90566b46-9de6-486a-a1b5-b186013d4406"
+}
+

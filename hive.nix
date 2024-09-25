@@ -2,18 +2,12 @@ inputs@{ self, nixpkgs, cottand, home-manager, utils, nixpkgs-master, attic, ove
 let
   secretPath = "/Users/nico/dev/cottand/selfhosted/secret/";
 
-  mkNodePool = { tags ? [ ], names, imports, ... }: builtins.listToAttrs (builtins.map
-    (name: rec {
+  mkNodePool = { names, module, ... }: builtins.listToAttrs (builtins.map
+    (name: {
       inherit name;
-      value = { ... }: {
-        inherit imports;
-        deployment.tags = tags;
-        deployment.targetHost = "${name}.vps.dcotta.com";
-      };
+      value = module;
     })
     names);
-
-
 in
 {
   meta = {
@@ -81,7 +75,10 @@ in
     deployment.tags = [ "hetzner" ];
   };
 } // (mkNodePool {
-  names = [ "inst-uhudp-control" "inst-abrey-control" "inst-gb5kd-control" ];
-  imports = [ ./machines/ociControlWorker ];
-  tags = [ "oci-control" ];
+  names = with builtins; fromJSON (readFile "${self}/terraform/metal/oci_control.json");
+  module = {
+    imports = [ ./machines/ociControlWorker ];
+    deployment.tags = [ "oci-control" ];
+    deployment.buildOnTarget = true;
+  };
 })
