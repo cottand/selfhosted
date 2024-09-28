@@ -27,7 +27,7 @@ let
     vendorHash = null;
     ldflags = [ "-X github.com/cottand/selfhosted/dev-go/lib/bedrock.nixAssetsDir=${assetsEnv.outPath}" ];
     nativeBuildInputs = [ pkg-config ];
-    buildInputs = [ nixVersions.latest ];
+    buildInputs = [ nixVersions.nix_2_22 ];
     CGO_ENABLED = 1;
     subPackages = [ "services" ];
     postInstall = ''

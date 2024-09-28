@@ -109,6 +109,12 @@ rec {
 
   mkEnvoyProxyConfig = import ./mkEnvoyProxyConfig.nix;
 
+  mkSidecarResourcesWithFactor = factor: resources@{ cpu, memoryMB, memoryMaxMB ? memoryMB }: with builtins; mapAttrs (_: ceil) {
+    cpu = factor * cpu;
+    memoryMB = factor * memoryMB;
+    memoryMaxMB = factor * memoryMaxMB + 60;
+  };
+
   mkJob = name: job:
     (transformJob job) //
     {
