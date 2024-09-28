@@ -3,7 +3,7 @@ let
   version = "v23.1.22";
   cache = "70MB";
   maxSqlMem = "${toString (mem * 0.5)}MB";
-  cpu = 600;
+  cpu = 1000;
   mem = 1024;
   rpcPort = 26257;
   webPort = 8080;
@@ -92,7 +92,7 @@ let
           "traefik.consulcatalog.connect=true"
           "traefik.tcp.routers.roach-web.entrypoints=web,websecure"
           "traefik.tcp.routers.roach-web.tls.passthrough=true"
-          "traefik.tcp.routers.roach-web.rule=HostSNI(`roach-web.traefik`) || HostSNI(`roach-web.tfk.nd`)"
+          "traefik.tcp.routers.roach-web.rule=HostSNI(`roach-web.traefik`)"
         ];
       }
       {
@@ -191,7 +191,7 @@ in
     name = "roach";
     id = "roach";
     datacenters = [ "*" ];
-    updatePolicy = {
+    update = {
       maxParallel = 1;
       stagger = 12 * seconds;
     };

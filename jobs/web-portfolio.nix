@@ -14,12 +14,6 @@ lib.mkJob "web-portfolio" {
   };
 
   group."web-portfolio" = {
-    affinities = [{
-      lTarget = "\${meta.controlPlane}";
-      operand = "=";
-      rTarget = "true";
-      weight = -80;
-    }];
     count = 2;
     network = {
       mode = "bridge";

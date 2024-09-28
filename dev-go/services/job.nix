@@ -4,27 +4,22 @@
 let
   lib = (import ../../jobs/lib) { };
   name = "services-go";
-  cpu = 120;
-  mem = 500;
+  cpu = 100;
+  mem = 200;
   ports = {
     http = 8080;
     grpc = 8081;
     upDb = 5432;
   };
-  sidecarResources = with builtins; mapAttrs (_: ceil) {
-    cpu = 0.20 * cpu;
-    memoryMB = 0.25 * mem;
-    memoryMaxMB = 0.25 * mem + 100;
+  resources = {
+    cpu = cpu;
+    memoryMB = mem;
+    memoryMaxMB = builtins.ceil (2 * mem);
   };
+  sidecarResources = lib.mkSidecarResourcesWithFactor 0.15 resources;
   otlpPort = 9001;
 in
 lib.mkJob name {
-  affinities = [{
-    lTarget = "\${meta.controlPlane}";
-    operand = "=";
-    rTarget = "true";
-    weight = -70;
-  }];
   update = {
     maxParallel = 2;
     autoRevert = true;
@@ -81,6 +76,7 @@ lib.mkJob name {
     service."s-web-github-webhook-http" = (import ./s-web-github-webhook/consulService.nix) { inherit lib sidecarResources; };
 
     task.${name} = {
+      inherit resources;
       driver = "docker";
       vault = { };
 
@@ -94,11 +90,6 @@ lib.mkJob name {
         OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = "http://localhost:${toString otlpPort}";
         OTEL_SERVICE_NAME = name;
         SELFHOSTED_SSL_ROOT_CA = "/local/root_ca.crt";
-      };
-      resources = {
-        cpu = cpu;
-        memoryMb = mem;
-        memoryMaxMb = builtins.ceil (2 * mem);
       };
       template."db-env" = {
         changeMode = "restart";

@@ -2,8 +2,8 @@ let
   lib = (import ../lib) { };
   version = "v1.114.0";
   domain = "immich.dcotta.com";
-  cpu = 220;
-  mem = 512;
+  cpu = 200;
+  mem = 1024;
   cpu-ml = 420;
   mem-ml = 1024;
   ports = {
@@ -17,8 +17,8 @@ let
   };
   sidecarResources = with builtins; mapAttrs (_: ceil) {
     cpu = 0.20 * cpu;
-    memoryMB = 0.25 * mem;
-    memoryMaxMB = 0.25 * mem + 100;
+    memoryMB = 0.15 * mem;
+    memoryMaxMB = 0.15 * mem + 100;
   };
   mkResrouces = { factor }: with builtins; mapAttrs (_: ceil) {
     cpu = factor * cpu;
