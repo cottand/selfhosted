@@ -58,20 +58,14 @@ in
 
   hez1 = { name, nodes, ... }: {
     imports = [ ./machines/${name}/definition.nix ];
-    vaultNode.enable = true;
-    deployment.buildOnTarget = false;
     deployment.tags = [ "hetzner" ];
   };
   hez2 = { name, nodes, ... }: {
     imports = [ ./machines/${name}/definition.nix ];
-    vaultNode.enable = true;
-    deployment.buildOnTarget = false;
     deployment.tags = [ "hetzner" ];
   };
   hez3 = { name, nodes, ... }: {
     imports = [ ./machines/${name}/definition.nix ];
-    vaultNode.enable = true;
-    deployment.buildOnTarget = false;
     deployment.tags = [ "hetzner" ];
   };
 } // (mkNodePool {

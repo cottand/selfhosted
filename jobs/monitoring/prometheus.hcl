@@ -2,11 +2,6 @@ job "prometheus" {
   group "monitoring" {
     count = 1
 
-    affinity {
-      attribute = "${node.meta.controlPlane}"
-      value     = "true"
-      weight    = -50
-    }
     constraint {
       attribute = "${attr.nomad.bridge.hairpin_mode}"
       value     = true
@@ -165,7 +160,7 @@ scrape_configs:
       action: drop
       regex: (.+)-sidecar-proxy
 
-    # Scrape only cokcorachdb
+    # Scrape only cockroachdb
     - source_labels: [__meta_consul_service]
       action: keep
       regex: roach-(.+)
@@ -315,12 +310,21 @@ scrape_configs:
     tls_config:
      insecure_skip_verify: true
      
-    static_configs:
-     - targets: [
-      'hez1.golden-dace.ts.net:8200',
-      'hez2.golden-dace.ts.net:8200',
-      'hez3.golden-dace.ts.net:8200',
-    ]
+    consul_sd_configs:
+    - server: 'https://{{ env "NOMAD_IP_health" }}:8501' # well known consul https port
+      tls_config:
+        insecure_skip_verify: true
+
+    relabel_configs:
+    - source_labels: [__meta_consul_service]
+      action: keep
+      regex: vault
+
+    - source_labels: [__meta_consul_address]
+      regex: (.+)
+      replacement: $${1}:8200
+      target_label: __address__
+
   - job_name: 'consul'
     metrics_path: "/v1/agent/metrics"
     scheme: https
@@ -328,13 +332,21 @@ scrape_configs:
       format: [ 'prometheus' ]
     tls_config:
      insecure_skip_verify: true
-     
-    static_configs:
-     - targets: [
-      'inst-ad2ir-control.golden-dace.ts.net:8501',
-      'inst-hqswv-control.golden-dace.ts.net:8501',
-      'inst-kzsrv-control.golden-dace.ts.net:8501',
-    ]
+
+    consul_sd_configs:
+    - server: 'https://{{ env "NOMAD_IP_health" }}:8501' # well known consul https port
+      tls_config:
+        insecure_skip_verify: true
+
+    relabel_configs:
+    - source_labels: [__meta_consul_service]
+      action: keep
+      regex: consul
+
+    - source_labels: [__meta_consul_address]
+      regex: (.+)
+      replacement: $${1}:8501
+      target_label: __address__
 
 
 remote_write:

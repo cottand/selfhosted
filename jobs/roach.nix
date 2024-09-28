@@ -10,9 +10,6 @@ let
   sqlPort = 5432;
   bind = "0.0.0.0";
   binds = {
-    miki = 2801;
-    maco = 2802;
-    cosmo = 2803;
     hez1 = 2801;
     hez2 = 2801;
     hez3 = 2801;

@@ -43,8 +43,8 @@ resource "vault_pki_secret_backend_role" "role" {
 }
 
 resource "vault_pki_secret_backend_config_urls" "config-urls" {
-  backend                 = vault_mount.pki.path
-  issuing_certificates    = ["${var.vault_addr}/v1/pki/ca"]
+  backend = vault_mount.pki.path
+  issuing_certificates = ["${var.vault_addr}/v1/pki/ca"]
   crl_distribution_points = ["${var.vault_addr}/v1/pki/crl"]
 }
 
@@ -103,17 +103,17 @@ resource "vault_pki_secret_backend_issuer" "intermediate" {
 ## intermediate CA role ##
 
 resource "vault_pki_secret_backend_role" "intermediate_role" {
-  backend          = vault_mount.pki_int.path
-  issuer_ref       = vault_pki_secret_backend_issuer.intermediate.issuer_ref
-  name             = "dcotta-int"
-  ttl              = 2596400
+  backend            = vault_mount.pki_int.path
+  issuer_ref         = vault_pki_secret_backend_issuer.intermediate.issuer_ref
+  name               = "dcotta-int"
+  ttl                = 2596400
   max_ttl = 20592000 # 8 months ish
-  allow_ip_sans    = true
-  key_type         = "rsa"
-  key_bits         = 4096
-  allowed_domains  = ["dcotta.eu", "dcotta.com", local.tsDomain]
-  allow_glob_domains = true
-  allow_subdomains = true
+  allow_ip_sans      = true
+  key_type           = "rsa"
+  key_bits           = 4096
+  allowed_domains = ["vault.mesh.dcotta.eu", "vault.dcotta.com", "vault.tfk.nd"]
+  allow_subdomains   = true
+  allow_bare_domains = true
 }
 
 # new cert
@@ -122,22 +122,9 @@ resource "vault_pki_secret_backend_cert" "dcotta-dot-eu2" {
   issuer_ref  = vault_pki_secret_backend_issuer.intermediate.issuer_ref
   backend     = vault_pki_secret_backend_role.intermediate_role.backend
   name        = vault_pki_secret_backend_role.intermediate_role.name
-  common_name = "vault-server-sep-14-1.mesh.dcotta.eu"
+  common_name = "vault-server-sep-27-2024.vault.dcotta.com"
 
-  alt_names = ["vault.mesh.dcotta.eu", "vault.ts.dcotta.com", "*.${local.tsDomain}"]
-
-  ip_sans = [
-    "10.10.0.1",
-    "10.10.1.1",
-    "10.10.2.1",
-    "10.10.3.1",
-    "10.10.4.1",
-    "10.10.5.1",
-    "10.10.6.1",
-    "10.10.11.1",
-    "10.10.12.1",
-    "10.10.13.1",
-  ]
+  alt_names = ["vault.mesh.dcotta.eu", "vault.tfk.nd", "vault.dcotta.com"]
 
   ttl = 10592000
   # ttl    = 89400000

@@ -29,22 +29,22 @@ in
 
 
         retry_join {
-          leader_api_addr         = "https://hez3.golden-dace.ts.net:8200"
-          leader_tls_servername   = "hez3.golden-dace.ts.net"
+          leader_api_addr         = "https://inst-ad2ir-control.golden-dace.ts.net:8200"
+          leader_tls_servername   = "vault.dcotta.com"
           leader_ca_cert_file     = "/opt/vault/tls/vault-ca.pem"
           leader_client_cert_file = "/opt/vault/tls/vault-cert.pem"
           leader_client_key_file  = "/opt/vault/tls/vault-key.rsa"
         }
         retry_join {
-          leader_api_addr         = "https://hez2.golden-dace.ts.net:8200"
-          leader_tls_servername   = "hez2.golden-dace.ts.net"
+          leader_api_addr         = "https://inst-ad2ir-control.golden-dace.ts.net:8200"
+          leader_tls_servername   = "vault.dcotta.com"
           leader_ca_cert_file     = "/opt/vault/tls/vault-ca.pem"
           leader_client_cert_file = "/opt/vault/tls/vault-cert.pem"
           leader_client_key_file  = "/opt/vault/tls/vault-key.rsa"
         }
         retry_join {
-          leader_api_addr         = "https://hez1.golden-dace.ts.net:8200"
-          leader_tls_servername   = "hez1.golden-dace.ts.net"
+          leader_api_addr         = "https://inst-ad2ir-control.golden-dace.ts.net:8200"
+          leader_tls_servername   = "vault.dcotta.com"
           leader_ca_cert_file     = "/opt/vault/tls/vault-ca.pem"
           leader_client_cert_file = "/opt/vault/tls/vault-cert.pem"
           leader_client_key_file  = "/opt/vault/tls/vault-key.rsa"
@@ -67,6 +67,15 @@ in
           disable_hostname = true
           prometheus_retention_time = "6h"
         }
+        ${if config.consulNode.enable then ''
+        service_registration "consul" {
+          address = "127.0.0.1:8501"
+          scheme = "https"
+          tls_ca_file = "${config.vaultSecrets."consul.ca.pem".path}"
+          tls_cert_file = "${config.vaultSecrets."consul.crt.pem".path}"
+          service_tags = "traefik.enable=true,traefik.http.routers.vault.entrypoints=websecure,traefik.http.routers.vault.tls=true"
+        }
+        '' else ""}
         default_max_request_duration = "3600s"
       '';
       package = pkgs.vault-bin;
