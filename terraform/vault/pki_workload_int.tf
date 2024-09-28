@@ -62,7 +62,7 @@ resource "vault_pki_secret_backend_cert" "traefik-internal-wildcard-cert" {
   issuer_ref  = vault_pki_secret_backend_issuer.workloads-intermediate.issuer_ref
   backend     = vault_mount.pki_workload_int.path
   name        = vault_pki_secret_backend_role.intermediate_role-workloads.name
-  common_name = "wildcard-cert-06-24.traefik"
+  common_name = "wildcard-cert-sept-2024.traefik"
 
   alt_names = [ "*.tfk.nd", "*.dcotta.com", "*.dcotta.eu"]
 

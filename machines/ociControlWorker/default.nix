@@ -5,6 +5,7 @@
 
   boot.loader.grub.configurationLimit = 1;
 
+  ## Nomad
   nomadNode = {
     enable = true;
     enableSeaweedFsVolume = false;
@@ -33,6 +34,8 @@
   };
 
   consulNode.server = true;
+
+  vaultNode.enable = true;
 
   # to figure out ARM CPU clock speed in Nomad
   environment.systemPackages = with pkgs; [ dmidecode ];

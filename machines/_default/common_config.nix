@@ -35,7 +35,6 @@
 
   services.openssh.enable = true;
   services.sshguard.enable = true;
-  networking.enableIPv6 = true;
 
   users.users."cottand".openssh.authorizedKeys.keys = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGes99PbsDcHDl3Jwg4GYqYRkzd6tZPH4WX4/ThP//BN"
@@ -69,7 +68,12 @@
 
   # Set your time zone.
   time.timeZone = lib.mkDefault "Europe/London";
-  networking.timeServers = [ "time.google.com" ];
+
+  networking = {
+    enableIPv6 = true;
+    timeServers = [ "time.google.com" ];
+    firewall.checkReversePath = false;
+  };
 
   # Select internationalisation properties.
   i18n.defaultLocale = "en_GB.UTF-8";
