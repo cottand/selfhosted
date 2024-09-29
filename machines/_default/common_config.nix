@@ -53,7 +53,7 @@
   ];
 
   environment.systemPackages = with pkgs; [
-    python3 # required for sshuttle
+    #python3 # required for sshuttle
     pciutils # for setpci, lspci
     dig
     iw
@@ -62,8 +62,6 @@
     s-tui # power top
     nmap
     traceroute
-
-    vault-bin # for retrieving secrets
   ];
 
   # Set your time zone.

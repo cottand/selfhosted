@@ -69,6 +69,12 @@ lib.mkJob "immich" {
       accessMode = "single-node-writer";
       attachmentMode = "file-system";
     };
+    volumes."ca-certificates" = {
+      name = "ca-certificates";
+      type = "host";
+      readOnly = true;
+      source = "ca-certificates";
+    };
     service."immich-http" = {
       connect.sidecarService = {
         proxy = {
@@ -96,12 +102,13 @@ lib.mkJob "immich" {
       tags = [
         "traefik.enable=true"
         "traefik.consulcatalog.connect=true"
-        "traefik.http.routers.\${NOMAD_TASK_NAME}.entrypoints=web,websecure,web_public,websecure_public"
-        "traefik.http.routers.\${NOMAD_TASK_NAME}.rule=Host(`${domain}`) || Host(`immich-http.tfk.nd`)"
-        "traefik.http.routers.\${NOMAD_TASK_NAME}.tls=true"
-        #        "traefik.http.routers.\${NOMAD_TASK_NAME}.middlewares=ratelimit-immich"
-        #        "traefik.http.middlewares.ratelimit-immich.ratelimit.average=120"
-        #        "traefik.http.middlewares.ratelimit-immich.ratelimit.period=1m"
+        "traefik.http.routers.immich-http.entrypoints=web,websecure"
+        "traefik.http.routers.immich-http.rule=Host(`immich-http.tfk.nd`)"
+        "traefik.http.routers.immich-http.tls=true"
+
+        "traefik.http.routers.immich-http-pub.entrypoints=websecure_public"
+        "traefik.http.routers.immich-http-pub.rule=Host(`${domain}`)"
+        "traefik.http.routers.immich-http-pub.tls=true"
       ];
     };
     service."immich-metrics" = {
@@ -178,6 +185,8 @@ lib.mkJob "immich" {
         IMMICH_METRICS = "true";
         IMMICH_API_METRICS_PORT = toString ports.metrics;
         IMMICH_MICROSERVICES_METRICS_PORT = toString ports.services-mertrics;
+        NODE_EXTRA_CA_CERTS = "/local/ca.crt";
+
 
         OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = "http://localhost:${toString otlpPort}";
         OTEL_TRACES_EXPORTER = "otlp";
@@ -189,11 +198,19 @@ lib.mkJob "immich" {
         memoryMb = mem;
         memoryMaxMb = builtins.ceil (2 * mem);
       };
-      volumeMounts = [{
-        volume = "immich-pictures";
-        destination = "/vol/immich-pictures";
-        readOnly = false;
-      }];
+      volumeMounts = [
+        {
+          volume = "immich-pictures";
+          destination = "/vol/immich-pictures";
+          readOnly = false;
+        }
+        {
+          volume = "ca-certificates";
+          destination = "/etc/ssl/certs";
+          readOnly = true;
+          propagation_mode = "host-to-task";
+        }
+      ];
       template."config/.env" = {
         changeMode = "restart";
         envvars = true;
@@ -209,74 +226,100 @@ lib.mkJob "immich" {
           ENABLE_TYPESENSE="false"
         '';
       };
+      template."local/ca.crt" = {
+        changeMode = "restart";
+        embeddedTmpl = ''
+          {{ with secret "secret/data/nomad/infra/root_ca" }}{{ .Data.data.value }}{{ end }}
+        '';
+      };
       template."local/config.json" = {
         changeMode = "restart";
         leftDelim = "[[";
         rightDelim = "]]";
-        embeddedTmpl = builtins.toJSON
-          {
-            image = {
-              colorspace = "p3";
-              extractEmbedded = false;
-              previewFormat = "jpeg";
-              previewSize = 1440;
-              quality = 80;
-              thumbnailFormat = "webp";
-              thumbnailSize = 250;
-            };
-            job = {
-              backgroundTask.concurrency = 5;
-              faceDetection.concurrency = 2;
-              library.concurrency = 5;
-              metadataExtraction.concurrency = 5;
-              migration.concurrency = 5;
-              notifications.concurrency = 5;
-              objectTagging.concurrency = 2;
-              recognizeFaces.concurrency = 2;
-              search.concurrency = 5;
-              sidecar.concurrency = 5;
-              smartSearch.concurrency = 2;
-              storageTemplateMigration.concurrency = 5;
-              thumbnailGeneration.concurrency = 5;
-              videoConversion.concurrency = 1;
-            };
-            library = {
-              scan = { cronExpression = "0 0 * * *"; enabled = true; };
-              watch.enabled = false;
-            };
-            logging = { enabled = true; level = "log"; };
-            machineLearning = {
-              url = "http://${lib.localhost}:${toString ports.ml-http}";
-              classification = { enabled = true; minScore = 0.7; modelName = "microsoft/resnet-50"; };
-              clip = { enabled = true; modelName = "ViT-B-32::openai"; };
-              duplicateDetection = { enabled = true; maxDistance = 0.01; };
-              enabled = true;
-              facialRecognition = {
-                enabled = true;
-                maxDistance = 0.6;
-                minFaces = 1;
-                minScore = 0.7;
-                modelName = "buffalo_l";
-              };
-            };
-            newVersionCheck.enabled = true;
-            passwordLogin.enabled = true;
-            reverseGeocoding.enabled = true;
-            server = { externalDomain = "https://immich.dcotta.com"; loginPageMessage = ""; };
-            storageTemplate = {
-              enabled = false;
-              hashVerificationEnabled = true;
-              template = "{{y}}-{{MM}}/{{filename}}";
-            };
-            thumbnail = {
-              colorspace = "p3";
-              jpegSize = 1440;
-              quality = 90;
-              webpSize = 250;
-            };
-            trash = { days = 30; enabled = true; };
-            user = { deleteDelay = 7; };
-          }
+        embeddedTmpl = ''
+                        [[ with secret "secret/data/nomad/job/immich/vault_oidc" ]]
+                         ${builtins.toJSON
+                            {
+                              image = {
+                                colorspace = "p3";
+                                extractEmbedded = false;
+                                previewFormat = "jpeg";
+                                previewSize = 1440;
+                                quality = 80;
+                                thumbnailFormat = "webp";
+                                thumbnailSize = 250;
+                              };
+                              job = {
+                                backgroundTask.concurrency = 5;
+                                faceDetection.concurrency = 2;
+                                library.concurrency = 5;
+                                metadataExtraction.concurrency = 5;
+                                migration.concurrency = 5;
+                                notifications.concurrency = 5;
+                                objectTagging.concurrency = 2;
+                                recognizeFaces.concurrency = 2;
+                                search.concurrency = 5;
+                                sidecar.concurrency = 5;
+                                smartSearch.concurrency = 2;
+                                storageTemplateMigration.concurrency = 5;
+                                thumbnailGeneration.concurrency = 5;
+                                videoConversion.concurrency = 1;
+                              };
+                              library = {
+                                scan = { cronExpression = "0 0 * * *"; enabled = true; };
+                                watch.enabled = false;
+                              };
+                              logging = { enabled = true; level = "log"; };
+                              machineLearning = {
+                                url = "http://${lib.localhost}:${toString ports.ml-http}";
+                                classification = { enabled = true; minScore = 0.7; modelName = "microsoft/resnet-50"; };
+                                clip = { enabled = true; modelName = "ViT-B-32::openai"; };
+                                duplicateDetection = { enabled = true; maxDistance = 0.01; };
+                                enabled = true;
+                                facialRecognition = {
+                                  enabled = true;
+                                  maxDistance = 0.6;
+                                  minFaces = 1;
+                                  minScore = 0.7;
+                                  modelName = "buffalo_l";
+                                };
+                              };
+                              newVersionCheck.enabled = true;
+                              passwordLogin.enabled = true;
+                              reverseGeocoding.enabled = true;
+                              server = { externalDomain = "https://immich.dcotta.com"; loginPageMessage = ""; };
+                              storageTemplate = {
+                                enabled = false;
+                                hashVerificationEnabled = true;
+                                template = "{{y}}-{{MM}}/{{filename}}";
+                              };
+                              thumbnail = {
+                                colorspace = "p3";
+                                jpegSize = 1440;
+                                quality = 90;
+                                webpSize = 250;
+                              };
+                              trash = { days = 30; enabled = true; };
+                              user = { deleteDelay = 7; };
+                              oauth = {
+                    #            autoLaunch = false;
+                                autoRegister = true;
+                                buttonText = "Login with Vault";
+                                clientId = ''[[ .Data.data.client_id ]]'';
+                                clientSecret = ''[[ .Data.data.client_secret ]]'';
+                                issuerUrl = ''[[ .Data.data.issuer_url ]]'';
+                                defaultStorageQuota = 0;
+                                enabled = true;
+                                mobileOverrideEnabled = false;
+          #                      mobileRedirectUri = "";
+                                scope = "openid email";
+                                signingAlgorithm = "RS256";
+                    #              storageLabelClaim = "preferred_username";
+                    #              storageQuotaClaim = "immich_quota";
+                              };
+                            }
+                            }
+                            [[end]]''
         ;
       };
     };

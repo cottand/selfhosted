@@ -4,12 +4,12 @@
     nixpkgs-master.url = "github:nixos/nixpkgs";
     # pinned because https://github.com/NixOS/nixpkgs/issues/332957 breaks things
     nixpkgs-pre-rust-180.url = "github:nixos/nixpkgs/c3392ad349a5227f4a3464dce87bcc5046692fce";
+
     utils.url = "github:numtide/flake-utils";
     filters.url = "github:numtide/nix-filter";
 
     cottand = {
       url = "github:cottand/home-nix";
-      inputs.nixpkgs-unstable.follows = "nixpkgs-master";
       inputs.nixpkgs.follows = "nixpkgs-master";
       inputs.home-manager.follows = "home-manager";
     };
@@ -29,27 +29,22 @@
 
   outputs = inputs@{ self, nixpkgs, cottand, home-manager, utils, attic, filters, go-cache, ... }:
     let
-      pinnedAt = final: prev:
+      overrides = final: prev:
         let
-          preRust180 = (import inputs.nixpkgs-pre-rust-180 { system = prev.system; config.allowUnfree = true; });
+          preRust180Pkgs = (import inputs.nixpkgs-pre-rust-180 { system = prev.system; config.allowUnfree = true; });
+          goCachePkgs = go-cache.legacyPackages.${prev.system};
+          selfPkgs = self.legacyPackages.${prev.system};
         in
         {
-          vault-bin = (import inputs.nixpkgs-master { system = prev.system; config.allowUnfree = true; }).vault-bin;
-          bws = preRust180.bws;
-          attic = preRust180.attic;
+          inherit (goCachePkgs) buildGoCache get-external-imports;
+          inherit (selfPkgs) scripts util;
+          inherit (preRust180Pkgs) bws attic;
+          #          vault-bin = (import inputs.nixpkgs-master { system = prev.system; config.allowUnfree = true; }).vault-bin;
         };
-      withScripts = final: prev: {
-        scripts = self.legacyPackages.${prev.system}.scripts;
-        util = self.legacyPackages.${prev.system}.util;
-      };
       overlays = [
-        withScripts
-        pinnedAt
+        overrides
         attic.overlays.default
         filters.overlays.default
-        (_: prev: {
-          inherit (go-cache.legacyPackages.${prev.system}) buildGoCache get-external-imports;
-        })
       ];
     in
     (utils.lib.eachDefaultSystem (system:
