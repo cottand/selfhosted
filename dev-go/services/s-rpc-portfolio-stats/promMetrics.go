@@ -27,6 +27,12 @@ var (
 		Name:      "page_visits_unique",
 		Help:      "Unique page visits to web_portfolio",
 	}, []string{"since"})
+
+	visitsUniqueWithUri = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: bedrock.KebabToSnakeCase(Name),
+		Name:      "page_visits_unique_url",
+		Help:      "Unique page visits to web_portfolio per URL",
+	}, []string{"since", "url"})
 )
 
 // RefreshPromStats returns when ctx is cancelled or done
@@ -38,7 +44,8 @@ func RefreshPromStats(ctx context.Context, db *sql.DB) {
 		for _, duration := range durations {
 			err1 := refreshPageVisitsSince(ctx, db, duration)
 			err2 := refreshUniquePageVisitsSince(ctx, db, duration)
-			errs = append(errs, err1, err2)
+			err3 := refreshUniquePageVisitsSinceWithURL(ctx, db, duration)
+			errs = append(errs, err1, err2, err3)
 		}
 		accumulated := errors.Join(errs...)
 		if accumulated != nil {
@@ -107,5 +114,34 @@ func refreshUniquePageVisitsSince(ctx context.Context, db *sql.DB, since time.Du
 		}
 	}
 	visitsUnique.With(prometheus.Labels{"since": sinceString}).Set(float64(counted))
+	return nil
+}
+
+func refreshUniquePageVisitsSinceWithURL(ctx context.Context, db *sql.DB, since time.Duration) error {
+	sinceString := fmtDuration(since)
+	sinceAbsolute := time.Now().Add(-since)
+	if since == time.Duration(0) {
+		sinceAbsolute = time.UnixMilli(0)
+	}
+	errParams := map[string]string{"since": sinceString}
+	query := `select count(distinct fingerprint_v1) from "s-rpc-portfolio-stats".visit where inserted_at > ($1)::timestamp`
+	rows, err := db.QueryContext(ctx, query, sinceAbsolute)
+	if err != nil {
+		return terrors.Augment(err, "failed to query unique visits", errParams)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var counted struct {
+			Count int64
+			Url   string
+		}
+		err = rows.Scan(&counted)
+		if err != nil {
+			return terrors.Augment(err, "failed to scan unique visits query result", nil)
+		}
+		visitsUniqueWithUri.
+			With(prometheus.Labels{"since": sinceString, "url": counted.Url}).
+			Set(float64(counted.Count))
+	}
 	return nil
 }

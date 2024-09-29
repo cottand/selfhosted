@@ -22,17 +22,22 @@ in
   };
 
   config = mkIf cfg.enable {
-    vaultSecrets =
-      let
-        destDir = "/opt/consul/tls";
-        secretPath = "consul/infra/tls";
-      in
-      {
-        "consul.key.rsa" = { inherit destDir secretPath; field = "key"; };
-        "consul.crt.pem" = { inherit destDir secretPath; field = "chain"; };
-        "consul.ca.pem" = { inherit destDir secretPath; field = "ca"; };
-      };
 
+    vaultSecrets."consul.key.rsa" = {
+      destDir = "/opt/consul/tls";
+      secretPath = "consul/infra/tls";
+      field = "key";
+    };
+    vaultSecrets."consul.crt.pem" = {
+      destDir = "/opt/consul/tls";
+      secretPath = "consul/infra/tls";
+      field = "chain";
+    };
+    vaultSecrets."consul.ca.pem" = {
+      secretPath = "consul/infra/tls";
+      destDir = "/opt/consul/tls";
+      field = "ca";
+    };
 
     deployment.tags = mkIf cfg.server [ "consul-server" ];
 
