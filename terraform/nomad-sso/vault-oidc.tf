@@ -3,7 +3,7 @@ data "vault_identity_entity" "nico" {
 }
 
 resource "vault_identity_group" "group" {
-  name              = "admins"
+  name = "admins"
   member_entity_ids = [data.vault_identity_entity.nico.id]
 }
 
@@ -13,7 +13,7 @@ data "vault_auth_backend" "userpass" {
 }
 
 resource "vault_identity_oidc_assignment" "assign-admins" {
-  name       = "admins-assignment"
+  name = "admins-assignment"
   entity_ids = [
     data.vault_identity_entity.nico.id,
   ]
@@ -23,15 +23,15 @@ resource "vault_identity_oidc_assignment" "assign-admins" {
 }
 
 resource "vault_identity_oidc_key" "key1" {
-  name               = "key1"
+  name             = "key1"
   allowed_client_ids = ["*"]
-  verification_ttl   = 3 * 60 * 60
-  rotation_period    = 1 * 60 * 60
-  algorithm          = "RS256"
+  verification_ttl = 3 * 60 * 60
+  rotation_period  = 1 * 60 * 60
+  algorithm        = "RS256"
 }
 
 resource "vault_identity_oidc_client" "nomad" {
-  name          = "nomad"
+  name = "nomad"
   redirect_uris = [
     "https://nomad.mesh.dcotta.eu:4646/oidc/callback",
     "${var.vault_addr}/ui/settings/tokens",
@@ -39,7 +39,6 @@ resource "vault_identity_oidc_client" "nomad" {
     "https://nomad.mesh.dcotta.eu:4646/ui/settings/tokens",
     "https://nomad.traefik/oidc/callback",
     "https://nomad.traefik/ui/settings/tokens",
-    "https://openidconnect.net/callback",
     "http://localhost:4649/oidc/callback",
   ]
   assignments = [
@@ -52,34 +51,37 @@ resource "vault_identity_oidc_client" "nomad" {
   access_token_ttl = 1 * 60 * 60
 }
 
-# TODO would be fun
-# locals {
-#   immich_url = "immich.tfk.nd"
-# }
-#
-# resource "vault_identity_oidc_client" "immich" {
-#   name          = "nomad"
-#   redirect_uris = [
-#     "https://${local.immich_url}/auth/login",
-#     "https://${local.immich_url}/user-settings",
-#     "${var.vault_addr}/ui/settings/tokens",
-#     "app.immich:/"
-#   ]
-#   assignments = [
-#     "allow_all"
-#     # vault_identity_oidc_assignment.assign-admins.name
-#   ]
-#
-#   key              = vault_identity_oidc_key.key1.name
-#   id_token_ttl     = 30 * 60
-#   access_token_ttl = 1 * 60 * 60
-# }
+resource "vault_identity_oidc_client" "immich" {
+  name = "immich"
+  redirect_uris = [
+    "app.immich:///oauth-callback",
+    "${var.vault_addr}/ui/settings/tokens",
+    "${var.immich_addr}/auth/login",
+    "${var.immich_addr}/user-settings",
+  ]
+  assignments = [
+    "allow_all"
+    # vault_identity_oidc_assignment.assign-admins.name
+  ]
+
+  key              = vault_identity_oidc_key.key1.name
+  id_token_ttl     = 30 * 60
+  access_token_ttl = 6 * 60 * 60
+}
 
 resource "vault_identity_oidc_scope" "user" {
   name        = "user"
   description = "The user scope provides claims using Vault identity entity metadata"
   template    = <<EOT
   {"username": {{identity.entity.name}}}
+  EOT
+}
+
+resource "vault_identity_oidc_scope" "email" {
+  name        = "email"
+  description = "The user scope provides claims using Vault identity entity metadata"
+  template    = <<EOT
+  {"email": {{identity.entity.metadata.email}}}
   EOT
 }
 
@@ -92,15 +94,27 @@ resource "vault_identity_oidc_scope" "groups" {
   )
 }
 resource "vault_identity_oidc_provider" "provider" {
-  issuer_host        = "vault.mesh.dcotta.eu:8200"
-  https_enabled      = true
-  name               = "default-provider"
+  issuer_host   = "vault.dcotta.com:8200"
+  https_enabled = true
+  name          = "default-provider"
   allowed_client_ids = [
     vault_identity_oidc_client.nomad.client_id,
+    vault_identity_oidc_client.immich.client_id,
   ]
   scopes_supported = [
     vault_identity_oidc_scope.groups.name,
     vault_identity_oidc_scope.user.name,
+    vault_identity_oidc_scope.email.name
   ]
+}
+
+resource "vault_kv_secret_v2" "immich_oidc_settings" {
+  mount = "secret"
+  name  = "/nomad/job/immich/vault_oidc"
+  data_json = jsonencode({
+    client_id     = vault_identity_oidc_client.immich.client_id
+    client_secret = vault_identity_oidc_client.immich.client_secret
+    issuer_url    = vault_identity_oidc_provider.provider.issuer
+  })
 }
 

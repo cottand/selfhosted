@@ -1,4 +1,4 @@
-inputs@{ self, nixpkgs, cottand, home-manager, utils, nixpkgs-master, attic, overlays, ... }:
+inputs@{ self, nixpkgs, cottand, home-manager, utils, attic, overlays, ... }:
 let
   secretPath = "/Users/nico/dev/cottand/selfhosted/secret/";
 

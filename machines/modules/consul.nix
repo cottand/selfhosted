@@ -35,11 +35,16 @@ in
 
 
     deployment.tags = mkIf cfg.server [ "consul-server" ];
+
     systemd.services.consul = {
       serviceConfig.Environment = "HOME=/root";
-      after = mkIf config.services.tailscale.enable [
-        "tailscaled.service"
-      ];
+
+      after = mkIf config.services.tailscale.enable [ "network-pre.target" "tailscaled.service" ];
+      wants = mkIf config.services.tailscale.enable [ "network-pre.target" "tailscaled.service" ];
+      preStart = mkIf config.services.tailscale.enable ''
+        # wait for tailscale to settle
+        sleep 3
+      '';
     };
 
     services.consul = {
