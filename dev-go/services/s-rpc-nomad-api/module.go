@@ -5,16 +5,11 @@ import (
 	"github.com/cottand/selfhosted/dev-go/lib/mono"
 	s_rpc_nomad_api "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-nomad-api"
 	nomad "github.com/hashicorp/nomad/api"
-	"go.opentelemetry.io/otel"
 	"google.golang.org/grpc"
 	"os"
 )
 
-var Name = "s-rpc-nomad-api"
-
-var slog = bedrock.LoggerFor(Name)
-
-var tracer = otel.Tracer(Name)
+var Name, slog, tracer = bedrock.Service("s-rpc-nomad-api")
 
 func InitService() {
 	token, ok := os.LookupEnv("NOMAD_TOKEN")

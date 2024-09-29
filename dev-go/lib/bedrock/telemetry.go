@@ -9,6 +9,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/trace"
+	otrace "go.opentelemetry.io/otel/trace"
 	"log/slog"
 	"os"
 )
@@ -26,6 +27,10 @@ func init() {
 
 func LoggerFor(serviceName string) *slog.Logger {
 	return slog.With("service_module", serviceName)
+}
+
+func Service(name string) (Name string, slog *slog.Logger, tracer otrace.Tracer) {
+	return Name, LoggerFor(Name), otel.Tracer(Name)
 }
 
 // see https://opentelemetry.io/docs/languages/go/getting-started/
