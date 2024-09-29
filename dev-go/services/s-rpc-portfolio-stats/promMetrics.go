@@ -40,6 +40,7 @@ func RefreshPromStats(ctx context.Context, db *sql.DB) {
 	day := 24 * time.Hour
 	durations := []time.Duration{0, day, 7 * day, 30 * day, 90 * day}
 	for {
+		ctx, span := tracer.Start(ctx, "RefreshPromStats")
 		var errs []error
 		for _, duration := range durations {
 			err1 := refreshPageVisitsSince(ctx, db, duration)
@@ -49,8 +50,10 @@ func RefreshPromStats(ctx context.Context, db *sql.DB) {
 		}
 		accumulated := errors.Join(errs...)
 		if accumulated != nil {
+			span.RecordError(accumulated)
 			slog.WarnContext(ctx, "failed to refresh stats", "err", accumulated)
 		}
+		span.End()
 		select {
 		case <-ctx.Done():
 			return
