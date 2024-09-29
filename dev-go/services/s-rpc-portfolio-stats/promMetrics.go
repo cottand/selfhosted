@@ -9,6 +9,7 @@ import (
 	"github.com/monzo/terrors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
+	"go.opentelemetry.io/otel/codes"
 	"time"
 )
 
@@ -40,7 +41,7 @@ func RefreshPromStats(ctx context.Context, db *sql.DB) {
 	day := 24 * time.Hour
 	durations := []time.Duration{0, day, 7 * day, 30 * day, 90 * day}
 	for {
-		ctx, span := tracer.Start(ctx, "RefreshPromStats")
+		ctx, span := tracer.Start(ctx, "periodic.refreshPromStats")
 		var errs []error
 		for _, duration := range durations {
 			err1 := refreshPageVisitsSince(ctx, db, duration)
@@ -51,8 +52,10 @@ func RefreshPromStats(ctx context.Context, db *sql.DB) {
 		accumulated := errors.Join(errs...)
 		if accumulated != nil {
 			span.RecordError(accumulated)
+			span.SetStatus(codes.Error, "error")
 			slog.WarnContext(ctx, "failed to refresh stats", "err", accumulated)
 		}
+		span.SetStatus(codes.Ok, "ok")
 		span.End()
 		select {
 		case <-ctx.Done():
@@ -127,24 +130,27 @@ func refreshUniquePageVisitsSinceWithURL(ctx context.Context, db *sql.DB, since 
 		sinceAbsolute = time.UnixMilli(0)
 	}
 	errParams := map[string]string{"since": sinceString}
-	query := `select count(distinct fingerprint_v1) from "s-rpc-portfolio-stats".visit where inserted_at > ($1)::timestamp`
+	query := `
+      select count(distinct fingerprint_v1), visit.url 
+		from "s-rpc-portfolio-stats".visit
+		where inserted_at > ($1)::timestamp
+		group by visit.url
+	`
 	rows, err := db.QueryContext(ctx, query, sinceAbsolute)
 	if err != nil {
 		return terrors.Augment(err, "failed to query unique visits", errParams)
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var counted struct {
-			Count int64
-			Url   string
-		}
-		err = rows.Scan(&counted)
+		var count int64
+		var url string
+		err = rows.Scan(&count, &url)
 		if err != nil {
 			return terrors.Augment(err, "failed to scan unique visits query result", nil)
 		}
 		visitsUniqueWithUri.
-			With(prometheus.Labels{"since": sinceString, "url": counted.Url}).
-			Set(float64(counted.Count))
+			With(prometheus.Labels{"since": sinceString, "url": url}).
+			Set(float64(count))
 	}
 	return nil
 }
