@@ -19,7 +19,6 @@ let
   otlpPort = 9001;
 in
 lib.mkJob "seaweed-filer" {
-  datacenters = [ "dusseldorf-contabo" ];
   update = {
     maxParallel = 1;
     autoRevert = true;

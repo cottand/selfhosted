@@ -12,7 +12,7 @@
   networking.firewall.enable = true;
   networking.firewall = {
     allowedUDPPorts = [ 51820 ]; # 4647 4648 ];
-    allowedTCPPorts = [ 22 ];
+#    allowedTCPPorts = [ 22 ];
   };
   # allow all from VPN
   networking.firewall.trustedInterfaces = [ "wg0" "nomad" "docker0" ];

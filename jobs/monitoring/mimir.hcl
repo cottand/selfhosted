@@ -74,7 +74,7 @@ job "mimir" {
         interval = "20s"
         timeout  = "5s"
         check_restart {
-          limit           = 3
+          limit           = 6
           grace           = "120s"
           ignore_warnings = false
         }
@@ -89,7 +89,7 @@ job "mimir" {
         timeout  = "5s"
         expose   = true
         check_restart {
-          limit           = 3
+          limit           = 6
           grace           = "120s"
           ignore_warnings = false
         }
