@@ -1,4 +1,4 @@
-{ self, callPackage, jq, bws, writeShellScriptBin, get-external-imports, ... }: rec {
+{ self, pkgs, callPackage, jq, bws, writeShellScriptBin, get-external-imports, ... }: rec {
 
   # TODO look into https://noogle.dev/f/lib/filesystem/packagesFromDirectoryRecursive
 
@@ -26,6 +26,15 @@
   all-images = callPackage ./all-images { inherit self; };
 
   gen-protos = callPackage ./gen-protos.nix { inherit self; };
+
+  start-gh-runner = writeShellScriptBin "start-gh-runner" ''
+    set -e
+
+    ${pkgs.github-runner}/bin/config.sh --url $GH_RUNNER_REPO --token $GH_RUNNER_TOKEN
+    ${pkgs.github-runner}/run.sh
+  '';
+
+
 
   inherit get-external-imports;
 }
