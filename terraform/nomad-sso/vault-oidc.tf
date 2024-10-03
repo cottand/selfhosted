@@ -48,7 +48,7 @@ resource "vault_identity_oidc_client" "nomad" {
 
   key              = vault_identity_oidc_key.key1.name
   id_token_ttl     = 30 * 60
-  access_token_ttl = 1 * 60 * 60
+  access_token_ttl = 6 * 60 * 60
 }
 
 resource "vault_identity_oidc_client" "immich" {

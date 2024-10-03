@@ -30,7 +30,7 @@ func LoggerFor(serviceName string) *slog.Logger {
 }
 
 func Service(name string) (Name string, slog *slog.Logger, tracer otrace.Tracer) {
-	return Name, LoggerFor(Name), otel.Tracer(Name)
+	return name, LoggerFor(name), otel.Tracer(name)
 }
 
 // see https://opentelemetry.io/docs/languages/go/getting-started/
