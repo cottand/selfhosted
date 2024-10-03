@@ -1,6 +1,7 @@
 let
+  name = "seaweed-filer";
   lib = (import ../lib) { };
-  version = "3.69";
+  version = "3.74";
   cpu = 100;
   mem = 200;
   ports = {
@@ -18,7 +19,7 @@ let
   bind = "0.0.0.0";
   otlpPort = 9001;
 in
-lib.mkJob "seaweed-filer" {
+lib.mkJob name {
   update = {
     maxParallel = 1;
     autoRevert = true;
@@ -110,9 +111,10 @@ lib.mkJob "seaweed-filer" {
     service."seaweed-filer-s3" = {
       port = toString ports.s3;
       tags = [
-        "traefik.enable=false"
-        "traefik.http.routers.\${NOMAD_GROUP_NAME}-s3.entrypoints=web,websecure"
-        "traefik.http.routers.\${NOMAD_GROUP_NAME}-s3.middlewares=vpn-whitelist@file"
+        "traefik.enable=true"
+        "traefik.consulcatalog.connect=true"
+        "traefik.http.routers.${name}-s3.tls=true"
+        "traefik.http.routers.${name}-s3.entrypoints=web,websecure"
       ];
 
       connect.sidecarTask.resources = sidecarResources;

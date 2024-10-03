@@ -2,6 +2,8 @@
 let
   lib = (import ./../lib) {};
 
+  version = "3.74";
+
   ports = {
     http = 7002;
     grpc = 17002;
@@ -157,7 +159,7 @@ lib.mkJob "seaweed-volume" {
         memoryMaxMB = builtins.ceil (mem * 2.5);
       };
       config = {
-        image = "chrislusf/seaweedfs:3.69";
+        image = "chrislusf/seaweedfs:${version}";
 
         args = [
           "-logtostderr"

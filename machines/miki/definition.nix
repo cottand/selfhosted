@@ -2,7 +2,6 @@
   imports = [
     ./hardware-configuration.nix
     ./nomad.nix
-    ./wg-easy.nix
     ./ipv6.nix
   ];
 

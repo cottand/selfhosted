@@ -1,6 +1,6 @@
 let
   lib = (import ../lib) { };
-  version = "3.68";
+  version = "3.74";
   cpu = 100;
   mem = 200;
   sidecarResources = with builtins; mapAttrs (_: ceil) {
@@ -213,8 +213,7 @@ lib.mkJob "seaweed-master" {
   update = {
     maxParallel = 1;
     autoRevert = true;
-    autoPromote = true;
-    canary = 1;
+    canary = 0;
     stagger = 10 * lib.seconds;
   };
   group."miki-seaweed-master" = mkConfig "hez1" "hez2" "hez3";

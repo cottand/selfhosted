@@ -10,11 +10,15 @@
     name = "i-gh-runner";
     copyToRoot = pkgs.buildEnv {
       inherit name;
-      paths = with pkgs; [ bash cacert github-runner scripts.start-gh-runner ];
+      paths = with pkgs; [
+        bash
+        cacert
+        github-runner
+        busybox
+        skopeo
+        scripts.start-gh-runner
+      ];
     };
     config.Cmd = [ "/bin/start-gh-runner" ];
-    config.Env = [
-      "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
-    ];
   };
 }
