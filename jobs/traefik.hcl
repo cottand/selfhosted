@@ -245,6 +245,9 @@ EOF
   [entryPoints.metrics]
     address = ":${var.ports.metrics}"
 
+[ping]
+  entryPoint = "web_public"
+
 [metrics]
   [metrics.prometheus]
     addServicesLabels = true

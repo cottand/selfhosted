@@ -1,10 +1,11 @@
 locals {
   base_sub_cidr         = "10.2.0.0/24"
+  lb_subnets_cidr        = "10.2.10.0/24"
   oci_control_pool_size = 3
   ADs                   = data.oci_identity_availability_domains.home.availability_domains
 }
 locals {
-  zoneIds     = jsondecode(data.bitwarden-secrets_secret.zoneIds.value)
+  zoneIds = jsondecode(data.bitwarden-secrets_secret.zoneIds.value)
   zoneIdsList = [local.zoneIds["eu"], local.zoneIds["com"]]
 }
 
@@ -17,7 +18,8 @@ resource "oci_core_vcn" "base" {
   dns_label      = "hub"
 
   cidr_blocks = [
-    local.base_sub_cidr
+    local.base_sub_cidr,
+    local.lb_subnets_cidr,
   ]
   display_name = "base"
 
@@ -25,8 +27,8 @@ resource "oci_core_vcn" "base" {
 }
 
 resource "oci_core_subnet" "base" {
-  compartment_id  = local.ociRoot
-  cidr_block      = local.base_sub_cidr
+  compartment_id = local.ociRoot
+  cidr_block     = local.base_sub_cidr
   ipv6cidr_blocks = [
     cidrsubnet(oci_core_vcn.base.ipv6cidr_blocks[0], 8, 0), # ends in /64
   ]
@@ -41,9 +43,14 @@ resource "oci_core_internet_gateway" "default" {
 resource "oci_core_default_route_table" "default" {
   manage_default_resource_id = oci_core_vcn.base.default_route_table_id
 
+  #   route_rules {
+  #     network_entity_id = oci_load_balancer_load_balancer.public.id
+  #     destination       = "${oci_load_balancer_load_balancer.public.ip_address_details[0].ip_address}/32"
+  #   }
   route_rules {
-    network_entity_id = oci_core_internet_gateway.default.id
-    destination       = "0.0.0.0/0"
+#     network_entity_id = oci_core_nat_gateway.default.id
+        network_entity_id = oci_core_internet_gateway.default.id
+    destination = "0.0.0.0/0"
   }
   route_rules {
     network_entity_id = oci_core_internet_gateway.default.id
@@ -92,8 +99,8 @@ resource "oci_core_instance_configuration" "base" {
 resource "oci_core_instance_pool" "control" {
   lifecycle {
     create_before_destroy = true
-    ignore_changes        = [load_balancers, freeform_tags]
-    replace_triggered_by  = [oci_core_instance_configuration.base.id]
+    ignore_changes = [load_balancers, freeform_tags]
+    replace_triggered_by = [oci_core_instance_configuration.base.id]
   }
   compartment_id                  = local.ociRoot
   instance_configuration_id       = oci_core_instance_configuration.base.id
@@ -117,10 +124,8 @@ module "nodes_oci_control" {
   name        = local.oci_servers_ips_list[count.index].name
   ip4_pub     = local.oci_servers_ips_list[count.index].ipv4
   ip6_pub     = local.oci_servers_ips_list[count.index].ipv6
-  do_ip4_pub = true
-  do_ip6_pub = true
-  is_web_ipv4 = false
-  is_web_ipv6 = false
+  do_ip4_pub  = true
+  do_ip6_pub  = true
 }
 
 
@@ -128,22 +133,31 @@ resource "oci_core_default_security_list" "base_ipv6" {
   manage_default_resource_id = oci_core_vcn.base.default_security_list_id
   compartment_id             = local.ociRoot
 
-#   ingress_security_rules {
-#     protocol = "6" // tcp
-#     source = "0.0.0.0/0"
-#     tcp_options {
-#       max = 22
-#       min = 22
-#     }
-#   }
-#   ingress_security_rules {
-#     protocol = "6" // tcp
-#     source = "::/0"
-#     tcp_options {
-#       max = 22
-#       min = 22
-#     }
-#   }
+
+  ingress_security_rules {
+    protocol = "6" // tcp
+    source = "0.0.0.0/0"
+    tcp_options {
+      min = 80
+      max = 80
+    }
+  }
+  ingress_security_rules {
+    protocol = "6" // tcp
+    source = "0.0.0.0/0"
+    tcp_options {
+      min = 443
+      max = 443
+    }
+  }
+  #   ingress_security_rules {
+  #     protocol = "6" // tcp
+  #     source = "::/0"
+  #     tcp_options {
+  #       max = 22
+  #       min = 22
+  #     }
+  #   }
 
   ingress_security_rules {
     protocol = "17" // udp
@@ -169,6 +183,14 @@ resource "oci_core_default_security_list" "base_ipv6" {
   }
   egress_security_rules {
     protocol = "6" // tcp
+    destination = "::/0"
+  }
+  egress_security_rules {
+    protocol = "17" // tcp
+    destination = "0.0.0.0/0"
+  }
+  egress_security_rules {
+    protocol = "17" // tcp
     destination = "::/0"
   }
 }
