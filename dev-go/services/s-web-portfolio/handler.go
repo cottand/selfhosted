@@ -53,6 +53,7 @@ func (s *scaffold) handleHttpBrowse(rw http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		rw.WriteHeader(http.StatusBadRequest)
 	}
+	rw.Header().Set("Access-Control-Allow-Origin", "https://nico.dcotta.com")
 	go func() {
 		if s.doGrpcUpstream {
 			_, _ = s.stats.Report(context.WithoutCancel(req.Context()), &s_rpc_portfolio_stats.Visit{
