@@ -1,5 +1,5 @@
 let
-  lib = (import ../lib) {};
+  lib = (import ../lib) { };
   version = "3.64";
   cpu = 100;
   mem = 100;
@@ -24,6 +24,7 @@ lib.mkJob "seaweed-webdav" {
   group."seaweed-webdav" = {
     count = 1;
     network.mode = "bridge";
+    network.dns = lib.defaults.dns;
 
     service."seaweed-webdav" = {
       connect.sidecarService = {
@@ -64,7 +65,7 @@ lib.mkJob "seaweed-webdav" {
           # "-replication=010"
           "-port=${toString ports.webdav}"
           "-filer=localhost:${toString ports.filer}"
-#          "-filer.path=/buckets"
+          #          "-filer.path=/buckets"
           "-cacheDir=/alloc/data/"
           "-cacheCapacityMB=1024"
         ];

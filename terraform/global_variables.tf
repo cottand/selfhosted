@@ -1,0 +1,1 @@
+variable "vault_addr" {}

@@ -30,6 +30,7 @@ lib.mkJob name {
   group."seaweed-filer" = {
     count = 2;
     network = {
+      inherit (lib.defaults.dns) servers;
       mode = "bridge";
       dynamicPorts = [
         { label = "metrics"; hostNetwork = "ts"; }

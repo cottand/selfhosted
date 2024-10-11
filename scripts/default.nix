@@ -34,6 +34,8 @@
     ${pkgs.github-runner}/run.sh
   '';
 
+  ci_deploy-pages = callPackage ./ci_deploy-pages { inherit self; };
+
 
 
   inherit get-external-imports;

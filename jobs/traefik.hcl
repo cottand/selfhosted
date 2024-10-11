@@ -18,6 +18,9 @@ job "traefik" {
       value    = "true"
     }
     network {
+      dns {
+        servers = ["100.100.100.100"]
+      }
       mode = "bridge"
       port "dns-ts" {
         // static = 53

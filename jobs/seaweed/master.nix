@@ -25,6 +25,7 @@ let
       rTarget = node;
     }];
     network = {
+      inherit (lib.defaults.dns) servers;
       mode = "bridge";
       dynamicPorts = [
         { label = "metrics"; hostNetwork = "ts"; }
