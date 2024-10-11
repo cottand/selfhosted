@@ -67,7 +67,7 @@ jobs:
 
     - uses: DeterminateSystems/magic-nix-cache-action@main
 
-    - name: Build services image
+    - name: Build web portfolio
       run: |
         nix build -L github:cottand/web-portfolio#static
 
@@ -76,7 +76,7 @@ jobs:
       with:
         apiToken: ${{ steps.secrets.outputs.CF_TOKEN }}
         accountId: ${{ steps.secrets.outputs.CF_ACCOUNT_ID }}
-        command: pages deploy ./result --project-name=nico-dcotta-com
+        command: pages deploy ./result/srv --project-name=nico-dcotta-com
 
         
 
