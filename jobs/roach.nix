@@ -54,6 +54,7 @@ let
       source = "roach";
     };
     networks = [{
+      inherit (lib.defaults.dns) servers;
       mode = "bridge";
       dynamicPorts = [
         { label = "metrics"; to = webPort; hostNetwork = "ts"; }

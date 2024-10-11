@@ -8,6 +8,9 @@ job "prometheus" {
     }
 
     network {
+      dns {
+        servers = ["100.100.100.100"]
+      }
       mode = "bridge"
       port "health" {
         to = -1

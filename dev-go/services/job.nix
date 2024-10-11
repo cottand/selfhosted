@@ -31,6 +31,8 @@ lib.mkJob name {
   group.${name} = {
     count = 3;
     network = {
+      inherit (lib.defaults.dns) servers;
+
       mode = "bridge";
       dynamicPorts = [
         { label = "metrics"; hostNetwork = "ts"; }

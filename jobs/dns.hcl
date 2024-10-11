@@ -1,6 +1,15 @@
 job "dns" {
-  type = "system"
   group "leng-dns" {
+    count = 3
+    constraint {
+      attribute = "${meta.box}"
+      operator  = "regexp"
+      value     = "(hez1|hez2|hez3)"
+    }
+    constraint {
+      operator = "distinct_hosts"
+      value    = "true"
+    }
     network {
       mode = "bridge"
       port "dns" {
@@ -19,12 +28,10 @@ job "dns" {
       }
     }
     update {
-      max_parallel     = 1
-      canary           = 1
-      min_healthy_time = "30s"
+      max_parallel     = 3
+      canary           = 0
+      min_healthy_time = "10s"
       healthy_deadline = "5m"
-      auto_revert      = true
-      auto_promote     = true
     }
 
 
@@ -40,20 +47,20 @@ job "dns" {
       port     = "dns"
       tags = [
         "traefik.enable=true",
+        "traefik.consulcatalog.connect=false",
         "traefik.udp.routers.${NOMAD_TASK_NAME}.entrypoints=dns",
         // can't filter UDP
         // "traefik.udp.routers.${NOMAD_TASK_NAME}.middlewares=vpn-whitelist@file",
       ]
     }
     service {
-      name     = "doh"
+      name     = "dns-doh"
       port     = "http_doh"
       tags = [
-        "traefik.enable=false",
-        "traefik.http.routers.${NOMAD_TASK_NAME}.rule=Host(`dns.vps.dcotta.eu`) ", //" || ( Host(`138.201.153.245`) && PathPrefix(`/dns-query`) )",
-        "traefik.http.routers.${NOMAD_TASK_NAME}.entrypoints=web, web_public, websecure, websecure_public",
-
-        "traefik.http.routers.${NOMAD_TASK_NAME}.tls=true",
+        "traefik.enable=true",
+        "traefik.consulcatalog.connect=false",
+        "traefik.http.routers.dnsdoh.entrypoints=web, websecure",
+        "traefik.http.routers.dnsdoh.tls=true",
         # expose but for now only when on VPN
         // "traefik.http.routers.${NOMAD_TASK_NAME}.middlewares=vpn-whitelist@file",
       ]
@@ -61,7 +68,7 @@ job "dns" {
     task "leng-dns" {
       driver = "docker"
       config {
-        image = "ghcr.io/cottand/leng:sha-5669792"
+        image = "ghcr.io/cottand/leng:d971425-x86_64-linux"
         args = [
           "--config", "/config.toml",
           "--update",
@@ -110,10 +117,6 @@ customdnsrecords = [
 
     "_http._tcp.seaweedfs-master.nomad IN SRV 0 0 80 seaweed-master.vps.dcotta.eu",
 
-    {{ range $i, $s := nomadService "seaweedfs-webdav" }}
-    "webdav.vps            3600  IN  A   {{ .Address }}",
-    {{ end }}
-
     {{ $rr_a := sprig_list -}}
     {{- $rr_srv := sprig_list -}}
     {{- $base_domain := ".nomad" -}} {{- /* Change this field for a diferent tld! */ -}}
@@ -155,7 +158,7 @@ customdnsrecords = [
 ]
 
 [Upstream]
-  nameservers = ["1.1.1.1:53", "1.0.0.1:53", "10.10.4.1:8600"]
+  nameservers = ["1.1.1.1:53", "1.0.0.1:53"]
   # query timeout for dns lookups in seconds
   timeout = 5
   # cache entry lifespan in seconds

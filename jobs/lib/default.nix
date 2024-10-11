@@ -124,6 +124,7 @@ rec {
 
   tailscaleDns = "golden-dace.ts.net";
 
+  defaults.dns.servers = ["100.100.100.100"];
 
   tests = {
     asHclList = check (setAsHclList { lol = { a = 1; }; }) [{ name = "lol"; a = 1; }];

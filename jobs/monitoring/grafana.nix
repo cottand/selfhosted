@@ -26,6 +26,7 @@ lib.mkJob "grafana" {
     }];
     count = 2;
     network = {
+      inherit (lib.defaults.dns) servers;
       mode = "bridge";
       dynamicPorts = [
         { label = "healthz"; hostNetwork = "ts"; }

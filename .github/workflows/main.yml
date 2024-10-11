@@ -33,6 +33,31 @@ jobs:
         run: |
           nix flake check .
 
+  deploy-web:
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup Tailscale
+      uses: tailscale/github-action@main
+      with:
+        authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+    - name: Import Secrets
+      id: secrets
+      uses: hashicorp/vault-action@v2
+      with:
+        url: https://vault.dcotta.com:8200
+        role: actions-ro
+        path: jwt-github
+        method: jwt
+        jwtGithubAudience: sigstore
+        secrets: |
+          secret/data/github-actions/test value | TEST ;
+    - run: 'echo ${{ steps.secrets.outputs.TEST }}'
+
+
+
   build-images:
     runs-on: ubuntu-latest
     steps:

@@ -39,6 +39,7 @@ lib.mkJob "seaweed-volume" {
     };
 
     network = {
+      inherit (lib.defaults.dns) servers;
       mode = "bridge";
       dynamicPorts = [
         { label = "metrics"; hostNetwork = "ts"; }
