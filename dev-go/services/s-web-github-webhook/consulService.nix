@@ -19,7 +19,6 @@ in
     "traefik.enable=true"
     "traefik.consulcatalog.connect=true"
     "traefik.http.routers.${name}.tls=true"
-#    "traefik.http.routers.${name}.entrypoints=web, websecure"
     "traefik.http.routers.${name}.entrypoints=web, web_public, websecure, websecure_public"
 
     "traefik.http.routers.${name}.middlewares=cloudflarewarp@file,${name}-stripprefix"
