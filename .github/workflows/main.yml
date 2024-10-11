@@ -8,7 +8,8 @@ permissions:
 
 on:
   push:
-    branches: [ "master", "monolith" ]
+    branches: [ "master" ]
+  workflow_dispatch:
 
 env:
   # Use docker.io for Docker Hub if empty
@@ -55,8 +56,29 @@ jobs:
         jwtGithubAudience: sigstore
         caCertificate: ${{ secrets.DCOTTA_ROOT_CA }}
         secrets: |
-          secret/data/github-actions/test value | TEST ;
-    - run: 'echo ${{ steps.secrets.outputs.TEST }}'
+          secret/data/github-actions/cloudflare/workers_token value | CF_TOKEN ;
+          secret/data/github-actions/cloudflare/workers_token accountId  | CF_ACCOUNT_ID ;
+
+    - uses: actions/checkout@v3
+
+    - uses: cachix/install-nix-action@v22
+      with:
+        github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+    - uses: DeterminateSystems/magic-nix-cache-action@main
+
+    - name: Build services image
+      run: |
+        nix build -L github:cottand/web-portfolio#static
+
+    - name: Deploy
+      uses: cloudflare/wrangler-action@v3
+      with:
+        apiToken: ${{ steps.secrets.outputs.CF_TOKEN }}
+        accountId: ${{ steps.secrets.outputs.CF_ACCOUNT_ID }}
+        command: pages deploy ./result --project-name=nico-dcotta-com
+
+        
 
 
 

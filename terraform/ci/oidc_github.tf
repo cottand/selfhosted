@@ -11,8 +11,7 @@ resource "vault_jwt_auth_backend_role" "github_actions" {
   user_claim = "actor"
   role_type  = "jwt"
   bound_claims = {
-        repository = "cottand/selfhosted"
-#     sub : "repo:cottand/selfhosted:*"
+    repository = "cottand/selfhosted"
   }
   bound_audiences = ["https://github.com/cottand", "sigstore"]
   token_policies = [vault_policy.github_actions_ro.name]
