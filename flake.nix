@@ -4,7 +4,7 @@
     nixpkgs-master.url = "github:nixos/nixpkgs";
     # pinned because https://github.com/NixOS/nixpkgs/issues/332957 breaks things
     nixpkgs-pre-rust-180.url = "github:nixos/nixpkgs/c3392ad349a5227f4a3464dce87bcc5046692fce";
-    nixpkgs-24-05 = "github:nixos/nixpkgs/24.05";
+    nixpkgs-24-05.url = "github:nixos/nixpkgs/24.05";
 
     utils.url = "github:numtide/flake-utils";
     filters.url = "github:numtide/nix-filter";

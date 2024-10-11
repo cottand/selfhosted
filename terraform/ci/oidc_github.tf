@@ -6,17 +6,18 @@ resource "vault_jwt_auth_backend" "jwt_github" {
 }
 
 resource "vault_jwt_auth_backend_role" "github_actions" {
-  backend = vault_jwt_auth_backend.jwt_github.path
+  backend    = vault_jwt_auth_backend.jwt_github.path
   role_name  = "actions-ro"
   user_claim = "actor"
-  role_type = "jwt"
+  role_type  = "jwt"
   bound_claims = {
-#     repository = "cottand/selfhosted"
-    sub: "repo:cottand/selfhosted:*"
+        repository = "cottand/selfhosted"
+#     sub : "repo:cottand/selfhosted:*"
   }
-  token_policies = [ vault_policy.github_actions_ro.name ]
+  bound_audiences = ["https://github.com/cottand", "sigstore"]
+  token_policies = [vault_policy.github_actions_ro.name]
   token_max_ttl = 10 * 60
-  token_ttl = 10 * 60
+  token_ttl     = 10 * 60
 }
 
 resource "vault_policy" "github_actions_ro" {
