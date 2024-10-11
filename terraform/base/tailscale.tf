@@ -5,6 +5,7 @@ resource "tailscale_tailnet_key" "default" {
   preauthorized = true
 }
 
+
 resource "bitwarden-secrets_secret" "ts_authkey_default" {
   key        = "tailscale/authkey/default"
   value      = tailscale_tailnet_key.default.key

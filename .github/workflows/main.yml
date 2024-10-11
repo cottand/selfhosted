@@ -43,6 +43,7 @@ jobs:
       uses: tailscale/github-action@main
       with:
         authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+
     - name: Import Secrets
       id: secrets
       uses: hashicorp/vault-action@v2
@@ -52,6 +53,7 @@ jobs:
         path: jwt-github
         method: jwt
         jwtGithubAudience: sigstore
+        caCertificate: ${{ secrets.DCOTTA_ROOT_CA }}
         secrets: |
           secret/data/github-actions/test value | TEST ;
     - run: 'echo ${{ steps.secrets.outputs.TEST }}'
