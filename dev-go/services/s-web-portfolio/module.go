@@ -20,11 +20,6 @@ var slog = bedrock.LoggerFor(Name)
 
 func InitService() {
 	ctx := context.Background()
-	root, err := bedrock.NixAssetsDir()
-	if err != nil {
-		log.Fatalf(terrors.Propagate(err).Error())
-	}
-
 	conn, err := bedrock.NewGrpcConn()
 	if err != nil {
 		log.Fatalf(terrors.Propagate(err).Error())
@@ -32,14 +27,7 @@ func InitService() {
 
 	stats := s_rpc_portfolio_stats.NewPortfolioStatsClient(conn)
 
-	fsWithNoCache := http.FileServer(http.Dir(root + "/srv"))
-	fs := http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-		writer.Header().Set("Cache-Control", "max-age=600")
-		fsWithNoCache.ServeHTTP(writer, request)
-	})
-
 	scaff := &scaffold{
-		fs:             fs,
 		stats:          stats,
 		doGrpcUpstream: true,
 	}
