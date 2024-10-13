@@ -1,6 +1,7 @@
+# utilities to write Jobs in Nix
 { nixpkgs ? (builtins.getFlake "github:nixos/nixpkgs/0ef93bf")
 , ...
-}: # utilities to write Jobs in Nix
+}:
 let
   lib = nixpkgs.legacyPackages.${builtins.currentSystem}.lib;
   check = have: expected:
@@ -55,6 +56,7 @@ rec {
     unglobbedTs = concatLists (map unglobTransformation ts);
   in
   lib.attrsets.updateManyAttrsByPath unglobbedTs toTransform;
+
 
   transformJob = updateManyWithGlob [
     {
@@ -116,15 +118,22 @@ rec {
   };
 
   mkJob = name: job:
-    (transformJob job) //
-    {
+    let
+      transformed = transformJob job;
+      mkLinkSection = name: {
+        label = "Grafana for Job";
+        url = "https://grafana.tfk.nd/d/de0ri7g2kukn4a/nomad-job?var-client=All&var-job=${name}&var-group=All&var-task=All&var-alloc_id=All";
+      };
+    in
+    transformed // {
       inherit name;
       id = name;
+      ui.links = [ (mkLinkSection name) ] ++ (transformed.ui.links or [ ]);
     };
 
   tailscaleDns = "golden-dace.ts.net";
 
-  defaults.dns.servers = ["100.100.100.100"];
+  defaults.dns.servers = [ "100.100.100.100" ];
 
   tests = {
     asHclList = check (setAsHclList { lol = { a = 1; }; }) [{ name = "lol"; a = 1; }];

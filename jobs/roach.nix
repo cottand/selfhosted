@@ -93,7 +93,7 @@ let
           "traefik.consulcatalog.connect=true"
           "traefik.tcp.routers.roach-web.entrypoints=web,websecure"
           "traefik.tcp.routers.roach-web.tls.passthrough=true"
-          "traefik.tcp.routers.roach-web.rule=HostSNI(`roach-web.traefik`)"
+          "traefik.tcp.routers.roach-web.rule=HostSNI(`roach-web.traefik`) || HostSNI(`roach-web.tfk.nd`)"
         ];
       }
       {
@@ -189,6 +189,16 @@ let
 in
 {
   job = {
+    "UI" =
+      #    "2";
+      {
+        description = "Distributed HA pSQL-like DB";
+        links = [
+          { label = "Grafana for Job"; url = "https://grafana.tfk.nd/d/de0ri7g2kukn4a/nomad-job?var-client=All&var-job=roach&var-group=All&var-task=All&var-alloc_id=All"; }
+          { label = "Roach UI"; url = "https://roach-web.tfk.nd"; }
+          { label = "Roach SQL Grafana"; url = "https://grafana.tfk.nd/d/crdb-console-sql/roach-sql?orgId=1&refresh=30s"; }
+        ];
+      };
     name = "roach";
     id = "roach";
     datacenters = [ "*" ];
