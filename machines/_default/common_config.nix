@@ -34,6 +34,7 @@
   }];
 
   services.openssh.enable = true;
+  services.openssh.openFirewall = false;
   services.sshguard.enable = true;
 
   users.users."cottand".openssh.authorizedKeys.keys = [

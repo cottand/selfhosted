@@ -252,6 +252,22 @@
         "type": "indirect"
       }
     },
+    "nixpkgs-24-05": {
+      "locked": {
+        "lastModified": 1717179513,
+        "narHash": "sha256-vboIEwIQojofItm2xGCdZCzW96U85l9nDW3ifMuAIdM=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "63dacb46bf939521bdc93981b4cbb7ecb58427a0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "24.05",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "nixpkgs-master": {
       "locked": {
         "lastModified": 1724618776,
@@ -307,6 +323,7 @@
         "go-cache": "go-cache",
         "home-manager": "home-manager",
         "nixpkgs": "nixpkgs",
+        "nixpkgs-24-05": "nixpkgs-24-05",
         "nixpkgs-master": "nixpkgs-master",
         "nixpkgs-pre-rust-180": "nixpkgs-pre-rust-180",
         "utils": "utils"
