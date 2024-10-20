@@ -1,0 +1,88 @@
+[entryPoints]
+[entrypoints.sql]
+address = ':{{ env "NOMAD_PORT_sql" }}'
+[entryPoints.dns]
+address = ':{{ env "NOMAD_PORT_dns_ts" }}/udp'
+
+[entrypoints.web]
+address = ':{{ env "NOMAD_PORT_http_ts" }}'
+transport.respondingTimeouts.readTimeout = "5m"
+
+[entryPoints.websecure]
+address = ':{{ env "NOMAD_PORT_https_ts" }}'
+transport.respondingTimeouts.readTimeout = "5m"
+
+# redirects 8000 (in container) to 443
+[entryPoints.web_public]
+address = ':{{ env "NOMAD_PORT_http_public" }}'
+
+[entryPoints.web_public.http.redirections.entryPoint]
+to = "websecure"
+scheme = "https"
+
+[entryPoints.websecure_public]
+address = ':{{ env "NOMAD_PORT_https_public" }}'
+http.middlewares = ["cloudflarewarp@file"]
+
+# redirects 44300 (in container) to 443
+[entryPoints.websecure_public.http.redirections.entryPoint]
+to = "websecure"
+scheme = "https"
+
+
+[entryPoints.metrics]
+address = ":3520"
+
+[ping]
+entryPoint = "web_public"
+
+[metrics]
+[metrics.prometheus]
+addServicesLabels = true
+entryPoint = "metrics"
+
+[api]
+dashboard = true
+insecure = true
+
+[providers.consulCatalog]
+# The service name below should match the nomad/consul service above
+# and is used for intentions in consul
+servicename = "traefik-ingress"
+refreshInterval = "5s"
+watch = true
+exposedByDefault = false
+connectAware = true
+connectByDefault = true
+
+endpoint.tls.insecureSkipVerify = true # TODO add SAN for this IP!
+endpoint.datacenter = "dc1"
+
+defaultRule = 'Host(`{{"{{ .Name }}"}}.traefik`) || Host(`{{"{{ .Name }}"}}.tfk.nd`)'
+
+
+
+[providers.nomad]
+refreshInterval = "5s"
+exposedByDefault = false
+
+defaultRule = 'Host(`{{"{{ .Name }}"}}.traefik`)'
+
+[providers.nomad.endpoint]
+address = "https://hez3.golden-dace.ts.net:4646"
+# TODO make vault with secret work
+tls.insecureSkipVerify = false
+token = '{{ env "NOMAD_TOKEN" }}'
+
+[providers.file]
+filename = "/etc/traefik/dynamic/traefik-dynamic.toml"
+
+
+[tracing]
+otlp.grpc.endpoint = '{{ env "NOMAD_UPSTREAM_ADDR_tempo_otlp_grpc_mesh" }}'
+otlp.grpc.insecure = true
+
+[experimental.plugins]
+[experimental.plugins.cloudflarewarp]
+modulename = "github.com/BetterCorp/cloudflarewarp"
+version = "v1.3.0"

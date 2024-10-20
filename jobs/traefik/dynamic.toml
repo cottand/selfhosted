@@ -1,0 +1,68 @@
+[[tls.certificates]]
+certFile = "/secrets/internal_cert/cert"
+keyFile = "/secrets/internal_cert/key"
+
+[http.middlewares]
+# Middleware that only allows requests from inside the VPN
+# https://doc.traefik.io/traefik/middlewares/http/ipwhitelist/
+[http.middlewares.vpn-whitelist.IPAllowList]
+sourcerange = [
+    '10.8.0.1/24', # VPN clients
+    '10.10.0.1/16', # WG mesh
+    '10.2.0.1/16', # VPN guests
+    '127.1.0.0/24', # VPN clients
+    '172.26.64.18/20', # containers
+    '100.64.0.0/10', # ts
+]
+[http.middlewares.mesh-whitelist.IPAllowList]
+sourcerange = [
+    '10.10.0.1/16', # WG mesh
+    '127.1.0.0/24', # VPN clients
+    '172.26.64.18/20', # containers
+    '185.216.203.147', # comsmo's public contabo IP (will be origin when using sshuttle)
+    '100.64.0.0/10', # ts
+]
+[http.middlewares.replace-enc.replacePathRegex]
+regex = "/___enc_/(.*)"
+replacement = ""
+
+[http.middlewares.cloudflarewarp.plugin.cloudflarewarp]
+disableDefault = false
+
+# Trust IPS not required if disableDefault is false - we will allocate Cloud Flare IPs automatically
+trustip = [
+    '10.10.0.1/16', # WG mesh
+    '10.2.0.1/16', # VPN guests
+    '127.1.0.0/24', # VPN clients
+    '172.26.64.18/20', # Containers
+    '100.64.0.0/10', # ts
+]
+
+# Nomad terminates TLS, so we let traefik just forward TCP
+[tcp.routers]
+[tcp.routers.nomad]
+rule = "HostSNI( `nomad.vps.dcotta.eu` ) || HostSNI( `nomad.traefik` )"
+service = "nomad"
+entrypoints = "web,websecure"
+tls.passthrough = true
+[tcp.routers.traefik]
+rule = "HostSNI( `consul.vps.dcotta.eu` ) || HostSNI( `consul.traefik` )"
+service = "consul"
+entrypoints = "web,websecure"
+tls.passthrough = true
+[tcp.services]
+[tcp.services.nomad.loadBalancer]
+[[tcp.services.nomad.loadBalancer.servers]]
+address = "hez1.golden-dace.ts.net:4646"
+[[tcp.services.nomad.loadBalancer.servers]]
+address = "hez2.golden-dace.ts.net:4646"
+[[tcp.services.nomad.loadBalancer.servers]]
+address = "hez3.golden-dace.ts.net:4646"
+
+[tcp.services.consul.loadBalancer]
+[[tcp.services.consul.loadBalancer.servers]]
+address = "hez1.golden-dace.ts.net:8501"
+[[tcp.services.consul.loadBalancer.servers]]
+address = "hez2.golden-dace.ts.net:8501"
+[[tcp.services.consul.loadBalancer.servers]]
+address = "hez3.golden-dace.ts.net:8501"

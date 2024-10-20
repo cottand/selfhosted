@@ -1,6 +1,6 @@
 let
   lib = (import ../lib) { };
-  version = "v1.114.0";
+  version = "v1.117.0";
   domain = "immich.dcotta.com";
   cpu = 200;
   mem = 1024;
@@ -243,11 +243,13 @@ lib.mkJob "immich" {
                               image = {
                                 colorspace = "p3";
                                 extractEmbedded = false;
-                                previewFormat = "jpeg";
-                                previewSize = 1440;
-                                quality = 80;
-                                thumbnailFormat = "webp";
-                                thumbnailSize = 250;
+                                
+                                preview.format = "jpeg";
+                                preview.size = 1440;
+
+                                thumbnail.thumbnailFormat = "webp";
+                                thumbnail.size = 250;
+                                thumbnail.quality = 80;
                               };
                               job = {
                                 backgroundTask.concurrency = 5;

@@ -37,7 +37,7 @@
 
   NOMAD_ADDR = "https://inst-kzsrv-control.golden-dace.ts.net:4646";
   CONSUL_ADDR = "https://inst-kzsrv-control.golden-dace.ts.net:8501";
-  VAULT_ADDR = "https://vault.mesh.dcotta.eu:8200";
+  VAULT_ADDR = "https://vault.dcotta.com:8200";
 
   NIX_PATH = "";
 }

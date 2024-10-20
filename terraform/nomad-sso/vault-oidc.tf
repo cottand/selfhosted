@@ -25,7 +25,7 @@ resource "vault_identity_oidc_assignment" "assign-admins" {
 resource "vault_identity_oidc_key" "key1" {
   name             = "key1"
   allowed_client_ids = ["*"]
-  verification_ttl = 3 * 60 * 60
+  verification_ttl = 6 * 60 * 60
   rotation_period  = 1 * 60 * 60
   algorithm        = "RS256"
 }
@@ -33,10 +33,8 @@ resource "vault_identity_oidc_key" "key1" {
 resource "vault_identity_oidc_client" "nomad" {
   name = "nomad"
   redirect_uris = [
-    "https://nomad.mesh.dcotta.eu:4646/oidc/callback",
-    "${var.vault_addr}/ui/settings/tokens",
+    "${local.vault_addr}/ui/settings/tokens",
     "https://nomad.traefik/ui/settings/tokens",
-    "https://nomad.mesh.dcotta.eu:4646/ui/settings/tokens",
     "https://nomad.traefik/oidc/callback",
     "https://nomad.traefik/ui/settings/tokens",
     "http://localhost:4649/oidc/callback",
@@ -55,7 +53,7 @@ resource "vault_identity_oidc_client" "immich" {
   name = "immich"
   redirect_uris = [
     "app.immich:///oauth-callback",
-    "${var.vault_addr}/ui/settings/tokens",
+    "${local.vault_addr}/ui/settings/tokens",
     "${var.immich_addr}/auth/login",
     "${var.immich_addr}/user-settings",
   ]
@@ -94,7 +92,7 @@ resource "vault_identity_oidc_scope" "groups" {
   )
 }
 resource "vault_identity_oidc_provider" "provider" {
-  issuer_host   = "vault.dcotta.com:8200"
+  issuer_host   = local.vault_host
   https_enabled = true
   name          = "default-provider"
   allowed_client_ids = [

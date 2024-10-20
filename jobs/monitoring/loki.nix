@@ -1,7 +1,7 @@
 let
   lib = (import ../lib) {};
   version = "3.1.0";
-  cpu = 256;
+  cpu = 200;
   mem = 1024;
   ports = {
     http = 8080;

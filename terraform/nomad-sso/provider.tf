@@ -2,7 +2,7 @@ terraform {
   required_providers {
     vault = {
       source  = "hashicorp/vault"
-      version = "~> 4.2.0"
+      version = "~> 4.4.0"
     }
   }
 }
@@ -12,5 +12,6 @@ provider "nomad" {
 }
 
 provider "vault" {
-  address = var.vault_addr
+  address = local.vault_addr
+  skip_tls_verify = true
 }
