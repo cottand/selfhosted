@@ -2,7 +2,7 @@ let
   lib = (import ../lib) { };
   version = "11.2.0";
   cpu = 100;
-  mem = 200;
+  mem = 240;
   ports = {
     http = 8888;
     upDb = 5432;
@@ -26,7 +26,7 @@ lib.mkJob "grafana" {
     }];
     count = 2;
     network = {
-      inherit (lib.defaults.dns) servers;
+      inherit (lib.defaults) dns;
       mode = "bridge";
       dynamicPorts = [
         { label = "healthz"; hostNetwork = "ts"; }

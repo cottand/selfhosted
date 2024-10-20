@@ -14,7 +14,7 @@ in
 
 
   config = mkIf cfg.enable {
-    deployment.tags = [ "vault-server" ];
+    deployment.tags = [ "vault" ];
     security.pki.certificateFiles = [
       "${flakeInputs.self}/certs/root_2024_ca.crt"
     ];
