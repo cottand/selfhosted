@@ -1,6 +1,7 @@
 terraform {
   backend "s3" {
     bucket                      = "cottand-selfhosted-tf"
+    # old bucket name - do not change!
     key                         = "nomad-sso"
     region                      = "us-east-005"
     skip_region_validation      = true
