@@ -1,5 +1,5 @@
 let
-  lib = (import ../lib) {};
+  lib = (import ../lib) { };
   version = "2.6.0";
   cpu = 256;
   mem = 700;
@@ -17,12 +17,6 @@ let
   bind = lib.localhost;
 in
 lib.mkJob "tempo" {
-  affinities = [{
-    lTarget = "\${meta.controlPlane}";
-    operand = "is";
-    rTarget = "true";
-    weight = -50;
-  }];
   group."tempo" = {
     ephemeralDisk = {
       migrate = true;
@@ -34,6 +28,7 @@ lib.mkJob "tempo" {
       mode = "bridge";
       dynamicPorts = [
         { label = "metrics"; hostNetwork = "ts"; }
+        { label = "ready"; hostNetwork = "ts"; }
       ];
     };
     service."tempo-metrics" = {
@@ -53,20 +48,36 @@ lib.mkJob "tempo" {
       #        interval = "20s";
       #        timeout = "2s";
       #      };a
-      checks = [{
-        expose = true;
-        name = "tempo healthcheck";
-        port = "metrics";
-        type = "http";
-        path = "/metrics";
-        interval = 30 * lib.seconds;
-        timeout = 10 * lib.seconds;
-        checkRestart = {
-          limit = 3;
-          grace = 120 * lib.seconds;
-          ignoreWarnings = false;
-        };
-      }];
+      checks = [
+        {
+          expose = true;
+          name = "tempo healthcheck";
+          portLabel = "metrics";
+          type = "http";
+          path = "/metrics";
+          interval = 30 * lib.seconds;
+          timeout = 10 * lib.seconds;
+          checkRestart = {
+            limit = 3;
+            grace = 120 * lib.seconds;
+            ignoreWarnings = false;
+          };
+        }
+        {
+          expose = true;
+          name = "ready";
+          portLabel = "ready";
+          type = "http";
+          path = "/ready";
+          interval = 30 * lib.seconds;
+          timeout = 10 * lib.seconds;
+          checkRestart = {
+            limit = 3;
+            grace = 120 * lib.seconds;
+            ignoreWarnings = false;
+          };
+        }
+      ];
       meta.metrics_port = "\${NOMAD_PORT_metrics}";
     };
     service."tempo-http" = {
@@ -103,55 +114,50 @@ lib.mkJob "tempo" {
       template."local/tempo/local-config.yaml" = {
         changeMode = "restart";
         embeddedTmpl = ''
-                    auth_enabled: false
-                    server:
-                      http_listen_port: ${toString ports.http}
-                      grpc_listen_port: ${toString ports.grpc}
+          auth_enabled: false
+          server:
+            http_listen_port: ${toString ports.http}
+            grpc_listen_port: ${toString ports.grpc}
 
-                    distributor:
-                      # each of these has their separate config - see https://grafana.com/docs/tempo/latest/configuration/#distributor
-                      receivers:
-                        # see https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jaegerreceiver
-                        jaeger:
-                          protocols:
-          #                  thrift_http:
-          #                    endpoint: 0.0.0.0:TODO
-          #                  thrift_compact: # UDP
-          #                    endpoint: 0.0.0.0:TODO
-                        otlp:
-                          protocols:
-                              grpc:
-                                endpoint: 0.0.0.0:${toString ports.otlp-grpc}
-                              #http:
+          distributor:
+            # each of these has their separate config - see https://grafana.com/docs/tempo/latest/configuration/#distributor
+            receivers:
+              # see https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jaegerreceiver
+              jaeger:
+                protocols:
+              otlp:
+                protocols:
+                    grpc:
+                      endpoint: 0.0.0.0:${toString ports.otlp-grpc}
 
-                    ingester:
-                      max_block_duration: 5m               # cut the headblock when this much time passes. this is being set for demo purposes and should probably be left alone normally
+          ingester:
+            #max_block_duration: 5m               # cut the headblock when this much time passes. this is being set for demo purposes and should probably be left alone normally
 
-                    compactor:
-                      compaction:
-                        block_retention: 1h                # overall Tempo trace retention.
+          compactor:
+            compaction:
+              block_retention: 1h                # overall Tempo trace retention.
 
-                    metrics_generator:
-                      registry:
-                        external_labels:
-                          source: tempo
-                          cluster: nomad
-                      storage:
-                        path: /alloc/data/tempo/generator/wal
-                        remote_write:
-                          - url: http://localhost:8001/api/v1/push
-                            send_exemplars: true
+          metrics_generator:
+            registry:
+              external_labels:
+                source: tempo
+                cluster: nomad
+            storage:
+              path: /alloc/data/tempo/generator/wal
+              remote_write:
+                - url: http://localhost:8001/api/v1/push
+                  send_exemplars: true
 
-                    storage:
-                      trace:
-                        backend: local                     # backend configuration to use
-                        wal:
-                          path: /alloc/data/tempo/wal             # where to store the the wal locally
-                        local:
-                          path: /alloc/data/tempo/blocks
+          storage:
+            trace:
+              backend: local                     # backend configuration to use
+              wal:
+                path: /alloc/data/tempo/wal             # where to store the the wal locally
+              local:
+                path: /alloc/data/tempo/blocks
 
-                    overrides:
-                      metrics_generator_processors: [service-graphs, span-metrics] # enables metrics generator
+          overrides:
+            metrics_generator_processors: [service-graphs, span-metrics] # enables metrics generator
         '';
       };
     };

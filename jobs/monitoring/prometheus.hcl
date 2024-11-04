@@ -102,7 +102,7 @@ scrape_configs:
       format: ['prometheus']
 
     static_configs:
-      - labels: {'cluster': 'dcotta'}
+      - labels: {'cluster': 'default'}
 
     consul_sd_configs:
     - server: 'https://{{ env "NOMAD_IP_health" }}:8501' # well known consul https port
@@ -202,6 +202,7 @@ scrape_configs:
   - job_name: 'consul_services'
     tls_config:
       insecure_skip_verify: true
+
     # Labels assigned to all metrics scraped from the targets.
     static_configs:
       - labels: {'cluster': 'dcotta'}

@@ -69,9 +69,8 @@ lib.mkJob "grafana" {
         sidecarTask.resources = sidecarResources;
       };
 
-      check = {
+      check."healthz" = {
         expose = true;
-        name = "healthz";
         port = "healthz";
         type = "http";
         path = "/api/health";
@@ -117,7 +116,7 @@ lib.mkJob "grafana" {
         "GF_SERVER_SERVE_FROM_SUB_PATH" = true;
         "GF_SECURITY_ALLOW_EMBEDDING" = true;
         "GF_FEATURE_TOGGLES_ENABLE" = "traceToMetrics logsExploreTableVisualisation";
-        GF_INSTALL_PLUGINS = "https://storage.googleapis.com/integration-artifacts/grafana-lokiexplore-app/grafana-lokiexplore-app-latest.zip;grafana-lokiexplore-app";
+        GF_INSTALL_PLUGINS = "https://storage.googleapis.com/integration-artifacts/grafana-lokiexplore-app/grafana-lokiexplore-app-latest.zip;grafana-lokiexplore-app, oci-metrics-datasource";
       };
 
       template."local/config.ini" = {
