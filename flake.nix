@@ -6,6 +6,9 @@
     nixpkgs-pre-rust-180.url = "github:nixos/nixpkgs/c3392ad349a5227f4a3464dce87bcc5046692fce";
     nixpkgs-24-05.url = "github:nixos/nixpkgs/24.05";
 
+    srvos.url = "github:nix-community/srvos";
+    srvos.inputs.nixpkgs.follows = "nixpkgs";
+
     utils.url = "github:numtide/flake-utils";
     filters.url = "github:numtide/nix-filter";
 

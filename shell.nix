@@ -32,7 +32,7 @@
   ];
   shellHook = ''
     export BWS_ACCESS_TOKEN=$(security find-generic-password -gw -l "bitwarden/secret/m3-cli")
-    fish --init-command 'abbr -a weeds "nomad alloc exec -i -t -task seaweed-filer -job seaweed-filer weed shell -master 10.10.11.1:9333" ' && exit
+    fish --init-command 'abbr -a weeds "nomad alloc exec -i -t -task seaweed-filer -job seaweed-filer weed shell -master seaweed-master-http.nomad:9333" ' && exit
   '';
 
   NOMAD_ADDR = "https://inst-kzsrv-control.golden-dace.ts.net:4646";

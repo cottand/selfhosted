@@ -1,0 +1,10 @@
+syntax = "proto3";
+package s_rpc_vault;
+
+option go_package = "github.com/Cottand/selfosted/dev-go/lib/proto/s-rpc-vault";
+
+import "google/protobuf/empty.proto";
+
+service VaultApi {
+  rpc Snapshot(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+}

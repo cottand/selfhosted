@@ -68,7 +68,7 @@ job "dns" {
     task "leng-dns" {
       driver = "docker"
       config {
-        image = "ghcr.io/cottand/leng:d971425-x86_64-linux"
+        image = "ghcr.io/cottand/leng:57bc2a9-x86_64-linux"
         args = [
           "--config", "/config.toml",
           "--update",
@@ -79,7 +79,7 @@ job "dns" {
         ports = ["dns", "metrics"]
       }
       env = {
-        "environment" = "TZ=Europe/Berlin"
+        "environment" = "TZ=Europe/London"
       }
       resources {
         cpu    = 80
@@ -106,6 +106,7 @@ interval = 200
 questioncachecap = 5000
 
 metrics.enabled = true
+metrics.histogramsEnabled = true
 
 # manual custom dns entries
 customdnsrecords = [

@@ -1,4 +1,4 @@
-inputs@{ self, nixpkgs, cottand, home-manager, utils, attic, overlays, ... }:
+inputs@{ self, srvos, nixpkgs, cottand, home-manager, utils, attic, overlays, ... }:
 let
   secretPath = "/Users/nico/dev/cottand/selfhosted/secret/";
 
@@ -68,10 +68,14 @@ in
     imports = [ ./machines/${name}/definition.nix ];
     deployment.tags = [ "hetzner" ];
   };
+  macMini1 = { name, nodes, ... }: {
+    imports = [ ./machines/${name}/definition.nix ];
+    deployment.tags = [ "local" "macmini" ];
+  };
 } // (mkNodePool {
   names = with builtins; fromJSON (readFile "${self}/terraform/metal/oci_control.json");
   module = {
-    imports = [ ./machines/ociControlWorker ];
+    imports = [ ./machines/ociControlWorker srvos.nixosModules.server ];
     deployment.tags = [ "oci-control" ];
     deployment.buildOnTarget = true;
   };
