@@ -37,5 +37,6 @@ func (h *ProtoHandler) Snapshot(ctx context.Context, _ *emptypb.Empty) (*emptypb
 		return nil, terrors.Augment(e, "failed to upload snapshot", nil)
 	default:
 	}
+	slog.Info("vault snapshot uploaded successfully")
 	return &emptypb.Empty{}, terrors.Augment(err, "failed to upload snapshot", nil)
 }
