@@ -326,7 +326,28 @@
         "nixpkgs-24-05": "nixpkgs-24-05",
         "nixpkgs-master": "nixpkgs-master",
         "nixpkgs-pre-rust-180": "nixpkgs-pre-rust-180",
+        "srvos": "srvos",
         "utils": "utils"
+      }
+    },
+    "srvos": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1730682372,
+        "narHash": "sha256-GU8ghhVS7ctcV4Cy1W3X/N6KtmJNVptirIzkA7NMxp8=",
+        "owner": "nix-community",
+        "repo": "srvos",
+        "rev": "a9f2ae9fb213b6175c71cd6aecfdb366979d2e0c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "srvos",
+        "type": "github"
       }
     },
     "systems": {
