@@ -16,6 +16,7 @@
     pkgs.wander
     pkgs.attic
     pkgs.bws
+    pkgs.grpcurl
 
     # for development
     pkgs.go
