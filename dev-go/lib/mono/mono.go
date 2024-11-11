@@ -9,6 +9,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"log"
 	"log/slog"
 	"net"
@@ -40,14 +41,15 @@ func RunRegistered() {
 	ctx := context.Background()
 	bedrock.Init(ctx)
 	grpcServer := grpc.NewServer(grpc.StatsHandler(otelgrpc.NewServerHandler()))
+	reflection.Register(grpcServer)
 	defer grpcServer.GracefulStop()
+
 	for name, module := range services {
 		if module.RegisterGrpc != nil {
 			module.RegisterGrpc(grpcServer)
 		}
 		slog.Info("registered mono", "service", name)
 	}
-
 	config, err := bedrock.GetBaseConfig()
 	if err != nil {
 		log.Fatalf(terrors.Augment(err, "failed to get config", nil).Error())

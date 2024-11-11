@@ -73,6 +73,33 @@ lib.mkJob name {
         "traefik.http.routers.\${NOMAD_GROUP_NAME}.entrypoints=web, websecure"
       ];
     };
+    service."${name}-grpc" = rec {
+      connect.sidecarService.proxy.config = lib.mkEnvoyProxyConfig {
+        otlpService = "proxy-${name}-grpc";
+        otlpUpstreamPort = otlpPort;
+        protocol = "grpc";
+      };
+      connect.sidecarTask.resources = sidecarResources;
+      port = toString ports.grpc;
+      # TODO gRPC health
+#      checks = [{
+#        expose = true;
+#        name = "metrics";
+#        portLabel = "metrics";
+#        type = "http";
+#        path = meta.metrics_path;
+#        interval = 10 * lib.seconds;
+#        timeout = 3 * lib.seconds;
+#      }];
+      tags = [
+        "traefik.enable=true"
+        "traefik.consulcatalog.connect=true"
+        "traefik.protocol=h2c"
+        "traefik.http.routers.${name}-grpc.tls=true"
+        "traefik.http.routers.${name}-grpc.entrypoints=web, websecure"
+        "traefik.http.services.${name}-grpc.loadbalancer.server.scheme=h2c"
+      ];
+    };
 
     service."s-web-portfolio-http" = (import ./s-web-portfolio/consulService.nix) { inherit lib sidecarResources; };
     service."s-web-github-webhook-http" = (import ./s-web-github-webhook/consulService.nix) { inherit lib sidecarResources; };

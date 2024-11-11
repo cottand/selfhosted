@@ -39,15 +39,6 @@ lib.mkJob "tempo" {
 
 
       connect.sidecarTask.resources = sidecarResources;
-      # TODO implement http healthcheck at /ready
-      #      port = toString ports.http;
-      #      check = {
-      #        name = "alive";
-      #        type = "tcp";
-      #        port = "http";
-      #        interval = "20s";
-      #        timeout = "2s";
-      #      };a
       checks = [
         {
           expose = true;
@@ -63,20 +54,21 @@ lib.mkJob "tempo" {
             ignoreWarnings = false;
           };
         }
-        {
-          expose = true;
-          name = "ready";
-          portLabel = "ready";
-          type = "http";
-          path = "/ready";
-          interval = 30 * lib.seconds;
-          timeout = 10 * lib.seconds;
-          checkRestart = {
-            limit = 3;
-            grace = 120 * lib.seconds;
-            ignoreWarnings = false;
-          };
-        }
+        # TODO implement http healthcheck at /ready
+        #        {
+        #          expose = true;
+        #          name = "ready";
+        #          portLabel = "ready";
+        #          type = "http";
+        #          path = "/ready";
+        #          interval = 30 * lib.seconds;
+        #          timeout = 10 * lib.seconds;
+        #          checkRestart = {
+        #            limit = 3;
+        #            grace = 120 * lib.seconds;
+        #            ignoreWarnings = false;
+        #          };
+        #        }
       ];
       meta.metrics_port = "\${NOMAD_PORT_metrics}";
     };
@@ -130,7 +122,7 @@ lib.mkJob "tempo" {
                     grpc:
                       endpoint: 0.0.0.0:${toString ports.otlp-grpc}
 
-          ingester:
+          #ingester:
             #max_block_duration: 5m               # cut the headblock when this much time passes. this is being set for demo purposes and should probably be left alone normally
 
           compactor:
