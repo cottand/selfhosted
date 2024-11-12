@@ -40,6 +40,12 @@ lib.mkJob name {
       reservedPorts = [ ];
     };
 
+    volumes."ca-certificates" = rec {
+      name = "ca-certificates";
+      type = "host";
+      readOnly = true;
+      source = name;
+    };
     service."${name}-http" = rec {
       connect.sidecarService = {
         proxy = {
@@ -82,15 +88,15 @@ lib.mkJob name {
       connect.sidecarTask.resources = sidecarResources;
       port = toString ports.grpc;
       # TODO gRPC health
-#      checks = [{
-#        expose = true;
-#        name = "metrics";
-#        portLabel = "metrics";
-#        type = "http";
-#        path = meta.metrics_path;
-#        interval = 10 * lib.seconds;
-#        timeout = 3 * lib.seconds;
-#      }];
+      #      checks = [{
+      #        expose = true;
+      #        name = "metrics";
+      #        portLabel = "metrics";
+      #        type = "http";
+      #        path = meta.metrics_path;
+      #        interval = 10 * lib.seconds;
+      #        timeout = 3 * lib.seconds;
+      #      }];
       tags = [
         "traefik.enable=true"
         "traefik.consulcatalog.connect=true"
@@ -136,6 +142,12 @@ lib.mkJob name {
           {{- with secret "secret/data/nomad/infra/root_ca" -}}{{ .Data.data.value }}{{- end -}}
         '';
       };
+      volumeMounts = [{
+        volume = "ca-certificates";
+        destination = "/etc/ssl/certs";
+        readOnly = true;
+        propagationMode = "host-to-task";
+      }];
       vault.env = true;
       vault.role = "service-db-rw-default";
       vault.changeMode = "restart";
