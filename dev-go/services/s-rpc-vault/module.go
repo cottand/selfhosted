@@ -13,7 +13,7 @@ var Name, slog, tracer = bedrock.Service("s-rpc-vault")
 func InitService() {
 	vaultConfig := vault.DefaultConfig()
 	vaultConfig.Address = "https://vault.dcotta.com:8200"
-	vaultClient, err := vault.NewClient(vault.DefaultConfig())
+	vaultClient, err := vault.NewClient(vaultConfig)
 	if err != nil {
 		slog.Error("failed to init vault client: %v", err)
 		return
