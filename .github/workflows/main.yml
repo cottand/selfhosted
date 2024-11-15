@@ -15,24 +15,72 @@ env:
   # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
   # github.repository as <account>/<repo>
-  IMAGE_NAME: ${{ github.repository }}
-  REGISTRY_IMAGE: "ghcr.io/cottand/selfhosted"
+  ATTIC_SERVER: "https://attic.tfk.nd/"
+  ATTIC_CACHE: "default"
 
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
-      - uses: cachix/install-nix-action@v22
-        with:
-          github_access_token: ${{ secrets.GITHUB_TOKEN }}
-
+      - uses: DeterminateSystems/nix-installer-action@v15
       - uses: DeterminateSystems/magic-nix-cache-action@main
-
       - name: Flake check
         run: |
           nix flake check .
+
+  populate-cache:
+    strategy:
+      matrix:
+        package:
+          - .#scripts.all-images
+          - github:cottand/web-portfolio#static
+    #        system: [x86_64_linux]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Tailscale
+        uses: tailscale/github-action@main
+        with:
+          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+
+      - name: Import Secrets
+        id: secrets
+        uses: hashicorp/vault-action@v2
+        with:
+          url: https://vault.dcotta.com:8200
+          role: actions-ro
+          path: jwt-github
+          method: jwt
+          jwtGithubAudience: sigstore
+          caCertificate: ${{ secrets.DCOTTA_ROOT_CA }}
+          secrets: |
+            secret/data/github-actions/attic value | ATTIC_TOKEN ;
+
+      - uses: actions/checkout@v3
+      - name: Add 2024 CA
+        run: |
+          sudo apt-get install -y ca-certificates
+          sudo cp certs/root_2024_ca.crt /usr/local/share/ca-certificates
+          sudo update-ca-certificates
+
+      - uses: DeterminateSystems/nix-installer-action@v15
+      - name: Install Attic
+        run: |
+          nix profile install nixpkgs#attic-client
+
+      - name: Configure Attic
+        run: |
+          attic login --set-default central "$ATTIC_SERVER" "$ATTIC_TOKEN"
+          attic use "$ATTIC_CACHE"
+        env:
+          ATTIC_TOKEN: ${{ steps.secrets.outputs.ATTIC_TOKEN }}
+      - name: Build package ${{ matrix.package }}
+        continue-on-error: true
+        run: |
+          nix build -L  --no-link --print-out-paths ${{ matrix.package }} \
+            | xargs attic push "$ATTIC_CACHE"
+  
+  
 
   deploy-web:
     permissions:
@@ -40,45 +88,41 @@ jobs:
       id-token: write
     runs-on: ubuntu-latest
     steps:
-    - name: Setup Tailscale
-      uses: tailscale/github-action@main
-      with:
-        authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+      - name: Setup Tailscale
+        uses: tailscale/github-action@main
+        with:
+          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
 
-    - name: Import Secrets
-      id: secrets
-      uses: hashicorp/vault-action@v2
-      with:
-        url: https://vault.dcotta.com:8200
-        role: actions-ro
-        path: jwt-github
-        method: jwt
-        jwtGithubAudience: sigstore
-        caCertificate: ${{ secrets.DCOTTA_ROOT_CA }}
-        secrets: |
-          secret/data/github-actions/cloudflare/workers_token value | CF_TOKEN ;
-          secret/data/github-actions/cloudflare/workers_token accountId  | CF_ACCOUNT_ID ;
+      - name: Import Secrets
+        id: secrets
+        uses: hashicorp/vault-action@v2
+        with:
+          url: https://vault.dcotta.com:8200
+          role: actions-ro
+          path: jwt-github
+          method: jwt
+          jwtGithubAudience: sigstore
+          caCertificate: ${{ secrets.DCOTTA_ROOT_CA }}
+          secrets: |
+            secret/data/github-actions/cloudflare/workers_token value | CF_TOKEN ;
+            secret/data/github-actions/cloudflare/workers_token accountId  | CF_ACCOUNT_ID ;
 
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+      - uses: DeterminateSystems/nix-installer-action@v15
+      - uses: DeterminateSystems/magic-nix-cache-action@main
 
-    - uses: cachix/install-nix-action@v22
-      with:
-        github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build web portfolio
+        run: |
+          nix build -L github:cottand/web-portfolio#static
 
-    - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ steps.secrets.outputs.CF_TOKEN }}
+          accountId: ${{ steps.secrets.outputs.CF_ACCOUNT_ID }}
+          command: pages deploy ./result/srv --project-name=nico-dcotta-com
 
-    - name: Build web portfolio
-      run: |
-        nix build -L github:cottand/web-portfolio#static
 
-    - name: Deploy
-      uses: cloudflare/wrangler-action@v3
-      with:
-        apiToken: ${{ steps.secrets.outputs.CF_TOKEN }}
-        accountId: ${{ steps.secrets.outputs.CF_ACCOUNT_ID }}
-        command: pages deploy ./result/srv --project-name=nico-dcotta-com
-
-        
 
 
 
@@ -86,6 +130,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Add 2024 CA
+        run: |
+          sudo apt-get install -y ca-certificates
+          sudo cp certs/root_2024_ca.crt /usr/local/share/ca-certificates
+          sudo update-ca-certificates
 
       - uses: cachix/install-nix-action@v22
         with:
