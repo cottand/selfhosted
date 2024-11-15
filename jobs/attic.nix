@@ -1,5 +1,5 @@
 let
-  lib = (import ./lib) {};
+  lib = (import ./lib) { };
   version = "717cc95983cdc357bc347d70be20ced21f935843";
   cpu = 120;
   mem = 500;
@@ -19,7 +19,6 @@ let
   chunkFactor = 2;
 in
 lib.mkJob "attic" {
-  datacenters = [ "dusseldorf-contabo" ];
   update = {
     maxParallel = 1;
     autoRevert = true;
@@ -34,8 +33,7 @@ lib.mkJob "attic" {
       dynamicPorts = [
         { label = "health"; hostNetwork = "ts"; }
       ];
-      reservedPorts = [
-      ];
+      reservedPorts = [ ];
     };
 
     service."attic" = {
@@ -55,13 +53,20 @@ lib.mkJob "attic" {
       connect.sidecarTask.resources = sidecarResources;
       # TODO implement http healthcheck
       port = toString ports.http;
-      check = {
-        name = "alive";
-        type = "tcp";
-        port = "health";
-        interval = "20s";
-        timeout = "2s";
-      };
+      checks = [{
+        expose = true;
+        name = "healthcheck";
+        portLabel = "health";
+        type = "http";
+        path = "/";
+        interval = 30 * lib.seconds;
+        timeout = 10 * lib.seconds;
+        checkRestart = {
+          limit = 3;
+          grace = 120 * lib.seconds;
+          ignoreWarnings = false;
+        };
+      }];
       tags = [
         "traefik.enable=true"
         "traefik.consulcatalog.connect=true"
@@ -143,18 +148,11 @@ lib.mkJob "attic" {
           # Whether to enable sending on periodic heartbeat queries
           #
           # If enabled, a heartbeat query will be sent every minute
-          #heartbeat = true
+          heartbeat = true
 
           # File storage configuration
           [storage]
-          # Storage type
-          #
-          # Can be "local" or "s3".
           type = "s3"
-
-          # ## Local storage
-          # The directory to store all files under
-          #path = "/local/share/attic/storage"
 
           # ## S3 Storage (set type to "s3" and uncomment below)
           # The AWS region
@@ -162,14 +160,8 @@ lib.mkJob "attic" {
 
           # The name of the bucket
           bucket = "attic"
-
-          # Custom S3 endpoint
-          #
-          # Set this if you are using an S3-compatible object storage (e.g., Minio).
           endpoint = "http://localhost:${toString ports.upS3}"
 
-          # Credentials
-          #
           # If unset, the credentials are read from the `AWS_ACCESS_KEY_ID` and
           # `AWS_SECRET_ACCESS_KEY` environment variables.
           [storage.credentials]
@@ -219,8 +211,6 @@ lib.mkJob "attic" {
           # it can still be run manually with `atticd --mode garbage-collector-once`.
           interval = "12 hours"
 
-          # Default retention period
-          #
           # Zero (default) means time-based garbage-collection is
           # disabled by default. You can enable it on a per-cache basis.
           default-retention-period = "6 months"
