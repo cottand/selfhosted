@@ -77,6 +77,6 @@ in
   module = {
     imports = [ ./machines/ociControlWorker srvos.nixosModules.server ];
     deployment.tags = [ "oci-control" ];
-    deployment.buildOnTarget = true;
+    deployment.buildOnTarget = false;
   };
 })

@@ -14,9 +14,6 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.efi.efiSysMountPoint = "/boot/efi";
 
-  # Set your time zone.
-  time.timeZone = "Europe/Madrid";
-
   users.users.cottand.extraGroups = [ "networkmanager"  ];
 
   networking.firewall.enable = false;
