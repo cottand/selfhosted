@@ -66,7 +66,7 @@
   ];
 
   # Set your time zone.
-  time.timeZone = lib.mkDefault "Europe/London";
+  time.timeZone = "UTC";
 
   networking = {
     enableIPv6 = true;
