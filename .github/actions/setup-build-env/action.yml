@@ -1,0 +1,58 @@
+name: 'Setup build environment'
+description: 'Sets up an environment with Nix and attic caching. Requires having run checkout'
+inputs:
+  tailscale_authkey:  # id of input
+    description: 'Tailscale authentication key'
+    required: true
+  caCertificate:
+    description: 'Base64 encoded CA certificate the server certificate was signed with. Defaults to CAs provided by Mozilla'
+    required: false
+#outputs:
+#  random-number:
+#    description: "Random number"
+#    value: ${{ steps.random-number-generator.outputs.random-number }}
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Tailscale
+      uses: tailscale/github-action@main
+      with:
+        authkey: ${{ inputs.tailscale_authkey }}
+
+    - name: Import Secrets
+      id: secrets
+      uses: hashicorp/vault-action@v2
+      with:
+        url: https://vault.dcotta.com:8200
+        role: actions-ro
+        path: jwt-github
+        method: jwt
+        jwtGithubAudience: sigstore
+        caCertificate: ${{ inputs.caCertificate }}
+        secrets: |
+          secret/data/github-actions/attic value | ATTIC_TOKEN ;
+
+
+    - name: Add 2024 CA
+      shell: bash
+      run: |
+        sudo apt-get install -y ca-certificates
+        sudo cp certs/root_2024_ca.crt /usr/local/share/ca-certificates
+        sudo update-ca-certificates
+
+    - uses: cachix/install-nix-action@v22
+      with:
+        github_access_token: '${{ github.token }}'
+
+    - name: Install Attic
+      shell: bash
+      run: |
+        nix profile install nixpkgs#attic-client
+
+    - name: Configure Attic
+      shell: bash
+      run: |
+        attic login --set-default central "$ATTIC_SERVER" "$ATTIC_TOKEN"
+        attic use "$ATTIC_CACHE"
+      env:
+        ATTIC_TOKEN: ${{ steps.secrets.outputs.ATTIC_TOKEN }}
