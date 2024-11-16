@@ -22,7 +22,7 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-build-env
         name: Set up build env
         with:
@@ -42,7 +42,7 @@ jobs:
     #        system: [x86_64_linux]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-build-env
         name: Set up build env
         with:
@@ -54,10 +54,34 @@ jobs:
           nix build -L  --no-link --print-out-paths ${{ matrix.package }} \
             | xargs attic push "$ATTIC_CACHE"
 
+  resolve-nodes:
+    runs-on: ubuntu-latest
+    outputs:
+      nodes: ${{ steps.list.outputs.nodes }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v22
+        with:
+          github_access_token: '${{ github.token }}'
+      - name: List nodes
+        id: list
+        run: |
+          NODES=$(nix eval .#colmena --json --apply 'c: builtins.filter (name: name != "defaults" && name != "meta") (builtins.attrNames c)' | jq -c)
+          echo "nodes resolved:"
+          echo "$NODES"
+          echo "nodes=$NODES" >> "$GITHUB_OUTPUT"
+  
+  
+
   build-nixos-configs:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ${{ fromJSON(needs.resolve-nodes.outputs.nodes) }}
+    needs: resolve-nodes
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-build-env
         name: Set up build env
         with:
@@ -66,13 +90,13 @@ jobs:
       - name: Install colmena
         run: |
           nix profile install 'github:zhaofengli/colmena'
-      - name: Build package
+      - name: Build NixOS config for ${{ matrix.node }}
         run: |
-          colmena build --keep-result
+          colmena build --keep-result --on ${{ matrix.node }}
       - name: Cache results
         continue-on-error: true
         run: |
-          attic push "$ATTIC_CACHE" ./gcroots/*
+          attic push "$ATTIC_CACHE" ./.gcroots/*
   
   
 
