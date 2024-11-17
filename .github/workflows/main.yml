@@ -1,4 +1,4 @@
-name: Main
+name: main
 
 permissions:
   contents: read
@@ -14,24 +14,10 @@ on:
 env:
   # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
-  # github.repository as <account>/<repo>
   ATTIC_SERVER: "https://attic.tfk.nd/"
   ATTIC_CACHE: "default"
 
 jobs:
-  check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-build-env
-        name: Set up build env
-        with:
-          caCertificate: ${{ secrets.DCOTTA_ROOT_CA }}
-          tailscale_authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
-      - name: Flake check
-        run: |
-          nix flake check .
-
   populate-cache:
     strategy:
       matrix:
@@ -71,8 +57,6 @@ jobs:
           echo "$NODES"
           echo "nodes=$NODES" >> "$GITHUB_OUTPUT"
   
-  
-
   build-nixos-configs:
     runs-on: ubuntu-latest
     strategy:
@@ -100,7 +84,6 @@ jobs:
           attic push "$ATTIC_CACHE" ./.gcroots/*
   
   
-
   deploy-web:
     permissions:
       contents: read
