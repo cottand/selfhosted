@@ -16,7 +16,7 @@ func main() {
 
 var rootCmd = &cobra.Command{
 	Use:           "nixmad ./path/to/job.nix",
-	Short:         "Nixmad is a tool for deploying Nix-templated Nomad jobs",
+	Short:         "nixmad is a tool for deploying Nix-templated Nomad jobs",
 	RunE:          RunCommand,
 	Args:          cobra.MinimumNArgs(1),
 	SilenceErrors: true,

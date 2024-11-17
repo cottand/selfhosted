@@ -6,7 +6,7 @@ let
   mem = 500;
   ports = {
     http = 8334;
-#    upDb = 5432;
+    #    upDb = 5432;
     upS3 = 3333;
   };
   sidecarResources = with builtins; mapAttrs (_: ceil) {
@@ -90,11 +90,11 @@ lib.mkJob name {
         memoryMb = mem;
         memoryMaxMb = builtins.ceil (2 * mem);
       };
-      volumeMounts =[{
-          volume = "filestash";
-          destination = "/app/data";
-          readOnly = false;
-        }];
+      volumeMounts = [{
+        volume = "filestash";
+        destination = "/app/data";
+        readOnly = false;
+      }];
     };
   };
 }

@@ -60,6 +60,27 @@ rec {
 
   transformJob = updateManyWithGlob [
     {
+      path = [ "group" "*" "task" "*" "volumeMounts" ];
+      update = vms: vms ++ [{
+        volume = "ca-certificates";
+        destination = "/etc/ssl/certs";
+        readOnly = true;
+        propagationMode = "host-to-task";
+      }];
+    }
+    {
+      # add ca-certificates volume
+      path = [ "group" "*" "volumes" ];
+      update = volumes: volumes // {
+        "ca-certificates" = rec {
+          name = "ca-certificates";
+          type = "host";
+          readOnly = true;
+          source = name;
+        };
+      };
+    }
+    {
       path = [ ];
       update = replaceIn setAsHclList "group" "taskGroups";
     }
@@ -83,16 +104,16 @@ rec {
       path = [ "group" "*" ];
       update = replaceIn (id: id) "restart" "restartPolicy";
     }
-#    {
-#      # stringifies attrbutes of reservedPorts
-#      path = [ "group" "*" "network" "reservedPorts" ];
-#      update = ports: map (builtins.mapAttrs (_: val: toString val)) ports;
-#    }
-#    {
-#      # stringifies attrbutes of reservedPorts
-#      path = [ "group" "*" "network" "dynamicPorts" ];
-#      update = ports: map (builtins.mapAttrs (_: val: toString val)) ports;
-#    }
+    #    {
+    #      # stringifies attrbutes of reservedPorts
+    #      path = [ "group" "*" "network" "reservedPorts" ];
+    #      update = ports: map (builtins.mapAttrs (_: val: toString val)) ports;
+    #    }
+    #    {
+    #      # stringifies attrbutes of reservedPorts
+    #      path = [ "group" "*" "network" "dynamicPorts" ];
+    #      update = ports: map (builtins.mapAttrs (_: val: toString val)) ports;
+    #    }
     # {
     #   path = [ "group" "*" "network" ];
     #   update = replaceIn (setAsHclListWithLabel "label") "port" "reservedPorts";
