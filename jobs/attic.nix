@@ -35,6 +35,7 @@ lib.mkJob "attic" {
       ];
       reservedPorts = [ ];
     };
+    volumes = { };
 
     service."attic" = {
       connect.sidecarService = {
@@ -94,6 +95,9 @@ lib.mkJob "attic" {
         memoryMb = mem;
         memoryMaxMb = builtins.ceil (2 * mem);
       };
+      # volume-mounted by default by mkjob
+      env."SSL_CERT_FILE" = "/etc/ssl/certs/ca-bundle.crt";
+
       template."local/config.toml" = {
         changeMode = "restart";
         embeddedTmpl = ''
@@ -160,7 +164,8 @@ lib.mkJob "attic" {
 
           # The name of the bucket
           bucket = "attic"
-          endpoint = "http://localhost:${toString ports.upS3}"
+          #endpoint = "http://localhost:${toString ports.upS3}"
+           endpoint = "https://seaweed-filer-s3.tfk.nd"
 
           # If unset, the credentials are read from the `AWS_ACCESS_KEY_ID` and
           # `AWS_SECRET_ACCESS_KEY` environment variables.
@@ -216,6 +221,7 @@ lib.mkJob "attic" {
           default-retention-period = "6 months"
         '';
       };
+      volumeMounts = [ ];
     };
   };
 }
