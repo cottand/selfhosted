@@ -36,7 +36,6 @@ runs:
         secrets: |
           secret/data/nomad/job/attic/users/github-actions value | ATTIC_TOKEN ;
 
-
     - name: Add 2024 CA
       shell: bash
       run: |
