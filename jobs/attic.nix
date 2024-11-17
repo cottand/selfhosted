@@ -126,7 +126,7 @@ lib.mkJob "attic" {
           # removed from the database. Note that soft-deleted caches cannot
           # have their names reused as long as the original database records
           # are there.
-          #soft-delete-caches = false
+          soft-delete-caches = false
 
           # Whether to require fully uploading a NAR if it exists in the global cache.
           #
@@ -165,7 +165,7 @@ lib.mkJob "attic" {
           # The name of the bucket
           bucket = "attic"
           #endpoint = "http://localhost:${toString ports.upS3}"
-           endpoint = "https://seaweed-filer-s3.tfk.nd"
+          endpoint = "https://seaweed-filer-s3.tfk.nd"
 
           # If unset, the credentials are read from the `AWS_ACCESS_KEY_ID` and
           # `AWS_SECRET_ACCESS_KEY` environment variables.
@@ -215,10 +215,12 @@ lib.mkJob "attic" {
           # If zero, automatic garbage collection is disabled, but
           # it can still be run manually with `atticd --mode garbage-collector-once`.
           interval = "12 hours"
+          #interval = "1 minute"
 
           # Zero (default) means time-based garbage-collection is
           # disabled by default. You can enable it on a per-cache basis.
           default-retention-period = "6 months"
+          #default-retention-period = "1 minute"
         '';
       };
       volumeMounts = [ ];

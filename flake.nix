@@ -19,10 +19,14 @@
     };
     home-manager = {
       url = "github:nix-community/home-manager";
-      inputs.nixpkgs.follows = "nixpkgs-master";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
     attic = {
       url = "github:zhaofengli/attic";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    colmena = {
+      url = "github:zhaofengli/colmena";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     go-cache = {
@@ -31,7 +35,7 @@
     };
   };
 
-  outputs = inputs@{ self, nixpkgs, cottand, home-manager, utils, attic, filters, go-cache, ... }:
+  outputs = inputs@{ self, nixpkgs, cottand, home-manager, utils, attic, filters, go-cache, colmena, ... }:
     let
       overrides = final: prev:
         let
@@ -52,6 +56,7 @@
         overrides
         attic.overlays.default
         filters.overlays.default
+        colmena.overlays.default
       ];
     in
     (utils.lib.eachDefaultSystem (system:
@@ -81,6 +86,7 @@
         '';
       }
     )) // {
+      colmenaHive = colmena.lib.makeHive self.outputs.colmena;
       colmena = (import ./hive.nix) (inputs // { inherit overlays; });
     }
   ;
