@@ -1,0 +1,30 @@
+name: check
+
+permissions:
+  contents: read
+  packages: write
+  attestations: write
+  id-token: write
+
+on:
+  push:
+    branches: [ "*" ]
+  workflow_dispatch:
+
+env:
+  ATTIC_SERVER: "https://attic.tfk.nd/"
+  ATTIC_CACHE: "default"
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-build-env
+        name: Set up build env
+        with:
+          caCertificate: ${{ secrets.DCOTTA_ROOT_CA }}
+          tailscale_authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+      - name: Flake check
+        run: |
+          nix flake check .
