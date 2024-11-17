@@ -87,6 +87,7 @@ jobs:
         with:
           caCertificate: ${{ secrets.DCOTTA_ROOT_CA }}
           tailscale_authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+          aarch64LinuxSupport: true
       - name: Install colmena
         run: |
           nix profile install 'github:zhaofengli/colmena'

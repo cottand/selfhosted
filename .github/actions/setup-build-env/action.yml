@@ -7,6 +7,10 @@ inputs:
   caCertificate:
     description: 'Base64 encoded CA certificate the server certificate was signed with. Defaults to CAs provided by Mozilla'
     required: false
+  aarch64LinuxSupport:
+    description: 'Enable aarch64-linux support via QEMU'
+    default: 'false'
+    required: false
 #outputs:
 #  random-number:
 #    description: "Random number"
@@ -40,9 +44,15 @@ runs:
         sudo cp certs/root_2024_ca.crt /usr/local/share/ca-certificates
         sudo update-ca-certificates
 
+    - name: Set up QEMU for aarch64 support
+      uses: docker/setup-qemu-action@v1
+      if: inputs.aarch64LinuxSupport
+
     - uses: cachix/install-nix-action@v22
       with:
         github_access_token: '${{ github.token }}'
+        extra_nix_config: |
+          ${{ inputs.aarch64LinuxSupport && 'extra-platforms = aarch64-linux' || '' }}
 
     - name: Install Attic
       shell: bash
