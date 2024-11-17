@@ -34,7 +34,7 @@ provider "bitwarden-secrets" {
 }
 
 provider "vault" {
-  address         = var.vault_addr
+  address         = local.vault_addr
   skip_tls_verify = true
 }
 

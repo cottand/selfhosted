@@ -30,4 +30,9 @@ data "vault_policy_document" "github_actions_ro" {
     path        = "secret/data/github-actions/*"
     capabilities = ["read"]
   }
+  rule {
+    description = "Read attic user for github-actions"
+    path        = "secret/data/nomad/job/attic/users/github-actions"
+    capabilities = ["read"]
+  }
 }
