@@ -27,7 +27,7 @@ jobs:
           - "github:zhaofengli/colmena"
         host:
           - ubuntu-latest
-#          - macos-latest
+    #          - macos-latest
     runs-on: ${{ matrix.host }}
     steps:
       - uses: actions/checkout@v4
@@ -123,6 +123,11 @@ jobs:
           apiToken: ${{ steps.secrets.outputs.CF_TOKEN }}
           accountId: ${{ steps.secrets.outputs.CF_ACCOUNT_ID }}
           command: pages deploy ./result/srv --project-name=nico-dcotta-com
+
+      - name: Cache results
+        continue-on-error: true
+        run: |
+          attic push "$ATTIC_CACHE" ./result
 
 
   build-images:
