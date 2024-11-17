@@ -34,7 +34,7 @@ runs:
         jwtGithubAudience: sigstore
         caCertificate: ${{ inputs.caCertificate }}
         secrets: |
-          secret/data/github-actions/attic value | ATTIC_TOKEN ;
+          secret/data/nomad/job/attic/users/github-actions value | ATTIC_TOKEN ;
 
 
     - name: Add 2024 CA
