@@ -1,5 +1,5 @@
 { lib
-, nomad_1_8
+, nomad_1_9
 , util
 , buildGoModule
 , pkg-config
@@ -19,6 +19,6 @@ buildGoModule {
   subPackages = [ "cmd/${name}" ];
   CGO_ENABLED = 1;
   postInstall = ''
-    wrapProgram $out/bin/nixmad --prefix PATH : ${lib.makeBinPath [ nomad_1_8 ]}
+    wrapProgram $out/bin/nixmad --prefix PATH : ${lib.makeBinPath [ nomad_1_9 ]}
   '';
 }

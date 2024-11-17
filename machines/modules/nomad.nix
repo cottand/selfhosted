@@ -118,7 +118,7 @@ in
     networking.firewall.trustedInterfaces = [ "nomad" "docker0" ];
     services.nomad = {
       enable = true;
-      package = pkgs.nomad_1_8;
+      package = pkgs.nomad_1_9;
       enableDocker = true;
       dropPrivileges = false;
       extraPackages = with pkgs; [ cni-plugins getent wget curl consul ];
