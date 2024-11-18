@@ -51,6 +51,17 @@
           # unstable did not support darwin as of 11/10/24
           inherit (pkgs2405) wrangler;
           #          vault-bin = (import inputs.nixpkgs-master { system = prev.system; config.allowUnfree = true; }).vault-bin;
+          nomad_1_9 = prev.nomad_1_9.overrideAttrs
+            (oldAttrs: rec {
+              version = "1.9.3";
+              vendorHash = "sha256-paUI5mYa9AvMsI0f/VeVdnZzwKS9gsBIb6T4KmugPKQ=";
+              src = prev.fetchFromGitHub {
+                owner = "hashicorp";
+                repo = "nomad";
+                rev = "v${version}";
+                hash = "sha256-KjVr9NIL9Qw10EoP/C+2rjtqU2qBSF6SKpIvQWQJWuo=";
+              };
+            });
         };
       overlays = [
         overrides
