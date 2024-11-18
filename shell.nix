@@ -5,22 +5,28 @@
 }: mkShell {
   name = "selfhosted-dev";
   packages = [
-    # roachdb
+    # terraform and admin
     pkgs.terraform
+    pkgs.vault
+    pkgs.nomad_1_9
+    pkgs.consul
+    pkgs.bws
+
+    # gcloud + components
+    # see https://nixos.wiki/wiki/Google_Cloud_SDK
+    (pkgs.google-cloud-sdk.withExtraComponents (with pkgs.google-cloud-sdk.components; [ ]))
+
     pkgs.colmena
     pkgs.fish
-    pkgs.vault
-    pkgs.nomad_1_8
-    pkgs.consul
     pkgs.seaweedfs
     pkgs.wander
     pkgs.attic
-    pkgs.bws
     pkgs.grpcurl
 
     # for development
     pkgs.go
     pkgs.pkg-config
+    # Nix pinned in order to be able to compile Nixmad
     pkgs.nixVersions.nix_2_19
 
 

@@ -6,6 +6,7 @@
     port = 46461;
     authKeyFile = config.deployment.keys."tailscale_authkey.txt".path;
     openFirewall = true;
+    extraUpFlags = [ "--ssh" ];
   };
 
   deployment.keys."tailscale_authkey.txt" = {

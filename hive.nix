@@ -72,6 +72,10 @@ in
     imports = [ ./machines/${name}/definition.nix ];
     deployment.tags = [ "local" "macmini" ];
   };
+  gcp1 = { name, ... }: {
+    imports = [ ./machines/gcpWorker/definition.nix ];
+    deployment.tags = [ "gcp" ];
+  };
 } // (mkNodePool {
   names = with builtins; fromJSON (readFile "${self}/terraform/metal/oci_control.json");
   module = {
