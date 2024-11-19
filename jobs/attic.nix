@@ -1,5 +1,8 @@
 let
   lib = (import ./lib) { };
+  # before changing this, ame sure you implement running
+  # db migrations
+  # https://github.com/zhaofengli/attic/blob/47752427561f1c34debb16728a210d378f0ece36/server/src/main.rs#L74
   version = "717cc95983cdc357bc347d70be20ced21f935843";
   cpu = 120;
   mem = 500;
@@ -8,26 +11,20 @@ let
     upDb = 5432;
     upS3 = 3333;
   };
-  sidecarResources = with builtins; mapAttrs (_: ceil) {
-    cpu = 0.20 * cpu;
-    memoryMB = 0.25 * mem;
-    memoryMaxMB = 0.25 * mem + 100;
-  };
   otlpPort = 9001;
   bind = lib.localhost;
   kiB = 1024;
   chunkFactor = 2;
-in
-lib.mkJob "attic" {
-  update = {
-    maxParallel = 1;
-    autoRevert = true;
-    autoPromote = true;
-    canary = 1;
-  };
 
-  group."attic" = {
-    count = 1;
+  mkGroup = { mode, count, resources, service }: {
+    inherit count service;
+    update = {
+      maxParallel = 1;
+      autoRevert = true;
+      autoPromote = true;
+      canary = 1;
+    };
+
     network = {
       mode = "bridge";
       dynamicPorts = [
@@ -37,57 +34,19 @@ lib.mkJob "attic" {
     };
     volumes = { };
 
-    service."attic" = {
-      connect.sidecarService = {
-        proxy = {
-          upstream."tempo-otlp-grpc-mesh".localBindPort = otlpPort;
-          upstream."roach-db".localBindPort = ports.upDb;
-          upstream."seaweed-filer-s3".localBindPort = ports.upS3;
 
-          config = lib.mkEnvoyProxyConfig {
-            otlpService = "proxy-attic-http";
-            otlpUpstreamPort = otlpPort;
-            protocol = "http";
-          };
-        };
-      };
-      connect.sidecarTask.resources = sidecarResources;
-      # TODO implement http healthcheck
-      port = toString ports.http;
-      checks = [{
-        expose = true;
-        name = "healthcheck";
-        portLabel = "health";
-        type = "http";
-        path = "/";
-        interval = 30 * lib.seconds;
-        timeout = 10 * lib.seconds;
-        checkRestart = {
-          limit = 3;
-          grace = 120 * lib.seconds;
-          ignoreWarnings = false;
-        };
-      }];
-      tags = [
-        "traefik.enable=true"
-        "traefik.consulcatalog.connect=true"
-        "traefik.http.routers.\${NOMAD_GROUP_NAME}-http.entrypoints=web,websecure"
-        "traefik.http.routers.\${NOMAD_GROUP_NAME}-http.tls=true"
-        "traefik.http.routers.\${NOMAD_GROUP_NAME}-http.middlewares=mesh-whitelist@file"
-      ];
-    };
-    task."attic" = {
+    task."attic-${mode}" = {
       driver = "docker";
       vault = { };
 
       config = {
         image = "ghcr.io/zhaofengli/attic:${version}";
-        # ports = ["http" "grpc", "metrics", "webdav"];
         args = [
           "--config"
           "/local/config.toml"
           "--listen"
           "${bind}:${toString ports.http}"
+          "--mode=${mode}"
         ];
       };
       resources = {
@@ -101,7 +60,6 @@ lib.mkJob "attic" {
       template."local/config.toml" = {
         changeMode = "restart";
         embeddedTmpl = ''
-          # Socket address to listen on
           listen = "${bind}:${toString ports.http}"
 
           # Allowed `Host` headers
@@ -127,13 +85,6 @@ lib.mkJob "attic" {
           # have their names reused as long as the original database records
           # are there.
           soft-delete-caches = false
-
-          # Whether to require fully uploading a NAR if it exists in the global cache.
-          #
-          # If set to false, simply knowing the NAR hash is enough for
-          # an uploader to gain access to an existing NAR in the global
-          # cache.
-          #require-proof-of-possession = true
 
           # JWT signing token
           #
@@ -173,8 +124,6 @@ lib.mkJob "attic" {
             access_key_id = ""
             secret_access_key = ""
 
-          # Data chunking
-          #
           # Warning: If you change any of the values here, it will be
           # difficult to reuse existing chunks for newly-uploaded NARs
           # since the cutpoints will be different. As a result, the
@@ -209,9 +158,6 @@ lib.mkJob "attic" {
           [garbage-collection]
           # The frequency to run garbage collection at
           #
-          # By default it's 12 hours. You can use natural language
-          # to specify the interval, like "1 day".
-          #
           # If zero, automatic garbage collection is disabled, but
           # it can still be run manually with `atticd --mode garbage-collector-once`.
           interval = "12 hours"
@@ -224,6 +170,78 @@ lib.mkJob "attic" {
         '';
       };
       volumeMounts = [ ];
+    };
+  };
+in
+lib.mkJob "attic" {
+  group."attic-api" = mkGroup rec {
+    mode = "api-server";
+    count = 2;
+    resources = {
+      cpu = 150;
+      memoryMB = 500;
+      memoryMaxMB = 1000;
+    };
+    service."attic" = {
+      connect.sidecarService = {
+        proxy = {
+          upstream."tempo-otlp-grpc-mesh".localBindPort = otlpPort;
+          upstream."roach-db".localBindPort = ports.upDb;
+
+          config = lib.mkEnvoyProxyConfig {
+            otlpService = "proxy-attic-http";
+            otlpUpstreamPort = otlpPort;
+            protocol = "http";
+          };
+        };
+      };
+      connect.sidecarTask.resources = lib.mkResourcesWithFactor 0.15 resources;
+      port = toString ports.http;
+      checks = [{
+        expose = true;
+        name = "healthcheck";
+        portLabel = "health";
+        type = "http";
+        path = "/";
+        interval = 30 * lib.seconds;
+        timeout = 10 * lib.seconds;
+        checkRestart = {
+          limit = 3;
+          grace = 120 * lib.seconds;
+          ignoreWarnings = false;
+        };
+      }];
+      tags = [
+        "traefik.enable=true"
+        "traefik.consulcatalog.connect=true"
+        "traefik.http.routers.\${NOMAD_GROUP_NAME}-http.entrypoints=web,websecure"
+        "traefik.http.routers.\${NOMAD_GROUP_NAME}-http.tls=true"
+      ];
+    };
+  };
+  group."attic-gc" = mkGroup rec {
+    mode = "garbage-collector";
+    count = 1;
+    resources = {
+      cpu = 60;
+      memoryMB = 100;
+      memoryMaxMB = 1000;
+    };
+    service."attic-gc" = {
+      connect.sidecarService = {
+        proxy = {
+          upstream."tempo-otlp-grpc-mesh".localBindPort = otlpPort;
+          upstream."roach-db".localBindPort = ports.upDb;
+
+          config = lib.mkEnvoyProxyConfig {
+            otlpService = "proxy-attic-gc-http";
+            otlpUpstreamPort = otlpPort;
+            protocol = "http";
+          };
+        };
+      };
+      connect.sidecarTask.resources = lib.mkResourcesWithFactor 0.15 resources;
+      port = toString ports.http;
     };
   };
 }
