@@ -146,7 +146,8 @@ rec {
 
   mkEnvoyProxyConfig = import ./mkEnvoyProxyConfig.nix;
 
-  mkSidecarResourcesWithFactor = factor: resources@{ cpu, memoryMB, memoryMaxMB ? memoryMB }: with builtins; mapAttrs (_: ceil) {
+  mkSidecarResourcesWithFactor = mkResourcesWithFactor;
+  mkResourcesWithFactor = factor: resources@{ cpu, memoryMB, memoryMaxMB ? memoryMB }: with builtins; mapAttrs (_: ceil) {
     cpu = factor * cpu;
     memoryMB = factor * memoryMB;
     memoryMaxMB = factor * memoryMaxMB + 60;
