@@ -57,29 +57,23 @@ rec {
   in
   lib.attrsets.updateManyAttrsByPath unglobbedTs toTransform;
 
+  caCertificates = {
+    volume."ca-certificates" = rec {
+      name = "ca-certificates";
+      type = "host";
+      readOnly = true;
+      source = name;
+    };
+    volumeMount = {
+      volume = "ca-certificates";
+      destination = "/etc/ssl/certs";
+      readOnly = true;
+      propagationMode = "host-to-task";
+    };
+  };
+
 
   transformJob = updateManyWithGlob [
-    {
-      path = [ "group" "*" "task" "*" "volumeMounts" ];
-      update = vms: vms ++ [{
-        volume = "ca-certificates";
-        destination = "/etc/ssl/certs";
-        readOnly = true;
-        propagationMode = "host-to-task";
-      }];
-    }
-    {
-      # add ca-certificates volume
-      path = [ "group" "*" "volumes" ];
-      update = volumes: volumes // {
-        "ca-certificates" = rec {
-          name = "ca-certificates";
-          type = "host";
-          readOnly = true;
-          source = name;
-        };
-      };
-    }
     {
       path = [ ];
       update = replaceIn setAsHclList "group" "taskGroups";
