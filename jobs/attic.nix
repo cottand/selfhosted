@@ -32,7 +32,7 @@ let
       ];
       reservedPorts = [ ];
     };
-    volumes = { };
+    volumes = lib.caCertificates.volume;
 
 
     task."attic-${mode}" = {
@@ -169,7 +169,7 @@ let
           #default-retention-period = "1 minute"
         '';
       };
-      volumeMounts = [ ];
+      volumeMounts = [ lib.caCertificates.volumeMount ];
     };
   };
 in
@@ -224,7 +224,7 @@ lib.mkJob "attic" {
     count = 1;
     resources = {
       cpu = 60;
-      memoryMB = 100;
+      memoryMB = 150;
       memoryMaxMB = 1000;
     };
     service."attic-gc" = {
