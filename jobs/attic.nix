@@ -36,6 +36,11 @@ let
 
 
     task."attic-${mode}" = {
+      actions = [{
+        name = "collect-garbage";
+        command = "atticd";
+        args = [ "-f" "/local/config.toml" "--mode" "garbage-collector-once" ];
+      }];
       driver = "docker";
       vault = { };
 
@@ -87,10 +92,7 @@ let
           soft-delete-caches = false
 
           # JWT signing token
-          #
-          # Set this to the Base64 encoding of some random data.
-          # You can also set it via the `ATTIC_SERVER_TOKEN_HS256_SECRET_BASE64` environment
-          # variable.
+          # Set this to the Base64 encoding of some random data
           token-hs256-secret-base64 = "{{with secret "secret/data/nomad/job/attic/jwt_signer"}}{{.Data.data.value}}{{end}}"
 
           # Database connection

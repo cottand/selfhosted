@@ -27,7 +27,6 @@ let
   };
   otlpPort = 9001;
   bind = lib.localhost;
-  kiB = 1024;
   restartConfig = {
     attempts = 4;
     interval = 10 * lib.minutes;
@@ -69,12 +68,7 @@ lib.mkJob "immich" {
       accessMode = "single-node-writer";
       attachmentMode = "file-system";
     };
-    volumes."ca-certificates" = {
-      name = "ca-certificates";
-      type = "host";
-      readOnly = true;
-      source = "ca-certificates";
-    };
+    volumes."ca-certificates" = lib.caCertificates.volume.ca-certificates;
     service."immich-http" = {
       connect.sidecarService = {
         proxy = {
@@ -199,16 +193,11 @@ lib.mkJob "immich" {
         memoryMaxMb = builtins.ceil (2 * mem);
       };
       volumeMounts = [
+        lib.caCertificates.volumeMount
         {
           volume = "immich-pictures";
           destination = "/vol/immich-pictures";
           readOnly = false;
-        }
-        {
-          volume = "ca-certificates";
-          destination = "/etc/ssl/certs";
-          readOnly = true;
-          propagation_mode = "host-to-task";
         }
       ];
       template."config/.env" = {
