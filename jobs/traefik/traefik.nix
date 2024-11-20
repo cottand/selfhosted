@@ -16,7 +16,7 @@ let
     memoryMB = 300;
     memoryMaxMB = 500;
   };
-  sidecarResources = lib.mkSidecarResourcesWithFactor 0.10 resources;
+  sidecarResources = lib.mkResourcesWithFactor 0.10 resources;
 in
 lib.mkJob "traefik" {
   group."traefik" = {

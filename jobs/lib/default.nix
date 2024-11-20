@@ -57,29 +57,23 @@ rec {
   in
   lib.attrsets.updateManyAttrsByPath unglobbedTs toTransform;
 
+  caCertificates = {
+    volume."ca-certificates" = rec {
+      name = "ca-certificates";
+      type = "host";
+      readOnly = true;
+      source = name;
+    };
+    volumeMount = {
+      volume = "ca-certificates";
+      destination = "/etc/ssl/certs";
+      readOnly = true;
+      propagationMode = "host-to-task";
+    };
+  };
+
 
   transformJob = updateManyWithGlob [
-    {
-      path = [ "group" "*" "task" "*" "volumeMounts" ];
-      update = vms: vms ++ [{
-        volume = "ca-certificates";
-        destination = "/etc/ssl/certs";
-        readOnly = true;
-        propagationMode = "host-to-task";
-      }];
-    }
-    {
-      # add ca-certificates volume
-      path = [ "group" "*" "volumes" ];
-      update = volumes: volumes // {
-        "ca-certificates" = rec {
-          name = "ca-certificates";
-          type = "host";
-          readOnly = true;
-          source = name;
-        };
-      };
-    }
     {
       path = [ ];
       update = replaceIn setAsHclList "group" "taskGroups";
@@ -146,7 +140,8 @@ rec {
 
   mkEnvoyProxyConfig = import ./mkEnvoyProxyConfig.nix;
 
-  mkSidecarResourcesWithFactor = factor: resources@{ cpu, memoryMB, memoryMaxMB ? memoryMB }: with builtins; mapAttrs (_: ceil) {
+  mkSidecarResourcesWithFactor = mkResourcesWithFactor;
+  mkResourcesWithFactor = factor: resources@{ cpu, memoryMB, memoryMaxMB ? memoryMB }: with builtins; mapAttrs (_: ceil) {
     cpu = factor * cpu;
     memoryMB = factor * memoryMB;
     memoryMaxMB = factor * memoryMaxMB + 60;

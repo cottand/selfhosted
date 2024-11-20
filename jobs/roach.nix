@@ -58,6 +58,7 @@ let
       mode = "bridge";
       dynamicPorts = [
         { label = "metrics"; to = webPort; hostNetwork = "ts"; }
+        { label = "health"; hostNetwork = "ts"; }
       ];
       reservedPorts = [
         { label = "rpc"; value = binds.${node}; hostNetwork = "ts"; }
