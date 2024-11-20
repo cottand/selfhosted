@@ -1,4 +1,4 @@
-{ name, pkgs, lib, config, modulesPath, ... }: {
+{ pkgs, modulesPath, ... }: {
   imports = [
     "${modulesPath}/virtualisation/google-compute-image.nix"
   ];
@@ -15,9 +15,9 @@
 
   services.nomad.settings = {
     datacenter = "nuremberg-gcp";
-    client = {
-      cpu_total_compute = 2 * 2000;
-    };
+#    client = {
+#      cpu_total_compute = 2 * 2000;
+#    };
   };
 
   # to figure out ARM CPU clock speed in Nomad

@@ -72,7 +72,7 @@ in
     imports = [ ./machines/${name}/definition.nix ];
     deployment.tags = [ "local" "macmini" ];
   };
-  gcp1 = { name, ... }: {
+  gcp-nmn9 = { name, ... }: {
     imports = [ ./machines/gcpWorker/definition.nix ];
     deployment.tags = [ "gcp" ];
   };
