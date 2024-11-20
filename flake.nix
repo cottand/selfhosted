@@ -37,6 +37,13 @@
 
   outputs = inputs@{ self, nixpkgs, cottand, home-manager, utils, attic, filters, go-cache, colmena, ... }:
     let
+      colmenaHive = colmena.lib.makeHive self.outputs.colmena;
+      overlays = [
+        overrides
+        attic.overlays.default
+        filters.overlays.default
+        colmena.overlays.default
+      ];
       overrides = final: prev:
         let
           preRust180Pkgs = (import inputs.nixpkgs-pre-rust-180 { system = prev.system; config.allowUnfree = true; });
@@ -63,12 +70,6 @@
               };
             });
         };
-      overlays = [
-        overrides
-        attic.overlays.default
-        filters.overlays.default
-        colmena.overlays.default
-      ];
     in
     (utils.lib.eachDefaultSystem (system:
       let
@@ -97,7 +98,10 @@
         '';
       }
     )) // {
-      colmenaHive = colmena.lib.makeHive self.outputs.colmena;
+      colmenaHive = colmenaHive // {
+        findByTag = with builtins; tag:
+          filter (name: elem tag colmenaHive.nodes.${name}.config.deployment.tags) (attrNames colmenaHive.nodes);
+      };
       colmena = (import ./hive.nix) (inputs // { inherit overlays; });
     }
   ;

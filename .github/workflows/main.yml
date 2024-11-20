@@ -55,7 +55,7 @@ jobs:
       - name: List nodes
         id: list
         run: |
-          NODES=$(nix eval .#colmena --json --apply 'c: builtins.filter (name: name != "defaults" && name != "meta") (builtins.attrNames c)' | jq -c)
+          NODES=$(nix eval .#colmenaHive.nodes --json --apply builtins.attrNames | jq -c)
           echo "nodes resolved:"
           echo "$NODES"
           echo "nodes=$NODES" >> "$GITHUB_OUTPUT"
@@ -75,16 +75,13 @@ jobs:
           caCertificate: ${{ secrets.DCOTTA_ROOT_CA }}
           tailscale_authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
           aarch64LinuxSupport: true
-      - name: Install colmena
-        run: |
-          nix profile install 'github:zhaofengli/colmena'
       - name: Build NixOS config for ${{ matrix.node }}
         run: |
-          colmena build --keep-result --on ${{ matrix.node }}
+          nix build .#colmenaHive.nodes.${{ matrix.node }}.config.system.build.toplevel --fallback -vL
       - name: Cache results
         continue-on-error: true
         run: |
-          attic push "$ATTIC_CACHE" ./.gcroots/*
+          attic push "$ATTIC_CACHE" ./result*
   
   
   deploy-web:
