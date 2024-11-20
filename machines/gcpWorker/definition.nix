@@ -5,8 +5,6 @@
   virtualisation.googleComputeImage.diskSize = 3000;
 
 
-  boot.loader.grub.configurationLimit = 1;
-
   ## Nomad
   nomadNode = {
     enable = true;

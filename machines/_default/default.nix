@@ -5,7 +5,7 @@
     ./tailscale.nix
   ];
 
-  networking.hostName = lib.mkDefault name;
+  networking.hostName = name;
 
   deployment = {
     replaceUnknownProfiles = lib.mkDefault true;
