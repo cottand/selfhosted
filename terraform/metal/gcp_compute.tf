@@ -6,8 +6,8 @@
 # }
 
 resource "google_compute_instance_template" "nixos-worker-blue" {
-  name         = "nixos-worker-blue"
-  machine_type = "e2-small"
+  name_prefix         = "nixos-worker-blue"
+  machine_type = "e2-medium"
   region       = "europe-west3"
 
   scheduling {
@@ -44,10 +44,10 @@ echo '{pkgs, config, ...}: {
   services.udev.packages = [ pkgs.google-guest-configs ];
   services.udev.path = [ pkgs.google-guest-configs ];
 
-}' >> /etc/nixos/temp.nix
+}' >> /etc/temp.nix
 
 
-curl https://raw.githubusercontent.com/elitak/nixos-infect/master/nixos-infect | NIXOS_IMPORT=./temp.nix NIX_CHANNEL=nixos-24.05 bash -x
+curl https://raw.githubusercontent.com/elitak/nixos-infect/master/nixos-infect | NIXOS_IMPORT=/etc/temp.nix NIX_CHANNEL=nixos-24.05 bash -x
 EOF
 
 
@@ -62,7 +62,7 @@ resource "google_compute_instance_template" "nixos-worker-green" {
   lifecycle {
     create_before_destroy = true
   }
-  name         = "nixos-worker-green"
+  name_prefix         = "nixos-worker-green-"
   machine_type = "e2-small"
   region       = "europe-west3"
 
@@ -114,17 +114,17 @@ resource "google_compute_instance_group_manager" "workers1" {
   name               = "workers1"
   base_instance_name = "worker"
   zone               = "europe-west3-a"
-  target_size        = "1"
+  target_size = 2
 
   version {
     instance_template = google_compute_instance_template.nixos-worker-green.id
-    target_size {
-      fixed = 1
-    }
   }
 
   version {
     instance_template = google_compute_instance_template.nixos-worker-blue.id
+    target_size {
+      percent = 100
+    }
   }
 
   update_policy {
@@ -135,4 +135,5 @@ resource "google_compute_instance_group_manager" "workers1" {
   lifecycle {
     ignore_changes = [target_size]
   }
+
 }

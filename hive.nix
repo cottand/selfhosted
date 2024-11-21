@@ -72,11 +72,18 @@ in
     imports = [ ./machines/${name}/definition.nix ];
     deployment.tags = [ "local" "macmini" ];
   };
-  gcp-nmn9 = { name, ... }: {
+  gcp-worker-dfv7 = {
     imports = [ ./machines/gcpWorker/definition.nix ];
     deployment.tags = [ "gcp" ];
+    deployment.targetHost = "34.118.247.206";
   };
-} // (mkNodePool {
+  gcp-worker-dw64 = {
+    imports = [ ./machines/gcpWorker/definition.nix ];
+    deployment.tags = [ "gcp" ];
+    deployment.targetHost = "35.234.68.55";
+  };
+}
+// (mkNodePool {
   names = with builtins; fromJSON (readFile "${self}/terraform/metal/oci_control.json");
   module = {
     imports = [ ./machines/ociControlWorker srvos.nixosModules.server ];
