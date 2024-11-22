@@ -4,6 +4,7 @@ import (
 	"context"
 	vault "github.com/hashicorp/vault/api"
 	"github.com/monzo/terrors"
+	"reflect"
 	"strconv"
 	"time"
 )
@@ -70,19 +71,27 @@ func ExchangeGCPToken(ctx context.Context, roleset string) (*GCPToken, error) {
 	if err != nil {
 		return nil, terrors.Augment(err, "failed to get token from vault", nil)
 	}
-	expiresAtS, expiresAtok := req.Data["expires_at_seconds"].(string)
-	token, tokenOk := req.Data["token"].(string)
+	mapExpiresAt := req.Data["expires_at_seconds"]
+	expiresAtS, expiresAtok := mapExpiresAt.([]byte)
+	mapToken := req.Data["token"]
+	token, tokenOk := mapToken.([]byte)
 
 	if !expiresAtok || !tokenOk {
-		return nil, terrors.New(terrors.ErrPreconditionFailed, "failed to get token from vault (could not parse response)", nil)
+		expireType := reflect.TypeOf(mapExpiresAt)
+		tokenType := reflect.TypeOf(mapToken)
+		return nil, terrors.New(terrors.ErrPreconditionFailed, "failed to get token from vault (could not parse response)", map[string]string{
+			"token_type":      tokenType.String(),
+			"expires_at_type": expireType.String(),
+			"expiresAt":       string(expiresAtS),
+		})
 	}
 
-	expiresAtParsed, err := strconv.ParseInt(expiresAtS, 10, 64)
+	expiresAtParsed, err := strconv.ParseInt(string(expiresAtS), 10, 64)
 	if err != nil {
-		return nil, terrors.Augment(err, "failed to parse token from vault", map[string]string{"expiresAt": expiresAtS})
+		return nil, terrors.Augment(err, "failed to parse token from vault", map[string]string{"expiresAt": string(expiresAtS)})
 	}
 	return &GCPToken{
-		Token:     token,
+		Token:     string(token),
 		ExpiresAt: time.Unix(expiresAtParsed, 0),
 	}, nil
 }
