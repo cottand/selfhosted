@@ -60,7 +60,7 @@ resource "vault_gcp_secret_roleset" "bq1" {
 resource "vault_gcp_secret_roleset" "bigquery-dataviewer" {
   backend     = vault_gcp_secret_backend.gcp.path
   project     = local.gcp.project
-  roleset     = "bq1"
+  roleset     = "bigquery-dataviewer"
   secret_type = "access_token"
   binding {
     resource = "//cloudresourcemanager.googleapis.com/projects/${local.gcp.project}"
@@ -71,7 +71,7 @@ resource "vault_gcp_secret_roleset" "bigquery-dataviewer" {
 resource "vault_gcp_secret_roleset" "bigquery-dataeditor" {
   backend     = vault_gcp_secret_backend.gcp.path
   project     = local.gcp.project
-  roleset     = "bq1"
+  roleset     = "bigquery-dataeditor"
   secret_type = "access_token"
   binding {
     resource = "//cloudresourcemanager.googleapis.com/projects/${local.gcp.project}"
