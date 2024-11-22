@@ -15,14 +15,26 @@ import (
 )
 
 func init() {
-	// set a json logger:
+	opts := &slog.HandlerOptions{ReplaceAttr: loggerReplaceErrs}
 	logger := slog.New(slogotel.OtelHandler{
-		Next:          slog.NewJSONHandler(os.Stderr, nil),
+		Next:          slog.NewJSONHandler(os.Stderr, opts),
 		NoBaggage:     false,
 		NoTraceEvents: false,
 	})
 
 	slog.SetDefault(logger)
+}
+
+func loggerReplaceErrs(groups []string, pre slog.Attr) slog.Attr {
+	return pre
+	//return slog.Group(
+	//	pre.Key,
+	//	slog.Group("")
+	//	)
+	//slog.Attr{
+	//	Key:pre.Key,
+	//	Value: slog.Group(),
+	//}
 }
 
 func LoggerFor(serviceName string) *slog.Logger {
