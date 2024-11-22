@@ -46,17 +46,17 @@ func (s *scaffold) handlePush(writer http.ResponseWriter, request *http.Request)
 	if err != nil {
 		slog.Warn("failed to read request into memory", "err", terrors.Propagate(err).Error())
 	}
-	ghSecret, err := ghWebhookSecret(ctx)
-	if err != nil {
-		slog.Warn("failed to reach Vault to fetch the gh secret - cannot validate event, skipping!", "err", err.Error())
-		return
-	}
-	ghHmac256 := request.Header.Get("X-Hub-Signature-256")
-	err = validateWebhookHmac(ctx, []byte{}, ghSecret, ghHmac256)
-	if err != nil {
-		slog.Debug("skipping invalid push event")
-		return
-	}
+	//ghSecret, err := ghWebhookSecret(ctx)
+	//if err != nil {
+	//	slog.Warn("failed to reach Vault to fetch the gh secret - cannot validate event, skipping!", "err", err.Error())
+	//	return
+	//}
+	//ghHmac256 := request.Header.Get("X-Hub-Signature-256")
+	//err = validateWebhookHmac(ctx, []byte{}, ghSecret, ghHmac256)
+	//if err != nil {
+	//	slog.Debug("skipping invalid push event")
+	//	return
+	//}
 	event := WorkflowJobEvent{}
 	if err := json.Unmarshal(fullBody.Bytes(), &event); err != nil {
 		slog.WarnContext(ctx, "could not parse push event", "err", err.Error())

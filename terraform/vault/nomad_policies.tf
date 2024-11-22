@@ -24,11 +24,11 @@ resource "vault_policy" "nomad-workloads-base" {
 resource "vault_policy" "services-all-secrets-ro" {
   name   = "services-all-secrets-ro"
   policy = <<-EOT
-path "services/*/webhook_secret" {
+path "secret/data/services" {
   capabilities = ["read"]
 }
 
-path "services/*/webhook_secret/*" {
+path "secret/data/services/*" {
   capabilities = ["read"]
 }
 EOT
