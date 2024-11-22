@@ -48,7 +48,7 @@ func (s *scaffold) handlePush(writer http.ResponseWriter, request *http.Request)
 	}
 	ghSecret, err := ghWebhookSecret(ctx)
 	if err != nil {
-		slog.Warn("failed to reach Vault to fetch the gh secret - cannot validate event, skipping!")
+		slog.Warn("failed to reach Vault to fetch the gh secret - cannot validate event, skipping!", "err", err.Error())
 		return
 	}
 	ghHmac256 := request.Header.Get("X-Hub-Signature-256")
