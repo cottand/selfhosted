@@ -61,8 +61,7 @@ type GCPToken struct {
 }
 
 func ExchangeGCPToken(ctx context.Context, roleset string) (*GCPToken, error) {
-	config := vault.DefaultConfig()
-	v, err := vault.NewClient(config)
+	v, err := NewClient()
 	if err != nil {
 		return nil, terrors.Augment(err, "failed to start vault client", nil)
 	}
