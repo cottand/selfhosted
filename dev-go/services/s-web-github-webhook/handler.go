@@ -66,7 +66,8 @@ func (s *scaffold) handlePush(writer http.ResponseWriter, request *http.Request)
 		return
 	}
 	go func() {
-		err = s.reportEvent(context.WithoutCancel(ctx), &event)
+		ctx = context.WithoutCancel(ctx)
+		err = s.reportEvent(ctx, &event)
 		if err != nil {
 			slog.WarnContext(ctx, "could not report event", "err", err.Error())
 		}
@@ -82,7 +83,7 @@ func (s *scaffold) handlePush(writer http.ResponseWriter, request *http.Request)
 		slog.Debug("ignoring non-success push event")
 		return
 	}
-	newCtx := context.WithoutCancel(ctx)
+	newCtx := ctx
 	go s.deploy(newCtx, event.WorkflowJob.HeadSha)
 }
 
