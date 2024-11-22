@@ -26,7 +26,18 @@ func init() {
 }
 
 func loggerReplaceErrs(groups []string, pre slog.Attr) slog.Attr {
-	return pre
+	err, isErr := pre.Value.Any().(terrors.Error)
+	if (pre.Key != "err" && pre.Key != "error") || !isErr {
+		return pre
+	}
+	params := make([]slog.Attr, len(err.Params))
+	for paramK, paramV := range err.Params {
+		params = append(params, slog.String(paramK, paramV))
+	}
+	return slog.Group("error",
+		slog.String("msg", err.Error()),
+		slog.Group("param", params),
+	)
 	//return slog.Group(
 	//	pre.Key,
 	//	slog.Group("")
