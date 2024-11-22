@@ -139,7 +139,7 @@ func (s *scaffold) deploy(ctx context.Context, commit string) {
 func (s *scaffold) reportEvent(ctx context.Context, event *WorkflowJobEvent) error {
 	q := `
 INSERT INTO dcotta-com.default.actions (inserted_at, head_branch, head_sha, status, conclusion, name) values
-	(CURRENT_TIMESTAMP(), ?)
+	(CURRENT_TIMESTAMP(), ?, ?, ?, ?, ?)
 `
 	query := s.bq.Query(q)
 	query.Parameters = []bigquery.QueryParameter{
