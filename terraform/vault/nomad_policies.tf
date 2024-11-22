@@ -20,3 +20,16 @@ resource "vault_policy" "nomad-workloads-base" {
   name = "nomad-workloads-base"
   policy = file("policies/nomad-workloads.hcl")
 }
+
+resource "vault_policy" "services-all-secrets-ro" {
+  name   = "services-all-secrets-ro"
+  policy = <<-EOT
+path "services/*/webhook_secret" {
+  capabilities = ["read"]
+}
+
+path "services/*/webhook_secret/*" {
+  capabilities = ["read"]
+}
+EOT
+}

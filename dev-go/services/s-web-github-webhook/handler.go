@@ -59,10 +59,13 @@ func (s *scaffold) handlePush(writer http.ResponseWriter, request *http.Request)
 	}
 	event := WorkflowJobEvent{}
 	if err := json.Unmarshal(fullBody.Bytes(), &event); err != nil {
-		slog.WarnContext(ctx, "could not parse push event", "errorMsg", err.Error())
+		slog.WarnContext(ctx, "could not parse push event", "err", err.Error())
 		return
 	}
-	_ = s.reportEvent(ctx, &event)
+	err = s.reportEvent(ctx, &event)
+	if err != nil {
+		slog.WarnContext(ctx, "could not report event", "err", err.Error())
+	}
 	if lastApplied.Add(stagger).After(time.Now()) {
 		return
 	}
