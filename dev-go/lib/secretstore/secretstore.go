@@ -8,11 +8,27 @@ import (
 	"time"
 )
 
-func Get(ctx context.Context, path string) (map[string]any, error) {
-	config := vault.DefaultConfig()
-	v, err := vault.NewClient(config)
+func NewClient() (*vault.Client, error) {
+	vaultConfig := vault.DefaultConfig()
+	vaultConfig.Address = "https://vault.dcotta.com:8200"
+	vaultConfig.DisableRedirects = false
+	err := vaultConfig.ConfigureTLS(&vault.TLSConfig{
+		TLSServerName: "vault.dcotta.com",
+	})
 	if err != nil {
-		return nil, terrors.Augment(err, "failed to start vault client", nil)
+		return nil, terrors.Augment(err, "failed to init vault client", nil)
+	}
+	vaultClient, err := vault.NewClient(vaultConfig)
+	if err != nil {
+		return nil, terrors.Augment(err, "failed to init vault client", nil)
+	}
+	return vaultClient, nil
+}
+
+func Get(ctx context.Context, path string) (map[string]any, error) {
+	v, err := NewClient()
+	if err != nil {
+		return nil, err
 	}
 
 	secret, err := v.KVv2("secret").Get(ctx, path)
