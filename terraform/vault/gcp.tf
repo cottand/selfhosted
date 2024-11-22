@@ -56,3 +56,31 @@ resource "vault_gcp_secret_roleset" "bq1" {
 
   token_scopes = ["https://www.googleapis.com/auth/cloud-platform"]
 }
+
+resource "vault_gcp_secret_roleset" "bigquery-dataviewer" {
+  backend     = vault_gcp_secret_backend.gcp.path
+  project     = local.gcp.project
+  roleset     = "bq1"
+  secret_type = "access_token"
+  binding {
+    resource = "//cloudresourcemanager.googleapis.com/projects/${local.gcp.project}"
+    roles = ["roles/bigquery.dataViewer"]
+  }
+  token_scopes = ["https://www.googleapis.com/auth/cloud-platform"]
+}
+resource "vault_gcp_secret_roleset" "bigquery-dataeditor" {
+  backend     = vault_gcp_secret_backend.gcp.path
+  project     = local.gcp.project
+  roleset     = "bq1"
+  secret_type = "access_token"
+  binding {
+    resource = "//cloudresourcemanager.googleapis.com/projects/${local.gcp.project}"
+    roles = ["roles/bigquery.dataEditor"]
+  }
+  token_scopes = ["https://www.googleapis.com/auth/cloud-platform"]
+}
+
+resource "google_bigquery_dataset" "default" {
+  dataset_id = "default"
+  location   = "EU"
+}
