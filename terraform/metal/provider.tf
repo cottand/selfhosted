@@ -16,6 +16,10 @@ terraform {
       source  = "oracle/oci"
       version = "6.12.0"
     }
+    google = {
+      source = "hashicorp/google"
+      version = "6.11.2"
+    }
   }
 }
 variable "bitwarden_project_id" {
@@ -81,3 +85,8 @@ data "bitwarden-secrets_secret" "zoneIds" {
   id = "90566b46-9de6-486a-a1b5-b186013d4406"
 }
 
+# followed https://developer.hashicorp.com/terraform/tutorials/gcp-get-started
+provider "google" {
+  project = "dcotta-com"
+  region = "europe-west3"
+}

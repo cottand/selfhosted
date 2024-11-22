@@ -9,6 +9,10 @@ terraform {
       source = "sebastiaan-dev/bitwarden-secrets"
       version = "0.1.2"
     }
+    google = {
+      source = "hashicorp/google"
+      version = "6.11.2"
+    }
   }
 }
 
@@ -42,4 +46,9 @@ provider "aws" {
   region                   = "eu-west-1"
   access_key = jsondecode(data.bitwarden-secrets_secret.awsTfUser.value)["access_key"]
   secret_key = jsondecode(data.bitwarden-secrets_secret.awsTfUser.value)["secret_key"]
+}
+# followed https://developer.hashicorp.com/terraform/tutorials/gcp-get-started
+provider "google" {
+  project = local.gcp.project
+  region = local.gcp.region
 }

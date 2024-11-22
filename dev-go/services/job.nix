@@ -149,7 +149,7 @@ lib.mkJob name {
         propagationMode = "host-to-task";
       }];
       vault.env = true;
-      vault.role = "service-db-rw-default";
+      vault.role = "services-go";
       vault.changeMode = "restart";
       identities = [{
         env = true;

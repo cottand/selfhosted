@@ -1,8 +1,10 @@
 package module
 
 import (
+	"cloud.google.com/go/bigquery"
 	"context"
 	"errors"
+	"github.com/cottand/selfhosted/dev-go/lib/bigq"
 	"github.com/cottand/selfhosted/dev-go/lib/mono"
 	s_rpc_nomad_api "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-nomad-api"
 	"github.com/monzo/terrors"
@@ -21,6 +23,7 @@ var tracer = otel.Tracer(Name)
 
 type scaffold struct {
 	nomad s_rpc_nomad_api.NomadApiClient
+	bq    *bigquery.Client
 }
 
 func InitService() {
@@ -31,8 +34,15 @@ func InitService() {
 		log.Fatalf(terrors.Propagate(err).Error())
 	}
 
+	bqClient, err := bigq.NewClient(ctx, "bigquery-dataeditor")
+
+	if err != nil {
+		log.Fatalf(terrors.Propagate(err).Error())
+	}
+
 	s := &scaffold{
 		nomad: s_rpc_nomad_api.NewNomadApiClient(conn),
+		bq:    bqClient,
 	}
 
 	srv := &http.Server{
@@ -57,10 +67,10 @@ func InitService() {
 	go func() {
 		_, _ = <-notify
 		if conn.Close() != nil {
-			slog.Error(terrors.Propagate(err).Error(), "Failed to close gRPC conn", "service", Name)
+			slog.Error("Failed to close gRPC conn", "service", Name, "err", terrors.Propagate(err).Error())
 		}
 		if serverErr != nil {
-			slog.Error(terrors.Propagate(err).Error(), "Failed to close gRPC conn", "service", Name)
+			slog.Error("Failed to close gRPC conn", "service", Name, "err", terrors.Propagate(err).Error())
 		}
 	}()
 }
