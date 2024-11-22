@@ -152,6 +152,7 @@ INSERT INTO dcotta-com.default.actions (inserted_at, head_branch, head_sha, stat
 		{Value: event.WorkflowJob.Conclusion},
 		{Value: event.WorkflowJob.Name},
 	}
+	query.ProjectID = "dcotta-com"
 	_, err := query.Run(ctx)
 	if err != nil {
 		return terrors.Augment(err, "failed to insert action into bq", nil)
