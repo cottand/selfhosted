@@ -69,7 +69,7 @@ func (s *scaffold) handlePush(writer http.ResponseWriter, request *http.Request)
 		ctx = context.WithoutCancel(ctx)
 		err = s.reportEvent(ctx, &event)
 		if err != nil {
-			slog.WarnContext(ctx, "could not report event", "err", err.Error())
+			slog.WarnContext(ctx, "could not report event", "err", err)
 		}
 	}()
 	if lastApplied.Add(stagger).After(time.Now()) {

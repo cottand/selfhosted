@@ -2,8 +2,10 @@ package secretstore
 
 import (
 	"context"
+	"encoding/json"
 	vault "github.com/hashicorp/vault/api"
 	"github.com/monzo/terrors"
+	"log/slog"
 	"reflect"
 	"strconv"
 	"time"
@@ -72,13 +74,14 @@ func ExchangeGCPToken(ctx context.Context, roleset string) (*GCPToken, error) {
 		return nil, terrors.Augment(err, "failed to get token from vault", nil)
 	}
 	mapExpiresAt := req.Data["expires_at_seconds"]
-	expiresAtS, expiresAtok := mapExpiresAt.([]byte)
+	expiresAtS, expiresAtok := mapExpiresAt.(json.Number)
 	mapToken := req.Data["token"]
-	token, tokenOk := mapToken.([]byte)
+	token, tokenOk := mapToken.(string)
 
 	if !expiresAtok || !tokenOk {
 		expireType := reflect.TypeOf(mapExpiresAt)
 		tokenType := reflect.TypeOf(mapToken)
+		slog.Error("failed to get token from vault (could not parse response)", "token_type", tokenType.String(), "expires_at_type", expireType.String(), "expiresAt", expiresAtS)
 		return nil, terrors.New(terrors.ErrPreconditionFailed, "failed to get token from vault (could not parse response)", map[string]string{
 			"token_type":      tokenType.String(),
 			"expires_at_type": expireType.String(),
@@ -86,7 +89,7 @@ func ExchangeGCPToken(ctx context.Context, roleset string) (*GCPToken, error) {
 		})
 	}
 
-	expiresAtParsed, err := strconv.ParseInt(string(expiresAtS), 10, 64)
+	expiresAtParsed, err := strconv.ParseInt(expiresAtS.String(), 10, 64)
 	if err != nil {
 		return nil, terrors.Augment(err, "failed to parse token from vault", map[string]string{"expiresAt": string(expiresAtS)})
 	}
