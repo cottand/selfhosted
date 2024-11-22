@@ -65,7 +65,7 @@ func (s *scaffold) handlePush(writer http.ResponseWriter, request *http.Request)
 		slog.WarnContext(ctx, "could not parse push event", "err", err.Error())
 		return
 	}
-	err = s.reportEvent(ctx, &event)
+	err = s.reportEvent(context.WithoutCancel(ctx), &event)
 	if err != nil {
 		slog.WarnContext(ctx, "could not report event", "err", err.Error())
 	}
