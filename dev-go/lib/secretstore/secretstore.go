@@ -4,6 +4,8 @@ import (
 	"context"
 	vault "github.com/hashicorp/vault/api"
 	"github.com/monzo/terrors"
+	"strconv"
+	"time"
 )
 
 func Get(ctx context.Context, path string) (map[string]any, error) {
@@ -35,4 +37,37 @@ func GetString(ctx context.Context, path string) (map[string]string, error) {
 		}
 	}
 	return second, nil
+}
+
+type GCPToken struct {
+	Token     string
+	ExpiresAt time.Time
+}
+
+func ExchangeGCPToken(ctx context.Context, roleset string) (*GCPToken, error) {
+	config := vault.DefaultConfig()
+	v, err := vault.NewClient(config)
+	if err != nil {
+		return nil, terrors.Augment(err, "failed to start vault client", nil)
+	}
+
+	req, err := v.Logical().ReadWithContext(ctx, "gcp/roleset/"+roleset+"/token")
+	if err != nil {
+		return nil, terrors.Augment(err, "failed to get token from vault", nil)
+	}
+	expiresAtS, expiresAtok := req.Data["expires_at_seconds"].(string)
+	token, tokenOk := req.Data["token"].(string)
+
+	if !expiresAtok || !tokenOk {
+		return nil, terrors.New(terrors.ErrPreconditionFailed, "failed to get token from vault (could not parse response)", nil)
+	}
+
+	expiresAtParsed, err := strconv.ParseInt(expiresAtS, 10, 64)
+	if err != nil {
+		return nil, terrors.Augment(err, "failed to parse token from vault", map[string]string{"expiresAt": expiresAtS})
+	}
+	return &GCPToken{
+		Token:     token,
+		ExpiresAt: time.Unix(expiresAtParsed, 0),
+	}, nil
 }

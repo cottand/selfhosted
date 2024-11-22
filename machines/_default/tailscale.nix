@@ -6,6 +6,10 @@
     port = 46461;
     authKeyFile = config.deployment.keys."tailscale_authkey.txt".path;
     openFirewall = true;
+    # see
+    # - https://discourse.nixos.org/t/tailscale-ssh-destroys-nix-copy/38781
+    # - https://github.com/tailscale/tailscale/issues/14167
+    # extraUpFlags = [ "--ssh" ];
   };
 
   deployment.keys."tailscale_authkey.txt" = {

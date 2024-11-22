@@ -5,12 +5,13 @@
     ./tailscale.nix
   ];
 
-  networking.hostName = lib.mkDefault name;
+  networking.hostName = name;
 
   deployment = {
     replaceUnknownProfiles = lib.mkDefault true;
     buildOnTarget = lib.mkDefault false;
     targetHost = lib.mkDefault "${name}.golden-dace.ts.net";
+
   };
 
   home-manager = {

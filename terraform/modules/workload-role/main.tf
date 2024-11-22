@@ -43,3 +43,7 @@ resource "vault_jwt_auth_backend_role" "role" {
   token_explicit_max_ttl = 0
   backend                = var.vault_backend
 }
+
+output "policy_name" {
+  value = vault_policy.policy.name
+}
