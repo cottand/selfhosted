@@ -35,7 +35,7 @@ func NewClient(ctx context.Context, roleset string) (*bigquery.Client, error) {
 			return secretstore.ExchangeGCPToken(ctx, roleset)
 		},
 	}
-	client, err := bigquery.NewClient(ctx, "dcotta.com", option.WithTokenSource(tSrc))
+	client, err := bigquery.NewClient(ctx, "dcotta-com", option.WithTokenSource(tSrc))
 	if err != nil {
 		return nil, err
 	}
