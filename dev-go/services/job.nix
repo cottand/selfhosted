@@ -28,6 +28,8 @@ lib.mkJob name {
     stagger = 5 * lib.seconds;
   };
 
+  meta.version = version;
+
   group.${name} = {
     count = 3;
     network = {
