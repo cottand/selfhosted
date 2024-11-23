@@ -34,7 +34,7 @@ func InitService() {
 		log.Fatalf(terrors.Propagate(err).Error())
 	}
 
-	bqClient, err := bigq.NewClient(ctx, "bigquery-dataeditor")
+	bqClient, err := bigq.NewClient(ctx, "bigquery-querier-editor")
 
 	if err != nil {
 		log.Fatalf(terrors.Propagate(err).Error())

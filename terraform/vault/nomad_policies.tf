@@ -1,16 +1,16 @@
 resource "vault_policy" "gcp-bigquery-dataviewer" {
   name   = "gcp-bigquery-dataviewer"
   policy = <<-EOT
-path "/gcp/roleset/bigquery-dataviewer/token" {
+path "/gcp/roleset/${vault_gcp_secret_roleset.bigquery-dataviewer.roleset}/token" {
   capabilities = ["read"]
 }
 EOT
 }
 
-resource "vault_policy" "gcp-bigquery-dataeditor" {
+resource "vault_policy" "gcp-bigquery-querier-editor" {
   name   = "gcp-bigquery-dataeditor"
   policy = <<-EOT
-path "/gcp/roleset/bigquery-dataeditor/token" {
+path "/gcp/roleset/${vault_gcp_secret_roleset.bigquery-querier-editor.roleset}/token" {
   capabilities = ["read"]
 }
 EOT
