@@ -200,11 +200,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1721641030,
-        "narHash": "sha256-niv68FDnsGHPeZC/JHmZpyp8E1UruJO0D/eB/tlCZXU=",
+        "lastModified": 1727881058,
+        "narHash": "sha256-eRRo+wSR1a/fPkvDJ1+p+C6vMrWx9yQxLeaGUpMDV94=",
         "owner": "numtide",
         "repo": "build-go-cache",
-        "rev": "36f59cea5b4dec39c24b57381d15714cdac5578b",
+        "rev": "69a530f1de887c46c68cb78a0b6236a1361004a7",
         "type": "github"
       },
       "original": {
