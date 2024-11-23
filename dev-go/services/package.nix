@@ -8,18 +8,30 @@
 , pkg-config
 , nixVersions
 , cacert
+, buildGoCache
 , ...
 }:
 let
   name = "services-go";
   src = util.devGoSrc;
 
+  goCache = buildGoCache {
+    inherit src;
+    importPackagesFile = ../go-cache.imported-packages;
+    vendorHash = null;
+    vendorEnv = ../vendor;
+
+    # for farcaller/gonix (CGO)
+    nativeBuildInputs = [ pkg-config ];
+    buildInputs = [ nixVersions.nix_2_23 ];
+  };
+
   bin = buildGoModule {
     inherit name src;
     vendorHash = null;
-    nativeBuildInputs = [ pkg-config ];
-    buildInputs = [ nixVersions.nix_2_23 ];
     CGO_ENABLED = 1;
+    nativeBuildInputs = [ pkg-config ];
+    buildInputs = [ goCache nixVersions.nix_2_23 ];
     subPackages = [ "services" ];
     postInstall = ''
       mv $out/bin/services $out/bin/${name}
