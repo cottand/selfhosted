@@ -16,7 +16,7 @@ in
     specialArgs.flakeInputs = inputs;
   };
 
-  defaults = { pkgs, lib, name, nodes, meta, ... }: {
+  defaults = { pkgs, lib, name, nodes, meta, config, ... }: {
     imports = [
       ./machines/_default
       ./machines/modules
@@ -29,6 +29,7 @@ in
       system = lib.mkDefault "x86_64-linux";
       config.allowUnfree = true;
     };
+    deployment.tags = [ config.nixpkgs.system ];
   };
 
   cosmo = { name, nodes, ... }: {
