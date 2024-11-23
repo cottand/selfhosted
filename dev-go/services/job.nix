@@ -127,6 +127,7 @@ lib.mkJob name {
         OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = "http://localhost:${toString otlpPort}";
         OTEL_SERVICE_NAME = name;
         SELFHOSTED_SSL_ROOT_CA = "/local/root_ca.crt";
+        DCOTTA_COM_VERSION = version;
       };
       template."db-env" = {
         changeMode = "restart";

@@ -68,11 +68,28 @@ resource "vault_gcp_secret_roleset" "bigquery-dataviewer" {
   }
   token_scopes = ["https://www.googleapis.com/auth/cloud-platform"]
 }
-resource "vault_gcp_secret_roleset" "bigquery-dataeditor" {
+
+resource "vault_gcp_secret_roleset" "bigquery-jobuser" {
   backend     = vault_gcp_secret_backend.gcp.path
   project     = local.gcp.project
-  roleset     = "bigquery-dataeditor"
+  roleset     = "bigquery-jobuser"
   secret_type = "access_token"
+  binding {
+    resource = "//cloudresourcemanager.googleapis.com/projects/${local.gcp.project}"
+    roles = ["roles/bigquery.jobUser"]
+  }
+  token_scopes = ["https://www.googleapis.com/auth/cloud-platform"]
+}
+
+resource "vault_gcp_secret_roleset" "bigquery-querier-editor" {
+  backend     = vault_gcp_secret_backend.gcp.path
+  project     = local.gcp.project
+  roleset     = "bigquery-querier-editor"
+  secret_type = "access_token"
+  binding {
+    resource = "//cloudresourcemanager.googleapis.com/projects/${local.gcp.project}"
+    roles = ["roles/bigquery.jobUser"]
+  }
   binding {
     resource = "//cloudresourcemanager.googleapis.com/projects/${local.gcp.project}"
     roles = ["roles/bigquery.dataEditor"]

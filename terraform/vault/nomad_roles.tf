@@ -35,7 +35,7 @@ locals {
 
     "services-go" = {
       policies = [
-        vault_policy.gcp-bigquery-dataeditor.name,
+        vault_policy.gcp-bigquery-querier-editor.name,
         vault_policy.services-all-secrets-ro.name,
         module.workload-role-services-db-rw-default.policy_name,
       ]
