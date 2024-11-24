@@ -48,10 +48,6 @@ jobs:
         run: |
           nix-fast-build --eval-workers $N_CORES --max-jobs $N_CORES --skip-cached --no-nom --attic-cache=default \
             -f ${{ matrix.package }}
-#      - name: Cache results
-#        continue-on-error: true
-#        run: |
-#          attic push "$ATTIC_CACHE" './result-'
 
   resolve-nodes:
     runs-on: ubuntu-latest
@@ -89,12 +85,7 @@ jobs:
         run: |
           nix-fast-build --eval-workers $N_CORES --max-jobs $N_CORES --skip-cached --no-nom --attic-cache=default \
             -f .#colmenaHive.nodes.${{ matrix.node }}.config.system.build.toplevel
-#      - name: Cache results
-#        continue-on-error: true
-#        run: |
-#          attic push "$ATTIC_CACHE" ./result*
-  
-  
+
   deploy-web:
     permissions:
       contents: read
