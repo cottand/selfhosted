@@ -2,7 +2,7 @@
 {
 
   security.pki.certificateFiles = [
-    "${flakeInputs.self}/certs/root_2024_ca.crt"
+    flakeInputs.self.rootCa
   ];
 
   boot.tmp.cleanOnBoot = true;

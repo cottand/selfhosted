@@ -78,4 +78,6 @@ rec {
 
     ${builtins.readFile filePath}
   '';
+
+  rootCa = ./certs/root_2024_ca.crt;
 }
