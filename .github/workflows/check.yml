@@ -27,4 +27,5 @@ jobs:
           tailscale_authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
       - name: Flake check
         run: |
-          nix flake check .
+          # runs checks by default
+          nix-fast-build --eval-workers 1 --skip-cached --no-nom --attic-cache=default
