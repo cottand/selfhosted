@@ -17,15 +17,21 @@ env:
   REGISTRY: ghcr.io
   ATTIC_SERVER: "https://attic.tfk.nd/"
   ATTIC_CACHE: "default"
+  # According to
+  # https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories
+  # parallelism should NOT affect otput determinism
+  N_CORES: 1
 
 jobs:
   populate-cache:
     strategy:
       matrix:
         package:
-          - .#scripts.bws-get
-          - .#scripts.nixmad
-          - "github:zhaofengli/colmena"
+          # these have to be fully qualified nix flake paths
+          - .#packages.x86_64-linux.bws-get
+          - .#packages.x86_64-linux.nixmad
+          - "github:zhaofengli/colmena#defaultPackage.x86_64-linux"
+          - "github:Mic92/nix-fast-build/8e7c9d7#packages.x86_64-linux.default"
         host:
           - ubuntu-latest
     #          - macos-latest
@@ -38,10 +44,14 @@ jobs:
           caCertificate: ${{ secrets.DCOTTA_ROOT_CA }}
           tailscale_authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
       - name: Build package ${{ matrix.package }}
-        continue-on-error: true
+        continue-on-error: false
         run: |
-          nix build -L  --no-link --print-out-paths ${{ matrix.package }} \
-            | xargs attic push "$ATTIC_CACHE"
+          nix-fast-build --eval-workers $N_CORES --max-jobs $N_CORES --skip-cached --no-nom --attic-cache=default \
+            -f ${{ matrix.package }}
+#      - name: Cache results
+#        continue-on-error: true
+#        run: |
+#          attic push "$ATTIC_CACHE" './result-'
 
   resolve-nodes:
     runs-on: ubuntu-latest
@@ -77,11 +87,12 @@ jobs:
           aarch64LinuxSupport: true
       - name: Build NixOS config for ${{ matrix.node }}
         run: |
-          nix build .#colmenaHive.nodes.${{ matrix.node }}.config.system.build.toplevel --fallback -vL
-      - name: Cache results
-        continue-on-error: true
-        run: |
-          attic push "$ATTIC_CACHE" ./result*
+          nix-fast-build --eval-workers $N_CORES --max-jobs $N_CORES --skip-cached --no-nom --attic-cache=default \
+            -f .#colmenaHive.nodes.${{ matrix.node }}.config.system.build.toplevel
+#      - name: Cache results
+#        continue-on-error: true
+#        run: |
+#          attic push "$ATTIC_CACHE" ./result*
   
   
   deploy-web:

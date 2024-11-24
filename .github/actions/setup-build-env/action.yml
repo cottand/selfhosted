@@ -53,10 +53,10 @@ runs:
         extra_nix_config: |
           ${{ inputs.aarch64LinuxSupport && 'extra-platforms = aarch64-linux' || '' }}
 
-    - name: Install Attic
+    - name: Install Attic and nix-fast-build
       shell: bash
       run: |
-        nix profile install nixpkgs#attic-client
+        nix profile install nixpkgs#attic-client github:Mic92/nix-fast-build/8e7c9d7
 
     - name: Configure Attic
       shell: bash
