@@ -15,9 +15,7 @@ in
 
   config = mkIf cfg.enable {
     deployment.tags = [ "vault" ];
-    security.pki.certificateFiles = [
-      "${flakeInputs.self}/certs/root_2024_ca.crt"
-    ];
+    security.pki.certificateFiles = [ flakeInputs.self.rootCa ];
     systemd.tmpfiles.rules = [ "d /vault/data 1777 root root -" ];
     services.vault = {
       enable = true;

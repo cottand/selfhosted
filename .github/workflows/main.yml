@@ -17,10 +17,6 @@ env:
   REGISTRY: ghcr.io
   ATTIC_SERVER: "https://attic.tfk.nd/"
   ATTIC_CACHE: "default"
-  # According to
-  # https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners#standard-github-hosted-runners-for-public-repositories
-  # parallelism should NOT affect otput determinism
-  N_CORES: 1
 
 jobs:
   populate-cache:
@@ -46,7 +42,7 @@ jobs:
       - name: Build package ${{ matrix.package }}
         continue-on-error: false
         run: |
-          nix-fast-build --eval-workers $N_CORES --max-jobs $N_CORES --skip-cached --no-nom --attic-cache=default \
+          nix-fast-build --skip-cached --no-nom --attic-cache=default \
             -f ${{ matrix.package }}
 
   resolve-nodes:
@@ -83,7 +79,7 @@ jobs:
           aarch64LinuxSupport: true
       - name: Build NixOS config for ${{ matrix.node }}
         run: |
-          nix-fast-build --eval-workers $N_CORES --max-jobs $N_CORES --skip-cached --no-nom --attic-cache=default \
+          nix-fast-build --skip-cached --no-nom --attic-cache=default \
             -f .#colmenaHive.nodes.${{ matrix.node }}.config.system.build.toplevel
 
   deploy-web:
