@@ -103,6 +103,8 @@
           filter (name: elem tag colmenaHive.nodes.${name}.config.deployment.tags) (attrNames colmenaHive.nodes);
       };
       colmena = (import ./hive.nix) (inputs // { inherit overlays; });
+
+      rootCa = ./certs/root_2024_ca.crt;
     }
   ;
 }
