@@ -17,6 +17,25 @@ type ProtoHandler struct {
 }
 
 func (h *ProtoHandler) Snapshot(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
+	// find the leader
+	status, err := h.vaultClient.Sys().HAStatus()
+	if err != nil {
+		return nil, terrors.Augment(err, "failed to call vault status", nil)
+	}
+	var leader *vault.HANode
+	for _, node := range status.Nodes {
+		if node.ActiveNode {
+			leader = &node
+		}
+	}
+	if leader == nil {
+		return nil, terrors.PreconditionFailed("no_leader", "failed to find a vault leader", nil)
+	}
+	err = h.vaultClient.SetAddress(leader.APIAddress)
+	if err != nil {
+		return nil, terrors.Augment(err, "failed to set vault address", nil)
+	}
+	
 	b2, err := objectstore.B2Client(ctx)
 	if err != nil {
 		return nil, err
