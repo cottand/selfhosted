@@ -1,9 +1,7 @@
-# resource "google_compute_image" "nixos-base" {
-#
-#   name = ""
-#
-#
-# }
+
+locals {
+  enable_gcp = false
+}
 
 resource "google_compute_instance_template" "nixos-worker-blue" {
   name_prefix         = "nixos-worker-blue"
@@ -114,7 +112,8 @@ resource "google_compute_instance_group_manager" "workers1" {
   name               = "workers1"
   base_instance_name = "worker"
   zone               = "europe-west3-a"
-  target_size = 2
+  target_size = local.enable_gcp ? 2 : 0
+  count = local.enable_gcp ? 1 : 0
 
   version {
     instance_template = google_compute_instance_template.nixos-worker-green.id
@@ -135,5 +134,4 @@ resource "google_compute_instance_group_manager" "workers1" {
   lifecycle {
     ignore_changes = [target_size]
   }
-
 }
