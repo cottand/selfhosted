@@ -117,7 +117,7 @@ job "mimir" {
         args  = [
           "-config.file",
           "/local/config.yaml",
-          "-target=all",
+          "-target=all,alertmanager",
           "-auth.multitenancy-enabled=false",
           // "-query-frontend.parallelize-shardable-queries=true",
           // "-query-frontend.query-sharding-total-shards=4",

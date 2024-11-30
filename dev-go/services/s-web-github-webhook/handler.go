@@ -64,10 +64,13 @@ func (s *scaffold) handlePush(writer http.ResponseWriter, request *http.Request)
 		return
 	}
 	go func() {
-		ctx = context.WithoutCancel(ctx)
-		err = s.reportEvent(ctx, &event)
-		if err != nil {
-			slog.WarnContext(ctx, "could not report event", "err", err)
+		// flag for putting events into BQ
+		if false {
+			ctx = context.WithoutCancel(ctx)
+			err = s.reportEvent(ctx, &event)
+			if err != nil {
+				slog.WarnContext(ctx, "could not report event", "err", err)
+			}
 		}
 	}()
 	if lastApplied.Add(stagger).After(time.Now()) {
