@@ -37,6 +37,7 @@ locals {
       policies = [
         vault_policy.gcp-bigquery-querier-editor.name,
         vault_policy.services-all-secrets-ro.name,
+        vault_policy.vault-backup-maker.name,
         module.workload-role-services-db-rw-default.policy_name,
       ]
       ttl = 10 * 60 * 60 # 10h

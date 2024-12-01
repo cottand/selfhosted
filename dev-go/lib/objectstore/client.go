@@ -13,7 +13,7 @@ import (
 
 func credentialsProvider() aws.CredentialsProvider {
 	f := aws.CredentialsProviderFunc(func(ctx context.Context) (creds aws.Credentials, err error) {
-		credsPath := "services/db-rw-default"
+		credsPath := "services/s-rpc-vault-api/b2-services-bu"
 		errParams := map[string]string{"secretPath": credsPath}
 		secret, err := secretstore.GetString(ctx, credsPath)
 		if err != nil {

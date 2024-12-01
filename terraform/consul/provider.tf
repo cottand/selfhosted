@@ -8,8 +8,8 @@ terraform {
 }
 
 provider "consul" {
-  address        = "10.10.4.1:8501"
-  insecure_https = true
+  address        = "https://consul.traefik"
+  insecure_https = false
   scheme         = "https"
   datacenter     = "dc1"
 }
