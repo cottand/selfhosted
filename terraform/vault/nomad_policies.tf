@@ -33,3 +33,17 @@ path "secret/data/services/*" {
 }
 EOT
 }
+
+
+
+resource "vault_policy" "vault-backup-maker" {
+  name   = "vault-backup-maker"
+  policy = <<-EOT
+path "sys/storage/raft/snapshot" {
+  capabilities = ["read"]
+}
+path "sys/ha-status" {
+  capabilities = ["read"]
+}
+EOT
+}

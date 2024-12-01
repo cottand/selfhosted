@@ -85,7 +85,8 @@ lib.mkJob name {
       connect.sidecarService.proxy.config = lib.mkEnvoyProxyConfig {
         otlpService = "proxy-${name}-grpc";
         otlpUpstreamPort = otlpPort;
-        protocol = "grpc";
+        extra.local_request_timeout_ms = 5 * 60 * 1000;
+        extra.protocol = "grpc";
       };
       connect.sidecarTask.resources = sidecarResources;
       port = toString ports.grpc;
