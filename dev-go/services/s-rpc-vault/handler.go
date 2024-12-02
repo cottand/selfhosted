@@ -1,6 +1,7 @@
 package module
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -9,9 +10,7 @@ import (
 	pb "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-vault"
 	vault "github.com/hashicorp/vault/api"
 	"github.com/monzo/terrors"
-	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/types/known/emptypb"
-	"io"
 	"time"
 )
 
@@ -45,27 +44,21 @@ func (h *ProtoHandler) Snapshot(ctx context.Context, _ *emptypb.Empty) (*emptypb
 	if err != nil {
 		return nil, err
 	}
-	pr, pw := io.Pipe()
 	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(1*time.Minute))
+	defer cancel()
 	key := fmt.Sprintf("vault/snapshot/%s-%v.snap", time.Now().Format(time.DateOnly), time.Now().UnixMilli())
-	wg, wctx := errgroup.WithContext(ctx)
-	wg.Go(func() error {
-		_, err2 := b2.PutObject(wctx, &s3.PutObjectInput{
-			Bucket: aws.String("services-bu"),
-			Body:   pr,
-			Key:    aws.String(key),
-		})
-		if err2 != nil {
-			return err2
-		}
-		return nil
+	buffer := bytes.NewBuffer(nil)
+	err = h.vaultClient.Sys().RaftSnapshotWithContext(ctx, buffer)
+	if err != nil {
+		return nil, terrors.Augment(err, "failed to snapshot raft snapshot", nil)
+	}
+	cLength := int64(buffer.Len())
+	_, err = b2.PutObject(ctx, &s3.PutObjectInput{
+		Bucket:        aws.String("services-bu"),
+		Body:          buffer,
+		ContentLength: &cLength,
+		Key:           aws.String(key),
 	})
-	wg.Go(func() error {
-		return h.vaultClient.Sys().RaftSnapshotWithContext(wctx, pw)
-	})
-
-	err = wg.Wait()
-	cancel()
 	if err != nil {
 		return nil, terrors.Augment(err, "failed to upload snapshot", nil)
 	}
