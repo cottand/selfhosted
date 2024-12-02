@@ -7,12 +7,18 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/cottand/selfhosted/dev-go/lib/secretstore"
 	"github.com/monzo/terrors"
+	"log/slog"
 )
 
 // TODO fetch creds via vault client at "secret/data/services/db-rw-default"
 
 func credentialsProvider() aws.CredentialsProvider {
 	f := aws.CredentialsProviderFunc(func(ctx context.Context) (creds aws.Credentials, err error) {
+		defer func() {
+			if err != nil {
+				slog.Error("Error getting AWS credentials", "err", err.Error())
+			}
+		}()
 		credsPath := "services/s-rpc-vault-api/b2-services-bu"
 		errParams := map[string]string{"secretPath": credsPath}
 		secret, err := secretstore.GetString(ctx, credsPath)
@@ -32,7 +38,7 @@ func credentialsProvider() aws.CredentialsProvider {
 	return aws.NewCredentialsCache(f)
 }
 
-func B2Client(ctx context.Context) (*s3.Client, error) {
+func B2Client() (*s3.Client, error) {
 	config := aws.Config{
 		BaseEndpoint: aws.String("https://s3.us-east-005.backblazeb2.com"),
 		Credentials:  credentialsProvider(),

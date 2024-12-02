@@ -2,14 +2,17 @@ package module
 
 import (
 	"context"
+	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/cottand/selfhosted/dev-go/lib/objectstore"
 	pb "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-vault"
 	vault "github.com/hashicorp/vault/api"
 	"github.com/monzo/terrors"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"io"
+	"time"
 )
 
 type ProtoHandler struct {
@@ -38,33 +41,33 @@ func (h *ProtoHandler) Snapshot(ctx context.Context, _ *emptypb.Empty) (*emptypb
 		return nil, terrors.Augment(err, "failed to set vault address", nil)
 	}
 
-	b2, err := objectstore.B2Client(ctx)
+	b2, err := objectstore.B2Client()
 	if err != nil {
 		return nil, err
 	}
 	pr, pw := io.Pipe()
-	errChan := make(chan error)
-	go func() {
-		_, err2 := b2.PutObject(ctx, &s3.PutObjectInput{
+	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(1*time.Minute))
+	key := fmt.Sprintf("vault/snapshot/%s-%v.snap", time.Now().Format(time.DateOnly), time.Now().UnixMilli())
+	wg, wctx := errgroup.WithContext(ctx)
+	wg.Go(func() error {
+		_, err2 := b2.PutObject(wctx, &s3.PutObjectInput{
 			Bucket: aws.String("services-bu"),
-
-			Body: pr,
+			Body:   pr,
+			Key:    aws.String(key),
 		})
 		if err2 != nil {
-			errChan <- err
+			return err2
 		}
-	}()
-	err = h.vaultClient.Sys().RaftSnapshotWithContext(ctx, pw)
-	_ = pw.Close()
+		return nil
+	})
+	wg.Go(func() error {
+		return h.vaultClient.Sys().RaftSnapshotWithContext(wctx, pw)
+	})
 
-	select {
-	case e := <-errChan:
-		return nil, terrors.Augment(e, "failed to upload snapshot", nil)
-	default:
-	}
+	err = wg.Wait()
+	cancel()
 	if err != nil {
-		return &emptypb.Empty{}, terrors.Augment(err, "failed to upload snapshot", nil)
+		return nil, terrors.Augment(err, "failed to upload snapshot", nil)
 	}
-	slog.Info("vault snapshot uploaded successfully")
 	return &emptypb.Empty{}, nil
 }
