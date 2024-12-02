@@ -41,6 +41,7 @@ func credentialsProvider() aws.CredentialsProvider {
 func B2Client() (*s3.Client, error) {
 	config := aws.Config{
 		BaseEndpoint: aws.String("https://s3.us-east-005.backblazeb2.com"),
+		Region:       "us-east-005",
 		Credentials:  credentialsProvider(),
 	}
 	client := s3.NewFromConfig(config)

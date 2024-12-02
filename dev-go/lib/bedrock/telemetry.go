@@ -26,8 +26,11 @@ func init() {
 }
 
 func loggerReplaceErrs(groups []string, pre slog.Attr) slog.Attr {
+	if !(pre.Key == "err" || pre.Key == "error") {
+		return pre
+	}
 	err, isErr := pre.Value.Any().(terrors.Error)
-	if (pre.Key != "err" && pre.Key != "error") || !isErr {
+	if !isErr {
 		return pre
 	}
 	params := make([]slog.Attr, len(err.Params))
