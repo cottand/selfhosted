@@ -54,7 +54,7 @@ func (s *scaffold) handlePush(writer http.ResponseWriter, request *http.Request)
 	ghHmac256 := request.Header.Get("X-Hub-Signature-256")
 	err = validateWebhookHmac(ctx, []byte{}, ghSecret, ghHmac256)
 	if err != nil {
-		slog.Debug("skipping invalid push event")
+		slog.Info("skipping invalid push event", "err", err)
 		return
 	}
 	slog.Info("event validation OK ✅")
