@@ -14,10 +14,11 @@ import (
 	"os"
 )
 
+var slogOpts = &slog.HandlerOptions{ReplaceAttr: loggerReplaceErrs}
+
 func init() {
-	opts := &slog.HandlerOptions{ReplaceAttr: loggerReplaceErrs}
 	logger := slog.New(slogotel.OtelHandler{
-		Next:          slog.NewJSONHandler(os.Stderr, opts),
+		Next:          slog.NewJSONHandler(os.Stderr, slogOpts),
 		NoBaggage:     false,
 		NoTraceEvents: false,
 	})
@@ -29,17 +30,21 @@ func loggerReplaceErrs(groups []string, pre slog.Attr) slog.Attr {
 	if !(pre.Key == "err" || pre.Key == "error") {
 		return pre
 	}
-	err, isErr := pre.Value.Any().(terrors.Error)
+	err, isErr := pre.Value.Any().(error)
 	if !isErr {
 		return pre
 	}
-	params := make([]slog.Attr, len(err.Params))
-	for paramK, paramV := range err.Params {
+	var terror *terrors.Error
+	if !errors.As(err, &terror) {
+		return pre
+	}
+	var params []any
+	for paramK, paramV := range terror.Params {
 		params = append(params, slog.String(paramK, paramV))
 	}
 	return slog.Group("error",
 		slog.String("msg", err.Error()),
-		slog.Group("param", params),
+		slog.Group("param", params...),
 	)
 	//return slog.Group(
 	//	pre.Key,
