@@ -18,7 +18,6 @@ type ProtoHandler struct {
 }
 
 func (h *ProtoHandler) Deploy(ctx context.Context, job *pb.Job) (*emptypb.Empty, error) {
-
 	rendered, err := jobFileToSpec(ctx, job)
 	if err != nil {
 		return nil, terrors.Augment(err, "failed to render job", nil)

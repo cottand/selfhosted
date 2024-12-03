@@ -46,14 +46,6 @@ func loggerReplaceErrs(groups []string, pre slog.Attr) slog.Attr {
 		slog.String("msg", err.Error()),
 		slog.Group("param", params...),
 	)
-	//return slog.Group(
-	//	pre.Key,
-	//	slog.Group("")
-	//	)
-	//slog.Attr{
-	//	Key:pre.Key,
-	//	Value: slog.Group(),
-	//}
 }
 
 func LoggerFor(serviceName string) *slog.Logger {
@@ -117,9 +109,6 @@ func newTraceProvider(ctx context.Context) (*trace.TracerProvider, error) {
 		return nil, terrors.Propagate(err)
 	}
 
-	traceProvider := trace.NewTracerProvider(
-		trace.WithBatcher(traceExporter),
-		//trace.WithResource(res),
-	)
+	traceProvider := trace.NewTracerProvider(trace.WithBatcher(traceExporter))
 	return traceProvider, nil
 }

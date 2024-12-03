@@ -52,7 +52,7 @@ func (s *scaffold) handlePush(writer http.ResponseWriter, request *http.Request)
 		return
 	}
 	ghHmac256 := request.Header.Get("X-Hub-Signature-256")
-	err = validateWebhookHmac(ctx, []byte{}, ghSecret, ghHmac256)
+	err = validateWebhookHmac(fullBody.Bytes(), ghSecret, ghHmac256)
 	if err != nil {
 		slog.InfoContext(ctx, "skipping invalid push event", "err", err)
 		return
@@ -112,7 +112,7 @@ func ghWebhookSecret(ctx context.Context) (string, error) {
 	return whSecret, nil
 }
 
-func validateWebhookHmac(ctx context.Context, payloadBody []byte, secret, digestGH256 string) error {
+func validateWebhookHmac(payloadBody []byte, secret, digestGH256 string) error {
 	mac := hmac.New(sha256.New, []byte(secret))
 	mac.Write(payloadBody)
 	actualSignature := "sha256=" + hex.EncodeToString(mac.Sum(nil))

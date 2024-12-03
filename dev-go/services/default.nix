@@ -14,5 +14,7 @@
   s-web-github-webhook = callPackage ./s-web-github-webhook/package.nix { };
   s-web-portfolio = callPackage ./s-web-portfolio/package.nix { };
 
+  cron-vault-snapshot = callPackage ./cron-vault-snapshot/package.nix { };
+
   services-go = callPackage ./package.nix { };
 }
