@@ -14,7 +14,7 @@ let
   otlpPort = 9001;
   bind = lib.localhost;
   kiB = 1024;
-  chunkFactor = 2;
+  chunkFactor = 4;
 
   mkGroup = { mode, count, resources, service }: {
     inherit count service;

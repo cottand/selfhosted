@@ -1,6 +1,6 @@
 let
   lib = (import ../lib) { };
-  version = "2.6.0";
+  version = "2.6.1";
   cpu = 256;
   mem = 700;
   ports = {
@@ -127,7 +127,7 @@ lib.mkJob "tempo" {
 
           compactor:
             compaction:
-              block_retention: 1h                # overall Tempo trace retention.
+              block_retention: 2h                # overall Tempo trace retention.
 
           metrics_generator:
             registry:

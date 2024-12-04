@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	vault "github.com/hashicorp/vault/api"
 	"github.com/monzo/terrors"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"log/slog"
+	"net/http"
 	"reflect"
 	"strconv"
 	"time"
@@ -15,6 +17,7 @@ func NewClient() (*vault.Client, error) {
 	vaultConfig := vault.DefaultConfig()
 	vaultConfig.Address = "https://vault.dcotta.com:8200"
 	vaultConfig.DisableRedirects = false
+	vaultConfig.HttpClient = &http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}
 	err := vaultConfig.ConfigureTLS(&vault.TLSConfig{
 		TLSServerName: "vault.dcotta.com",
 	})

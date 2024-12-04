@@ -5,7 +5,9 @@ import (
 	"github.com/cottand/selfhosted/dev-go/lib/mono"
 	s_rpc_nomad_api "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-nomad-api"
 	nomad "github.com/hashicorp/nomad/api"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"google.golang.org/grpc"
+	"net/http"
 	"os"
 )
 
@@ -18,8 +20,9 @@ func InitService() {
 		return
 	}
 	nomadClient, err := nomad.NewClient(&nomad.Config{
-		Address:  "unix:///secrets/api.sock",
-		SecretID: token,
+		Address:    "unix:///secrets/api.sock",
+		SecretID:   token,
+		HttpClient: &http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)},
 	})
 	if err != nil {
 		slog.Error("failed to create Nomad client, aborting init", "err", err.Error())

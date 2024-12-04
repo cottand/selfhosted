@@ -3,8 +3,8 @@ let
   version = "v23.1.22";
   cache = "70MB";
   maxSqlMem = "${toString (mem * 0.5)}MB";
-  cpu = 1000;
-  mem = 1024;
+  cpu = 1200;
+  mem = 1500;
   rpcPort = 26257;
   webPort = 8080;
   sqlPort = 5432;
