@@ -7,7 +7,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/cottand/selfhosted/dev-go/lib/secretstore"
 	"github.com/monzo/terrors"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"log/slog"
+	"net/http"
 )
 
 // TODO fetch creds via vault client at "secret/data/services/db-rw-default"
@@ -43,6 +45,7 @@ func B2Client() (*s3.Client, error) {
 		BaseEndpoint: aws.String("https://s3.us-east-005.backblazeb2.com"),
 		Region:       "us-east-005",
 		Credentials:  credentialsProvider(),
+		HTTPClient:   &http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)},
 	}
 	client := s3.NewFromConfig(config)
 	return client, nil
