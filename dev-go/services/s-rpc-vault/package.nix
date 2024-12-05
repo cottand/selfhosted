@@ -12,29 +12,26 @@
 , ...
 }:
 let
-  name = "s-rpc-vault";
+  name = builtins.baseNameOf ./.;
 
   src = util.cleanSourceForGoService name;
-
-  assetsEnv = buildEnv {
-    name = "${name}-assets";
-    paths = [ ];
-  };
 
   bin = buildGoModule {
     inherit name src;
     subPackages = [ "services/${name}" ];
-    nativeBuildInputs = [ pkg-config ];
-    buildInputs = [ nixVersions.nix_2_22 ];
-    CGO_ENABLED = 1;
     vendorHash = null;
-    ldflags = [ "-X github.com/cottand/selfhosted/dev-go/lib/bedrock.nixAssetsDir=${assetsEnv.outPath}" ];
   };
 
-  binaryEnv = buildEnv {
+  image = dockerTools.buildImage {
     inherit name;
-    paths = [ bin assetsEnv bash ];
+    copyToRoot = imageEnv;
+    config.Cmd = [ "/bin/${name}" ];
+  };
+
+  imageEnv = buildEnv {
+    inherit name;
+    paths = [ (bin.overrideAttrs { doCheck = false; }) bash ];
   };
   protos = util.protosFor name;
 in
-binaryEnv // { inherit bin protos; }
+imageEnv // { inherit image bin protos; }

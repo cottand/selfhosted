@@ -1,3 +1,8 @@
+resource "vault_policy" "nomad-workload-roach" {
+  policy = "${file("policies/nomad-workloads.hcl")}\n${file("policies/roach.hcl")}"
+  name   = "roach"
+}
+
 resource "vault_policy" "gcp-bigquery-dataviewer" {
   name   = "gcp-bigquery-dataviewer"
   policy = <<-EOT
@@ -36,14 +41,33 @@ EOT
 
 
 
+resource "vault_policy" "service-self-secrets-read" {
+  name   = "service-self-secrets-read"
+  policy = data.vault_policy_document.services-self-secrets-read.hcl
+}
+data "vault_policy_document" "services-self-secrets-read" {
+  rule {
+    path = "secret/data/services/${vault_jwt_auth_backend.jwt-nomad.accessor}"
+    capabilities = ["read"]
+  }
+  rule {
+    path = "secret/data/services/${vault_jwt_auth_backend.jwt-nomad.accessor}/*"
+    capabilities = ["read"]
+  }
+}
+
+
 resource "vault_policy" "vault-backup-maker" {
   name   = "vault-backup-maker"
-  policy = <<-EOT
-path "sys/storage/raft/snapshot" {
-  capabilities = ["read"]
+  policy = data.vault_policy_document.vault-backup-maker.hcl
 }
-path "sys/ha-status" {
-  capabilities = ["read"]
-}
-EOT
+data "vault_policy_document" "vault-backup-maker" {
+  rule {
+    path = "sys/storage/raft/snapshot"
+    capabilities = ["read"]
+  }
+  rule {
+    path = "sys/ha-status"
+    capabilities = ["read"]
+  }
 }
