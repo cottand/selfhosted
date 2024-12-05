@@ -19,11 +19,6 @@ module "workload-role-services-db-rw-default" {
   vault_policy  = "${file("policies/nomad-workloads.hcl")}\n${file("policies/service-db-rw-default.hcl")}"
 }
 
-resource "vault_policy" "nomad-workload-roach" {
-  policy = "${file("policies/nomad-workloads.hcl")}\n${file("policies/roach.hcl")}"
-  name   = "roach"
-}
-
 
 locals {
   # name -> [ policies ]
@@ -41,6 +36,27 @@ locals {
         module.workload-role-services-db-rw-default.policy_name,
       ]
       ttl = 10 * 60 * 60 # 10h
+    }
+
+    ###
+    # below is for microservices mode only!
+    ######
+
+    "service-default" = {
+      policies = [
+        module.workload-role-services-db-rw-default.policy_name,
+        vault_policy.service-self-secrets-read.name,
+      ]
+      ttl = 48 * 60 * 60 # 48h
+    }
+
+    "s-rpc-vault" = {
+      policies = [
+        module.workload-role-services-db-rw-default.policy_name,
+        vault_policy.service-self-secrets-read.name,
+        vault_policy.vault-backup-maker.name,
+      ]
+      ttl = 48 * 60 * 60 # 48h
     }
   }
 }

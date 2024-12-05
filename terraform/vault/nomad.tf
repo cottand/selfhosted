@@ -17,14 +17,14 @@ resource "vault_kv_secret_backend_v2" "kv" {
 ## PKI
 
 resource "vault_pki_secret_backend_role" "nomad_intermediate_role" {
-  backend         = vault_mount.pki_int.path
-  issuer_ref      = vault_pki_secret_backend_issuer.intermediate.issuer_ref
-  name            = "nomad-dcotta"
-  max_ttl         = 25920000
-  ttl             = 25920000
-  allow_ip_sans   = true
-  key_type        = "rsa"
-  key_bits        = 4096
+  backend       = vault_mount.pki_int.path
+  issuer_ref    = vault_pki_secret_backend_issuer.intermediate.issuer_ref
+  name          = "nomad-dcotta"
+  max_ttl       = 25920000
+  ttl           = 25920000
+  allow_ip_sans = true
+  key_type      = "rsa"
+  key_bits      = 4096
   allowed_domains = [
     "*.mesh.dcotta.eu",
     "nomad.traefik",
@@ -70,9 +70,9 @@ resource "vault_pki_secret_backend_cert" "nomad-dcotta" {
 # Put new cert in KV
 resource "vault_kv_secret_v2" "nomad-mtls" {
   depends_on = [vault_pki_secret_backend_cert.nomad-dcotta]
-  mount      = vault_mount.kv-secret.path
-  name       = "/nomad/infra/tls"
-  data_json  = jsonencode({
+  mount = vault_mount.kv-secret.path
+  name  = "/nomad/infra/tls"
+  data_json = jsonencode({
     private_key = vault_pki_secret_backend_cert.nomad-dcotta.private_key
     cert        = "${vault_pki_secret_backend_cert.nomad-dcotta.certificate}\n${vault_pki_secret_backend_cert.nomad-dcotta.ca_chain}"
     ca          = vault_pki_secret_backend_root_cert.root_2024.certificate
@@ -81,20 +81,20 @@ resource "vault_kv_secret_v2" "nomad-mtls" {
 
 resource "vault_kv_secret_v2" "nomad-pub-cert" {
   depends_on = [vault_pki_secret_backend_cert.nomad-dcotta]
-  mount      = vault_mount.kv-secret.path
-  name       = "/nomad/infra/root_ca"
-  data_json  = jsonencode({
+  mount = vault_mount.kv-secret.path
+  name  = "/nomad/infra/root_ca"
+  data_json = jsonencode({
     value = vault_pki_secret_backend_root_cert.root_2024.certificate
   })
 }
 
 
 resource "vault_jwt_auth_backend" "jwt-nomad" {
-  type               = "jwt"
-  path               = "jwt-nomad"
-  jwks_url           = "https://nomad.mesh.dcotta.eu:4646/.well-known/jwks.json"
+  type         = "jwt"
+  path         = "jwt-nomad"
+  jwks_url     = "https://nomad.mesh.dcotta.eu:4646/.well-known/jwks.json"
   jwt_supported_algs = ["RS256", "EdDSA"]
-  default_role       = "nomad-workloads"
+  default_role = "nomad-workloads"
 }
 
 #
@@ -103,10 +103,10 @@ resource "vault_jwt_auth_backend" "jwt-nomad" {
 resource "vault_jwt_auth_backend_role" "nomad-workloads" {
   role_name               = "nomad-workloads"
   role_type               = "jwt"
-  bound_audiences         = ["vault.io"]
+  bound_audiences = ["vault.io"]
   user_claim              = "/nomad_job_id"
   user_claim_json_pointer = true
-  claim_mappings          = tomap({
+  claim_mappings = tomap({
     nomad_namespace = "nomad_namespace"
     nomad_job_id    = "nomad_job_id"
     nomad_task      = "nomad_task"
@@ -116,9 +116,9 @@ resource "vault_jwt_auth_backend_role" "nomad-workloads" {
   token_period           = 30 * 60 * 60
   token_explicit_max_ttl = 0
   backend                = vault_jwt_auth_backend.jwt-nomad.path
-}
+  }
 
 resource "vault_policy" "nomad-workloads" {
   policy = file("policies/nomad-workloads.hcl")
-  name   = "nomad-workloads"
+  name = "nomad-workloads"
 }

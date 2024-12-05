@@ -1,4 +1,4 @@
-package module
+package main
 
 import (
 	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
@@ -10,7 +10,7 @@ import (
 
 var Name, slog, tracer = bedrock.Service("s-rpc-vault")
 
-func InitService() {
+func main() {
 	vaultClient, err := secretstore.NewClient()
 	if err != nil {
 		slog.Error("failed to init vault client", "err", err.Error())
@@ -31,4 +31,6 @@ func InitService() {
 	go func() {
 		_, _ = <-notify
 	}()
+
+	mono.RunRegistered()
 }

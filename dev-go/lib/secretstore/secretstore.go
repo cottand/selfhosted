@@ -2,10 +2,12 @@ package secretstore
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	vault "github.com/hashicorp/vault/api"
 	"github.com/monzo/terrors"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"golang.org/x/net/http2"
 	"log/slog"
 	"net/http"
 	"reflect"
@@ -17,10 +19,15 @@ func NewClient() (*vault.Client, error) {
 	vaultConfig := vault.DefaultConfig()
 	vaultConfig.Address = "https://vault.dcotta.com:8200"
 	vaultConfig.DisableRedirects = false
-	vaultConfig.HttpClient = &http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)}
-	err := vaultConfig.ConfigureTLS(&vault.TLSConfig{
-		TLSServerName: "vault.dcotta.com",
-	})
+	transport := http.Transport{
+		TLSClientConfig: &tls.Config{
+			ServerName: "vault.dcotta.com",
+		},
+	}
+	err := http2.ConfigureTransport(&transport)
+	vaultConfig.HttpClient = &http.Client{
+		Transport: otelhttp.NewTransport(&transport),
+	}
 	if err != nil {
 		return nil, terrors.Augment(err, "failed to init vault client", nil)
 	}

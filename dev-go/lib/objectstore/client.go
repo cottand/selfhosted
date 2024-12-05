@@ -21,7 +21,7 @@ func credentialsProvider() aws.CredentialsProvider {
 				slog.Error("Error getting AWS credentials", "err", err.Error())
 			}
 		}()
-		credsPath := "services/s-rpc-vault-api/b2-services-bu"
+		credsPath := "services/s-rpc-vault/b2-services-bu"
 		errParams := map[string]string{"secretPath": credsPath}
 		secret, err := secretstore.GetString(ctx, credsPath)
 		if err != nil {
