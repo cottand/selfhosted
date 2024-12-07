@@ -11,15 +11,11 @@ import (
 )
 
 func main() {
-	mono.Register(s_web_github_webhook.Name, s_web_github_webhook.InitService)
-
-	mono.Register(s_rpc_nomad.Name, s_rpc_nomad.InitService)
-
-	mono.Register(s_rpc_portfolio_stats.Name, s_rpc_portfolio_stats.InitService)
-
-	mono.Register(s_web_portfolio.Name, s_web_portfolio.InitService)
-
-	mono.Register(s_rpc_vault.Name, s_rpc_vault.InitService)
+	mono.Register(s_web_github_webhook.InitService)
+	mono.Register(s_rpc_nomad.InitService)
+	mono.Register(s_rpc_portfolio_stats.InitService)
+	mono.Register(s_web_portfolio.InitService)
+	mono.Register(s_rpc_vault.InitService)
 
 	mono.RunRegistered()
 }

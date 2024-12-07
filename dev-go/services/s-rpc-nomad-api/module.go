@@ -16,10 +16,10 @@ import (
 
 var Name, slog, tracer = bedrock.New("s-rpc-nomad-api")
 
-func InitService(_ context.Context) (*mono.Service, error) {
+func InitService(_ context.Context) (*mono.Service, string, error) {
 	token, ok := os.LookupEnv("NOMAD_TOKEN")
 	if !ok {
-		return nil, errors.New("NOMAD_TOKEN environment variable not set")
+		return nil, Name, errors.New("NOMAD_TOKEN environment variable not set")
 	}
 	nomadClient, err := nomad.NewClient(&nomad.Config{
 		Address:    "unix:///secrets/api.sock",
@@ -27,7 +27,7 @@ func InitService(_ context.Context) (*mono.Service, error) {
 		HttpClient: &http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)},
 	})
 	if err != nil {
-		return nil, terrors.Augment(err, "failed to create nomad client", nil)
+		return nil, Name, terrors.Augment(err, "failed to create nomad client", nil)
 	}
 	protoHandler := &ProtoHandler{
 		nomadClient: nomadClient,
@@ -42,5 +42,5 @@ func InitService(_ context.Context) (*mono.Service, error) {
 			return nil
 		},
 	}
-	return &service, nil
+	return &service, Name, nil
 }

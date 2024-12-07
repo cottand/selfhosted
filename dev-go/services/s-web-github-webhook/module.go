@@ -23,7 +23,7 @@ type scaffold struct {
 	bq    *bigquery.Client
 }
 
-func InitService(ctx context.Context) (*mono.Service, error) {
+func InitService(ctx context.Context) (*mono.Service, string, error) {
 	conn, err := bedrock.NewGrpcConn()
 	if err != nil {
 		log.Fatalf(terrors.Propagate(err).Error())
@@ -68,5 +68,5 @@ func InitService(ctx context.Context) (*mono.Service, error) {
 			)
 		},
 	}
-	return &service, nil
+	return &service, Name, nil
 }

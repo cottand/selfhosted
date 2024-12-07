@@ -18,7 +18,7 @@
         "@type" = "type.googleapis.com/envoy.config.trace.v3.OpenTelemetryConfig";
         grpc_service = {
           envoy_grpc.cluster_name = "opentelemetry_collector";
-          timeout = "0.500s";
+          timeout = "1.500s";
         };
         service_name = otlpService;
       };

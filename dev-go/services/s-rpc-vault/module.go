@@ -12,10 +12,10 @@ import (
 
 var Name, slog, tracer = bedrock.New("s-rpc-vault")
 
-func InitService(_ context.Context) (*mono.Service, error) {
+func InitService(_ context.Context) (*mono.Service, string, error) {
 	vaultClient, err := secretstore.NewClient()
 	if err != nil {
-		return nil, terrors.Augment(err, "failed to init vault client", nil)
+		return nil, Name, terrors.Augment(err, "failed to init vault client", nil)
 	}
 	protoHandler := &ProtoHandler{
 		vaultClient: vaultClient,
@@ -26,5 +26,5 @@ func InitService(_ context.Context) (*mono.Service, error) {
 			s_rpc_vault.RegisterVaultApiServer(srv, protoHandler)
 		},
 		OnShutdown: func() error { return nil },
-	}, nil
+	}, Name, nil
 }
