@@ -14,7 +14,7 @@ import (
 //go:embed migrations
 var dbMigrations embed.FS
 
-var Name, slog, tracer = bedrock.Service("s-rpc-portfolio-stats")
+var Name, slog, tracer = bedrock.New("s-rpc-portfolio-stats")
 
 func InitService() {
 	db, err := bedrock.GetMigratedDB(Name, dbMigrations)

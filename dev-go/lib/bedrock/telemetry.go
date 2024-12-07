@@ -52,7 +52,7 @@ func LoggerFor(serviceName string) *slog.Logger {
 	return slog.With("service_module", serviceName)
 }
 
-func Service(name string) (Name string, slog *slog.Logger, tracer otrace.Tracer) {
+func New(name string) (Name string, slog *slog.Logger, tracer otrace.Tracer) {
 	return name, LoggerFor(name), otel.Tracer(name)
 }
 

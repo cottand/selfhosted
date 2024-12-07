@@ -7,5 +7,5 @@ import (
 )
 
 func New(name string) (Name string, slog_ *slog.Logger, tracer otrace.Tracer) {
-	return name, slog.With("service_cron", name), otel.Tracer(name)
+	return name, slog.With("service_", name), otel.Tracer(name)
 }

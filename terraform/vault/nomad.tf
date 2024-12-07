@@ -28,6 +28,7 @@ resource "vault_pki_secret_backend_role" "nomad_intermediate_role" {
   allowed_domains = [
     "*.mesh.dcotta.eu",
     "nomad.traefik",
+    "nomad.dcotta.com",
     "server.global.nomad",
     "client.global.nomad",
     "*.${local.tsDomain}",
@@ -44,20 +45,10 @@ resource "vault_pki_secret_backend_cert" "nomad-dcotta" {
   name        = vault_pki_secret_backend_role.nomad_intermediate_role.name
   common_name = "server.global.nomad"
 
-  ip_sans = [
-    "10.10.0.1",
-    "10.10.0.2",
-    "10.10.1.1",
-    "10.10.3.1",
-    "10.10.4.1",
-    "10.10.5.1",
-    "10.10.6.1",
-    "10.10.11.1",
-    "10.10.12.1",
-    "10.10.13.1",
-  ]
+  ip_sans = []
   alt_names = [
     "nomad.traefik",
+    "nomad.dcotta.com",
     "client.global.nomad",
     "*.mesh.dcotta.eu",
     "meta1.mesh.dcotta.eu",
@@ -91,17 +82,17 @@ resource "vault_kv_secret_v2" "nomad-pub-cert" {
 
 resource "vault_jwt_auth_backend" "jwt-nomad" {
   type         = "jwt"
-  path         = "jwt-nomad"
+  path = "jwt-nomad"
+  # TODO change with nomad.dcotta.com once certs are replaced!
   jwks_url     = "https://nomad.mesh.dcotta.eu:4646/.well-known/jwks.json"
   jwt_supported_algs = ["RS256", "EdDSA"]
-  default_role = "nomad-workloads"
+  // must match the role below (but tf circular dependency)
+  default_role = "nomad-workload-default"
 }
 
-#
-
 # nomad-workloads role
-resource "vault_jwt_auth_backend_role" "nomad-workloads" {
-  role_name               = "nomad-workloads"
+resource "vault_jwt_auth_backend_role" "nomad-workloads-default" {
+  role_name               = "nomad-workloads-default"
   role_type               = "jwt"
   bound_audiences = ["vault.io"]
   user_claim              = "/nomad_job_id"
@@ -112,13 +103,9 @@ resource "vault_jwt_auth_backend_role" "nomad-workloads" {
     nomad_task      = "nomad_task"
   })
   token_type             = "service"
-  token_policies = ["nomad-workloads"] # matches policy in /nomad/vault_policy.nomad-workloads.name
+  token_policies = [vault_policy.nomad-workloads-base.name]
+  # matches policy in /nomad/vault_policy.nomad-workloads.name
   token_period           = 30 * 60 * 60
   token_explicit_max_ttl = 0
   backend                = vault_jwt_auth_backend.jwt-nomad.path
-  }
-
-resource "vault_policy" "nomad-workloads" {
-  policy = file("policies/nomad-workloads.hcl")
-  name = "nomad-workloads"
 }

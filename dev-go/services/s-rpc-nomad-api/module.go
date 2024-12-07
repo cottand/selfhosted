@@ -11,7 +11,7 @@ import (
 	"os"
 )
 
-var Name, slog, tracer = bedrock.Service("s-rpc-nomad-api")
+var Name, slog, tracer = bedrock.New("s-rpc-nomad-api")
 
 func InitService() {
 	token, ok := os.LookupEnv("NOMAD_TOKEN")
