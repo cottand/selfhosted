@@ -1,10 +1,13 @@
 package module
 
 import (
+	"context"
+	"errors"
 	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
 	"github.com/cottand/selfhosted/dev-go/lib/mono"
 	s_rpc_nomad_api "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-nomad-api"
 	nomad "github.com/hashicorp/nomad/api"
+	"github.com/monzo/terrors"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"google.golang.org/grpc"
 	"net/http"
@@ -13,11 +16,10 @@ import (
 
 var Name, slog, tracer = bedrock.New("s-rpc-nomad-api")
 
-func InitService() {
+func InitService(_ context.Context) (*mono.Service, error) {
 	token, ok := os.LookupEnv("NOMAD_TOKEN")
 	if !ok {
-		slog.Error("failed to get NOMAD_TOKEN, aborting init")
-		return
+		return nil, errors.New("NOMAD_TOKEN environment variable not set")
 	}
 	nomadClient, err := nomad.NewClient(&nomad.Config{
 		Address:    "unix:///secrets/api.sock",
@@ -25,23 +27,20 @@ func InitService() {
 		HttpClient: &http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)},
 	})
 	if err != nil {
-		slog.Error("failed to create Nomad client, aborting init", "err", err.Error())
-		return
+		return nil, terrors.Augment(err, "failed to create nomad client", nil)
 	}
 	protoHandler := &ProtoHandler{
 		nomadClient: nomadClient,
 	}
-	this := mono.Service{
+	service := mono.Service{
 		Name: Name,
 		RegisterGrpc: func(srv *grpc.Server) {
 			s_rpc_nomad_api.RegisterNomadApiServer(srv, protoHandler)
 		},
+		OnShutdown: func() error {
+			nomadClient.Close()
+			return nil
+		},
 	}
-
-	notify := mono.Register(this)
-
-	go func() {
-		_, _ = <-notify
-		nomadClient.Close()
-	}()
+	return &service, nil
 }

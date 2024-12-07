@@ -14,12 +14,10 @@ import (
 )
 import "github.com/cottand/selfhosted/dev-go/lib/bedrock"
 
-var Name = "s-web-portfolio"
+var Name, slog, _ = bedrock.New("s-web-portfolio")
 
-var slog = bedrock.LoggerFor(Name)
-
-func InitService() {
-	ctx := context.Background()
+func InitService(ctx context.Context) (*mono.Service, error) {
+	ctx = context.Background()
 	conn, err := bedrock.NewGrpcConn()
 	if err != nil {
 		log.Fatalf(terrors.Propagate(err).Error())
@@ -40,24 +38,25 @@ func InitService() {
 		Handler:      otelhttp.NewHandler(scaff.MakeHandler(), Name+"-http"),
 	}
 
-	var serverErr error
 	go func() {
 		err := srv.ListenAndServe()
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
-			slog.Error("failed to start HTTP: "+terrors.Propagate(err).Error(), "service", Name)
+			slog.Error("failed to start HTTP", "service", Name, "err", terrors.Propagate(err))
 		}
 	}()
+	var serverErr error
 
-	notify := mono.Register(mono.Service{
+	service := &mono.Service{
 		Name: Name,
-	})
-	go func() {
-		_, _ = <-notify
-		if conn.Close() != nil {
-			slog.Error(terrors.Propagate(err).Error(), "Failed to close gRPC conn", "service", Name)
-		}
-		if serverErr != nil {
-			slog.Error(terrors.Propagate(err).Error(), "Failed to close gRPC conn", "service", Name)
-		}
-	}()
+		OnShutdown: func() error {
+			if conn.Close() != nil {
+				return terrors.Augment(err, "failed to close gRPC conn", nil)
+			}
+			if serverErr != nil {
+				return terrors.Augment(err, "failed to close gRPC conn", nil)
+			}
+			return nil
+		},
+	}
+	return service, nil
 }
