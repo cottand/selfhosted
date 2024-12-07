@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
-	"github.com/cottand/selfhosted/dev-go/lib/cron"
 	s_rpc_vault "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-vault"
 	"github.com/monzo/terrors"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -13,7 +12,7 @@ import (
 
 func main() {
 	ctx := context.Background()
-	_, slog, tracer := cron.New("cron-vault-snapshot")
+	_, slog, tracer := bedrock.New("cron-vault-snapshot")
 
 	ctx, span := tracer.Start(ctx, "cron")
 	defer span.End()

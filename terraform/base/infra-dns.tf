@@ -14,3 +14,11 @@ resource "cloudflare_record" "vault" {
   zone_id = local.zoneIds["com"]
   value = data.tailscale_device.oci-control[each.value].addresses[0]
 }
+
+resource "cloudflare_record" "nomad" {
+  for_each = local.oci-control-machines
+  name    = "nomad"
+  type    = "A"
+  zone_id = local.zoneIds["com"]
+  value = data.tailscale_device.oci-control[each.value].addresses[0]
+}

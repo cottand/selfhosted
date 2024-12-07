@@ -88,11 +88,10 @@ resource "vault_gcp_secret_roleset" "bigquery-querier-editor" {
   secret_type = "access_token"
   binding {
     resource = "//cloudresourcemanager.googleapis.com/projects/${local.gcp.project}"
-    roles = ["roles/bigquery.jobUser"]
-  }
-  binding {
-    resource = "//cloudresourcemanager.googleapis.com/projects/${local.gcp.project}"
-    roles = ["roles/bigquery.dataEditor"]
+    roles = [
+      "roles/bigquery.jobUser",
+      "roles/bigquery.dataEditor",
+    ]
   }
   token_scopes = ["https://www.googleapis.com/auth/cloud-platform"]
 }

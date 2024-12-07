@@ -6,6 +6,7 @@
   # templates a nomad nix file into JSON and calls nomad run on it
   # usage: nixmad --help
   nixmad = callPackage ./nixmad.nix { inherit self; };
+  shipper = callPackage ./shipper.nix { inherit self; };
 
   # fetches a secret from bitwarden-secret by ID
   # usage: bws-get <ID>

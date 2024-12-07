@@ -62,7 +62,7 @@ vault {
     aud  = ["vault.io"]
     env  = false
     file = false
-    ttl  = "2h"
+    ttl  = "6h"
   }
 }
 

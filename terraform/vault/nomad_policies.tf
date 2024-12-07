@@ -47,11 +47,13 @@ resource "vault_policy" "service-self-secrets-read" {
 }
 data "vault_policy_document" "services-self-secrets-read" {
   rule {
-    path = "secret/data/services/${vault_jwt_auth_backend.jwt-nomad.accessor}"
+    path = "secret/data/services/{{identity.entity.aliases.${vault_jwt_auth_backend.jwt-nomad.accessor}.metadata.nomad_job_id}}"
     capabilities = ["read"]
   }
   rule {
-    path = "secret/data/services/${vault_jwt_auth_backend.jwt-nomad.accessor}/*"
+    path = "secret/data/services/{{identity.entity.aliases.${vault_jwt_auth_backend.jwt-nomad.accessor}.metadata.nomad_job_id}}/*"
+    #                            ^^^^^^^^^^^^^^^^^^^
+    # this resolves to the name of the nomad job
     capabilities = ["read"]
   }
 }

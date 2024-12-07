@@ -13,7 +13,23 @@ import (
 	"path"
 )
 
-func RunCommand(cmd *cobra.Command, args []string) error {
+var deployCommand = &cobra.Command{
+	Use:           "deploy job.nix",
+	Short:         "Queue a .nix Nomad job",
+	RunE:          RunDeploy,
+	Args:          cobra.MinimumNArgs(1),
+	SilenceErrors: true,
+	SilenceUsage:  true,
+}
+var versionFlag string
+var useMasterFlag bool
+
+func init() {
+	deployCommand.Flags().StringVarP(&versionFlag, "version", "v", "", "version to pass to job")
+	deployCommand.Flags().BoolVarP(&useMasterFlag, "master", "", false, "use current commit for versin")
+}
+
+func RunDeploy(cmd *cobra.Command, args []string) error {
 	jobFile := path.Clean(args[0])
 	if useMasterFlag && versionFlag != "" {
 		return errors.New("cannot use both -v and --master")
@@ -27,16 +43,25 @@ func RunCommand(cmd *cobra.Command, args []string) error {
 		version = string(bytes.TrimSpace(versionBytes))
 	}
 
+	// check if file exists:
+	stat, err := os.Stat(jobFile)
+	if errors.Is(err, os.ErrNotExist) {
+		return err
+	}
+
+	// resolve to a directory with job.nix by default
+	if stat.IsDir() {
+		jobFile = path.Join(jobFile, "job.nix")
+		if _, err = os.Stat(jobFile); errors.Is(err, os.ErrNotExist) {
+			return err
+		}
+	}
+
 	cmd.Printf("Deploying %s", jobFile)
 	if version != "" {
 		cmd.Printf(" @ %s", version)
 	}
 	cmd.Println("...\n")
-
-	// check if file exists:
-	if _, err := os.Stat(jobFile); errors.Is(err, os.ErrNotExist) {
-		return err
-	}
 
 	pwd := os.Getenv("PWD")
 	importedFile := `import ./` + jobFile

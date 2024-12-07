@@ -24,7 +24,9 @@ var rootCmd = &cobra.Command{
 }
 
 var versionFlag string
+var useMasterFlag bool
 
 func init() {
 	rootCmd.Flags().StringVarP(&versionFlag, "version", "v", "", "version to pass to job")
+	rootCmd.Flags().BoolVarP(&useMasterFlag, "master", "", false, "use current commit for versin")
 }

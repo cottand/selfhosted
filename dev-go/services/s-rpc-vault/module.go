@@ -1,4 +1,4 @@
-package main
+package module
 
 import (
 	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
@@ -8,9 +8,9 @@ import (
 	"google.golang.org/grpc"
 )
 
-var Name, slog, tracer = bedrock.Service("s-rpc-vault")
+var Name, slog, tracer = bedrock.New("s-rpc-vault")
 
-func main() {
+func init() {
 	vaultClient, err := secretstore.NewClient()
 	if err != nil {
 		slog.Error("failed to init vault client", "err", err.Error())
