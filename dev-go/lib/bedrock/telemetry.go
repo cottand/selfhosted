@@ -8,8 +8,8 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/propagation"
-	"go.opentelemetry.io/otel/sdk/trace"
-	otrace "go.opentelemetry.io/otel/trace"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace"
 	"log/slog"
 	"os"
 )
@@ -52,7 +52,7 @@ func LoggerFor(serviceName string) *slog.Logger {
 	return slog.With("service_module", serviceName)
 }
 
-func New(name string) (Name string, slog *slog.Logger, tracer otrace.Tracer) {
+func New(name string) (Name string, slog *slog.Logger, tracer trace.Tracer) {
 	return name, LoggerFor(name), otel.Tracer(name)
 }
 
@@ -84,7 +84,7 @@ func setupOTelSDK(ctx context.Context) (shutdown func(context.Context) error, er
 	prop := newPropagator()
 	otel.SetTextMapPropagator(prop)
 
-	// Set up trace provider - TODO do not set it globally
+	// Set up sdktrace provider - TODO do not set it globally
 	tracerProvider, err := newTraceProvider(ctx)
 	if err != nil {
 		handleErr(terrors.Propagate(err))
@@ -103,12 +103,14 @@ func newPropagator() propagation.TextMapPropagator {
 	)
 }
 
-func newTraceProvider(ctx context.Context) (*trace.TracerProvider, error) {
+func newTraceProvider(ctx context.Context) (*sdktrace.TracerProvider, error) {
 	traceExporter, err := otlptracegrpc.New(ctx)
 	if err != nil {
 		return nil, terrors.Propagate(err)
 	}
 
-	traceProvider := trace.NewTracerProvider(trace.WithBatcher(traceExporter))
+	traceProvider := sdktrace.NewTracerProvider(
+		sdktrace.WithBatcher(traceExporter),
+	)
 	return traceProvider, nil
 }

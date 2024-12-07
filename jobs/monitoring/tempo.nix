@@ -127,7 +127,7 @@ lib.mkJob "tempo" {
 
           compactor:
             compaction:
-              block_retention: 2h                # overall Tempo trace retention.
+              block_retention: 12h                # overall Tempo trace retention.
 
           metrics_generator:
             registry:

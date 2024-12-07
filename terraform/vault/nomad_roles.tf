@@ -84,7 +84,9 @@ resource "vault_jwt_auth_backend_role" "nomad_workloads_role" {
   })
   token_type             = "service"
   token_policies = concat(each.value.policies, [])
-  token_max_ttl          = each.value.ttl
+  // token_period means that as long as Nomad renews it, the token is chilling
+  // this is necessary as otherwise the token will expire altogether and the task will fail
+  token_period           = each.value.ttl
   token_explicit_max_ttl = 0
   backend                = vault_jwt_auth_backend.jwt-nomad.path
 }
@@ -113,9 +115,18 @@ resource "vault_jwt_auth_backend_role" "nomad_workloads_role_services-go" {
     nomad_job_id    = "nomad_job_id"
     nomad_task      = "nomad_task"
   })
-  token_type             = "service"
-  token_policies = toset(flatten([for role in local.services-go-modules : local.nomad_roles[role]["policies"]]))
-  token_max_ttl = 10 * 60 * 60 # 10h
+  token_type = "service"
+  token_policies = toset(
+    concat(
+      flatten([for role in local.services-go-modules : local.nomad_roles[role]["policies"]]),
+      [
+        # other than that, services-go is unique as it must be able to read all other services' secrets,
+        # not just self (since self name does not match others' secrets)
+        vault_policy.services-all-secrets-read.name
+      ],
+    )
+  )
+  token_period           = 12 * 60 * 60
   token_explicit_max_ttl = 0
   backend                = vault_jwt_auth_backend.jwt-nomad.path
 }

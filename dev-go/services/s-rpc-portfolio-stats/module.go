@@ -15,10 +15,10 @@ var dbMigrations embed.FS
 
 var Name, slog, tracer = bedrock.New("s-rpc-portfolio-stats")
 
-func InitService(_ context.Context) (*mono.Service, error) {
+func InitService(_ context.Context) (*mono.Service, string, error) {
 	db, err := bedrock.GetMigratedDB(Name, dbMigrations)
 	if err != nil {
-		return nil, terrors.Propagate(err)
+		return nil, Name, terrors.Propagate(err)
 	}
 
 	refreshCtx, refreshCancel := context.WithCancel(context.Background())
@@ -38,5 +38,5 @@ func InitService(_ context.Context) (*mono.Service, error) {
 			return nil
 		},
 	}
-	return service, nil
+	return service, Name, nil
 }

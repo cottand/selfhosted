@@ -16,7 +16,7 @@ import "github.com/cottand/selfhosted/dev-go/lib/bedrock"
 
 var Name, slog, _ = bedrock.New("s-web-portfolio")
 
-func InitService(ctx context.Context) (*mono.Service, error) {
+func InitService(ctx context.Context) (*mono.Service, string, error) {
 	ctx = context.Background()
 	conn, err := bedrock.NewGrpcConn()
 	if err != nil {
@@ -58,5 +58,5 @@ func InitService(ctx context.Context) (*mono.Service, error) {
 			return nil
 		},
 	}
-	return service, nil
+	return service, Name, nil
 }

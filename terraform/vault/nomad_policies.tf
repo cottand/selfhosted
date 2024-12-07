@@ -26,19 +26,21 @@ resource "vault_policy" "nomad-workloads-base" {
   policy = file("policies/nomad-workloads.hcl")
 }
 
-resource "vault_policy" "services-all-secrets-ro" {
-  name   = "services-all-secrets-ro"
-  policy = <<-EOT
-path "secret/data/services" {
-  capabilities = ["read"]
+resource "vault_policy" "services-all-secrets-read" {
+  name   = "services-all-secrets-read"
+  policy = data.vault_policy_document.services-all-secrets-read.hcl
 }
 
-path "secret/data/services/*" {
-  capabilities = ["read"]
+data "vault_policy_document" "services-all-secrets-read" {
+  rule {
+    path = "secret/data/services"
+    capabilities = ["read"]
+  }
+  rule {
+    path = "secret/data/services/*"
+    capabilities = ["read"]
+  }
 }
-EOT
-}
-
 
 
 resource "vault_policy" "service-self-secrets-read" {

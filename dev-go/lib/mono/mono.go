@@ -18,7 +18,7 @@ import (
 	"time"
 )
 
-var servicesHooks = map[string]RegistrationHook{}
+var servicesHooks []RegistrationHook
 
 type Service struct {
 	Name         string
@@ -27,10 +27,10 @@ type Service struct {
 	OnShutdown   func() error
 }
 
-type RegistrationHook = func(ctx context.Context) (*Service, error)
+type RegistrationHook = func(ctx context.Context) (*Service, string, error)
 
-func Register(name string, hook RegistrationHook) {
-	servicesHooks[name] = hook
+func Register(hook RegistrationHook) {
+	servicesHooks = append(servicesHooks, hook)
 }
 
 func RunRegistered() {
@@ -42,8 +42,8 @@ func RunRegistered() {
 
 	services := map[string]*Service{}
 
-	for name, hook := range servicesHooks {
-		svc, err := hook(ctx)
+	for _, hook := range servicesHooks {
+		svc, name, err := hook(ctx)
 		if err != nil {
 			slog.ErrorContext(ctx, "failed to init service", "service", name, "err", err)
 			continue
