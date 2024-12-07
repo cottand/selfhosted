@@ -18,23 +18,19 @@ import (
 	"time"
 )
 
-var services = map[string]Service{}
+var servicesHooks = map[string]RegistrationHook{}
 
 type Service struct {
 	Name         string
 	PromMetrics  http.Handler
 	RegisterGrpc func(grpcServer *grpc.Server)
-	registration Registration
+	OnShutdown   func() error
 }
 
-type Registration struct {
-	notify chan struct{}
-}
+type RegistrationHook = func(ctx context.Context) (*Service, error)
 
-func Register(new Service) <-chan struct{} {
-	new.registration.notify = make(chan struct{})
-	services[new.Name] = new
-	return new.registration.notify
+func Register(name string, hook RegistrationHook) {
+	servicesHooks[name] = hook
 }
 
 func RunRegistered() {
@@ -44,11 +40,24 @@ func RunRegistered() {
 	reflection.Register(grpcServer)
 	defer grpcServer.GracefulStop()
 
+	services := map[string]*Service{}
+
+	for name, hook := range servicesHooks {
+		svc, err := hook(ctx)
+		if err != nil {
+			slog.ErrorContext(ctx, "failed to init service", "service", name, "err", err)
+			continue
+		}
+		slog.InfoContext(ctx, "initialised service", "service", name)
+		services[name] = svc
+	}
+
 	for name, module := range services {
+
 		if module.RegisterGrpc != nil {
 			module.RegisterGrpc(grpcServer)
 		}
-		slog.Info("registered mono", "service", name)
+		slog.InfoContext(ctx, "registered grpc", "service", name)
 	}
 	config, err := bedrock.GetBaseConfig()
 	if err != nil {
@@ -60,14 +69,16 @@ func RunRegistered() {
 	}
 	shutdownServices := func() {
 		for _, service := range services {
-			close(service.registration.notify)
+			if err := service.OnShutdown(); err != nil {
+				slog.WarnContext(ctx, "error during service shutdown", "service", service.Name, "err", terrors.Propagate(err))
+			}
 		}
 	}
 
 	defer shutdownServices()
 
 	go func() {
-		err := SetupAndServeMetrics(ctx)
+		err := setupAndServeMetrics(ctx)
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
@@ -82,7 +93,7 @@ func RunRegistered() {
 	}
 }
 
-func SetupAndServeMetrics(ctx context.Context) error {
+func setupAndServeMetrics(ctx context.Context) error {
 
 	port, ok := os.LookupEnv("HTTP_PORT")
 	if !ok {

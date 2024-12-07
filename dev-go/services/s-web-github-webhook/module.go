@@ -9,7 +9,6 @@ import (
 	s_rpc_nomad_api "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-nomad-api"
 	"github.com/monzo/terrors"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	"go.opentelemetry.io/otel"
 	"log"
 	"net"
 	"net/http"
@@ -17,18 +16,14 @@ import (
 )
 import "github.com/cottand/selfhosted/dev-go/lib/bedrock"
 
-var Name = "s-web-github-webhook"
-var slog = bedrock.LoggerFor(Name)
-var tracer = otel.Tracer(Name)
+var Name, slog, tracer = bedrock.New("s-web-github-webhook")
 
 type scaffold struct {
 	nomad s_rpc_nomad_api.NomadApiClient
 	bq    *bigquery.Client
 }
 
-func InitService() {
-	ctx := context.Background()
-
+func InitService(ctx context.Context) (*mono.Service, error) {
 	conn, err := bedrock.NewGrpcConn()
 	if err != nil {
 		log.Fatalf(terrors.Propagate(err).Error())
@@ -58,19 +53,20 @@ func InitService() {
 		err := srv.ListenAndServe()
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			slog.Error("failed to start HTTP: "+terrors.Propagate(err).Error(), "service", Name)
+			serverErr = err
 		}
 	}()
 
-	notify := mono.Register(mono.Service{
+	service := mono.Service{
 		Name: Name,
-	})
-	go func() {
-		_, _ = <-notify
-		if conn.Close() != nil {
-			slog.Error("Failed to close gRPC conn", "service", Name, "err", terrors.Propagate(err).Error())
-		}
-		if serverErr != nil {
-			slog.Error("Failed to close gRPC conn", "service", Name, "err", terrors.Propagate(err).Error())
-		}
-	}()
+		OnShutdown: func() error {
+			return errors.Join(
+				terrors.Augment(conn.Close(), "failed to close grpc conn", nil),
+				terrors.Augment(srv.Close(), "failed to close grpc server", nil),
+				terrors.Augment(bqClient.Close(), "failed to close bq client", nil),
+				terrors.Augment(serverErr, "failed to close server", nil),
+			)
+		},
+	}
+	return &service, nil
 }
