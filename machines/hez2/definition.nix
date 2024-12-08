@@ -19,6 +19,10 @@
           interface           = "eth0"
           reserved_ports      = "22"
         }
+        host_network "local-hetzner" {
+          interface           = "enp7s0"
+          reserved_ports      = "22"
+        }
       }
     '';
     enableSeaweedFsVolume = false;

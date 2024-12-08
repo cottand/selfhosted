@@ -20,7 +20,14 @@ let
     memoryMaxMB = 0.10 * mem + 100;
   };
   seconds = 1000000000;
-  advertiseOf = node: "${node}.${lib.tailscaleDns}:${toString binds.${node}}";
+  advertiseOf = {
+    hez1 = "10.0.1.1:2801";
+    #    hez1 = "hez1.${lib.tailscaleDns}:2801";
+    #    hez2 = "hez2.${lib.tailscaleDns}:2801";
+    hez2 = "10.0.1.2:2801";
+    hez3 = "10.0.1.3:2801";
+    #    hez3 = "hez3.${lib.tailscaleDns}:2801";
+  };
   certsForUser = name: [
     {
       destPath = "/secrets/client.${name}.key";
@@ -62,6 +69,7 @@ let
       ];
       reservedPorts = [
         { label = "rpc"; value = binds.${node}; hostNetwork = "ts"; }
+        { label = "rpc-local"; value = binds.${node}; hostNetwork = "local-hetzner"; }
       ];
     }];
     services = [
@@ -80,6 +88,18 @@ let
           "traefik.tcp.routers.roach-db.rule=HostSNI(`roach-db.traefik`) || HostSNI(`roach-db.tfk.nd`)"
           "traefik.tcp.routers.roach-db.entrypoints=sql"
         ];
+        checks = [{
+          name = "health-ready";
+          path = "/health?ready=1";
+          tlsSkipVerify = true;
+          type = "http";
+          portLabel = "metrics";
+          interval = 5 * lib.seconds;
+          timeout = 1 * lib.seconds;
+          # we want nomad to ignore this, it's traefik
+          # that should respect the check
+          onUpdate = "ignore";
+        }];
       }
       {
         name = "roach-web";
@@ -143,9 +163,9 @@ let
         image = "cockroachdb/cockroach:${version}";
         args = [
           "start"
-          "--advertise-addr=${advertiseOf node}"
+          "--advertise-addr=${advertiseOf.${node}}"
           # peers must match constraint above
-          "--join=${builtins.concatStringsSep "," (map advertiseOf peers)}"
+          "--join=${builtins.concatStringsSep "," (map (p: advertiseOf.${p}) peers)}"
           "--listen-addr=${bind}:${toString binds.${node}}"
           "--cache=${cache}"
           "--max-sql-memory=${maxSqlMem}"
