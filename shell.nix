@@ -8,7 +8,7 @@
   packages = [
     # terraform and admin
     pkgs.terraform
-    pkgs.vault
+    pkgs.vault-bin
     pkgs.nomad_1_9
     pkgs.consul
     pkgs.bws
