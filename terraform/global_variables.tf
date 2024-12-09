@@ -7,4 +7,8 @@ locals {
     project = "dcotta-com"
     region = "europe-west3"
   }
+
+  oci = {
+    tenancyOcid = "ocid1.tenancy.oc1..aaaaaaaa5umazgc4ircdizxgjixccyal2nkmemxnpzcrwgwjsrzcz4omw32q"
+  }
 }

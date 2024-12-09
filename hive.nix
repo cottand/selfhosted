@@ -87,6 +87,7 @@ in
 // (mkNodePool {
   names = with builtins; fromJSON (readFile "${self}/terraform/metal/oci_control.json");
   module = {
+   # hqsw has 1 core not 2
     imports = [ ./machines/ociControlWorker srvos.nixosModules.server ];
     deployment.tags = [ "oci-control" ];
     deployment.buildOnTarget = false;

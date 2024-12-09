@@ -88,7 +88,8 @@ let
           "traefik.tcp.routers.roach-db.rule=HostSNI(`roach-db.traefik`) || HostSNI(`roach-db.tfk.nd`)"
           "traefik.tcp.routers.roach-db.entrypoints=sql"
         ];
-        checks = [{
+        checks = [
+        {
           name = "health-ready";
           path = "/health?ready=1";
           tlsSkipVerify = true;
@@ -99,7 +100,18 @@ let
           # we want nomad to ignore this, it's traefik
           # that should respect the check
           onUpdate = "ignore";
-        }];
+        }
+        {
+          name = "health";
+          path = "/health";
+          tlsSkipVerify = true;
+          type = "http";
+          portLabel = "metrics";
+          interval = 5 * lib.seconds;
+          timeout = 1 * lib.seconds;
+          onUpdate = "require_healthy";
+        }
+        ];
       }
       {
         name = "roach-web";
