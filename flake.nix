@@ -56,7 +56,8 @@
           inherit (selfPkgs) scripts util;
           # unstable did not support darwin as of 11/10/24
           inherit (pkgs2405) wrangler;
-          #          vault-bin = (import inputs.nixpkgs-master { system = prev.system; config.allowUnfree = true; }).vault-bin;
+
+          vault-bin = (import inputs.nixpkgs-master { system = prev.system; config.allowUnfree = true; }).vault-bin;
         };
     in
     (utils.lib.eachDefaultSystem (system:
