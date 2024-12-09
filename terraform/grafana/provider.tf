@@ -12,11 +12,23 @@ terraform {
       source  = "sebastiaan-dev/bitwarden-secrets"
       version = "0.1.2"
     }
+    vault = {
+      source  = "hashicorp/vault"
+      version = "~> 4.2.0"
+    }
   }
 }
 
 data "external" "keychain-bw-token" {
   program = ["keychain-get", "bitwarden/secret/m3-cli"]
+}
+
+provider "vault" {
+  address         = local.vault_addr
+}
+
+provider "bitwarden-secrets" {
+  access_token = data.external.keychain-bw-token.result.value
 }
 provider "grafana" {
   url = "https://grafana.tfk.nd/"
@@ -30,7 +42,9 @@ data "bitwarden-secrets_secret" "ociTfPrivateKey" {
 locals {
   ociUser = jsondecode(data.bitwarden-secrets_secret.ociTfPrivateKey.value)
   ociRoot = local.ociUser["ocid"]
+  ociTenancyOcid = local.ociUser["ocid"]
 }
+
 provider "oci" {
   private_key  = local.ociUser["private_key"]
   tenancy_ocid = local.ociUser["ocid"]
