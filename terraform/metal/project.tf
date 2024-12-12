@@ -19,6 +19,7 @@ resource "hcloud_network_subnet" "sub1" {
   type         = "cloud"
 }
 
+// stateful servers
 resource "hcloud_server" "hez1" {
   count       = 3
   name        = "hez${count.index + 1}"
