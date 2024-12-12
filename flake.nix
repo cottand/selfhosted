@@ -2,9 +2,7 @@
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
     nixpkgs-master.url = "github:nixos/nixpkgs";
-    # pinned because https://github.com/NixOS/nixpkgs/issues/332957 breaks things
-    nixpkgs-pre-rust-180.url = "github:nixos/nixpkgs/c3392ad349a5227f4a3464dce87bcc5046692fce";
-    nixpkgs-24-05.url = "github:nixos/nixpkgs/24.05";
+    nixpkgs-24-11.url = "github:nixos/nixpkgs/nixos-24.11";
 
     srvos.url = "github:nix-community/srvos";
     srvos.inputs.nixpkgs.follows = "nixpkgs";
@@ -46,16 +44,18 @@
       ];
       overrides = final: prev:
         let
-          preRust180Pkgs = (import inputs.nixpkgs-pre-rust-180 { system = prev.system; config.allowUnfree = true; });
           goCachePkgs = go-cache.legacyPackages.${prev.system};
           selfPkgs = self.legacyPackages.${prev.system};
-          pkgs2405 = (import inputs.nixpkgs-24-05 { system = prev.system; config.allowUnfree = true; });
+          pkgs2411 = (import inputs.nixpkgs-24-11 { system = prev.system; config.allowUnfree = true; });
         in
         {
           inherit (goCachePkgs) buildGoCache get-external-imports;
           inherit (selfPkgs) scripts util;
-          # unstable did not support darwin as of 11/10/24
-          inherit (pkgs2405) wrangler;
+
+          nixVersions = prev.nixVersions // {
+            # .. which was removed in unstable, but compiles with gonix
+            inherit (pkgs2411.nixVersions) nix_2_23;
+          };
 
           vault-bin = (import inputs.nixpkgs-master { system = prev.system; config.allowUnfree = true; }).vault-bin;
         };
