@@ -7,6 +7,8 @@
     srvos.url = "github:nix-community/srvos";
     srvos.inputs.nixpkgs.follows = "nixpkgs";
 
+    nix.url = "github:nixos/nix/2.23.4";
+
     utils.url = "github:numtide/flake-utils";
     filters.url = "github:numtide/nix-filter";
 
@@ -54,7 +56,7 @@
 
           nixVersions = prev.nixVersions // {
             # .. which was removed in unstable, but compiles with gonix
-            inherit (pkgs2411.nixVersions) nix_2_23;
+            nix_2_23 = inputs.nix.packages.${prev.system}.nix;
           };
 
           vault-bin = (import inputs.nixpkgs-master { system = prev.system; config.allowUnfree = true; }).vault-bin;
