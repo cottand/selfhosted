@@ -30,7 +30,7 @@
     # Nix pinned in order to be able to compile Nixmad
 #    pkgs.nixVersions.nix_2_19
     # until https://nixpkgs-tracker.ocfox.me/?pr=356133 lands
-    self.inputs.nixpkgs-pre-rust-180.legacyPackages.aarch64-darwin.nixVersions.nix_2_19
+    pkgs.nixVersions.nix_2_24
 
 
     scripts.nixmad

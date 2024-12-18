@@ -28,4 +28,4 @@ jobs:
       - name: Flake check
         run: |
           # runs checks by default
-          nix-fast-build --eval-workers 1 --skip-cached --no-nom --attic-cache=default
+          nix-fast-build --eval-workers 1 --skip-cached --no-nom

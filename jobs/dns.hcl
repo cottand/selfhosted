@@ -68,7 +68,7 @@ job "dns" {
     task "leng-dns" {
       driver = "docker"
       config {
-        image = "ghcr.io/cottand/leng:57bc2a9-x86_64-linux"
+        image = "ghcr.io/cottand/leng:1c9c5cc-x86_64-linux"
         args = [
           "--config", "/config.toml",
           "--update",
