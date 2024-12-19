@@ -2,7 +2,7 @@
 let
   lib = (import ./../lib) {};
 
-  version = "3.74";
+  version = "3.80";
 
   ports = {
     http = 7002;
@@ -43,6 +43,7 @@ lib.mkJob "seaweed-volume" {
       mode = "bridge";
       dynamicPorts = [
         { label = "metrics"; hostNetwork = "ts"; }
+        { label = "health"; hostNetwork = "ts"; }
       ];
       reservedPorts = [
         { label = "http"; value = ports.http;hostNetwork = "ts"; }
@@ -92,20 +93,20 @@ lib.mkJob "seaweed-volume" {
         "traefik.http.routers.${router}-redirect.rule=Host(`seaweed-volume-http.traefik`) && PathPrefix(`/\${node.unique.name}`)"
 
       ];
-      check = {
+      checks = [{
         expose = true;
         name = "healthz";
-        port = "http";
+        portLabel = "health";
         type = "http";
         path = "/status";
-        interval = "20s";
-        timeout = "5s";
+        interval = 15 * lib.seconds;
+        timeout = 3 * lib.seconds;
         check_restart = {
           limit = 3;
           grace = "120s";
           ignoreWarnings = false;
         };
-      };
+      }];
     };
 
     service."seaweed-volume-metrics" = rec {

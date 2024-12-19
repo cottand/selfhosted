@@ -1,6 +1,6 @@
 let
   lib = (import ../lib) { };
-  version = "3.74";
+  version = "3.80";
   cpu = 100;
   mem = 200;
   sidecarResources = with builtins; mapAttrs (_: ceil) {
@@ -29,6 +29,7 @@ let
       mode = "bridge";
       dynamicPorts = [
         { label = "metrics"; hostNetwork = "ts"; }
+        { label = "health"; hostNetwork = "ts"; }
       ];
       reservedPorts = [
         { label = "http"; value = ports.http; hostNetwork = "ts"; }
@@ -73,7 +74,6 @@ let
     };
     service."seaweed-${node}-master-grpc" = {
       portLabel = toString ports.grpc;
-      taskName = "roach";
       connect = {
         sidecarService.proxy = {
           upstream."tempo-otlp-grpc-mesh".localBindPort = 4322;
@@ -86,9 +86,8 @@ let
         sidecarTask.resources = sidecarResources // { cpu = builtins.ceil (cpu * 0.30); };
       };
     };
-    service. "seaweed-${node}-master-http" = {
+    service."seaweed-${node}-master-http" = {
       portLabel = toString ports.http;
-      taskName = "roach";
       connect = {
         sidecarService.proxy = {
           config = lib.mkEnvoyProxyConfig {
@@ -104,6 +103,20 @@ let
         "traefik.http.routers.seaweed-master-http-${node}.entrypoints=web,websecure"
         "traefik.http.routers.seaweed-master-http-${node}.tls=true"
       ];
+      checks = [{
+        expose = true;
+        name = "health";
+        portLabel = "health";
+        type = "http";
+        path = "/";
+        interval = 10 * lib.seconds;
+        timeout = 3 * lib.seconds;
+        check_restart = {
+          limit = 3;
+          grace = "120s";
+          ignoreWarnings = false;
+        };
+      }];
     };
     service."seaweed-master-metrics" = rec {
       portLabel = toString ports.metrics;

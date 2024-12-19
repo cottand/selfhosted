@@ -1,7 +1,7 @@
 let
   name = "seaweed-filer";
   lib = (import ../lib) { };
-  version = "3.74";
+  version = "3.80";
   cpu = 100;
   mem = 200;
   ports = {
@@ -22,6 +22,7 @@ in
 lib.mkJob name {
   update = {
     maxParallel = 1;
+    stagger = 20 * lib.seconds;
     autoRevert = true;
     autoPromote = true;
     canary = 1;
@@ -34,6 +35,7 @@ lib.mkJob name {
       mode = "bridge";
       dynamicPorts = [
         { label = "metrics"; hostNetwork = "ts"; }
+        { label = "health"; hostNetwork = "ts"; }
       ];
       reservedPorts = [
         { label = "http"; value = ports.http; hostNetwork = "ts"; }
@@ -60,13 +62,20 @@ lib.mkJob name {
       connect.sidecarTask.resources = sidecarResources;
       # TODO implement http healthcheck https://github.com/seaweedfs/seaweedfs/pull/4899/files
       port = toString ports.http;
-      check = {
-        name = "alive";
-        type = "tcp";
-        port = "http";
-        interval = "20s";
-        timeout = "2s";
-      };
+      checks = [{
+        expose = true;
+        name = "healthz";
+        path = "/healthz";
+        type = "http";
+        portLabel = "health";
+        interval = 20 * lib.seconds;
+        timeout = 2 * lib.seconds;
+        check_restart = {
+          limit = 3;
+          grace = "120s";
+          ignoreWarnings = false;
+        };
+      }];
       tags = [
         "traefik.enable=true"
         "traefik.consulcatalog.connect=true"
@@ -77,13 +86,6 @@ lib.mkJob name {
     };
     service."seaweed-filer-grpc" = {
       port = toString ports.grpc;
-      check = {
-        name = "alive";
-        type = "tcp";
-        port = "grpc";
-        interval = "20s";
-        timeout = "2s";
-      };
       connect.sidecarService.proxy = {
         config = lib.mkEnvoyProxyConfig {
           otlpService = "proxy-seaweed-filer-grpc";
