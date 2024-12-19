@@ -6,11 +6,11 @@ address = ':{{ env "NOMAD_PORT_dns_ts" }}/udp'
 
 [entrypoints.web]
 address = ':{{ env "NOMAD_PORT_http_ts" }}'
-transport.respondingTimeouts.readTimeout = "5m"
+transport.respondingTimeouts.readTimeout = "15m"
 
 [entryPoints.websecure]
 address = ':{{ env "NOMAD_PORT_https_ts" }}'
-transport.respondingTimeouts.readTimeout = "5m"
+transport.respondingTimeouts.readTimeout = "15m"
 
 # redirects 8000 (in container) to 443
 [entryPoints.web_public]
