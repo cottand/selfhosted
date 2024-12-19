@@ -150,15 +150,21 @@ rec {
   mkJob = name: job:
     let
       transformed = transformJob job;
-      mkLinkSection = name: {
-        label = "Grafana for Job";
-        url = "https://grafana.tfk.nd/d/de0ri7g2kukn4a/nomad-job?var-client=All&var-job=${name}&var-group=All&var-task=All&var-alloc_id=All";
-      };
+      mkLinkSection = name: [
+        {
+          label = "Grafana for Job";
+          url = "https://grafana.tfk.nd/d/de0ri7g2kukn4a/nomad-job?var-client=All&var-job=${name}&var-group=All&var-task=All&var-alloc_id=All";
+        }
+        {
+          label = "Consul services";
+          url = "https://consul.traefik/ui/dc1/services?filter=${name}";
+        }
+      ];
     in
     transformed // {
       inherit name;
       id = name;
-      ui.links = [ (mkLinkSection name) ] ++ (transformed.ui.links or [ ]);
+      ui.links = (mkLinkSection name) ++ (transformed.ui.links or [ ]);
     };
 
   tailscaleDns = "golden-dace.ts.net";
