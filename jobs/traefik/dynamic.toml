@@ -14,6 +14,7 @@ sourcerange = [
     '172.26.64.18/20', # containers
     '100.64.0.0/10', # ts
 ]
+
 [http.middlewares.mesh-whitelist.IPAllowList]
 sourcerange = [
     '10.10.0.1/16', # WG mesh
@@ -22,6 +23,7 @@ sourcerange = [
     '185.216.203.147', # comsmo's public contabo IP (will be origin when using sshuttle)
     '100.64.0.0/10', # ts
 ]
+
 [http.middlewares.replace-enc.replacePathRegex]
 regex = "/___enc_/(.*)"
 replacement = ""
@@ -39,30 +41,34 @@ trustip = [
 ]
 
 # Nomad terminates TLS, so we let traefik just forward TCP
-[tcp.routers]
 [tcp.routers.nomad]
 rule = "HostSNI( `nomad.vps.dcotta.eu` ) || HostSNI( `nomad.traefik` )"
 service = "nomad"
 entrypoints = "web,websecure"
 tls.passthrough = true
+
 [tcp.routers.traefik]
 rule = "HostSNI( `consul.vps.dcotta.eu` ) || HostSNI( `consul.traefik` )"
 service = "consul"
 entrypoints = "web,websecure"
 tls.passthrough = true
-[tcp.services]
+
 [tcp.services.nomad.loadBalancer]
 [[tcp.services.nomad.loadBalancer.servers]]
 address = "hez1.golden-dace.ts.net:4646"
+
 [[tcp.services.nomad.loadBalancer.servers]]
 address = "hez2.golden-dace.ts.net:4646"
+
 [[tcp.services.nomad.loadBalancer.servers]]
 address = "hez3.golden-dace.ts.net:4646"
 
 [tcp.services.consul.loadBalancer]
 [[tcp.services.consul.loadBalancer.servers]]
 address = "hez1.golden-dace.ts.net:8501"
+
 [[tcp.services.consul.loadBalancer.servers]]
 address = "hez2.golden-dace.ts.net:8501"
+
 [[tcp.services.consul.loadBalancer.servers]]
 address = "hez3.golden-dace.ts.net:8501"

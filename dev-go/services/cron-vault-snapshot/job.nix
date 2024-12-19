@@ -70,7 +70,7 @@ lib.mkJob name {
       ];
     };
     service."${name}-grpc" = {
-      connect.sidecarService.proxy.upstream."s-rpc-vault-grpc".localBindPort = ports.grpc;
+      connect.sidecarService.proxy.upstream."services-go-grpc".localBindPort = ports.grpc;
       connect.sidecarService.proxy.config = lib.mkEnvoyProxyConfig {
         otlpService = "proxy-${name}-grpc";
         otlpUpstreamPort = otlpPort;
