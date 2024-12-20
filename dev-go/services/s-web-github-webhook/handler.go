@@ -8,6 +8,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"github.com/cottand/selfhosted/dev-go/lib/config"
 	s_rpc_nomad_api "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-nomad-api"
 	"github.com/cottand/selfhosted/dev-go/lib/secretstore"
 	"github.com/monzo/terrors"
@@ -52,12 +53,11 @@ func (s *scaffold) handlePush(writer http.ResponseWriter, request *http.Request)
 		return
 	}
 	ghHmac256 := request.Header.Get("X-Hub-Signature-256")
-	err = validateWebhookHmac(fullBody.Bytes(), ghSecret, ghHmac256)
+	err = validateWebhookHmac(ctx, fullBody.Bytes(), ghSecret, ghHmac256)
 	if err != nil {
 		slog.InfoContext(ctx, "skipping invalid push event", "err", err)
 		return
 	}
-	slog.InfoContext(ctx, "event validation OK ✅")
 	event := WorkflowJobEvent{}
 	if err := json.Unmarshal(fullBody.Bytes(), &event); err != nil {
 		slog.WarnContext(ctx, "could not parse push event", "err", err)
@@ -112,7 +112,13 @@ func ghWebhookSecret(ctx context.Context) (string, error) {
 	return whSecret, nil
 }
 
-func validateWebhookHmac(payloadBody []byte, secret, digestGH256 string) error {
+func validateWebhookHmac(ctx context.Context, payloadBody []byte, secret, digestGH256 string) error {
+	disabled, _ := config.Get(ctx, "webhook/disableValidation").Bool()
+	if disabled {
+		slog.WarnContext(ctx, "webhook validation is disabled")
+		return nil
+	}
+
 	mac := hmac.New(sha256.New, []byte(secret))
 	mac.Write(payloadBody)
 	actualSignature := "sha256=" + hex.EncodeToString(mac.Sum(nil))
@@ -122,6 +128,7 @@ func validateWebhookHmac(payloadBody []byte, secret, digestGH256 string) error {
 			"actual":          actualSignature,
 		})
 	}
+	slog.InfoContext(ctx, "event validation OK ✅")
 	return nil
 }
 
