@@ -4,6 +4,7 @@ context
 crypto
 crypto/hmac
 crypto/sha256
+crypto/tls
 database/sql
 embed
 encoding/hex
@@ -17,6 +18,7 @@ github.com/farcaller/gonix
 github.com/golang-migrate/migrate/v4
 github.com/golang-migrate/migrate/v4/database/cockroachdb
 github.com/golang-migrate/migrate/v4/source/iofs
+github.com/hashicorp/consul/api
 github.com/hashicorp/nomad/api
 github.com/hashicorp/vault/api
 github.com/jackc/pgx/v5/stdlib
@@ -35,6 +37,7 @@ go.opentelemetry.io/otel/propagation
 go.opentelemetry.io/otel/sdk/trace
 go.opentelemetry.io/otel/semconv/v1.26.0
 go.opentelemetry.io/otel/trace
+golang.org/x/net/http2
 golang.org/x/oauth2
 google.golang.org/api/option
 google.golang.org/grpc
