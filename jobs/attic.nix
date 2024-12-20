@@ -100,7 +100,8 @@ let
           # Connection URL
           #
           # For production use it's recommended to use PostgreSQL.
-          url = "postgresql://attic:{{with secret "secret/data/nomad/job/attic/db"}}{{.Data.data.password}}{{end}}@localhost:${toString ports.upDb}/attic?options=-c default_int_size=4 -c default_transaction_isolation=read\\ committed"
+          # tx is read committed set in DB itself
+          url = "postgresql://attic:{{with secret "secret/data/nomad/job/attic/db"}}{{.Data.data.password}}{{end}}@localhost:${toString ports.upDb}/attic?options=-c default_int_size=4"
 
           # Whether to enable sending on periodic heartbeat queries
           #
