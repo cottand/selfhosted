@@ -1,6 +1,6 @@
 let
   lib = (import ../lib) { };
-  version = "v1.117.0";
+  version = "v1.124.2";
   domain = "immich.dcotta.com";
   cpu = 200;
   mem = 1024;
@@ -86,13 +86,6 @@ lib.mkJob "immich" {
       connect.sidecarTask.resources = sidecarResources;
       # TODO implement http healthcheck
       port = toString ports.http;
-      check = {
-        name = "alive";
-        type = "tcp";
-        port = "health";
-        interval = "20s";
-        timeout = "2s";
-      };
       tags = [
         "traefik.enable=true"
         "traefik.consulcatalog.connect=true"
@@ -176,7 +169,7 @@ lib.mkJob "immich" {
         IMMCH_ENV = "production";
         IMMICH_MEDIA_LOCATION = "/vol/immich-pictures";
         IMMICH_CONFIG_FILE = "/local/config.json";
-        IMMICH_METRICS = "true";
+        IMMICH_TELEMETRY_INCLUDE = "all";
         IMMICH_API_METRICS_PORT = toString ports.metrics;
         IMMICH_MICROSERVICES_METRICS_PORT = toString ports.services-mertrics;
         NODE_EXTRA_CA_CERTS = "/local/ca.crt";
@@ -225,92 +218,90 @@ lib.mkJob "immich" {
         changeMode = "restart";
         leftDelim = "[[";
         rightDelim = "]]";
-        embeddedTmpl = ''
-                        [[ with secret "secret/data/nomad/job/immich/vault_oidc" ]]
-                         ${builtins.toJSON
-                            {
-                              image = {
-                                colorspace = "p3";
-                                extractEmbedded = false;
-                                
-                                preview.format = "jpeg";
-                                preview.size = 1440;
-
-                                thumbnail.thumbnailFormat = "webp";
-                                thumbnail.size = 250;
-                                thumbnail.quality = 80;
-                              };
-                              job = {
-                                backgroundTask.concurrency = 5;
-                                faceDetection.concurrency = 2;
-                                library.concurrency = 5;
-                                metadataExtraction.concurrency = 5;
-                                migration.concurrency = 5;
-                                notifications.concurrency = 5;
-                                objectTagging.concurrency = 2;
-                                recognizeFaces.concurrency = 2;
-                                search.concurrency = 5;
-                                sidecar.concurrency = 5;
-                                smartSearch.concurrency = 2;
-                                storageTemplateMigration.concurrency = 5;
-                                thumbnailGeneration.concurrency = 5;
-                                videoConversion.concurrency = 1;
-                              };
-                              library = {
-                                scan = { cronExpression = "0 0 * * *"; enabled = true; };
-                                watch.enabled = false;
-                              };
-                              logging = { enabled = true; level = "log"; };
-                              machineLearning = {
-                                url = "http://${lib.localhost}:${toString ports.ml-http}";
-                                classification = { enabled = true; minScore = 0.7; modelName = "microsoft/resnet-50"; };
-                                clip = { enabled = true; modelName = "ViT-B-32::openai"; };
-                                duplicateDetection = { enabled = true; maxDistance = 0.01; };
-                                enabled = true;
-                                facialRecognition = {
-                                  enabled = true;
-                                  maxDistance = 0.6;
-                                  minFaces = 1;
-                                  minScore = 0.7;
-                                  modelName = "buffalo_l";
-                                };
-                              };
-                              newVersionCheck.enabled = true;
-                              passwordLogin.enabled = true;
-                              reverseGeocoding.enabled = true;
-                              server = { externalDomain = "https://immich.dcotta.com"; loginPageMessage = ""; };
-                              storageTemplate = {
-                                enabled = false;
-                                hashVerificationEnabled = true;
-                                template = "{{y}}-{{MM}}/{{filename}}";
-                              };
-                              thumbnail = {
-                                colorspace = "p3";
-                                jpegSize = 1440;
-                                quality = 90;
-                                webpSize = 250;
-                              };
-                              trash = { days = 30; enabled = true; };
-                              user = { deleteDelay = 7; };
-                              oauth = {
-                    #            autoLaunch = false;
-                                autoRegister = true;
-                                buttonText = "Login with Vault";
-                                clientId = ''[[ .Data.data.client_id ]]'';
-                                clientSecret = ''[[ .Data.data.client_secret ]]'';
-                                issuerUrl = ''[[ .Data.data.issuer_url ]]'';
-                                defaultStorageQuota = 0;
-                                enabled = true;
-                                mobileOverrideEnabled = false;
-          #                      mobileRedirectUri = "";
-                                scope = "openid email";
-                                signingAlgorithm = "RS256";
-                    #              storageLabelClaim = "preferred_username";
-                    #              storageQuotaClaim = "immich_quota";
-                              };
-                            }
-                            }
-                            [[end]]''
+        embeddedTmpl =
+          let
+            json = {
+              image = {
+                colorspace = "p3";
+                extractEmbedded = false;
+                preview.format = "jpeg";
+                preview.size = 1440;
+                #                                thumbnail.thumbnailFormat = "webp";
+                thumbnail.size = 250;
+                thumbnail.quality = 80;
+              };
+              job = {
+                backgroundTask.concurrency = 5;
+                faceDetection.concurrency = 2;
+                library.concurrency = 5;
+                metadataExtraction.concurrency = 5;
+                migration.concurrency = 5;
+                notifications.concurrency = 5;
+                search.concurrency = 5;
+                sidecar.concurrency = 5;
+                smartSearch.concurrency = 2;
+                thumbnailGeneration.concurrency = 5;
+                videoConversion.concurrency = 1;
+              };
+              library = {
+                scan = { cronExpression = "0 0 * * *"; enabled = true; };
+                watch.enabled = false;
+              };
+              logging = { enabled = true; level = "log"; };
+              machineLearning = {
+                urls = [ "http://${lib.localhost}:${toString ports.ml-http}" ];
+                #                                classification = { enabled = true; minScore = 0.7; modelName = "microsoft/resnet-50"; };
+                clip = { enabled = true; modelName = "ViT-B-32::openai"; };
+                duplicateDetection = { enabled = true; maxDistance = 0.01; };
+                enabled = true;
+                facialRecognition = {
+                  enabled = true;
+                  maxDistance = 0.6;
+                  minFaces = 1;
+                  minScore = 0.7;
+                  modelName = "buffalo_l";
+                };
+              };
+              newVersionCheck.enabled = true;
+              passwordLogin.enabled = true;
+              reverseGeocoding.enabled = true;
+              server = {
+                externalDomain = "https://immich.dcotta.com";
+                loginPageMessage = "";
+              };
+              storageTemplate = {
+                enabled = false;
+                hashVerificationEnabled = true;
+                template = "{{y}}-{{MM}}/{{filename}}";
+              };
+              #                              thumbnail = {
+              #                                colorspace = "p3";
+              #                                jpegSize = 1440;
+              #                                quality = 90;
+              #                                webpSize = 250;
+              #                              };
+              trash = { days = 30; enabled = true; };
+              user.deleteDelay = 7;
+              oauth = {
+                autoRegister = true;
+                buttonText = "Login with Vault";
+                clientId = ''[[ .Data.data.client_id ]]'';
+                clientSecret = ''[[ .Data.data.client_secret ]]'';
+                issuerUrl = ''[[ .Data.data.issuer_url ]]'';
+                defaultStorageQuota = 0;
+                enabled = true;
+                mobileOverrideEnabled = false;
+                #                      mobileRedirectUri = "";
+                scope = "openid email";
+                signingAlgorithm = "RS256";
+                #              storageLabelClaim = "preferred_username";
+                #              storageQuotaClaim = "immich_quota";
+              };
+            };
+          in
+          ''[[ with secret "secret/data/nomad/job/immich/vault_oidc" ]]
+           ${builtins.toJSON json  }
+           [[end]]''
         ;
       };
     };
@@ -395,13 +386,6 @@ lib.mkJob "immich" {
     };
     service."immich-redis" = {
       port = toString ports.redis;
-      check = {
-        name = "alive";
-        type = "tcp";
-        port = "health";
-        interval = "20s";
-        timeout = "2s";
-      };
       connect.sidecarService.proxy = {
         config = lib.mkEnvoyProxyConfig {
           otlpService = "proxy-immich-redis";
@@ -412,13 +396,6 @@ lib.mkJob "immich" {
     };
     service."immich-postgres" = {
       port = toString ports.postgres;
-      check = {
-        name = "alive";
-        type = "tcp";
-        port = "health";
-        interval = "20s";
-        timeout = "2s";
-      };
       connect.sidecarService.proxy = {
         upstream."tempo-otlp-grpc-mesh".localBindPort = otlpPort;
         config = lib.mkEnvoyProxyConfig {
