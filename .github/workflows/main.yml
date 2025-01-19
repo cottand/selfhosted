@@ -38,7 +38,7 @@ jobs:
         name: Set up build env
         with:
           caCertificate: ${{ secrets.DCOTTA_ROOT_CA }}
-          tailscale_authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+          tailscale_oauth_clientsecret: ${{ secrets.TAILSCALE_OAUTH_CLIENTSECRET }}
       - name: Build package ${{ matrix.package }}
         continue-on-error: false
         run: |
@@ -75,7 +75,7 @@ jobs:
         name: Set up build env
         with:
           caCertificate: ${{ secrets.DCOTTA_ROOT_CA }}
-          tailscale_authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+          tailscale_oauth_clientsecret: ${{ secrets.TAILSCALE_OAUTH_CLIENTSECRET }}
           aarch64LinuxSupport: true
       - name: Build NixOS config for ${{ matrix.node }}
         run: |
@@ -93,7 +93,7 @@ jobs:
         name: Set up build env
         with:
           caCertificate: ${{ secrets.DCOTTA_ROOT_CA }}
-          tailscale_authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+          tailscale_oauth_clientsecret: ${{ secrets.TAILSCALE_OAUTH_CLIENTSECRET }}
 
       - name: Import Secrets
         id: secrets
@@ -134,7 +134,7 @@ jobs:
         name: Set up build env
         with:
           caCertificate: ${{ secrets.DCOTTA_ROOT_CA }}
-          tailscale_authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+          tailscale_oauth_clientsecret: ${{ secrets.TAILSCALE_OAUTH_CLIENTSECRET }}
 
       - name: Build services image
         run: |

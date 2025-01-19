@@ -24,7 +24,7 @@ jobs:
         name: Set up build env
         with:
           caCertificate: ${{ secrets.DCOTTA_ROOT_CA }}
-          tailscale_authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+          tailscale_oauth_clientsecret: ${{ secrets.TAILSCALE_OAUTH_CLIENTSECRET }}
       - name: Flake check
         run: |
           # runs checks by default
