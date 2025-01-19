@@ -1,16 +1,7 @@
-resource "tailscale_tailnet_key" "github_actions" {
-  reusable      = true
-  ephemeral     = true
-#   tags          = ["tag:ci"]
-  preauthorized = true
-}
+// data github secret for tailscale oauth client are clickops'd
+// client-id: kQwBcpvRPk11CNTRL
+// in TAILSCALE_OAUTH_CLIENTID, TAILSCALE_OAUTH_CLIENTSECRET
 
-
-resource "github_actions_secret" "tailscale_authkey" {
-  repository  = "selfhosted"
-  secret_name = "TAILSCALE_AUTHKEY"
-  plaintext_value = tailscale_tailnet_key.github_actions.key
-}
 
 resource "github_actions_secret" "root_ca" {
   repository  = "selfhosted"

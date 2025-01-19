@@ -1,8 +1,8 @@
 name: 'Setup build environment'
 description: 'Sets up an environment with Nix and attic caching. Requires having run checkout'
 inputs:
-  tailscale_authkey:  # id of input
-    description: 'Tailscale authentication key'
+  tailscale_oauth_clientsecret:
+    description: 'Tailscale oauth client secret'
     required: true
   caCertificate:
     description: 'Base64 encoded CA certificate the server certificate was signed with. Defaults to CAs provided by Mozilla'
@@ -21,7 +21,10 @@ runs:
     - name: Setup Tailscale
       uses: tailscale/github-action@main
       with:
-        authkey: ${{ inputs.tailscale_authkey }}
+        oauth-client-id: 'k13HPkibx421CNTRL'
+        oauth-secret: ${{ inputs.tailscale_oauth_clientsecret }}
+        tags: 'tag:ci-gha'
+
 
     - name: Import Secrets
       id: secrets
