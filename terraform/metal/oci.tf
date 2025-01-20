@@ -186,11 +186,11 @@ resource "oci_core_default_security_list" "base_ipv6" {
     destination = "::/0"
   }
   egress_security_rules {
-    protocol = "17" // tcp
+    protocol = "17" // udp
     destination = "0.0.0.0/0"
   }
   egress_security_rules {
-    protocol = "17" // tcp
+    protocol = "17" // udp
     destination = "::/0"
   }
 }

@@ -3,8 +3,8 @@
   # TODO look into https://noogle.dev/f/lib/filesystem/packagesFromDirectoryRecursive
 
 
-  # templates a nomad nix file into JSON and calls nomad run on it
-  # usage: nixmad --help
+  all-images = callPackage ./all-images { inherit self; };
+  gen-protos = callPackage ./gen-protos.nix { inherit self; };
   nixmad = callPackage ./nixmad.nix { inherit self; };
   shipper = callPackage ./shipper.nix { inherit self; };
 
@@ -23,10 +23,6 @@
     SECRET=$(/usr/bin/security find-generic-password -gw -l "$1")
     ${jq}/bin/jq -n --arg value "$SECRET" '{ "value": $value }'
   '';
-
-  all-images = callPackage ./all-images { inherit self; };
-
-  gen-protos = callPackage ./gen-protos.nix { inherit self; };
 
   start-gh-runner = writeShellScriptBin "start-gh-runner" ''
     set -e
