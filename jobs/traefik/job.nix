@@ -1,6 +1,6 @@
 let
   lib = (import ../lib) { };
-  version = "3.1";
+  version = "3.3";
   ports = {
     http-ui = 8080;
     http-ts = 8001;
