@@ -33,6 +33,9 @@
     };
   };
 
+  # from https://docs.oracle.com/en-us/iaas/Content/Compute/Tasks/configuringntpservice.htm
+  networking.timeServers = [ "169.254.169.254" ];
+
   consulNode.server = true;
 
   vaultNode.enable = true;

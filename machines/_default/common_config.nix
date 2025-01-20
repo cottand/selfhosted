@@ -78,26 +78,27 @@
   time.timeZone = "UTC";
 
   networking = {
-    enableIPv6 = true;
+    enableIPv6 = true; # oci nodes do not have IPv6
     timeServers = [ "time.google.com" ];
     firewall.checkReversePath = false;
   };
-  services.ntp.enable = true;
+  services.chrony.enable = true;
+
 
   # Select internationalisation properties.
-#  i18n.defaultLocale = "en_GB.UTF-8";
+  #  i18n.defaultLocale = "en_GB.UTF-8";
 
-#  i18n.extraLocaleSettings = {
-#    LC_ADDRESS = "en_GB.UTF-8";
-#    LC_IDENTIFICATION = "en_GB.UTF-8";
-#    LC_MEASUREMENT = "en_GB.UTF-8";
-#    LC_MONETARY = "en_GB.UTF-8";
-#    LC_NAME = "en_GB.UTF-8";
-#    LC_NUMERIC = "en_GB.UTF-8";
-#    LC_PAPER = "en_GB.UTF-8";
-#    LC_TELEPHONE = "en_GB.UTF-8";
-#    LC_TIME = "en_GB.UTF-8";
-#  };
+  #  i18n.extraLocaleSettings = {
+  #    LC_ADDRESS = "en_GB.UTF-8";
+  #    LC_IDENTIFICATION = "en_GB.UTF-8";
+  #    LC_MEASUREMENT = "en_GB.UTF-8";
+  #    LC_MONETARY = "en_GB.UTF-8";
+  #    LC_NAME = "en_GB.UTF-8";
+  #    LC_NUMERIC = "en_GB.UTF-8";
+  #    LC_PAPER = "en_GB.UTF-8";
+  #    LC_TELEPHONE = "en_GB.UTF-8";
+  #    LC_TIME = "en_GB.UTF-8";
+  #  };
 
   # Configure console keymap
   console.keyMap = "uk";
