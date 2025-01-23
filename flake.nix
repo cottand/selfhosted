@@ -33,6 +33,12 @@
       url = "github:numtide/build-go-cache";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    nixnomad = {
+      url = "github:cottand/nix-nomad";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-utils.follows = "utils";
+    };
   };
 
   outputs = inputs@{ self, nixpkgs, cottand, home-manager, utils, attic, filters, go-cache, colmena, ... }:
@@ -87,6 +93,16 @@
           ${pkgs.nomad}/bin/nomad fmt
           ${pkgs.terraform}/bin/terraform fmt
         '';
+
+        nomadJobs = inputs.nixnomad.lib.evalNomadJobs {
+          inherit system pkgs;
+          extraArgs.self = self;
+
+          config = {
+            imports = [ ./jobs ];
+          };
+        };
+
       }
     )) // {
       colmenaHive = colmenaHive // {

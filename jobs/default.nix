@@ -1,8 +1,10 @@
+{ config, ... }:
 let
   lib = (import ./lib) { };
 in
 {
-  job = lib.mkNomadJob "whoami" {
+  job."bye".group = config.job."whoami".group;
+  job."whoami" = {
     group."whoami" = {
       #      network = {
       #        mode = "bridge";
