@@ -1,6 +1,6 @@
 let
   lib = (import ./lib) { };
-  version = "v23.1.22";
+  version = "latest-v24.3";
   cache = "70MB";
   maxSqlMem = "${toString (mem * 0.5)}MB";
   cpu = 1200;
