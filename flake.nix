@@ -54,7 +54,6 @@
         let
           goCachePkgs = go-cache.legacyPackages.${prev.system};
           selfPkgs = self.legacyPackages.${prev.system};
-          pkgs2411 = (import inputs.nixpkgs-24-11 { system = prev.system; config.allowUnfree = true; });
         in
         {
           inherit (goCachePkgs) buildGoCache get-external-imports;
@@ -96,7 +95,9 @@
 
         nomadJobs = inputs.nixnomad.lib.evalNomadJobs {
           inherit system pkgs;
+
           extraArgs.self = self;
+          extraArgs.util = import ./jobs/jobsUtil.nix {};
 
           config = {
             imports = [ ./jobs ];

@@ -17,7 +17,7 @@ buildGoModule {
   nativeBuildInputs = [ pkg-config makeWrapper ];
   buildInputs = [ nixVersions.nix_2_23 ];
   subPackages = [ "cmd/${name}" ];
-  CGO_ENABLED = 1;
+  env.CGO_ENABLED = 1;
   postInstall = ''
     wrapProgram $out/bin/nixmad --prefix PATH : ${lib.makeBinPath [ nomad_1_9 ]}
   '';

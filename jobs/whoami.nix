@@ -1,17 +1,11 @@
-let
-  lib = (import ./lib) { };
-in
-{
-  job = lib.mkNomadJob "whoami" {
+{ util, ... }: {
+  job."whoami" = {
     group."whoami" = {
-      #      network = {
-      #        mode = "bridge";
-      #        dynamicPorts = [
-      #          { label = "http"; hostNetwork = "ts"; }
-      #        ];
-      #      };
-      services = [{
-        name = "aa";
+      network = {
+        mode = "bridge";
+        port."http".hostNetwork = "ts";
+      };
+      service."whoami" = {
         tags = [
           "traefik.enable=true"
           "traefik.http.routers.whoami.rule=PathPrefix(`/whoami`)"
@@ -33,19 +27,19 @@ in
                   localBindPort = otlpPort;
                 }
               ];
-              config = lib.mkEnvoyProxyConfig {
+              config = util.mkEnvoyProxyConfig {
                 otlpService = "proxy-whoami";
                 otlpUpstreamPort = otlpPort;
               };
             };
           };
         };
-      }];
+      };
       task."whoami" = {
         driver = "docker";
 
         config = {
-          image = "traefik/whoami";
+          images = "traefik/whoami";
           ports = [ "http" ];
           args = [
             "--port=\${NOMAD_PORT_http}"

@@ -23,10 +23,12 @@ var deployCommand = &cobra.Command{
 }
 var versionFlag string
 var useMasterFlag bool
+var doDryRunFlag bool
 
 func init() {
 	deployCommand.Flags().StringVarP(&versionFlag, "version", "v", "", "version to pass to job")
 	deployCommand.Flags().BoolVarP(&useMasterFlag, "master", "", false, "use current commit for versin")
+	deployCommand.Flags().BoolVarP(&doDryRunFlag, "dry-run", "", false, "whether to print a job diff instead of deploying")
 }
 
 func RunDeploy(cmd *cobra.Command, args []string) error {
@@ -57,7 +59,11 @@ func RunDeploy(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	cmd.Printf("Deploying %s", jobFile)
+	if doDryRunFlag {
+		cmd.Printf("Dry-run deploying %s", jobFile)
+	} else {
+		cmd.Printf("Deploying %s", jobFile)
+	}
 	if version != "" {
 		cmd.Printf(" @ %s", version)
 	}
@@ -96,7 +102,13 @@ func RunDeploy(cmd *cobra.Command, args []string) error {
 	}
 	b := bytes.NewBufferString(json)
 
-	nomadRun := exec.Command("nomad", "run", "-json", "-")
+	var nomadRun *exec.Cmd
+	if doDryRunFlag {
+		nomadRun = exec.Command("nomad", "plan", "-json", "-")
+	} else {
+		nomadRun = exec.Command("nomad", "run", "-json", "-")
+	}
+
 	nomadRun.Stderr = os.Stderr
 	nomadRun.Stdout = os.Stdout
 	nomadRun.Stdin = b
