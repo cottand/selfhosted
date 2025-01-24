@@ -29,7 +29,7 @@ let
   bin = buildGoModule {
     inherit name src;
     vendorHash = null;
-    CGO_ENABLED = 1;
+    env.CGO_ENABLED = 1;
     nativeBuildInputs = [ pkg-config ];
     buildInputs = [ goCache nixVersions.nix_2_23 ];
     subPackages = [ "services" ];
