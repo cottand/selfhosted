@@ -108,20 +108,6 @@ rec {
       path = [ "group" "*" ];
       update = replaceIn (id: id) "restart" "restartPolicy";
     }
-    #    {
-    #      # stringifies attrbutes of reservedPorts
-    #      path = [ "group" "*" "network" "reservedPorts" ];
-    #      update = ports: map (builtins.mapAttrs (_: val: toString val)) ports;
-    #    }
-    #    {
-    #      # stringifies attrbutes of reservedPorts
-    #      path = [ "group" "*" "network" "dynamicPorts" ];
-    #      update = ports: map (builtins.mapAttrs (_: val: toString val)) ports;
-    #    }
-    # {
-    #   path = [ "group" "*" "network" ];
-    #   update = replaceIn (setAsHclListWithLabel "label") "port" "reservedPorts";
-    # }
     {
       path = [ "group" "*" "service" "*" ];
       update = replaceIn setAsHclList "check" "checks";

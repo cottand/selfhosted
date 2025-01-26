@@ -1,4 +1,6 @@
 { config, lib, ... }:
+# this file defines some transformations that are applied to all jobs
+# most are aesthetic ('network = {}' vs 'networks = [ {} ]')
 let
   nomadTypes = config._module.types;
   types = lib.types;
@@ -7,10 +9,10 @@ let
   setNetworksAsNetwork = { config, options, ... }: {
     _module.types.TaskGroup = types.submodule ({ name, config, ... }: {
       options.network = lib.mkOption {
-        type = (types.nullOr nomadTypes.NetworkResource);
-        default = null;
+        type = nomadTypes.NetworkResource;
+        default = { };
       };
-      config.networks = [ config.network ];
+      config.networks = if config.network != { } then [ config.network ] else [ ];
     });
   };
 
@@ -18,9 +20,9 @@ let
     _module.types.TaskGroup = types.submodule ({ name, config, ... }: {
       options.service = lib.mkOption {
         type = types.attrsOf (nomadTypes.Service);
-        default = {};
+        default = { };
       };
-      config.services = with builtins; attrValues (mapAttrs (name: body: body // { inherit name; }) config.service);
+      config.services = attrsToList (name: body: body // { inherit name; }) config.service;
     });
   };
 
@@ -28,19 +30,69 @@ let
     _module.types.ConsulProxy = types.submodule ({ name, config, ... }: {
       options.upstream = lib.mkOption {
         type = types.attrsOf (nomadTypes.ConsulUpstream);
-        default = {};
+        default = { };
       };
-      config.upstreams = attrsToList (name: body: body // { destinationName = name; }) config.upstream;
+      config.upstreams = (attrsToList (name: body: (body // { destinationName = name; })) config.upstream);
     });
   };
+
+  # adds links to Grafana and Consul to every job
+  # jobs can define their own links too, which will get merged to this list
+  addDefaultLinks = { config, options, ... }: {
+    _module.types.Job = types.submodule ({ name, config, ... }: {
+      options.addDefaultLinks = lib.mkOption {
+        type = types.bool;
+        default = true;
+      };
+      config.ui.links = lib.mkIf config.addDefaultLinks [
+        {
+          label = "Grafana for Job";
+          url = "https://grafana.tfk.nd/d/de0ri7g2kukn4a/nomad-job?var-client=All&var-job=${config.name}&var-group=All&var-task=All&var-alloc_id=All";
+        }
+        {
+          label = "Consul services";
+          url = "https://consul.traefik/ui/dc1/services?filter=${config.name}";
+        }
+      ];
+    });
+  };
+
+  # mounts ca-certificates into all tasks as read-only into /etc/ssl/certs
+  addCaCertificatesVolumeMount = { ... }: {
+    _module.types.TaskGroup = types.submodule {
+      config.volume."ca-certificates" = rec {
+        name = "ca-certificates";
+        type = "host";
+        readOnly = true;
+        source = name;
+      };
+    };
+    _module.types.Task = types.submodule {
+      config.volumeMounts = [{
+        volume = "ca-certificates";
+        destination = "/etc/ssl/certs";
+        readOnly = true;
+        propagationMode = "host-to-task";
+      }];
+    };
+  };
+
 in
 {
 
   imports = [
+    # breaks because upstreams are actually defined twice because of setServiceAsServices
+    #    setConsulUpstreamsAsUpstream
     setNetworksAsNetwork
     setServiceAsServices
-    setConsulUpstreamsAsUpstream
+    addDefaultLinks
+    addCaCertificatesVolumeMount
+    ({ ... }: {
+      _module.args.util = (import ./jobsUtil.nix { });
+      _module.args.defaults = {
+        dns.servers = [ "100.100.100.100" ];
+      };
+    })
   ];
-
 
 }

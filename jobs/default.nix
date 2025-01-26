@@ -7,6 +7,10 @@ in
     ./modules
     ./whoami.nix
     ./filestash.nix
+    ./web-portfolio.nix
+    ./attic.nix
+    ./traefik/job.nix
+    ./roach.nix
   ];
 }
 

@@ -77,10 +77,28 @@
       in
       rec {
 
+        # many of these are not technically packages but
+        # we use legacyPackages anyway, so that we can
+        # leverage the fact that they can infer the current system
         legacyPackages.services = (import ./dev-go/services) pkgs;
         legacyPackages.scripts = (import ./scripts) pkgsWithSelf;
         legacyPackages.util = (import ./util.nix) pkgsWithSelf;
         legacyPackages.images = (import ./images.nix) pkgsWithSelf;
+        legacyPackages.nomadJobsDebug = (inputs.nixnomad.lib.evalNomadJobs {
+          inherit system pkgs;
+          extraArgs.self = self;
+          config = {
+            imports = [ ./jobs ];
+          };
+        });
+        legacyPackages.nomadJobs = (inputs.nixnomad.lib.evalNomadJobs {
+          inherit system pkgs;
+          extraArgs.self = self;
+          config = {
+            imports = [ ./jobs ];
+          };
+        }).nomad.build.apiJob;
+
 
         packages = legacyPackages.scripts;
 
@@ -92,17 +110,6 @@
           ${pkgs.nomad}/bin/nomad fmt
           ${pkgs.terraform}/bin/terraform fmt
         '';
-
-        nomadJobs = inputs.nixnomad.lib.evalNomadJobs {
-          inherit system pkgs;
-
-          extraArgs.self = self;
-          extraArgs.util = import ./jobs/jobsUtil.nix {};
-
-          config = {
-            imports = [ ./jobs ];
-          };
-        };
 
       }
     )) // {
