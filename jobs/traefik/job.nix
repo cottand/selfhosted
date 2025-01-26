@@ -1,3 +1,4 @@
+{ util, time, defaults, ... }:
 let
   lib = (import ../lib) { };
   version = "3.3";
@@ -13,134 +14,124 @@ let
   };
   resources = {
     cpu = 300;
-    memoryMB = 300;
-    memoryMaxMB = 500;
+    memory = 300;
+    memoryMax = 500;
   };
-  sidecarResources = lib.mkResourcesWithFactor 0.10 resources;
+  sidecarResources = util.mkResourcesWithFactor 0.10 resources;
 in
-lib.mkJob "traefik" {
-  group."traefik" = {
-    count = 3;
-    constraints = [
-      {
-        lTarget = "\${meta.box}";
-        operand = "regexp";
-        rTarget = "(hez1|hez2|hez3)";
-      }
-      {
-        operand = "distinct_hosts";
-        rTarget = "true";
-      }
-    ];
-    network = {
-      inherit (lib.defaults) dns;
-      mode = "bridge";
-      dynamicPorts = [
-        { label = "dns_ts"; hostNetwork = "ts"; }
-        { label = "http_ui"; hostNetwork = "ts"; }
+{
+  job."traefik" = {
+    group."traefik" = {
+      count = 3;
+      constraints = [
+        {
+          attribute = "\${meta.box}";
+          operator = "regexp";
+          value = "(hez1|hez2|hez3)";
+        }
+        {
+          operator = "distinct_hosts";
+          value = "true";
+        }
       ];
-      reservedPorts = [
-        { label = "http_ts"; to = ports.http-ts; value = 80; hostNetwork = "ts"; }
-        { label = "https_ts"; to = ports.https-ts; value = 443; hostNetwork = "ts"; }
-        { label = "http_public"; to = ports.http-public; value = 80; hostNetwork = "public"; }
-        { label = "https_public"; to = ports.https-public; value = 443; hostNetwork = "public"; }
-        { label = "sql"; value = ports.sql; hostNetwork = "ts"; }
-        # hardcoded so that prometheus can find it after restart
-        { label = "metrics"; value = 3194; to = ports.metrics; hostNetwork = "ts"; }
-      ];
-    };
-    volumes."ca-certificates" = rec {
-      name = "ca-certificates";
-      type = "host";
-      readOnly = true;
-      source = name;
-    };
-    service. "traefik-metrics" = {
-      port = ports.metrics;
-      tags = [ "metrics" ];
-      check."metrics" = {
-        expose = true;
-        port = "metrics";
-        type = "http";
-        path = "/metrics";
-        interval = 10 * lib.seconds;
-        timeout = 3 * lib.seconds;
+      network = {
+        inherit (defaults) dns;
+        mode = "bridge";
+        port."dns_ts".hostNetwork = "ts";
+        port."http_ui".hostNetwork = "ts";
+        reservedPorts = {
+          "http_ts" = { static = 80; to = ports.http-ts; hostNetwork = "ts"; };
+          "https_ts" = { static = 443; to = ports.https-ts; hostNetwork = "ts"; };
+          "http_public" = { static = 80; to = ports.http-public; hostNetwork = "public"; };
+          "https_public" = { static = 443; to = ports.https-public; hostNetwork = "public"; };
+          # hardcoded so that prometheus can find it after restart
+          "metrics" = { static = 3194; to = ports.metrics; hostNetwork = "ts"; };
+          "sql" = { static = ports.sql; hostNetwork = "ts"; };
+        };
       };
-      connect = {
-        sidecarService = { };
-        sidecarTask.resources = sidecarResources;
+      service."traefik-metrics" = {
+        port = toString ports.metrics;
+        tags = [ "metrics" ];
+        checks = [{
+          name = "metrics";
+          expose = true;
+          port = "metrics";
+          type = "http";
+          path = "/metrics";
+          interval = 10 * time.second;
+          timeout = 3 * time.second;
+        }];
+        connect = {
+          sidecarService = { };
+          sidecarTask.resources = sidecarResources;
+        };
+        meta.metrics_port = "\${NOMAD_HOST_PORT_metrics}";
       };
-      meta.metrics_port = "\${NOMAD_HOST_PORT_metrics}";
-    };
-    service."traefik" = {
-      tags = [
-        "traefik.enable=true"
-        "traefik.http.routers.traefik_dash.entrypoints=web,websecure"
-        "traefik.http.routers.traefik_dash.rule=Host(`traefik.tfk.nd`)"
-        "traefik.http.routers.traefik_dash.tls=true"
-        "traefik.http.routers.traefik_dash.service=api@internal"
-      ];
-      port = "http_ui";
-      #      // check {
-      #      //   name     = "alive"
-      #      //   type     = "tcp"
-      #      //   interval = "20s"
-      #      //   timeout  = "2s"
-      #      // }
-
-      connect = {
-        sidecarService.proxy.upstream."tempo-otlp-grpc-mesh".localBindPort = ports.otlp;
-        sidecarTask.resources = sidecarResources;
-      };
-    };
-    service."traefik-ingress" = {
-      port = "http_ts";
-      taskName = "traefik";
-      connect.native = true;
-    };
-    task."traefik" = {
-      vault = { };
-      driver = "docker";
-      volumeMounts = [{
-        volume = "ca-certificates";
-        destination = "/etc/ssl/certs";
-        readOnly = true;
-        propagationMode = "host-to-task";
-      }];
-      config = {
-        image = "traefik:${version}";
-        volumes = [
-          "local/traefik.toml:/etc/traefik/traefik.toml"
-          "local/traefik-dynamic.toml:/etc/traefik/dynamic/traefik-dynamic.toml"
+      service."traefik" = {
+        tags = [
+          "traefik.enable=true"
+          "traefik.http.routers.traefik_dash.entrypoints=web,websecure"
+          "traefik.http.routers.traefik_dash.rule=Host(`traefik.tfk.nd`)"
+          "traefik.http.routers.traefik_dash.tls=true"
+          "traefik.http.routers.traefik_dash.service=api@internal"
         ];
-      };
-      template."local/traefik-dynamic.toml" = {
-        embeddedTmpl = builtins.readFile ./dynamic.toml;
-        changeMode = "signal";
-      };
+        port = "http_ui";
 
-      template. "local/traefik.toml" = {
-        changeMode = "restart";
-        embeddedTmpl = builtins.readFile ./static.toml;
+        connect = {
+          sidecarService.proxy.upstreams = [
+            { destinationName = "tempo-otlp-grpc-mesh"; localBindPort = ports.otlp; }
+          ];
+          sidecarTask.resources = sidecarResources;
+        };
       };
-      template."secrets/internal_cert/cert" = {
-        changeMode = "restart";
-        embeddedTmpl = ''
-          {{with secret "secret/data/nomad/job/traefik/internal-cert"}}
-          {{.Data.data.chain}}
-          {{end}}
-        '';
+      service."traefik-ingress" = {
+        port = "http_ts";
+        task = "traefik";
+        connect.native = true;
       };
-      template."secrets/internal_cert/key" = {
-        changeMode = "restart";
-        embeddedTmpl = ''
-          {{with secret "secret/data/nomad/job/traefik/internal-cert"}}
-          {{.Data.data.key}}
-          {{end}}
-        '';
+      task."traefik" = {
+        vault = { };
+        driver = "docker";
+        config = {
+          image = "traefik:${version}";
+          volumes = [
+            "local/traefik.toml:/etc/traefik/traefik.toml"
+            "local/traefik-dynamic.toml:/etc/traefik/dynamic/traefik-dynamic.toml"
+          ];
+        };
+        templates = [
+          {
+            destination = "local/traefik-dynamic.toml";
+            data = builtins.readFile ./dynamic.toml;
+            changeMode = "signal";
+          }
+          {
+            destination = "local/traefik.toml";
+            changeMode = "restart";
+            data = builtins.readFile ./static.toml;
+          }
+          {
+            destination = "secrets/internal_cert/cert";
+            changeMode = "restart";
+            data = ''
+              {{with secret "secret/data/nomad/job/traefik/internal-cert"}}
+              {{.Data.data.chain}}
+              {{end}}
+            '';
+          }
+          {
+            destination = "secrets/internal_cert/key";
+            changeMode = "restart";
+            data = ''
+              {{with secret "secret/data/nomad/job/traefik/internal-cert"}}
+              {{.Data.data.key}}
+              {{end}}
+            '';
+          }
+        ];
+        identities = [{ }];
+        inherit resources;
       };
-      identity.env = true;
-      inherit resources;
     };
   };
 }
