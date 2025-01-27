@@ -112,7 +112,7 @@ lib.mkJob "grafana" {
         "GF_AUTH_DISABLE_LOGIN_FORM" = false;
         "GF_AUTH_ANONYMOUS_ENABLED" = true;
         "GF_AUTH_ANONYMOUS_ORG_ROLE" = "Viewer";
-        "GF_SERVER_ROOT_URL" = "http://grafana.traefik";
+        "GF_SERVER_ROOT_URL" = "https://grafana.traefik";
         "GF_SERVER_SERVE_FROM_SUB_PATH" = true;
         "GF_SECURITY_ALLOW_EMBEDDING" = true;
         "GF_FEATURE_TOGGLES_ENABLE" = "traceToMetrics logsExploreTableVisualisation";
