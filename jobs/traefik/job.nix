@@ -1,6 +1,5 @@
 { util, time, defaults, ... }:
 let
-  lib = (import ../lib) { };
   version = "3.3";
   ports = {
     http-ui = 8080;

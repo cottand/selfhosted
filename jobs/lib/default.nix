@@ -1,6 +1,5 @@
 # utilities to write Jobs in Nix
 { nixpkgs ? (builtins.getFlake "github:nixos/nixpkgs/0ef93bf")
-, nixnomad ? (builtins.getFlake "github:tristanpemble/nix-nomad")
 , ...
 }:
 let
@@ -9,14 +8,6 @@ let
     if have != expected then (throw "assertion failed: got ${builtins.toJSON have} but expected ${builtins.toJSON expected}") else "ok";
 in
 rec {
-
-  mkNomadJob = name: job:
-    let
-      eval = nixnomad.lib.evalNomadJobs {
-        config.job.${name} = job;
-      };
-    in
-    eval;
 
   seconds = 1000000000;
   minutes = 60 * seconds;
