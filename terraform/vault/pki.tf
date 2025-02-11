@@ -122,13 +122,14 @@ resource "vault_pki_secret_backend_cert" "dcotta-dot-eu2" {
   issuer_ref  = vault_pki_secret_backend_issuer.intermediate.issuer_ref
   backend     = vault_pki_secret_backend_role.intermediate_role.backend
   name        = vault_pki_secret_backend_role.intermediate_role.name
-  common_name = "vault-server-sep-27-2024.vault.dcotta.com"
+  common_name = "vault-server-feb-11-2025.vault.dcotta.com"
 
   alt_names = ["vault.mesh.dcotta.eu", "vault.tfk.nd", "vault.dcotta.com"]
 
   ttl = 10592000
   # ttl    = 89400000
   revoke = true
+  auto_renew = true
 }
 
 resource "local_sensitive_file" "dcotta-dot-eu_private_key" {
