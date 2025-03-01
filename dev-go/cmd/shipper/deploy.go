@@ -27,7 +27,7 @@ var doDryRunFlag bool
 
 func init() {
 	deployCommand.Flags().StringVarP(&versionFlag, "version", "v", "", "version to pass to job")
-	deployCommand.Flags().BoolVarP(&useMasterFlag, "master", "", false, "use current commit for versin")
+	deployCommand.Flags().BoolVarP(&useMasterFlag, "master", "", false, "use current commit for version")
 	deployCommand.Flags().BoolVarP(&doDryRunFlag, "dry-run", "", false, "whether to print a job diff instead of deploying")
 }
 

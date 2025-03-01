@@ -58,7 +58,7 @@ in
       (name: opts: {
         "${name}" = {
           destDir = opts.destDir;
-          keyCommand = [ "vault" "kv" "get" "-tls-skip-verify" "-mount=${opts.mount}" "-field=${opts.field}" opts.secretPath ];
+          keyCommand = [ "vault" "kv" "get" "-mount=${opts.mount}" "-field=${opts.field}" opts.secretPath ];
           uploadAt = "pre-activation";
         };
       });

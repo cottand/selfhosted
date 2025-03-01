@@ -24,7 +24,7 @@ resource "vault_pki_secret_backend_cert" "server-dc1-consul" {
   common_name = "server.dc1.consul"
 
   alt_names = [
-    "14sep-1.server.dc1.consul",
+    "01mar25-1.server.dc1.consul",
     "consul.traefik",
     "hez1.${local.tsDomain}",
     "hez2.${local.tsDomain}",
@@ -32,10 +32,6 @@ resource "vault_pki_secret_backend_cert" "server-dc1-consul" {
   ]
   ip_sans = [
     "127.0.0.1",
-    "10.10.4.1",
-    "10.10.11.1",
-    "10.10.12.1",
-    "10.10.13.1",
   ]
 
   ttl    = 12920000
