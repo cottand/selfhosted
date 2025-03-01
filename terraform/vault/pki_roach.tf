@@ -19,7 +19,7 @@ resource "vault_pki_secret_backend_cert" "cockroachdb" {
   issuer_ref  = vault_pki_secret_backend_issuer.intermediate.issuer_ref
   backend     = vault_pki_secret_backend_role.intermediate_role-roach-node.backend
   name        = vault_pki_secret_backend_role.intermediate_role-roach-node.name
-  common_name = "cockroachdb-2024-dec-08.roach-db.tfk.nd"
+  common_name = "cockroachdb-2025-mar-01.roach-db.tfk.nd"
   alt_names   = [
     "*.${local.tsDomain}",
     "roach-web.tfk.nd",

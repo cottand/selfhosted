@@ -59,10 +59,10 @@ let
     };
     network = {
       inherit (defaults) dns;
-
       mode = "bridge";
       port."metrics" = { to = webPort; hostNetwork = "ts"; };
       port."health".hostNetwork = "ts";
+      
       reservedPorts = {
         "rpc" = { static = binds.${node}; hostNetwork = "ts"; };
         "rpc-local" = { static = binds.${node}; hostNetwork = "local-hetzner"; };
@@ -220,7 +220,6 @@ in
         { label = "Roach SQL Grafana"; url = "https://grafana.tfk.nd/d/crdb-console-sql/roach-sql?orgId=1&refresh=30s"; }
       ];
     };
-    datacenters = [ "*" ];
     update = {
       maxParallel = 1;
       stagger = 12 * seconds;
