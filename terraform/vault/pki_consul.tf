@@ -36,6 +36,7 @@ resource "vault_pki_secret_backend_cert" "server-dc1-consul" {
 
   ttl    = 12920000
   revoke = true
+  auto_renew = true
 }
 
 
