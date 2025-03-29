@@ -56,6 +56,7 @@ resource "vault_pki_secret_backend_cert" "nomad-dcotta" {
   ]
   ttl    = 8640000
   revoke = true
+  auto_renew = true
 }
 
 # Put new cert in KV

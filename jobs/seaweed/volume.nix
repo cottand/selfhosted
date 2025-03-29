@@ -2,7 +2,7 @@
 let
   lib = (import ./../lib) {};
 
-  version = "3.80";
+  version = "3.81";
 
   ports = {
     http = 7002;
