@@ -15,6 +15,7 @@ transport.respondingTimeouts.readTimeout = "15m"
 # redirects 8000 (in container) to 443
 [entryPoints.web_public]
 address = ':{{ env "NOMAD_PORT_http_public" }}'
+transport.respondingTimeouts.readTimeout = "5m"
 
 [entryPoints.web_public.http.redirections.entryPoint]
 to = "websecure"
@@ -23,6 +24,7 @@ scheme = "https"
 [entryPoints.websecure_public]
 address = ':{{ env "NOMAD_PORT_https_public" }}'
 http.middlewares = ["cloudflarewarp@file"]
+transport.respondingTimeouts.readTimeout = "5m"
 
 # redirects 44300 (in container) to 443
 [entryPoints.websecure_public.http.redirections.entryPoint]

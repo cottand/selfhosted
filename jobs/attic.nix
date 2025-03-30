@@ -188,8 +188,8 @@ in
         connect.sidecarService = {
           proxy = {
             upstreams = [
-                {destinationName = "tempo-otlp-grpc-mesh"; localBindPort = otlpPort;}
-                {destinationName = "roach-db"; localBindPort = ports.upDb;}
+              { destinationName = "tempo-otlp-grpc-mesh"; localBindPort = otlpPort; }
+              { destinationName = "roach-db"; localBindPort = ports.upDb; }
             ];
             config = util.mkEnvoyProxyConfig {
               otlpService = "proxy-attic-http";
@@ -234,8 +234,8 @@ in
         connect.sidecarService = {
           proxy = {
             upstreams = [
-                {destinationName = "tempo-otlp-grpc-mesh"; localBindPort = otlpPort;}
-                {destinationName = "roach-db"; localBindPort = ports.upDb;}
+              { destinationName = "tempo-otlp-grpc-mesh"; localBindPort = otlpPort; }
+              { destinationName = "roach-db"; localBindPort = ports.upDb; }
             ];
 
             config = lib.mkEnvoyProxyConfig {
