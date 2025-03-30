@@ -33,7 +33,7 @@ lib.mkJob "grafana" {
       ];
     };
 
-    restartPolicy = {
+    restart = {
       attempts = 4;
       interval = 10 * lib.minutes;
       delay = 15 * lib.seconds;

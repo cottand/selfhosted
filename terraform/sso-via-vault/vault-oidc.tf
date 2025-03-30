@@ -54,8 +54,12 @@ resource "vault_identity_oidc_client" "immich" {
   redirect_uris = [
     "app.immich:///oauth-callback",
     "${local.vault_addr}/ui/settings/tokens",
-    "${var.immich_addr}/auth/login",
-    "${var.immich_addr}/user-settings",
+    // public-facing
+    "https://immich.dcotta.com/auth/login",
+    "https://immich.dcotta.com/user-settings",
+    // internal
+    "https://immich-http.tfk.nd/auth/login",
+    "https://immich-http.tfk.nd/user-settings",
   ]
   assignments = [
     "allow_all"

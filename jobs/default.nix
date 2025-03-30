@@ -11,6 +11,7 @@ in
     ./attic.nix
     ./traefik/job.nix
     ./roach.nix
+    ./immich/immich.nix
   ];
 }
 

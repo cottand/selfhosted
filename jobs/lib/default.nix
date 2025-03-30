@@ -97,7 +97,7 @@ rec {
     }
     {
       path = [ "group" "*" ];
-      update = replaceIn (id: id) "restart" "restartPolicy";
+      update = replaceIn (id: id) "restart" "restart";
     }
     {
       path = [ "group" "*" "service" "*" ];
