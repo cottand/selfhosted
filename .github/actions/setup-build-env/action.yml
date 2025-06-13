@@ -50,7 +50,7 @@ runs:
       uses: docker/setup-qemu-action@v1
       if: inputs.aarch64LinuxSupport
 
-    - uses: cachix/install-nix-action@v22
+    - uses: cachix/install-nix-action@v31
       with:
         github_access_token: '${{ github.token }}'
         extra_nix_config: |
