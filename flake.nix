@@ -2,7 +2,6 @@
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
     nixpkgs-master.url = "github:nixos/nixpkgs";
-    nixpkgs-24-11.url = "github:nixos/nixpkgs/nixos-24.11";
 
     srvos.url = "github:nix-community/srvos";
     srvos.inputs.nixpkgs.follows = "nixpkgs";
