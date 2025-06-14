@@ -3,7 +3,6 @@ package bedrock
 import (
 	"context"
 	"fmt"
-	"github.com/cottand/selfhosted/dev-go/lib/config"
 	"log"
 	"log/slog"
 	"os"
@@ -28,11 +27,11 @@ func Init(ctx context.Context) ShutdownFunc {
 		err = terrors.Augment(err, "failed to start otlp sdk", nil)
 		log.Fatalln(err)
 	}
-	err = config.Init()
-	if err != nil {
-		err = terrors.Augment(err, "failed to start config", nil)
-		log.Fatalln(err)
-	}
+	//err = config.Init()
+	//if err != nil {
+	//	err = terrors.Augment(err, "failed to start config", nil)
+	//	log.Fatalln(err)
+	//}
 	slog.Info("bedrock initialized 🚀")
 
 	return shutdown

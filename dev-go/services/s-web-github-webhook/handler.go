@@ -137,11 +137,10 @@ func (s *scaffold) deploy(ctx context.Context, commit string) {
 	ctx, span := tracer.Start(ctx, "deployOnPush")
 	defer span.End()
 
-	deployRequest := &s_rpc_nomad_api.Job{
+	_, err := s.nomad.Deploy(ctx, &s_rpc_nomad_api.Job{
 		Version:       &s_rpc_nomad_api.Job_Commit{Commit: commit},
 		JobPathInRepo: "dev-go/services/job.nix",
-	}
-	_, err := s.nomad.Deploy(ctx, deployRequest)
+	})
 	if err != nil {
 		slog.Warn("failed to deploy job", "err", err.Error())
 	}

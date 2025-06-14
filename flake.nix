@@ -94,7 +94,7 @@
           inherit system pkgs;
           extraArgs.self = self;
           config = {
-            imports = [ ./jobs ];
+            imports = [ ./jobs ./dev-go/services/job.nix ];
           };
         }).nomad.build.apiJob;
 

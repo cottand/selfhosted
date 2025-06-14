@@ -21,14 +21,14 @@
     pkgs.fish
     pkgs.seaweedfs
     pkgs.wander
-    pkgs.attic
+#    pkgs.attic-client
     pkgs.grpcurl
 
     # for development
     pkgs.go
     pkgs.pkg-config
     # Nix pinned in order to be able to compile Nixmad
-#    pkgs.nixVersions.nix_2_19
+    #    pkgs.nixVersions.nix_2_19
     # until https://nixpkgs-tracker.ocfox.me/?pr=356133 lands
     pkgs.nixVersions.nix_2_24
 
@@ -51,4 +51,8 @@
   VAULT_ADDR = "https://vault.dcotta.com:8200";
 
   NIX_PATH = "";
+
+  # see https://github.com/hashicorp/terraform/issues/36704#issuecomment-2745044595
+  AWS_REQUEST_CHECKSUM_CALCULATION = "when_required";
+  AWS_RESPONSE_CHECKSUM_VALIDATION = "when_required";
 }

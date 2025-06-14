@@ -16,7 +16,7 @@ let
     memory = 300;
     memoryMax = 500;
   };
-  sidecarResources = util.mkResourcesWithFactor 0.10 resources;
+   sidecarResources = util.mkResourcesWithFactor 0.10 resources;
 in
 {
   job."traefik" = {
