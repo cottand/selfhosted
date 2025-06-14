@@ -22,7 +22,7 @@ variable "vault_addr" {
 }
 provider "vault" {
   address         = var.vault_addr
-  skip_tls_verify = false
+  skip_tls_verify = true
 }
 
 provider "nomad" {

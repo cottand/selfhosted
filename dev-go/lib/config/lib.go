@@ -15,12 +15,13 @@ type Value struct {
 }
 
 func Init() error {
-	localAddr, ok := os.LookupEnv("NONAD_HEALTH")
+	localAddr, ok := os.LookupEnv("CONSUL_HTTP_ADDR")
 	if !ok {
-		return terrors.PreconditionFailed("", "seems we're not running in Nomad?", nil)
+		return terrors.PreconditionFailed("", "CONSUL_HTTP_ADDR not found - seems we're not running in Nomad?", nil)
 	}
 	c, err := consul.NewClient(&consul.Config{
-		Address: "https://" + localAddr + ":8051",
+		//Address: "https://" + localAddr + ":8051",
+		Address: localAddr,
 	})
 	if err != nil {
 		return terrors.Augment(err, "failed to init Consul client", nil)

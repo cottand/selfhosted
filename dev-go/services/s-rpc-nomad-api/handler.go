@@ -31,6 +31,7 @@ func (h *ProtoHandler) Deploy(ctx context.Context, job *pb.Job) (*emptypb.Empty,
 	return &emptypb.Empty{}, nil
 }
 
+// TODO adapt to new Nixmad options config
 func jobFileToSpec(ctx context.Context, job *pb.Job) (*nomad.Job, error) {
 	if job.GetLatest() {
 		return nil, terrors.New("not_implemented", "for now only specific commits are supported", nil)
