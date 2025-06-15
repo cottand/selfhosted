@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
 	"github.com/cottand/selfhosted/dev-go/lib/util"
 	"github.com/monzo/terrors"
 	"github.com/prometheus/client_golang/prometheus"
