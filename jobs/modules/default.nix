@@ -57,6 +57,18 @@ let
     });
   };
 
+  addDefaultTaskEnv = { config, options, ... }: {
+    _module.types.Task = types.submodule ({ name, config, ... }: {
+      options.addDefaultEnv = lib.mkOption {
+        type = types.bool;
+        default = true;
+      };
+      config.env = lib.mkIf config.addDefaultEnv {
+        DCOTTA_COM_NODE_CONSUL_IP = "\${attr.consul.dns.addr}";
+      };
+    });
+  };
+
   # mounts ca-certificates into all tasks as read-only into /etc/ssl/certs
   addCaCertificatesVolumeMount = { ... }: {
     _module.types.TaskGroup = types.submodule {
@@ -86,9 +98,12 @@ in
     setNetworksAsNetwork
     setServiceAsServices
     addDefaultLinks
+    addDefaultTaskEnv
     addCaCertificatesVolumeMount
     ({ ... }: {
       _module.args.util = (import ./jobsUtil.nix { });
+      # defaults is not actually set for every job, but it is given in the module arguments
+      # and is opt-in
       _module.args.defaults = {
         dns.servers = [ "100.100.100.100" ];
       };

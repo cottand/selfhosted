@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"os"
 	"strconv"
+	"sync"
 )
 
 type Value struct {
@@ -14,23 +15,32 @@ type Value struct {
 	ctx context.Context
 }
 
-func Init() error {
-	localAddr, ok := os.LookupEnv("CONSUL_HTTP_ADDR")
+var clientMutex = &sync.Mutex{}
+var consulClient *consul.Client
+
+func getOrStart() (*consul.Client, error) {
+	if consulClient != nil {
+		return consulClient, nil
+	}
+	clientMutex.Lock()
+	defer clientMutex.Unlock()
+
+	if consulClient != nil {
+		return consulClient, nil
+	}
+	localAddr, ok := os.LookupEnv("DCOTTA_COM_NODE_CONSUL_IP")
 	if !ok {
-		return terrors.PreconditionFailed("", "CONSUL_HTTP_ADDR not found - seems we're not running in Nomad?", nil)
+		return nil, terrors.PreconditionFailed("", "DCOTTA_COM_NODE_CONSUL_IP not found - seems we're not running in Nomad?", nil)
 	}
 	c, err := consul.NewClient(&consul.Config{
-		//Address: "https://" + localAddr + ":8051",
-		Address: localAddr,
+		Address: "https://" + localAddr + ":8051",
 	})
 	if err != nil {
-		return terrors.Augment(err, "failed to init Consul client", nil)
+		return nil, terrors.Augment(err, "failed to init Consul client", nil)
 	}
-	client = c
-	return nil
+	consulClient = c
+	return c, nil
 }
-
-var client *consul.Client
 
 var defaultQueryOpts = &consul.QueryOptions{}
 
@@ -39,8 +49,9 @@ func Get(ctx context.Context, key string) *Value {
 }
 
 func (v *Value) getKV() (*consul.KVPair, error) {
-	if client == nil {
-		return nil, terrors.InternalService("init_failed", "consul client not initialised", nil)
+	client, err := getOrStart()
+	if err != nil {
+		return nil, terrors.Augment(err, "consul client not initialised", nil)
 	}
 
 	kv, _, err := client.KV().Get(v.key, defaultQueryOpts.WithContext(v.ctx))
@@ -58,7 +69,7 @@ func (v *Value) String(default_ string) (string, error) {
 	return string(kv.Value), nil
 }
 
-// Bool has default which is always false
+// Bool returns false by default
 func (v *Value) Bool() (bool, error) {
 	kv, err := v.getKV()
 	if err != nil {
