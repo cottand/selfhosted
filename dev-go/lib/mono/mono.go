@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
+	"github.com/cottand/selfhosted/dev-go/lib/util"
 	"github.com/monzo/terrors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -15,6 +16,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -33,12 +35,46 @@ func Register(hook RegistrationHook) {
 	servicesHooks = append(servicesHooks, hook)
 }
 
-var addModuleNameToContextUnary grpc.UnaryServerInterceptor = func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
-	slog.InfoContext(ctx, "received unary request", "service", info.FullMethod)
-	return handler(ctx, req)
+// parseFullMethod takes `/s_rpc_vault.VaultApi/Snapshot` and returns `s-rpc-vault` and `Snapshot`
+func parseFullMethod(fullMethod string) (service, method string) {
+	parts := strings.Split(fullMethod, "/")
+	if len(parts) != 3 {
+		return "", ""
+	}
+	nameParts := strings.Split(parts[1], ".")
+	if len(nameParts) != 2 {
+		return "", ""
+	}
+	service = util.SnakeToKebabCase(nameParts[0])
+
+	return service, parts[2]
 }
+
+var addModuleNameToContextUnary grpc.UnaryServerInterceptor = func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+	service, method := parseFullMethod(info.FullMethod)
+	newCtx := util.CtxWithLog(ctx, slog.String("service_module", service), slog.String("grpc_method", method))
+	return handler(newCtx, req)
+}
+
+// streamHandlerWithContext wraps a grpc.ServerStream in order to return a new context.Context via newCtx
+type streamHandlerWithContext struct {
+	newCtx func(context.Context) context.Context
+	grpc.ServerStream
+}
+
+func (h streamHandlerWithContext) Context() context.Context {
+	return h.newCtx(h.ServerStream.Context())
+}
+
 var addModuleNameToContextStream grpc.StreamServerInterceptor = func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-	return handler(srv, stream)
+	service, method := parseFullMethod(info.FullMethod)
+	newStream := streamHandlerWithContext{
+		ServerStream: stream,
+		newCtx: func(oldCtx context.Context) context.Context {
+			return util.CtxWithLog(oldCtx, slog.String("service_module", service), slog.String("grpc_method", method))
+		},
+	}
+	return handler(srv, newStream)
 }
 
 func RunRegistered() {
@@ -65,7 +101,6 @@ func RunRegistered() {
 	}
 
 	for name, module := range services {
-
 		if module.RegisterGrpc != nil {
 			module.RegisterGrpc(grpcServer)
 		}

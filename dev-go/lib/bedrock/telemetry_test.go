@@ -2,6 +2,7 @@ package bedrock
 
 import (
 	"bytes"
+	"github.com/cottand/selfhosted/dev-go/lib/util"
 	"github.com/monzo/terrors"
 	"log/slog"
 	"strings"
@@ -27,8 +28,6 @@ func TestLoggerReplaceErrorsWithParams(t *testing.T) {
 	}
 
 	logger.Info("some info with err", "err", terrors.BadRequest("", "message", errParams))
-
-	println(b.String())
 
 	if !strings.Contains(b.String(), "error.param.when=tomorrow") {
 		t.Fail()

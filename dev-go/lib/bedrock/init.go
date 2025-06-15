@@ -7,7 +7,6 @@ import (
 	"log/slog"
 	"os"
 	"strconv"
-	"strings"
 )
 
 import (
@@ -16,10 +15,6 @@ import (
 
 type ShutdownFunc = func(ctx context.Context) error
 
-func KebabToSnakeCase(name string) string {
-	return strings.ReplaceAll(name, "-", "_")
-}
-
 func Init(ctx context.Context) ShutdownFunc {
 	shutdown, err := setupOTelSDK(ctx)
 
@@ -27,11 +22,6 @@ func Init(ctx context.Context) ShutdownFunc {
 		err = terrors.Augment(err, "failed to start otlp sdk", nil)
 		log.Fatalln(err)
 	}
-	//err = config.Init()
-	//if err != nil {
-	//	err = terrors.Augment(err, "failed to start config", nil)
-	//	log.Fatalln(err)
-	//}
 	slog.Info("bedrock initialized 🚀")
 
 	return shutdown

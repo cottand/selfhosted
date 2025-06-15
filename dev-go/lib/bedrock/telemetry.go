@@ -3,6 +3,7 @@ package bedrock
 import (
 	"context"
 	"errors"
+	"github.com/cottand/selfhosted/dev-go/lib/util"
 	"github.com/monzo/terrors"
 	slogotel "github.com/remychantenay/slog-otel"
 	"go.opentelemetry.io/otel"
@@ -17,16 +18,17 @@ import (
 var slogOpts = &slog.HandlerOptions{ReplaceAttr: loggerReplaceErrs}
 
 func init() {
-	logger := slog.New(slogotel.OtelHandler{
-		Next:          slog.NewJSONHandler(os.Stderr, slogOpts),
+	var handler slog.Handler = slog.NewJSONHandler(os.Stderr, slogOpts)
+	handler = util.NewContextLogHandler(handler)
+	handler = slogotel.OtelHandler{
+		Next:          handler,
 		NoBaggage:     false,
 		NoTraceEvents: false,
-	})
-
-	slog.SetDefault(logger)
+	}
+	slog.SetDefault(slog.New(handler))
 }
 
-func loggerReplaceErrs(groups []string, pre slog.Attr) slog.Attr {
+func loggerReplaceErrs(_ []string, pre slog.Attr) slog.Attr {
 	if !(pre.Key == "err" || pre.Key == "error") {
 		return pre
 	}
