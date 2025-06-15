@@ -81,7 +81,7 @@ func (s *scaffold) handlePush(writer http.ResponseWriter, request *http.Request)
 	}()
 
 	if !shouldAcceptEvent(&event) {
-		slog.Debug("ignoring non-success push event")
+		slog.DebugContext(ctx, "ignoring non-success push event")
 		return
 	}
 	newCtx := ctx

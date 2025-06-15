@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
+	"github.com/cottand/selfhosted/dev-go/lib/util"
 	"github.com/monzo/terrors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -18,19 +19,19 @@ var (
 	//uniqueVisitInterval = 1 * time.Hour
 
 	visits = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: bedrock.KebabToSnakeCase(Name),
+		Namespace: util.KebabToSnakeCase(Name),
 		Name:      "page_visits",
 		Help:      "Page visits to web_portfolio",
 	}, []string{"since"})
 
 	visitsUnique = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: bedrock.KebabToSnakeCase(Name),
+		Namespace: util.KebabToSnakeCase(Name),
 		Name:      "page_visits_unique",
 		Help:      "Unique page visits to web_portfolio",
 	}, []string{"since"})
 
 	visitsUniqueWithUri = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: bedrock.KebabToSnakeCase(Name),
+		Namespace: util.KebabToSnakeCase(Name),
 		Name:      "page_visits_unique_url",
 		Help:      "Unique page visits to web_portfolio per URL",
 	}, []string{"since", "url"})
