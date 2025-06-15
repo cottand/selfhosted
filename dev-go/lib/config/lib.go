@@ -2,12 +2,18 @@ package config
 
 import (
 	"context"
+	"fmt"
+	"github.com/cottand/selfhosted/dev-go/lib/mono"
 	consul "github.com/hashicorp/consul/api"
 	"github.com/monzo/terrors"
 	"log/slog"
 	"os"
 	"strconv"
 	"sync"
+)
+
+const (
+	CONSUL_KEY_PREFIX = "services/"
 )
 
 type Value struct {
@@ -48,13 +54,23 @@ func Get(ctx context.Context, key string) *Value {
 	return &Value{key: key, ctx: ctx}
 }
 
+func (v *Value) consulKVPath() string {
+	moduleName, ok := mono.ModuleName(v.ctx)
+	if !ok {
+		slog.WarnContext(v.ctx, "failed to get module name from context", "resolvedPath", fmt.Sprintf("%s/%s/%s", CONSUL_KEY_PREFIX, moduleName, v.key))
+	}
+	return fmt.Sprintf("%s/%s/%s", CONSUL_KEY_PREFIX, moduleName, v.key)
+}
+
 func (v *Value) getKV() (*consul.KVPair, error) {
 	client, err := getOrStart()
 	if err != nil {
 		return nil, terrors.Augment(err, "consul client not initialised", nil)
 	}
 
-	kv, _, err := client.KV().Get(v.key, defaultQueryOpts.WithContext(v.ctx))
+	path := v.consulKVPath()
+	slog.DebugContext(v.ctx, "reading Consul secret", "path", path)
+	kv, _, err := client.KV().Get(path, defaultQueryOpts.WithContext(v.ctx))
 	if err != nil {
 		return nil, terrors.Augment(err, "failed to query Consul KV", nil)
 	}

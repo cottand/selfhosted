@@ -51,12 +51,12 @@ func parseFullMethod(fullMethod string) (service, method string) {
 }
 
 var addModuleNameToContextUnary grpc.UnaryServerInterceptor = func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
-	service, method := parseFullMethod(info.FullMethod)
-	newCtx := util.CtxWithLog(ctx, slog.String("service_module", service), slog.String("grpc_method", method))
+	service, _ := parseFullMethod(info.FullMethod)
+	newCtx := ContextForModule(service, ctx)
 	return handler(newCtx, req)
 }
 
-// streamHandlerWithContext wraps a grpc.ServerStream in order to return a new context.Context via newCtx
+// streamHandlerWithContext wraps a grpc.ServerStream to return a new context.Context via newCtx
 type streamHandlerWithContext struct {
 	newCtx func(context.Context) context.Context
 	grpc.ServerStream
