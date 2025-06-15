@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	CONSUL_KEY_PREFIX = "services/"
+	ConsulKeyPrefix = "services/"
 )
 
 type Value struct {
@@ -57,9 +57,9 @@ func Get(ctx context.Context, key string) *Value {
 func (v *Value) consulKVPath() string {
 	moduleName, ok := mono.ModuleName(v.ctx)
 	if !ok {
-		slog.WarnContext(v.ctx, "failed to get module name from context", "resolvedPath", fmt.Sprintf("%s/%s/%s", CONSUL_KEY_PREFIX, moduleName, v.key))
+		slog.WarnContext(v.ctx, "failed to get module name from context", "resolvedPath", fmt.Sprintf("%s/%s/%s", ConsulKeyPrefix, moduleName, v.key))
 	}
-	return fmt.Sprintf("%s/%s/%s", CONSUL_KEY_PREFIX, moduleName, v.key)
+	return fmt.Sprintf("%s/%s/%s", ConsulKeyPrefix, moduleName, v.key)
 }
 
 func (v *Value) getKV() (*consul.KVPair, error) {
