@@ -33,10 +33,22 @@ func Register(hook RegistrationHook) {
 	servicesHooks = append(servicesHooks, hook)
 }
 
+var addModuleNameToContextUnary grpc.UnaryServerInterceptor = func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+	slog.InfoContext(ctx, "received unary request", "service", info.FullMethod)
+	return handler(ctx, req)
+}
+var addModuleNameToContextStream grpc.StreamServerInterceptor = func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+	return handler(srv, stream)
+}
+
 func RunRegistered() {
 	ctx := context.Background()
 	bedrock.Init(ctx)
-	grpcServer := grpc.NewServer(grpc.StatsHandler(otelgrpc.NewServerHandler()))
+	grpcServer := grpc.NewServer(
+		grpc.StatsHandler(otelgrpc.NewServerHandler()),
+		grpc.UnaryInterceptor(addModuleNameToContextUnary),
+		grpc.StreamInterceptor(addModuleNameToContextStream),
+	)
 	reflection.Register(grpcServer)
 	defer grpcServer.GracefulStop()
 

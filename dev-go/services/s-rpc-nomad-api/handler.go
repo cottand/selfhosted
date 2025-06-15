@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/cottand/selfhosted/dev-go/lib/config"
 	pb "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-nomad-api"
 	"github.com/farcaller/gonix"
 	nomad "github.com/hashicorp/nomad/api"
@@ -21,6 +22,10 @@ func (h *ProtoHandler) Deploy(ctx context.Context, job *pb.Job) (*emptypb.Empty,
 	rendered, err := jobFileToSpec(ctx, job)
 	if err != nil {
 		return nil, terrors.Augment(err, "failed to render job", nil)
+	}
+	dryRunEnabled, _ := config.Get(ctx, "deploy/dryRunEnabled").Bool()
+	if dryRunEnabled {
+		return &emptypb.Empty{}, nil
 	}
 	res, _, err := h.nomadClient.Jobs().Register(rendered, (&nomad.WriteOptions{}).WithContext(ctx))
 	if err != nil {
