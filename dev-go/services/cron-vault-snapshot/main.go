@@ -12,8 +12,9 @@ import (
 )
 
 func main() {
-	ctx := context.Background()
-	_, tracer := bedrock.New("cron-vault-snapshot")
+	name := "cron-vault-snapshot"
+	ctx := bedrock.ContextForModule(name, context.Background())
+	tracer := bedrock.GetTracer(ctx)
 
 	ctx, span := tracer.Start(ctx, "cron")
 	defer span.End()
