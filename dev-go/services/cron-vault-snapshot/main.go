@@ -7,6 +7,7 @@ import (
 	"github.com/monzo/terrors"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"log"
+	"log/slog"
 	"os"
 )
 
