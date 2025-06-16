@@ -137,7 +137,8 @@ lib.mkJob name {
         args = [
           "-logtostderr"
           "filer"
-          "-ip=${bind}"
+          # advertise node on tailscale so that master can find filer
+          "-ip=\${attr.unique.hostname}.${lib.tailscaleDns}"
           "-ip.bind=${bind}"
           (
             with lib;

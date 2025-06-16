@@ -50,10 +50,6 @@ func loggerReplaceErrs(_ []string, pre slog.Attr) slog.Attr {
 	)
 }
 
-func New(name string) (Name string, tracer trace.Tracer) {
-	return name, otel.Tracer(name)
-}
-
 func GetTracer(ctx context.Context) trace.Tracer {
 	name, ok := GetModuleName(ctx)
 	if !ok {
