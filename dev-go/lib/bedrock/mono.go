@@ -71,7 +71,7 @@ var addModuleNameToContextStream grpc.StreamServerInterceptor = func(srv any, st
 	newStream := streamHandlerWithContext{
 		ServerStream: stream,
 		newCtx: func(oldCtx context.Context) context.Context {
-			return util.CtxWithLog(oldCtx, slog.String("service_module", service), slog.String("grpc_method", method))
+			return util.CtxWithLog(oldCtx, slog.String("module", service), slog.String("grpc_method", method))
 		},
 	}
 	return handler(srv, newStream)
