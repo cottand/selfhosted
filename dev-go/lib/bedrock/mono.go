@@ -71,7 +71,9 @@ var addModuleNameToContextStream grpc.StreamServerInterceptor = func(srv any, st
 	newStream := streamHandlerWithContext{
 		ServerStream: stream,
 		newCtx: func(oldCtx context.Context) context.Context {
-			return util.CtxWithLog(oldCtx, slog.String("module", service), slog.String("grpc_method", method))
+			newCtx := ContextForModule(service, oldCtx)
+			newCtx = util.CtxWithLog(newCtx, slog.String("grpc_method", method))
+			return newCtx
 		},
 	}
 	return handler(srv, newStream)
@@ -92,11 +94,12 @@ func RunRegistered() {
 
 	for _, registrationHook := range servicesHooks {
 		svc, name, err := registrationHook()
+		ctx := ContextForModule(name, ctx)
 		if err != nil {
-			slog.ErrorContext(ctx, "failed to init service", "module", name, "err", err)
+			slog.ErrorContext(ctx, "failed to init service", "err", err)
 			continue
 		}
-		slog.InfoContext(ctx, "initialised service", "module", name)
+		slog.InfoContext(ctx, "initialised service")
 		services[name] = svc
 	}
 
@@ -104,7 +107,8 @@ func RunRegistered() {
 		if module.RegisterGrpc != nil {
 			module.RegisterGrpc(grpcServer)
 		}
-		slog.InfoContext(ctx, "registered grpc", "module", name)
+		ctx := ContextForModule(name, ctx)
+		slog.InfoContext(ctx, "registered grpc")
 	}
 	config, err := GetBaseConfig()
 	if err != nil {
@@ -117,7 +121,8 @@ func RunRegistered() {
 	shutdownServices := func() {
 		for _, service := range services {
 			if err := service.OnShutdown(); err != nil {
-				slog.WarnContext(ctx, "error during service shutdown", "service", service.Name, "err", terrors.Propagate(err))
+				ctx := ContextForModule(service.Name, ctx)
+				slog.WarnContext(ctx, "error during service shutdown", "err", terrors.Propagate(err))
 			}
 		}
 	}

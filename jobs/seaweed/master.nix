@@ -184,6 +184,15 @@ let
             scripts = """
               lock
 
+              # hosted only on london for speed
+              fs.configure -locationPrefix=/buckets/attic -replication=010 -dataCenter london-home -volumeGrowthCount=4 -fsync=true -apply
+
+              fs.configure -locationPrefix=/buckets/documents -replication=100 -volumeGrowthCount=2 -fsync=true -apply
+              fs.configure -locationPrefix=/buckets/documents/domestic -replication=101 -volumeGrowthCount=2 -fsync=true -apply
+
+              fs.configure -locationPrefix=/buckets/immich-pictures -replication=100 -volumeGrowthCount=2 -fsync=true -apply
+
+
               ec.encode -fullPercent=95 -quietFor=24h -collection=documents
               ec.encode -fullPercent=95 -quietFor=24h -collection=attic
 
