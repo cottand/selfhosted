@@ -3,7 +3,7 @@ package config
 import (
 	"context"
 	"fmt"
-	"github.com/cottand/selfhosted/dev-go/lib/mono"
+	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
 	consul "github.com/hashicorp/consul/api"
 	"github.com/monzo/terrors"
 	"log/slog"
@@ -55,7 +55,7 @@ func Get(ctx context.Context, key string) *Value {
 }
 
 func (v *Value) consulKVPath() string {
-	moduleName, ok := mono.ModuleName(v.ctx)
+	moduleName, ok := bedrock.GetModuleName(v.ctx)
 	if !ok {
 		slog.WarnContext(v.ctx, "failed to get module name from context", "resolvedPath", fmt.Sprintf("%s/%s/%s", ConsulKeyPrefix, moduleName, v.key))
 	}

@@ -5,25 +5,25 @@ import (
 	"context"
 	"errors"
 	"github.com/cottand/selfhosted/dev-go/lib/bigq"
-	"github.com/cottand/selfhosted/dev-go/lib/mono"
 	s_rpc_nomad_api "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-nomad-api"
 	"github.com/monzo/terrors"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"log"
+	"log/slog"
 	"net"
 	"net/http"
 	"time"
 )
 import "github.com/cottand/selfhosted/dev-go/lib/bedrock"
 
-var Name, slog, tracer = bedrock.New("s-web-github-webhook")
-
 type scaffold struct {
 	nomad s_rpc_nomad_api.NomadApiClient
 	bq    *bigquery.Client
 }
 
-func InitService(ctx context.Context) (*mono.Service, string, error) {
+func InitService() (*bedrock.Service, string, error) {
+	var name = "s-web-github-webhook"
+	ctx := bedrock.ContextForModule(name, context.Background())
 	conn, err := bedrock.NewGrpcConn()
 	if err != nil {
 		log.Fatalf(terrors.Propagate(err).Error())
@@ -45,20 +45,20 @@ func InitService(ctx context.Context) (*mono.Service, string, error) {
 		BaseContext:  func(_ net.Listener) context.Context { return ctx },
 		ReadTimeout:  time.Second,
 		WriteTimeout: 10 * time.Second,
-		Handler:      otelhttp.NewHandler(s.MakeHTTPHandler(), Name+"-http"),
+		Handler:      otelhttp.NewHandler(s.MakeHTTPHandler(), name+"-http"),
 	}
 
 	var serverErr error
 	go func() {
 		err := srv.ListenAndServe()
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
-			slog.Error("failed to start HTTP: "+terrors.Propagate(err).Error(), "service", Name)
+			slog.ErrorContext(ctx, "failed to start HTTP: "+terrors.Propagate(err).Error())
 			serverErr = err
 		}
 	}()
 
-	service := mono.Service{
-		Name: Name,
+	service := bedrock.Service{
+		Name: name,
 		OnShutdown: func() error {
 			return errors.Join(
 				terrors.Augment(conn.Close(), "failed to close grpc conn", nil),
@@ -68,5 +68,5 @@ func InitService(ctx context.Context) (*mono.Service, string, error) {
 			)
 		},
 	}
-	return &service, Name, nil
+	return &service, name, nil
 }

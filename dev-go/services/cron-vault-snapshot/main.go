@@ -12,7 +12,7 @@ import (
 
 func main() {
 	ctx := context.Background()
-	_, slog, tracer := bedrock.New("cron-vault-snapshot")
+	_, tracer := bedrock.New("cron-vault-snapshot")
 
 	ctx, span := tracer.Start(ctx, "cron")
 	defer span.End()

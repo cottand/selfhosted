@@ -5,11 +5,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
 	"github.com/cottand/selfhosted/dev-go/lib/util"
 	"github.com/monzo/terrors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"go.opentelemetry.io/otel/codes"
+	"log/slog"
 	"time"
 )
 
@@ -18,19 +20,19 @@ var (
 	//uniqueVisitInterval = 1 * time.Hour
 
 	visits = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: util.KebabToSnakeCase(Name),
+		Namespace: util.KebabToSnakeCase(name),
 		Name:      "page_visits",
 		Help:      "Page visits to web_portfolio",
 	}, []string{"since"})
 
 	visitsUnique = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: util.KebabToSnakeCase(Name),
+		Namespace: util.KebabToSnakeCase(name),
 		Name:      "page_visits_unique",
 		Help:      "Unique page visits to web_portfolio",
 	}, []string{"since"})
 
 	visitsUniqueWithUri = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: util.KebabToSnakeCase(Name),
+		Namespace: util.KebabToSnakeCase(name),
 		Name:      "page_visits_unique_url",
 		Help:      "Unique page visits to web_portfolio per URL",
 	}, []string{"since", "url"})
@@ -40,6 +42,7 @@ var (
 func RefreshPromStats(ctx context.Context, db *sql.DB) {
 	day := 24 * time.Hour
 	durations := []time.Duration{0, day, 7 * day, 30 * day, 90 * day}
+	tracer := bedrock.GetTracer(ctx)
 	for {
 		ctx, span := tracer.Start(ctx, "periodic.refreshPromStats")
 		var errs []error

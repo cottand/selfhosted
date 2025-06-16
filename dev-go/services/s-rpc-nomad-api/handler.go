@@ -4,12 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
 	"github.com/cottand/selfhosted/dev-go/lib/config"
 	pb "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-nomad-api"
 	"github.com/farcaller/gonix"
 	nomad "github.com/hashicorp/nomad/api"
 	"github.com/monzo/terrors"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"log/slog"
 	"path"
 )
 
@@ -80,6 +82,7 @@ func jobFileToSpec(ctx context.Context, job *pb.Job) (*nomad.Job, error) {
 }
 
 func evalNixJobJSON(ctx context.Context, jobFilePath string, repoSha string, version string, errParams map[string]string) (string, error) {
+	tracer := bedrock.GetTracer(ctx)
 	ctx, span := tracer.Start(ctx, "evalNixJobJSON")
 	defer span.End()
 
