@@ -8,10 +8,12 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
 	"github.com/cottand/selfhosted/dev-go/lib/config"
 	s_rpc_nomad_api "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-nomad-api"
 	"github.com/cottand/selfhosted/dev-go/lib/secretstore"
 	"github.com/monzo/terrors"
+	"log/slog"
 	"net/http"
 	"time"
 )
@@ -133,7 +135,7 @@ func validateWebhookHmac(ctx context.Context, payloadBody []byte, secret, digest
 }
 
 func (s *scaffold) deploy(ctx context.Context, commit string) {
-
+	tracer := bedrock.GetTracer(ctx)
 	ctx, span := tracer.Start(ctx, "deployOnPush")
 	defer span.End()
 
@@ -142,7 +144,7 @@ func (s *scaffold) deploy(ctx context.Context, commit string) {
 		JobPathInRepo: "dev-go/services/job.nix",
 	})
 	if err != nil {
-		slog.Warn("failed to deploy job", "err", err.Error())
+		slog.WarnContext(ctx, "failed to deploy job", "err", err.Error())
 	}
 }
 
@@ -163,7 +165,7 @@ INSERT INTO dcotta-com.default.actions (inserted_at, head_branch, head_sha, stat
 	if err != nil {
 		return terrors.Augment(err, "failed to insert action into bq", nil)
 	}
-	slog.Debug("successfully submitted BQ query ✅", "head_sha", event.WorkflowJob.HeadSha)
+	slog.DebugContext(ctx,"successfully submitted BQ query ✅", "head_sha", event.WorkflowJob.HeadSha)
 	// check BigQuery dashboard to see if the job succeeded
 	return nil
 }

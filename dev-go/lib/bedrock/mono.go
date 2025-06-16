@@ -1,10 +1,9 @@
-package mono
+package bedrock
 
 import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
 	"github.com/cottand/selfhosted/dev-go/lib/util"
 	"github.com/monzo/terrors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -29,7 +28,7 @@ type Service struct {
 	OnShutdown   func() error
 }
 
-type RegistrationHook = func(ctx context.Context) (*Service, string, error)
+type RegistrationHook = func() (*Service, string, error)
 
 func Register(hook RegistrationHook) {
 	servicesHooks = append(servicesHooks, hook)
@@ -51,8 +50,9 @@ func parseFullMethod(fullMethod string) (service, method string) {
 }
 
 var addModuleNameToContextUnary grpc.UnaryServerInterceptor = func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
-	service, _ := parseFullMethod(info.FullMethod)
+	service, method := parseFullMethod(info.FullMethod)
 	newCtx := ContextForModule(service, ctx)
+	newCtx = util.CtxWithLog(newCtx, slog.String("grpc_method", method))
 	return handler(newCtx, req)
 }
 
@@ -79,7 +79,7 @@ var addModuleNameToContextStream grpc.StreamServerInterceptor = func(srv any, st
 
 func RunRegistered() {
 	ctx := context.Background()
-	bedrock.Init(ctx)
+	Init(ctx)
 	grpcServer := grpc.NewServer(
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 		grpc.UnaryInterceptor(addModuleNameToContextUnary),
@@ -90,13 +90,13 @@ func RunRegistered() {
 
 	services := map[string]*Service{}
 
-	for _, hook := range servicesHooks {
-		svc, name, err := hook(ctx)
+	for _, registrationHook := range servicesHooks {
+		svc, name, err := registrationHook()
 		if err != nil {
-			slog.ErrorContext(ctx, "failed to init service", "service", name, "err", err)
+			slog.ErrorContext(ctx, "failed to init service", "module", name, "err", err)
 			continue
 		}
-		slog.InfoContext(ctx, "initialised service", "service", name)
+		slog.InfoContext(ctx, "initialised service", "module", name)
 		services[name] = svc
 	}
 
@@ -104,9 +104,9 @@ func RunRegistered() {
 		if module.RegisterGrpc != nil {
 			module.RegisterGrpc(grpcServer)
 		}
-		slog.InfoContext(ctx, "registered grpc", "service", name)
+		slog.InfoContext(ctx, "registered grpc", "module", name)
 	}
-	config, err := bedrock.GetBaseConfig()
+	config, err := GetBaseConfig()
 	if err != nil {
 		log.Fatalf(terrors.Augment(err, "failed to get config", nil).Error())
 	}

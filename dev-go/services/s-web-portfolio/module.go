@@ -3,21 +3,21 @@ package module
 import (
 	"context"
 	"errors"
-	"github.com/cottand/selfhosted/dev-go/lib/mono"
 	s_rpc_portfolio_stats "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-portfolio-stats"
 	"github.com/monzo/terrors"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"log"
+	"log/slog"
 	"net"
 	"net/http"
 	"time"
 )
 import "github.com/cottand/selfhosted/dev-go/lib/bedrock"
 
-var Name, slog, _ = bedrock.New("s-web-portfolio")
+const Name = "s-web-portfolio"
 
-func InitService(ctx context.Context) (*mono.Service, string, error) {
-	ctx = context.Background()
+func InitService() (*bedrock.Service, string, error) {
+	ctx := bedrock.ContextForModule(Name, context.Background())
 	conn, err := bedrock.NewGrpcConn()
 	if err != nil {
 		log.Fatalf(terrors.Propagate(err).Error())
@@ -46,7 +46,7 @@ func InitService(ctx context.Context) (*mono.Service, string, error) {
 	}()
 	var serverErr error
 
-	service := &mono.Service{
+	service := &bedrock.Service{
 		Name: Name,
 		OnShutdown: func() error {
 			if conn.Close() != nil {

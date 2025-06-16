@@ -1,4 +1,4 @@
-package mono
+package bedrock
 
 import "context"
 
@@ -8,7 +8,8 @@ func CtxWithModuleName(ctx context.Context, name string) context.Context  {
 	return context.WithValue(ctx, contextModuleNameKey, name)
 }
 
-func ModuleName(ctx context.Context) (string, bool)  {
+func GetModuleName(ctx context.Context) (string, bool)  {
 	name, ok := ctx.Value(contextModuleNameKey).(string)
 	return name, ok
 }
+

@@ -4,7 +4,6 @@ import (
 	"context"
 	"embed"
 	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
-	"github.com/cottand/selfhosted/dev-go/lib/mono"
 	s_rpc_portfolio_stats "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-portfolio-stats"
 	"github.com/monzo/terrors"
 	"google.golang.org/grpc"
@@ -13,20 +12,21 @@ import (
 //go:embed migrations
 var dbMigrations embed.FS
 
-var Name, slog, tracer = bedrock.New("s-rpc-portfolio-stats")
+const name = "s-rpc-portfolio-stats"
 
-func InitService(_ context.Context) (*mono.Service, string, error) {
-	db, err := bedrock.GetMigratedDB(Name, dbMigrations)
+func InitService() (*bedrock.Service, string, error) {
+	ctx := bedrock.ContextForModule(name, context.Background())
+	db, err := bedrock.GetMigratedDB(name, dbMigrations)
 	if err != nil {
-		return nil, Name, terrors.Propagate(err)
+		return nil, name, terrors.Propagate(err)
 	}
 
-	refreshCtx, refreshCancel := context.WithCancel(context.Background())
+	refreshCtx, refreshCancel := context.WithCancel(ctx)
 
 	go RefreshPromStats(refreshCtx, db)
 
-	service := &mono.Service{
-		Name: Name,
+	service := &bedrock.Service{
+		Name: name,
 		RegisterGrpc: func(srv *grpc.Server) {
 			s_rpc_portfolio_stats.RegisterPortfolioStatsServer(srv, &ProtoHandler{db: db})
 		},
@@ -38,5 +38,5 @@ func InitService(_ context.Context) (*mono.Service, string, error) {
 			return nil
 		},
 	}
-	return service, Name, nil
+	return service, name, nil
 }

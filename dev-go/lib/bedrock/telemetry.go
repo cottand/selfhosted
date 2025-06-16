@@ -50,12 +50,17 @@ func loggerReplaceErrs(_ []string, pre slog.Attr) slog.Attr {
 	)
 }
 
-func LoggerFor(serviceName string) *slog.Logger {
-	return slog.With("service_module", serviceName)
+func New(name string) (Name string, tracer trace.Tracer) {
+	return name, otel.Tracer(name)
 }
 
-func New(name string) (Name string, slog *slog.Logger, tracer trace.Tracer) {
-	return name, LoggerFor(name), otel.Tracer(name)
+func GetTracer(ctx context.Context) trace.Tracer {
+	name, ok := GetModuleName(ctx)
+	if !ok {
+		slog.WarnContext(ctx, "failed to get module name from context while getting trace")
+		name = "unknown"
+	}
+	return otel.Tracer(name)
 }
 
 // see https://opentelemetry.io/docs/languages/go/getting-started/
