@@ -1,7 +1,7 @@
 let
   name = "seaweed-filer";
   lib = (import ../lib) { };
-  version = "3.81";
+  version = "3.90";
   cpu = 100;
   mem = 200;
   ports = {
