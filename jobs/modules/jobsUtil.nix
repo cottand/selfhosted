@@ -1,5 +1,6 @@
 { ... }: {
 
+  tailscaleDns = "golden-dace.ts.net";
   mkResourcesWithFactor = factor: resources@{ cpu, memory, memoryMax ? memory }: with builtins; mapAttrs (_: ceil) {
     cpu = factor * cpu;
     memory = factor * memory;

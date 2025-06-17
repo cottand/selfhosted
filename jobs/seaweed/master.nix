@@ -1,55 +1,53 @@
+{ util, time, defaults, ... }:
 let
-  lib = (import ../lib) { };
-  version = "3.81";
+  version = "3.90";
   cpu = 100;
   mem = 200;
   sidecarResources = with builtins; mapAttrs (_: ceil) {
     cpu = 0.20 * cpu;
-    memoryMB = 0.25 * mem;
-    memoryMaxMB = 0.25 * mem + 100;
+    memory = 0.25 * mem;
+    memoryMax = 0.25 * mem + 100;
   };
   ports = rec {
     metrics = 12345;
     http = 9333;
     grpc = http + 10000;
   };
-
-  advertiseOf = node: "${node}.${lib.tailscaleDns}:${toString ports.http}";
+  advertiseOf = node: "${node}.${util.tailscaleDns}:${toString ports.http}";
 
   mkConfig = node: other1: other2: {
     name = "${node}-seaweed-master";
     count = 1;
     constraints = [{
-      lTarget = "\${meta.box}";
-      operand = "=";
-      rTarget = node;
+      attribute = "\${meta.box}";
+      operator = "=";
+      value = node;
     }];
     network = {
-      inherit (lib.defaults.dns) servers;
       mode = "bridge";
-      dynamicPorts = [
-        { label = "metrics"; hostNetwork = "ts"; }
-        { label = "health"; hostNetwork = "ts"; }
-      ];
-      reservedPorts = [
-        { label = "http"; value = ports.http; hostNetwork = "ts"; }
-        { label = "grpc"; value = ports.grpc; hostNetwork = "ts"; }
-      ];
+      port."metrics".hostNetwork = "ts";
+      port."health".hostNetwork = "ts";
+      reservedPorts = {
+        "http" = { static = ports.http; hostNetwork = "ts"; };
+        "grpc" = { static = ports.grpc; hostNetwork = "ts"; };
+      };
+      dns.servers = [ "100.100.100.100" ];
     };
     service."seaweed-master-http" = {
-      portLabel = toString ports.http;
-      taskName = "seaweed-master";
-      connect = {
-        sidecarService.proxy = {
-          upstream."tempo-otlp-grpc-mesh".localBindPort = 4321;
+      port = toString ports.http;
+      connect.sidecarService = {
+        proxy = {
+          upstreams = [
+            { destinationName = "tempo-otlp-grpc-mesh"; localBindPort = 4321; }
+          ];
 
-          config = lib.mkEnvoyProxyConfig {
+          config = util.mkEnvoyProxyConfig {
             otlpService = "proxy-seaweed-master-http";
             otlpUpstreamPort = 4321;
           };
         };
-        sidecarTask.resources = sidecarResources;
       };
+      connect.sidecarTask.resources = sidecarResources;
       tags = [
         "traefik.enable=true"
         "traefik.consulcatalog.connect=true"
@@ -58,12 +56,9 @@ let
       ];
     };
     service."seaweed-master-grpc" = {
-      portLabel = toString ports.grpc;
-      taskName = "seaweed-master";
-      connect = {
-        sidecarService = { };
-        sidecarTask.resources = sidecarResources;
-      };
+      port = toString ports.grpc;
+      connect.sidecarService = { };
+      connect.sidecarTask.resources = sidecarResources;
       tags = [
         "traefik.enable=true"
         "traefik.consulcatalog.connect=true"
@@ -73,30 +68,32 @@ let
       ];
     };
     service."seaweed-${node}-master-grpc" = {
-      portLabel = toString ports.grpc;
-      connect = {
-        sidecarService.proxy = {
-          upstream."tempo-otlp-grpc-mesh".localBindPort = 4322;
-          config = lib.mkEnvoyProxyConfig {
+      port = toString ports.grpc;
+      connect.sidecarService = {
+        proxy = {
+          upstreams = [
+            { destinationName = "tempo-otlp-grpc-mesh"; localBindPort = 4322; }
+          ];
+          config = util.mkEnvoyProxyConfig {
             otlpService = "proxy-seaweed-master-${node}";
             otlpUpstreamPort = 4322;
             protocol = "grpc";
           };
         };
-        sidecarTask.resources = sidecarResources // { cpu = builtins.ceil (cpu * 0.30); };
       };
+      connect.sidecarTask.resources = sidecarResources // { cpu = builtins.ceil (cpu * 0.30); };
     };
     service."seaweed-${node}-master-http" = {
-      portLabel = toString ports.http;
-      connect = {
-        sidecarService.proxy = {
-          config = lib.mkEnvoyProxyConfig {
+      port = toString ports.http;
+      connect.sidecarService = {
+        proxy = {
+          config = util.mkEnvoyProxyConfig {
             otlpService = "proxy-seaweed-${node}";
             otlpUpstreamPort = 4322;
           };
         };
-        sidecarTask.resources = sidecarResources // { cpu = builtins.ceil (cpu * 0.30); };
       };
+      connect.sidecarTask.resources = sidecarResources // { cpu = builtins.ceil (cpu * 0.30); };
       tags = [
         "traefik.enable=true"
         "traefik.consulcatalog.connect=true"
@@ -106,25 +103,22 @@ let
       checks = [{
         expose = true;
         name = "health";
-        portLabel = "health";
+        port = "health";
         type = "http";
         path = "/";
-        interval = 10 * lib.seconds;
-        timeout = 3 * lib.seconds;
-        check_restart = {
+        interval = 10 * time.second;
+        timeout = 3 * time.second;
+        checkRestart = {
           limit = 3;
-          grace = "120s";
+          grace = 120 * time.second;
           ignoreWarnings = false;
         };
       }];
     };
     service."seaweed-master-metrics" = rec {
-      portLabel = toString ports.metrics;
-      taskName = "seaweed-master";
-      connect = {
-        sidecarService.proxy = { };
-        sidecarTask.resources = sidecarResources;
-      };
+      port = toString ports.metrics;
+      connect.sidecarService.proxy = { };
+      connect.sidecarTask.resources = sidecarResources;
       meta = {
         metrics_port = "\${NOMAD_HOST_PORT_metrics}";
         metrics_path = "/metrics";
@@ -132,11 +126,11 @@ let
       checks = [{
         expose = true;
         name = "metrics";
-        portLabel = "metrics";
+        port = "metrics";
         type = "http";
         path = meta.metrics_path;
-        interval = 10 * lib.seconds;
-        timeout = 3 * lib.seconds;
+        interval = 10 * time.second;
+        timeout = 3 * time.second;
       }];
     };
 
@@ -148,7 +142,7 @@ let
         args = [
           "-logtostderr"
           "master"
-          "-ip=${node}.${lib.tailscaleDns}"
+          "-ip=${node}.${util.tailscaleDns}"
           "-ip.bind=0.0.0.0"
           #   "-mdir=/data"
           "-mdir=\${NOMAD_TASK_DIR}/master"
@@ -171,14 +165,14 @@ let
       };
       resources = {
         cpu = cpu;
-        memoryMB = mem;
-        memoryMaxMB = mem + 100;
+        memory = mem;
+        memoryMax = mem + 100;
       };
       templates = [
         {
-          destPath = "local/master.toml";
+          destination = "local/master.toml";
           changeMode = "restart";
-          embeddedTmpl = ''
+          data = ''
             [master.maintenance]
             # periodically run these scripts are the same as running them from 'weed shell'
             scripts = """
@@ -231,15 +225,17 @@ let
     };
   };
 in
-lib.mkJob "seaweed-master" {
-  datacenters = [ "*" ];
-  update = {
-    maxParallel = 1;
-    autoRevert = true;
-    canary = 0;
-    stagger = 10 * lib.seconds;
+{
+  job."seaweed-master" = {
+    datacenters = [ "*" ];
+    update = {
+      maxParallel = 1;
+      autoRevert = true;
+      canary = 0;
+      stagger = 10 * time.second;
+    };
+    group."miki-seaweed-master" = mkConfig "hez1" "hez2" "hez3";
+    group."maco-seaweed-master" = mkConfig "hez2" "hez3" "hez1";
+    group."cosmo-seaweed-master" = mkConfig "hez3" "hez1" "hez2";
   };
-  group."miki-seaweed-master" = mkConfig "hez1" "hez2" "hez3";
-  group."maco-seaweed-master" = mkConfig "hez2" "hez3" "hez1";
-  group."cosmo-seaweed-master" = mkConfig "hez3" "hez1" "hez2";
 }
