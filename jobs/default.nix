@@ -14,5 +14,6 @@ in
     ./immich/immich.nix
     ./monitoring/grafana/job.nix
     ./seaweed/master.nix
+    ./seaweed/filer.nix
   ];
 }
