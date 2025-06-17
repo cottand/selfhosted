@@ -15,5 +15,6 @@ in
     ./monitoring/grafana/job.nix
     ./seaweed/master.nix
     ./seaweed/filer.nix
+    ./seaweed/volume.nix
   ];
 }
