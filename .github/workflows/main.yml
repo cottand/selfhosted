@@ -138,7 +138,7 @@ jobs:
 
       - name: Build services image
         run: |
-          nix build -L .#scripts.all-images
+          nix-fast-build --eval-workers 1 --no-nom --attic-cache=default --option build-fallback true  .#scripts.all-images
 
       - name: Install skopeo
         run: |
