@@ -154,7 +154,7 @@ jobs:
           import os
           import json
           
-          images = os.popen("jq < $(nix build .#scripts.all-images --print-out-paths)").read()
+          images = os.popen("jq < $(nix build .#scripts.all-images --print-out-paths --fallback)").read()
           git_sha = os.popen('git rev-parse --short "$GITHUB_SHA"').read().strip()
           
           for repo, path in json.loads(images).items():
