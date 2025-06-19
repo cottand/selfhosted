@@ -28,5 +28,5 @@ Configuration management is done declaratively, with Terraform (for the stateful
 
 Here is a screenshot of the main LGTM dashboard:
 
-<img width="1146" alt="grafana dashboard" src="https://github.com/Cottand/selfhosted/assets/45274424/f211b679-104c-4c58-a23a-10b5cfdabc41">
+<img width="1512" alt="grafana dashboard" src="https://github.com/user-attachments/assets/c4f1f5bb-44a2-45cf-a0da-86d0f453b062" />
 
