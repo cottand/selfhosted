@@ -89,6 +89,18 @@ let
     };
   };
 
+  passDefaultsObject = { ... }: {
+    _module.args = {
+      util = (import ./jobsUtil.nix { });
+
+      # defaults is not actually set for every job, but it is given in the module arguments
+      # and is opt-in
+      defaults = {
+        dns.servers = [ "100.100.100.100" ];
+      };
+    };
+  };
+
 in
 {
 
@@ -100,14 +112,7 @@ in
     addDefaultLinks
     addDefaultTaskEnv
     addCaCertificatesVolumeMount
-    ({ ... }: {
-      _module.args.util = (import ./jobsUtil.nix { });
-      # defaults is not actually set for every job, but it is given in the module arguments
-      # and is opt-in
-      _module.args.defaults = {
-        dns.servers = [ "100.100.100.100" ];
-      };
-    })
+    passDefaultsObject
   ];
 
 }

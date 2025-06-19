@@ -1,4 +1,3 @@
-
 job "seaweedfs-backup" {
   datacenters = ["*"]
 
@@ -15,23 +14,23 @@ job "seaweedfs-backup" {
       mode     = "delay"
     }
     service {
-        name = "seaweed-backup"
-        port = "metrics"
+      name = "seaweed-backup"
+      port = "metrics"
 
-        connect {
-          sidecar_service {
-            proxy {
-              upstreams {
-                destination_name = "seaweed-filer-http"
-                local_bind_port  = 8888
-              }
-              upstreams {
-                destination_name = "seaweed-filer-grpc"
-                local_bind_port  = 18888
-              }
+      connect {
+        sidecar_service {
+          proxy {
+            upstreams {
+              destination_name = "seaweed-filer-http"
+              local_bind_port  = 8888
+            }
+            upstreams {
+              destination_name = "seaweed-filer-grpc"
+              local_bind_port  = 18888
             }
           }
         }
+      }
     }
     task "backup" {
 

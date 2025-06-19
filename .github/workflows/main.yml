@@ -27,7 +27,7 @@ jobs:
           - .#packages.x86_64-linux.bws-get
           - .#packages.x86_64-linux.nixmad
           - "github:zhaofengli/colmena#defaultPackage.x86_64-linux"
-          - "github:Mic92/nix-fast-build/8e7c9d7#packages.x86_64-linux.default"
+          - "github:Mic92/nix-fast-build/1.2.0#packages.x86_64-linux.default"
         host:
           - ubuntu-latest
     #          - macos-latest
@@ -42,7 +42,7 @@ jobs:
       - name: Build package ${{ matrix.package }}
         continue-on-error: false
         run: |
-          nix-fast-build --eval-workers 1 --skip-cached --no-nom --attic-cache=default \
+          nix-fast-build --eval-workers 1 --skip-cached --no-nom --attic-cache=default --option build-fallback true \
             -f ${{ matrix.package }}
 
   resolve-nodes:
@@ -79,7 +79,7 @@ jobs:
           aarch64LinuxSupport: true
       - name: Build NixOS config for ${{ matrix.node }}
         run: |
-          nix-fast-build --eval-workers 1 --skip-cached --no-nom --attic-cache=default \
+          nix-fast-build --eval-workers 1 --skip-cached --no-nom --attic-cache=default --option build-fallback true \
             -f .#colmenaHive.nodes.${{ matrix.node }}.config.system.build.toplevel
 
   deploy-web:
