@@ -1,6 +1,6 @@
 let
   lib = (import ../lib) { };
-  version = "11.3.2";
+  version = "12.0.2";
   cpu = 100;
   mem = 240;
   ports = {
