@@ -73,15 +73,10 @@ in
     imports = [ ./machines/${name}/definition.nix ];
     deployment.tags = [ "local" "macmini" ];
   };
-  gcp-worker-dfv7 = {
-    imports = [ ./machines/gcpWorker/definition.nix ];
-    deployment.tags = [ "gcp" ];
-    deployment.targetHost = "34.118.247.206";
-  };
-  gcp-worker-dw64 = {
-    imports = [ ./machines/gcpWorker/definition.nix ];
-    deployment.tags = [ "gcp" ];
-    deployment.targetHost = "35.234.68.55";
+  imac = {name, ...}: {
+    imports = [ ./machines/${name}/definition.nix ];
+    deployment.tags = [ "local" ];
+    deployment.targetHost = "192.168.40.90";
   };
 }
 // (mkNodePool {
