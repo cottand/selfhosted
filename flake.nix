@@ -45,7 +45,6 @@
       colmenaHive = colmena.lib.makeHive self.outputs.colmena;
       overlays = [
         overrides
-        attic.overlays.default
         filters.overlays.default
         colmena.overlays.default
       ];

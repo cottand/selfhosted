@@ -21,7 +21,7 @@
     pkgs.fish
     pkgs.seaweedfs
     pkgs.wander
-#    pkgs.attic-client
+    pkgs.attic-client
     pkgs.grpcurl
 
     # for development
@@ -55,4 +55,6 @@
   # see https://github.com/hashicorp/terraform/issues/36704#issuecomment-2745044595
   AWS_REQUEST_CHECKSUM_CALCULATION = "when_required";
   AWS_RESPONSE_CHECKSUM_VALIDATION = "when_required";
+
+  NIX_SSHOPTS = "-o ControlMaster=no";
 }

@@ -1,7 +1,7 @@
 { util, time, defaults, ... }:
 let
   name = "seaweed-volume";
-  version = "3.90";
+  version = "3.95";
 
   ports = {
     http = 7002;
@@ -10,11 +10,11 @@ let
     oltp = 4321;
   };
   cpu = 120;
-  mem = 250;
+  mem = 350;
   sidecarResources = with builtins; mapAttrs (_: ceil) {
-    cpu = 0.20 * cpu;
-    memory = 0.25 * mem;
-    memoryMax = 0.25 * mem + 100;
+    cpu = 0.15 * cpu;
+    memory = 0.20 * mem;
+    memoryMax = 0.20 * mem + 100;
   };
 in
 {
@@ -173,9 +173,10 @@ in
             "-mserver=hez1.${util.tailscaleDns}:9333,hez2.${util.tailscaleDns}:9333,hez3.${util.tailscaleDns}:9333"
             "-dir=/volume"
             "-max=0"
-            "-dataCenter=\${node.datacenter}"
+            #"-dataCenter=\${node.datacenter}"
+#            "-dataCenter=global"
             "-rack=\${node.unique.name}"
-            "-ip=\${NOMAD_IP_http}"
+            "-ip=\${node.unique.name}.${util.tailscaleDns}"
             "-ip.bind=0.0.0.0"
             "-port=${toString ports.http}"
             "-port.grpc=${toString ports.grpc}"
@@ -184,6 +185,9 @@ in
             "-minFreeSpace=20GiB"
             # maximum numbers of volumes. If set to zero, the limit will be auto configured as free disk space divided by volume size. default "8"
             "-max=0"
+            #"-publicUrl=\${node.unique.name}${util.tailscaleDns}:${toString ports.http}"
+
+            # todo: use public URL option
           ];
 
           volumes = [ "config:/config" ];

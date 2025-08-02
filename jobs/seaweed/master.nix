@@ -1,6 +1,6 @@
 { util, time, defaults, ... }:
 let
-  version = "3.90";
+  version = "3.95";
   cpu = 100;
   mem = 200;
   sidecarResources = with builtins; mapAttrs (_: ceil) {
@@ -108,6 +108,7 @@ let
         path = "/";
         interval = 10 * time.second;
         timeout = 3 * time.second;
+
         checkRestart = {
           limit = 3;
           grace = 120 * time.second;
@@ -148,7 +149,7 @@ let
           "-mdir=\${NOMAD_TASK_DIR}/master"
           "-port=${toString ports.http}"
           "-port.grpc=${toString ports.grpc}"
-          "-defaultReplication=100"
+          "-defaultReplication=010"
           "-metricsPort=${toString ports.metrics}"
           # peers must match constraint above
           "-peers=${advertiseOf other1},${advertiseOf other2}"
@@ -178,24 +179,23 @@ let
             scripts = """
               lock
 
-              # hosted only on london for speed
-              fs.configure -locationPrefix=/buckets/attic -replication=010 -dataCenter london-home -volumeGrowthCount=4 -fsync=true -apply
-
-              fs.configure -locationPrefix=/buckets/documents -replication=100 -volumeGrowthCount=2 -fsync=true -apply
-              fs.configure -locationPrefix=/buckets/documents/domestic -replication=101 -volumeGrowthCount=2 -fsync=true -apply
-
-              fs.configure -locationPrefix=/buckets/immich-pictures -replication=100 -volumeGrowthCount=2 -fsync=true -apply
+              fs.configure -locationPrefix=/buckets/attic              -replication=020 -volumeGrowthCount=3 -fsync=true -apply
+              fs.configure -locationPrefix=/buckets/documents          -replication=020 -volumeGrowthCount=3 -fsync=true -apply
+              fs.configure -locationPrefix=/buckets/documents/domestic -replication=020 -volumeGrowthCount=3 -fsync=true -apply
+              fs.configure -locationPrefix=/buckets/immich-pictures    -replication=020 -volumeGrowthCount=3 -fsync=true -apply
 
 
-              ec.encode -fullPercent=95 -quietFor=24h -collection=documents
-              ec.encode -fullPercent=95 -quietFor=24h -collection=attic
+              ec.encode -fullPercent=95 -quietFor=24h -rebalance -collection=documents
+              ec.encode -fullPercent=95 -quietFor=24h -rebalance -collection=immich-pictures
+              ec.encode -fullPercent=95 -quietFor=24h -rebalance -collection=attic
 
               ec.rebuild -force
               ec.balance -force
 
               volume.deleteEmpty -quietFor=24h -force
               volume.balance -force
-              volume.fix.replication
+              volume.fix.replication -force
+
               s3.clean.uploads -timeAgo=24h
               unlock
             """
@@ -216,7 +216,7 @@ let
             #   011 has only 3 copies, copy_3
             [master.volume_growth]
             copy_1 = 7                # create 1 x 7 = 7 actual volumes
-            copy_2 = 2                # create 2 x 6 = 12 actual volumes
+            copy_2 = 6                # create 2 x 6 = 12 actual volumes
             copy_3 = 3                # create 3 x 3 = 9 actual volumes
             copy_other = 1            # create n x 1 = n actual volumes
           '';

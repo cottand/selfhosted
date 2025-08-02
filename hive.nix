@@ -30,6 +30,7 @@ in
       config.allowUnfree = true;
     };
     deployment.tags = [ config.nixpkgs.system ];
+    deployment.targetUser = "colmena";
   };
 
   cosmo = { name, nodes, ... }: {
@@ -52,7 +53,7 @@ in
     deployment.tags = [ "local" "nomad-client" ];
   };
 
-  bianco = { name, nodes, ... }: {
+  bianco = { name, nodes, lib, ... }: {
     imports = [ ./machines/${name}/definition.nix ];
     deployment.tags = [ "madrid" "nomad-client" ];
   };
@@ -76,7 +77,6 @@ in
   imac = {name, ...}: {
     imports = [ ./machines/${name}/definition.nix ];
     deployment.tags = [ "local" ];
-    deployment.targetHost = "192.168.40.90";
   };
 }
 // (mkNodePool {

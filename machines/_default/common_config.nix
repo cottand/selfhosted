@@ -1,10 +1,6 @@
 { pkgs, config, lib, flakeInputs, ... }:
 {
 
-  security.pki.certificateFiles = [
-    flakeInputs.self.rootCa
-  ];
-
   boot.tmp.cleanOnBoot = true;
   zramSwap.enable = true;
 
@@ -17,7 +13,7 @@
     settings = {
       auto-optimise-store = true;
       allowed-users = [ "@wheel" ];
-      trusted-users = [ "root" "@wheel" ];
+      trusted-users = [ "root" "@wheel" "colmena" ];
     };
   };
 
@@ -31,9 +27,36 @@
   users.users.nico = {
     isNormalUser = true;
     description = "nico";
-    extraGroups = [ "wheel" ];
+    extraGroups = [ "wheel" "networkmanager" "sudo" ];
     shell = pkgs.fish;
     hashedPasswordFile = "";
+  };
+
+  users.users.colmena = {
+    isNormalUser = true;
+    description = "colmena deployment user";
+    # no password set so the user cannot be logged in to without SSH
+  };
+  security = {
+    pki.certificateFiles = [
+      flakeInputs.self.rootCa
+    ];
+
+    # let colmena sudo for deployment
+    # TODO ideally put something together and use askpass + yubikey
+    # https://askubuntu.com/questions/1124875/how-do-i-set-askpass-variable
+    sudo.extraRules = [
+      {
+        users = [ "colmena" ];
+        commands = [
+          {
+            command = "ALL";
+            options = [ "NOPASSWD" ];
+          }
+        ];
+      }
+    ];
+    sudo.execWheelOnly = lib.mkForce false;
   };
 
   swapDevices = [{

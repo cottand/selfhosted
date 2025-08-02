@@ -9,7 +9,7 @@
     # see
     # - https://discourse.nixos.org/t/tailscale-ssh-destroys-nix-copy/38781
     # - https://github.com/tailscale/tailscale/issues/14167
-    # extraUpFlags = [ "--ssh" ];
+    extraSetFlags = [ "--ssh" ];
   };
 
   deployment.keys."tailscale_authkey.txt" = {
