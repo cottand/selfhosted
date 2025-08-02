@@ -3,23 +3,16 @@
     ./hardware-configuration.nix
   ];
 
-
   boot.tmp.cleanOnBoot = true;
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.efi.efiSysMountPoint = "/boot/efi";
-
 
   networking.networkmanager.enable = true;
 
   zramSwap.enable = true;
 
   services.openssh.enable = true;
-
-  users.users.cottand = {
-    extraGroups = [ "networkmanager" "wheel" "sudo" ];
-  };
 
   networking.firewall.enable = true;
   networking.firewall = {

@@ -1,6 +1,6 @@
 { util, time, defaults, ... }:
 let
-  version = "latest-v24.3";
+  version = "v24.3.17";
   cache = "70MB";
   maxSqlMem = "${toString (mem * 0.5)}MB";
   cpu = 1200;

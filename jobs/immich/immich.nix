@@ -1,7 +1,7 @@
 { util, time, defaults, ... }:
 let
   lib = (import ../lib) { };
-  version = "v1.130.3";
+  version = "v1.133.3";
   domain = "immich.dcotta.com";
   ports = {
     http = 8080;
@@ -408,22 +408,7 @@ in
         driver = "docker";
 
         config = {
-          image = "tensorchord/pgvecto-rs:pg14-v0.2.0@sha256:739cdd626151ff1f796dc95a6591b55a714f341c737e27f045019ceabf8e8c52";
-          command = "postgres";
-          args = [
-            "-c"
-            "shared_preload_libraries=vectors.so"
-            "-c"
-            "search_path=\"$user\", public, vectors"
-            "-c"
-            "logging_collector=on"
-            "-c"
-            "max_wal_size=2GB"
-            "-c"
-            "shared_buffers=512MB"
-            "-c"
-            "wal_compression=on"
-          ];
+          image = "ghcr.io/immich-app/postgres:14-vectorchord0.3.0-pgvectors0.2.0";
           ports = [ "postgres" ];
         };
         env = {

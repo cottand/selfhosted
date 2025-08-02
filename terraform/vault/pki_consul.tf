@@ -42,7 +42,7 @@ resource "vault_pki_secret_backend_cert" "server-dc1-consul" {
 
 resource "vault_kv_secret_v2" "consul-pub-cert" {
   mount     = vault_mount.kv-secret.path
-  name      = "/consul/infra/tls"
+  name      = "consul/infra/tls"
   data_json = jsonencode({
     key   = vault_pki_secret_backend_cert.server-dc1-consul.private_key
     chain = "${vault_pki_secret_backend_cert.server-dc1-consul.certificate}\n${vault_pki_secret_backend_cert.server-dc1-consul.ca_chain}"
