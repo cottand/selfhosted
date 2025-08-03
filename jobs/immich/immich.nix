@@ -1,7 +1,7 @@
 { util, time, defaults, ... }:
 let
   lib = (import ../lib) { };
-  version = "v1.133.3";
+  version = "v1.137.3";
   domain = "immich.dcotta.com";
   ports = {
     http = 8080;
@@ -114,10 +114,10 @@ in
           type = "http";
           path = "/metrics";
           interval = 30 * time.second;
-          timeout = 5 * time.second;
+          timeout = 10 * time.second;
           checkRestart = {
             limit = 3;
-            grace = 70 * time.second;
+            grace = 120 * time.second;
             ignoreWarnings = false;
           };
         }];
