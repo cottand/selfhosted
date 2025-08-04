@@ -1,6 +1,7 @@
+{ util, time, defaults, ... }:
 let
   lib = (import ../lib) { };
-  version = "12.0.2";
+  version = "12.1.0";
   cpu = 100;
   mem = 240;
   ports = {
@@ -15,146 +16,154 @@ let
   otlpPort = 9001;
   bind = lib.localhost;
 in
-lib.mkJob "grafana" {
-  type = "service";
-  group."grafana" = {
-    affinities = [{
-      lTarget = "\${meta.controlPlane}";
-      operand = "=";
-      rTarget = "true";
-      weight = -80;
-    }];
-    count = 2;
-    network = {
-      inherit (lib.defaults) dns;
-      mode = "bridge";
-      dynamicPorts = [
-        { label = "healthz"; hostNetwork = "ts"; }
-      ];
-    };
+{
+  job."grafana" = {
+    type = "service";
+    group."grafana" = {
+      affinities = [{
+        lTarget = "\${meta.controlPlane}";
+        operand = "=";
+        rTarget = "true";
+        weight = -80;
+      }];
+      count = 2;
+      network = {
+        inherit (defaults) dns;
+        mode = "bridge";
+        dynamicPorts = [
+          { label = "healthz"; hostNetwork = "ts"; }
+        ];
+      };
 
-    restart = {
-      attempts = 4;
-      interval = 10 * lib.minutes;
-      delay = 15 * lib.seconds;
-      mode = "delay";
-    };
-    update = {
-      maxParallel = 1;
-      canary = 1;
-      minHealthyTime = 30 * lib.seconds;
-      healthyDeadline = 5 * lib.minutes;
-      autoRevert = true;
-      autoPromote = true;
-    };
+      restart = {
+        attempts = 4;
+        interval = 10 * time.minutes;
+        delay = 15 * time.seconds;
+        mode = "delay";
+      };
+      update = {
+        maxParallel = 1;
+        canary = 1;
+        minHealthyTime = 30 * time.seconds;
+        healthyDeadline = 5 * time.minutes;
+        autoRevert = true;
+        autoPromote = true;
+      };
 
-    service."grafana" = {
-      port = "3000";
-      connect = {
-        sidecarService.proxy = {
-          upstream = {
-            "roach-db".localBindPort = ports.upDb;
-            "mimir-http".localBindPort = 8000;
-            "tempo-http".localBindPort = 8001;
-            "loki-http".localBindPort = 8002;
-            "tempo-otlp-grpc-mesh".localBindPort = otlpPort;
+      service."grafana" = {
+        port = "3000";
+        connect = {
+          sidecarService.proxy = {
+            upstreams = [
+              { destinationName = "roach-db"; localBindPort = ports.upDb; }
+              { destinationName = "mimir-http"; localBindPort = 8000; }
+              { destinationName = "tempo-http"; localBindPort = 8001; }
+              { destinationName = "loki-http"; localBindPort = 8002; }
+              { destinationName = "tempo-otlp-grpc-mesh"; localBindPort = otlpPort; }
+            ];
+            config = util.mkEnvoyProxyConfig {
+              otlpService = "proxy-grafana-http";
+              otlpUpstreamPort = otlpPort;
+              protocol = "http";
+            };
           };
-          config = lib.mkEnvoyProxyConfig {
-            otlpService = "proxy-grafana-http";
-            otlpUpstreamPort = otlpPort;
-            protocol = "http";
-          };
+
+          sidecarTask.resources = sidecarResources;
         };
 
-        sidecarTask.resources = sidecarResources;
-      };
+        checks = [{
+          expose = true;
+          name = "healthz";
+          port = "healthz";
+          type = "http";
+          path = "/api/health";
+          interval = 20 * time.seconds;
+          timeout = 5 * time.seconds;
+          checkRestart = {
+            limit = 3;
+            grace = 30 * time.seconds;
+            ignoreWarnings = false;
+          };
+          task = "grafana";
+        }];
 
-      check."healthz" = {
-        expose = true;
-        port = "healthz";
-        type = "http";
-        path = "/api/health";
-        interval = 20 * lib.seconds;
-        timeout = 5 * lib.seconds;
-        checkRestart = {
-          limit = 3;
-          grace = 30 * lib.seconds;
-          ignoreWarnings = false;
+        tags = [
+          "traefik.enable=true"
+          "traefik.consulcatalog.connect=true"
+          "traefik.http.routers.\${NOMAD_GROUP_NAME}.middlewares=vpn-whitelist@file"
+          "traefik.http.routers.\${NOMAD_GROUP_NAME}.entrypoints=web, websecure"
+          "traefik.http.routers.\${NOMAD_GROUP_NAME}.tls=true"
+        ];
+      };
+      
+      task."grafana" = {
+        vault.env = true;
+        driver = "docker";
+        config = {
+          image = "grafana/grafana:${version}";
+          ports = [ "http" ];
+          args = [ "--config" "/local/config.ini" ];
         };
-        task = "grafana";
-      };
+        resources = {
+          cpu = cpu;
+          memory = mem;
+          memoryMax = builtins.ceil (2 * mem);
+        };
+        user = "root:root";
+        env = builtins.mapAttrs (_: toString) {
+          "GF_AUTH_BASIC_ENABLED" = false;
+          "GF_AUTH_DISABLE_LOGIN_FORM" = false;
+          "GF_AUTH_ANONYMOUS_ENABLED" = true;
+          "GF_AUTH_ANONYMOUS_ORG_ROLE" = "Viewer";
+          "GF_SERVER_ROOT_URL" = "https://grafana.traefik";
+          "GF_SERVER_SERVE_FROM_SUB_PATH" = true;
+          "GF_SECURITY_ALLOW_EMBEDDING" = true;
+          "GF_FEATURE_TOGGLES_ENABLE" = "traceToMetrics logsExploreTableVisualisation";
+          GF_INSTALL_PLUGINS = "https://storage.googleapis.com/integration-artifacts/grafana-lokiexplore-app/grafana-lokiexplore-app-latest.zip;grafana-lokiexplore-app, oci-metrics-datasource";
+        };
 
-      tags = [
-        "traefik.enable=true"
-        "traefik.consulcatalog.connect=true"
-        "traefik.http.routers.\${NOMAD_GROUP_NAME}.middlewares=vpn-whitelist@file"
-        "traefik.http.routers.\${NOMAD_GROUP_NAME}.entrypoints=web, websecure"
-        "traefik.http.routers.\${NOMAD_GROUP_NAME}.tls=true"
-      ];
-
-    };
-    task."grafana" = {
-      vault.env = true;
-      driver = "docker";
-      config = {
-        image = "grafana/grafana:${version}";
-        ports = [ "http" ];
-        args = [ "--config" "/local/config.ini" ];
-      };
-      resources = {
-        cpu = cpu;
-        memoryMb = mem;
-        memoryMaxMb = builtins.ceil (2 * mem);
-      };
-      user = "root:root";
-      env = builtins.mapAttrs (_: toString) {
-        "GF_AUTH_BASIC_ENABLED" = false;
-        "GF_AUTH_DISABLE_LOGIN_FORM" = false;
-        "GF_AUTH_ANONYMOUS_ENABLED" = true;
-        "GF_AUTH_ANONYMOUS_ORG_ROLE" = "Viewer";
-        "GF_SERVER_ROOT_URL" = "https://grafana.traefik";
-        "GF_SERVER_SERVE_FROM_SUB_PATH" = true;
-        "GF_SECURITY_ALLOW_EMBEDDING" = true;
-        "GF_FEATURE_TOGGLES_ENABLE" = "traceToMetrics logsExploreTableVisualisation";
-        GF_INSTALL_PLUGINS = "https://storage.googleapis.com/integration-artifacts/grafana-lokiexplore-app/grafana-lokiexplore-app-latest.zip;grafana-lokiexplore-app, oci-metrics-datasource";
-      };
-
-      template."local/config.ini" = {
-        changeMode = "restart";
-
-        embeddedTmpl = ''
-          [database]
-            type = "postgres"
-            host = "${bind}:${toString ports.upDb}"
-            user = "grafana"
-            ssl_mode = "verify-ca"
-            ssl_sni = "roach-db.tfk.nd"
-            servert_cert_name = "roach-db.tfk.nd"
-            ca_cert_path = "/secrets/ca.crt"
-            client_key_path = "/secrets/client.grafana.key"
-            client_cert_path = "/secrets/client.grafana.crt"
-        '';
-      };
-      template."/secrets/client.grafana.key" = {
-        changeMode = "restart";
-        embeddedTmpl = ''
-          {{with secret "secret/data/nomad/job/roach/users/grafana"}}{{.Data.data.key}}{{end}}
-        '';
-        perms = "0600";
-      };
-      template."/secrets/client.grafana.crt" = {
-        changeMode = "restart";
-        embeddedTmpl = ''
-          {{with secret "secret/data/nomad/job/roach/users/grafana"}}{{.Data.data.chain}}{{end}}
-        '';
-        perms = "0600";
-      };
-      template."/secrets/ca.crt" = {
-        changeMode = "restart";
-        embeddedTmpl = ''
-          {{with secret "secret/data/nomad/job/roach/users/grafana"}}{{.Data.data.ca}}{{end}}
-        '';
-        perms = "0600";
+        templates = [
+          {
+            destination = "local/config.ini";
+            changeMode = "restart";
+            data = ''
+              [database]
+                type = "postgres"
+                host = "${bind}:${toString ports.upDb}"
+                user = "grafana"
+                ssl_mode = "verify-ca"
+                ssl_sni = "roach-db.tfk.nd"
+                servert_cert_name = "roach-db.tfk.nd"
+                ca_cert_path = "/secrets/ca.crt"
+                client_key_path = "/secrets/client.grafana.key"
+                client_cert_path = "/secrets/client.grafana.crt"
+            '';
+          }
+          {
+            destination = "/secrets/client.grafana.key";
+            changeMode = "restart";
+            data = ''
+              {{with secret "secret/data/nomad/job/roach/users/grafana"}}{{.Data.data.key}}{{end}}
+            '';
+            perms = "0600";
+          }
+          {
+            destination = "/secrets/client.grafana.crt";
+            changeMode = "restart";
+            data = ''
+              {{with secret "secret/data/nomad/job/roach/users/grafana"}}{{.Data.data.chain}}{{end}}
+            '';
+            perms = "0600";
+          }
+          {
+            destination = "/secrets/ca.crt";
+            changeMode = "restart";
+            data = ''
+              {{with secret "secret/data/nomad/job/roach/users/grafana"}}{{.Data.data.ca}}{{end}}
+            '';
+            perms = "0600";
+          }
+        ];
       };
     };
   };
