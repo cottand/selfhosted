@@ -34,8 +34,8 @@ rec {
     let
       svc = "${cleanSourceForGoService serviceName}/services";
       protoPath = "${svc}/${serviceName}/def.proto";
-#      go_opt = "module=github.com/Cottand/selfosted/dev-go/lib/proto";
-            go_opt="paths=source_relative";
+      #      go_opt = "module=github.com/Cottand/selfosted/dev-go/lib/proto";
+      go_opt = "paths=source_relative";
     in
     runCommand "protos-for-${serviceName}"
       {
@@ -78,4 +78,5 @@ rec {
 
     ${builtins.readFile filePath}
   '';
+
 }

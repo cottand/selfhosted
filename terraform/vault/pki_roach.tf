@@ -70,6 +70,7 @@ resource "vault_pki_secret_backend_cert" "cockroachdb-client-root" {
   common_name = "root"
 
   ttl    = 72200000
+  auto_renew = true
   revoke = true
 }
 
@@ -91,6 +92,7 @@ resource "vault_pki_secret_backend_cert" "cockroachdb-client-grafana" {
 
   ttl    = 72200000
   revoke = true
+  auto_renew = true
 }
 
 resource "vault_kv_secret_v2" "cockroachdb-client-grafana" {
@@ -99,6 +101,28 @@ resource "vault_kv_secret_v2" "cockroachdb-client-grafana" {
   data_json = jsonencode({
     key   = vault_pki_secret_backend_cert.cockroachdb-client-grafana.private_key
     chain = "${vault_pki_secret_backend_cert.cockroachdb-client-grafana.certificate}\n${vault_pki_secret_backend_cert.cockroachdb-client-grafana.ca_chain}"
+    ca    = vault_pki_secret_backend_root_cert.root_2024.certificate
+  })
+}
+
+
+resource "vault_pki_secret_backend_cert" "cockroachdb-client-ente" {
+  issuer_ref  = vault_pki_secret_backend_issuer.workloads-intermediate.issuer_ref
+  backend     = vault_mount.pki_workload_int.path
+  name        = vault_pki_secret_backend_role.intermediate_role-roach-client.name
+  common_name = "ente"
+
+  ttl    = 24200000
+  revoke = true
+  auto_renew = true
+}
+
+resource "vault_kv_secret_v2" "cockroachdb-client-ente" {
+  mount     = vault_mount.kv-secret.path
+  name      = "/nomad/job/roach/users/ente"
+  data_json = jsonencode({
+    key   = vault_pki_secret_backend_cert.cockroachdb-client-ente.private_key
+    chain = "${vault_pki_secret_backend_cert.cockroachdb-client-ente.certificate}\n${vault_pki_secret_backend_cert.cockroachdb-client-grafana.ca_chain}"
     ca    = vault_pki_secret_backend_root_cert.root_2024.certificate
   })
 }

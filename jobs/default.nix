@@ -16,5 +16,6 @@ in
     ./seaweed/master.nix
     ./seaweed/filer.nix
     ./seaweed/volume.nix
+    ./ente.nix
   ];
 }

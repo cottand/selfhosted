@@ -10,6 +10,7 @@ let
     metrics = 12345;
     s3 = 13210;
     webdav = 12311;
+    sftp = 12312;
   };
   sidecarResources = with builtins; mapAttrs (_: ceil) {
     cpu = 0.20 * cpu;
@@ -20,6 +21,7 @@ let
   otlpPort = 9001;
 in
 {
+  imports = [ ./filer-sftp.nix ];
   job."${name}" = {
     update = {
       maxParallel = 1;
@@ -127,6 +129,42 @@ in
         };
       };
 
+      service."seaweed-webdav" = {
+        connect.sidecarService = {
+          proxy = {
+            config = util.mkEnvoyProxyConfig {
+              otlpService = "proxy-seaweed-filer-webdav";
+              otlpUpstreamPort = otlpPort;
+              protocol = "http";
+            };
+          };
+        };
+        connect.sidecarTask.resources = sidecarResources;
+        # TODO implement http healthcheck https://github.com/seaweedfs/seaweedfs/pull/4899/files
+        port = toString ports.webdav;
+        #        checks = [{
+        #          expose = true;
+        #          name = "healthz";
+        #          path = "/healthz";
+        #          type = "http";
+        #          port = "health";
+        #          interval = 20 * time.second;
+        #          timeout = 2 * time.second;
+        #          checkRestart = {
+        #            limit = 3;
+        #            grace = 120 * time.second;
+        #            ignoreWarnings = false;
+        #          };
+        #        }];
+        tags = [
+          "traefik.enable=true"
+          "traefik.consulcatalog.connect=true"
+          "traefik.http.routers.\${NOMAD_GROUP_NAME}-webdav.entrypoints=web,websecure"
+          "traefik.http.routers.\${NOMAD_GROUP_NAME}-webdav.tls=true"
+          "traefik.http.routers.\${NOMAD_GROUP_NAME}-webdav.middlewares=mesh-whitelist@file"
+        ];
+      };
+
       task."seaweed-filer" = {
         driver = "docker";
 
@@ -147,8 +185,14 @@ in
             "-s3.port=${toString ports.s3}"
             "-s3.allowEmptyFolder=false"
             # see https://github.com/seaweedfs/seaweedfs/issues/3886#issuecomment-1769880124
-            # "-dataCenter=\${node.datacenter}"
-            # "-rack=\${node.unique.name}"
+            "-dataCenter=\${node.datacenter}"
+            "-rack=\${node.unique.name}"
+
+
+            #            "-webdav"
+            #            "-webdav.port=${toString ports.webdav}"
+            #            "-webdav.cacheDir=/alloc/data/"
+            #            "-webdav.cacheCapacityMB=1024"
           ];
           mounts = [{
             type = "bind";

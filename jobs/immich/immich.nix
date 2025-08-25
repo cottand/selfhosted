@@ -1,7 +1,7 @@
 { util, time, defaults, ... }:
 let
   lib = (import ../lib) { };
-  version = "v1.137.3";
+  version = "v1.139.3";
   domain = "immich.dcotta.com";
   ports = {
     http = 8080;

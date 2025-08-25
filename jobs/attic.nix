@@ -1,6 +1,5 @@
 { util, time, ... }:
 let
-  lib = (import ./lib) { };
   # before changing this, ame sure you implement running
   # db migrations
   # https://github.com/zhaofengli/attic/blob/47752427561f1c34debb16728a210d378f0ece36/server/src/main.rs#L74
@@ -13,7 +12,7 @@ let
     upS3 = 3333;
   };
   otlpPort = 9001;
-  bind = lib.localhost;
+  bind = util.localhost;
   kiB = 1024;
   chunkFactor = 4;
 
@@ -238,7 +237,7 @@ in
               { destinationName = "roach-db"; localBindPort = ports.upDb; }
             ];
 
-            config = lib.mkEnvoyProxyConfig {
+            config = util.mkEnvoyProxyConfig {
               otlpService = "proxy-attic-gc-http";
               otlpUpstreamPort = otlpPort;
               protocol = "http";
