@@ -31,5 +31,7 @@
     ${pkgs.github-runner}/run.sh
   '';
 
+  diffusion = callPackage ./diffusion.nix { };
+
   inherit get-external-imports;
 }

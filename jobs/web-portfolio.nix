@@ -3,7 +3,7 @@ let
   tag = "sha-b872ed2";
 in
 {
-  job. "web-portfolio" = {
+  job."web-portfolio" = {
     priority = 50;
     update = {
       maxParallel = 1;
