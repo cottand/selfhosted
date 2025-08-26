@@ -21,7 +21,7 @@ let
   otlpPort = 9001;
 in
 {
-  imports = [ ./filer-sftp.nix ];
+#  imports = [ ./filer-sftp.nix ];
   job."${name}" = {
     update = {
       maxParallel = 1;

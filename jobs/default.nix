@@ -13,6 +13,9 @@ in
     ./roach.nix
     ./immich/immich.nix
     ./monitoring/grafana/job.nix
+    ./monitoring/vector.nix
+    ./monitoring/tempo.nix
+    ./monitoring/loki.nix
     ./seaweed/master.nix
     ./seaweed/filer.nix
     ./seaweed/volume.nix

@@ -4,7 +4,7 @@ This repository contains the configuration-as-code for a personal self-hosted cl
 
 ## Project Structure
 
-- `jobs/` - Nixmad job definitions that generate HCL for Nomad workloads
+- `jobs/` - Nix-based Nomad job definitions using the nix-nomad options format
 - `machines/` - NixOS configurations for cluster nodes managed via Colmena
 - `dev-go/` - Go services and CLI tools (nixmad, shipper, custom services)
 - `terraform/` - Infrastructure as code for cloud resources and service configuration
@@ -33,7 +33,7 @@ This repository contains the configuration-as-code for a personal self-hosted cl
 
 ## Development Workflows
 
-- **Nixmad jobs**: See [docs/nixmad.md](docs/nixmad.md) for details on the Nix-to-HCL job system
+- **Nomad jobs**: All jobs use the nix-nomad options format with `job."name"` syntax. See [docs/nixmad.md](docs/nixmad.md) for details
 - **Go services**: See [docs/go-services.md](docs/go-services.md) for service development
 - **Terraform**: See [docs/terraform.md](docs/terraform.md) for infrastructure management
 - **Machine configuration**: See [docs/machines.md](docs/machines.md) for NixOS node management
@@ -75,9 +75,18 @@ Check service builds with `nix build .#services`.
 3. Create SQL migration file under `./misc/sql`
 4. Report as done
 
-### Provision a Nomad job
+### Set up a Nomad job
 
-1. Create a job definition under `jobs/`
-2. Add the job definition to `jobs/default.nix`
+1. Create a job definition under `jobs/` using the nix-nomad options format:
+   ```nix
+   { util, time, defaults, ... }: {
+     job."my-service" = {
+       group."my-service" = {
+         # job configuration using nix-nomad options
+       };
+     };
+   }
+   ```
+2. Add the job definition to `jobs/default.nix` imports
 3. Validate with `nix eval .#nomadJobs.{name} --json`
 4. Report as done

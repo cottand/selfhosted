@@ -2,95 +2,58 @@
 
 This project uses two related but distinct systems for Nomad job management:
 
-1. **nix-nomad** - Third-party library for generating Nomad JSON from Nix configuration (from https://github.com/tristanpemble/nix-nomad)
+1. **nix-nomad** - Third-party library for generating Nomad JSON from Nix configuration (from https://github.com/tristanpemble/nix-nomad)  
 2. **nixmad** - Custom CLI tool for deploying generated jobs
 
-## Two Job Definition Dialects
+## Job Definition Format
 
-The repository contains jobs defined in **two different dialects**:
+All Nomad jobs in this repository use the **nix-nomad options format** with `job."name"` syntax.
 
-### 1. nix-nomad Dialect (Third-party)
-Uses the standard nix-nomad module system with `job."name"` syntax.
+### Standard nix-nomad Format
+All jobs use the standard nix-nomad module system with `job."name"` syntax.
 
-**Examples:** `immich.nix`, `traefik.nix`, `attic.nix`
+**Examples:** All job files including `immich.nix`, `traefik.nix`, `grafana.nix`, `vector.nix`, `tempo.nix`, `loki.nix`
 
 ```nix
-{ util, ... }: {
+{ util, time, defaults, ... }: {
   job."whoami" = {
     group."whoami" = {
       network = {
         mode = "bridge";
         port."http".hostNetwork = "ts";
       };
-      # ... standard nix-nomad syntax
+      service."whoami" = {
+        port = "http";
+        tags = [ "traefik.enable=true" ];
+      };
+      task."whoami" = {
+        driver = "docker";
+        config = {
+          image = "traefik/whoami";
+        };
+      };
     };
   };
 }
 ```
 
-### 2. Custom nixmad Dialect  
-Uses a custom transformation library defined in `jobs/lib/default.nix` with `lib.mkJob` function.
+## Helper Libraries
 
-**Examples:** `loki.nix`, `tempo.nix`, `vector.nix`
-
-```nix
-let
-  lib = (import ../lib) { };
-in
-lib.mkJob "vector" {
-  type = "system";
-  group."vector" = {
-    network = {
-      mode = "bridge";
-      # ... custom nixmad syntax with transformations
-    };
-    # ... gets transformed via lib.transformJob
-  };
-}
-```
-
-## Key Differences
-
-### Custom nixmad Library Features
-The custom dialect (`jobs/lib/default.nix`) provides:
-
-- **Field Transformations**: Converts Nix-friendly syntax to Nomad JSON format
-  - `group` → `taskGroups` (as list)
-  - `task` → `tasks` (as list) 
-  - `service` → `services` (as list)
-  - `upstream` → `upstreams` (as list)
+### Utility Functions
+The `jobs/lib/default.nix` provides utility functions still used by the nix-nomad format:
 
 - **Helper Functions**:
-  - `mkJob(name, config)` - Creates job with automatic UI links
-  - `mkServiceGoGrpc()` - Template for Go gRPC services
-  - `mkEnvoyProxyConfig()` - Consul Connect proxy configuration
+  - `mkEnvoyProxyConfig()` - Consul Connect proxy configuration  
   - `mkResourcesWithFactor()` - Resource scaling utilities
+  - `defaults.dns.servers` - DNS configuration
 
 - **Constants**: `seconds`, `minutes`, `hours`, `kiB`, `localhost`
 
-### Standard vs Custom Syntax
-
-**Standard nix-nomad** (e.g., `immich.nix`):
-```nix
-{ util, ... }: {
-  job."immich" = {
-    group."immich-server" = {
-      # Direct Nomad JSON structure
-    };
-  };
-}
-```
-
-**Custom nixmad** (e.g., `vector.nix`):
-```nix
-let lib = (import ../lib) { }; in
-lib.mkJob "vector" {
-  # Gets transformed via lib.transformJob
-  group."vector" = {
-    # More Nix-friendly syntax
-  };
-}
-```
+### Module System Integration
+Jobs are organized through the NixOS module system:
+- All jobs are imported through `jobs/default.nix`
+- Shared utilities available via `jobs/modules/`
+- Automatic UI link generation for monitoring dashboards
 
 ## Job Deployment with nixmad
 
@@ -122,8 +85,18 @@ nixmad path/to/job.nix --master
 - `jobs/lib/` - Library functions for job composition
 - Individual `.nix` files define specific services
 
-## Deploying with nix-nomad
+## Deploying Jobs
 
+### Using the nix-nomad flake output:
 ```bash
 nix eval .#nomadJobs.grafana --json | nomad run --json -
+```
+
+### Using nixmad CLI tool:
+```bash
+# Deploy a job directly
+nix run .#nixmad -- jobs/monitoring/grafana.nix
+
+# Deploy with specific version
+nixmad jobs/monitoring/grafana.nix -v "1.2.3"
 ```
