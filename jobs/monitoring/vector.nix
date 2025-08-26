@@ -1,3 +1,4 @@
+{ util, time, defaults, ... }:
 let
   lib = (import ../lib) { };
   version = "0.32.X-debian";
@@ -9,52 +10,51 @@ let
   };
   sidecarResources = with builtins; mapAttrs (_: ceil) {
     cpu = 0.20 * cpu;
-    memoryMB = 0.25 * mem;
-    memoryMaxMB = 0.25 * mem + 100;
+    memory = 0.25 * mem;
+    memoryMax = 0.25 * mem + 100;
   };
   otlpPort = 9001;
   bind = lib.localhost;
   journalPath = "/var/log/journal";
 
 in
-lib.mkJob "vector" {
+{
+  job."vector" = {
 
-  type = "system";
-  nodePool = "all";
+    type = "system";
+    nodePool = "all";
 
-  group."vector" = {
-    count = 1;
-    network = {
-      mode = "bridge";
-      dynamicPorts = [
-        {
-          label = "health";
+    group."vector" = {
+      count = 1;
+      network = {
+        mode = "bridge";
+        port."health" = {
           hostNetwork = "ts";
-        }
-      ];
-    };
-    volumes."docker-sock" = {
-      type = "host";
-      source = "docker-sock-ro";
-      readOnly = true;
-    };
-    volumes."journald-ro" = {
-      type = "host";
-      source = "journald-ro";
-      readOnly = true;
-    };
-    ephemeralDisk = {
-      size = 500;
-      sticky = true;
-    };
+        };
+      };
+      volume."docker-sock" = {
+        type = "host";
+        source = "docker-sock-ro";
+        readOnly = true;
+      };
+      volume."journald-ro" = {
+        type = "host";
+        source = "journald-ro";
+        readOnly = true;
+      };
+      ephemeralDisk = {
+        size = 500;
+        sticky = true;
+      };
 
     service."vector" = {
-      port = ports.http;
+      port = toString ports.http;
       connect.sidecarService = {
         proxy = {
-          upstream."tempo-otlp-grpc-mesh".localBindPort = otlpPort;
-          upstream."loki-http".localBindPort = ports.upLoki;
-          #          upstream."seaweed-filer-s3".localBindPort = ports.upS3;
+          upstreams = [
+            { destinationName = "tempo-otlp-grpc-mesh"; localBindPort = otlpPort; }
+            { destinationName = "loki-http"; localBindPort = ports.upLoki; }
+          ];
 
           config = lib.mkEnvoyProxyConfig {
             otlpUpstreamPort = otlpPort;
@@ -100,14 +100,15 @@ lib.mkJob "vector" {
       };
       resources = {
         cpu = cpu;
-        memoryMb = mem;
-        memoryMaxMb = builtins.ceil (2 * mem);
+        memory = mem;
+        memoryMax = builtins.ceil (2 * mem);
       };
-      template."local/vector.toml" = {
+      templates = [{
+        destination = "local/vector.toml";
         changeMode = "restart";
-        leftDelim = "[[";
-        rightDelim = "]]";
-        embeddedTmpl = ''
+        leftDelimiter = "[[";
+        rightDelimiter = "]]";
+        data = ''
           data_dir = "/alloc/data/"
           [api]
             enabled = true
@@ -182,7 +183,8 @@ lib.mkJob "vector" {
             labels.source_type = "journald"
             remove_label_fields = true
         '';
-      };
+      }];
+    };
     };
   };
 }

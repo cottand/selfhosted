@@ -1,3 +1,4 @@
+{ util, time, defaults, ... }:
 let
   lib = (import ../lib) { };
   version = "2.6.1";
@@ -10,27 +11,30 @@ let
   };
   sidecarResources = with builtins; mapAttrs (_: ceil) {
     cpu = 0.20 * cpu;
-    memoryMB = 0.25 * mem;
-    memoryMaxMB = 0.25 * mem + 100;
+    memory = 0.25 * mem;
+    memoryMax = 0.25 * mem + 100;
   };
   otlpPort = 9001;
   bind = lib.localhost;
 in
-lib.mkJob "tempo" {
-  group."tempo" = {
-    ephemeralDisk = {
-      migrate = true;
-      sizeMb = 5000;
-      sticky = true;
-    };
-    count = 1;
-    network = {
-      mode = "bridge";
-      dynamicPorts = [
-        { label = "metrics"; hostNetwork = "ts"; }
-        { label = "ready"; hostNetwork = "ts"; }
-      ];
-    };
+{
+  job."tempo" = {
+    group."tempo" = {
+      ephemeralDisk = {
+        migrate = true;
+        size = 5000;
+        sticky = true;
+      };
+      count = 1;
+      network = {
+        mode = "bridge";
+        port."metrics" = {
+          hostNetwork = "ts";
+        };
+        port."ready" = {
+          hostNetwork = "ts";
+        };
+      };
     service."tempo-metrics" = {
       port = toString ports.http;
       connect.sidecarService = {
@@ -43,14 +47,14 @@ lib.mkJob "tempo" {
         {
           expose = true;
           name = "tempo healthcheck";
-          portLabel = "metrics";
+          port = "metrics";
           type = "http";
           path = "/metrics";
-          interval = 30 * lib.seconds;
-          timeout = 10 * lib.seconds;
+          interval = 30 * time.second;
+          timeout = 10 * time.second;
           checkRestart = {
             limit = 3;
-            grace = 120 * lib.seconds;
+            grace = 120 * time.second;
             ignoreWarnings = false;
           };
         }
@@ -65,47 +69,50 @@ lib.mkJob "tempo" {
         #          timeout = 10 * lib.seconds;
         #          checkRestart = {
         #            limit = 3;
-        #            grace = 120 * lib.seconds;
+        #            grace = 120 * time.second;
         #            ignoreWarnings = false;
         #          };
         #        }
       ];
       meta.metrics_port = "\${NOMAD_PORT_metrics}";
     };
-    service."tempo-http" = {
-      port = toString ports.http;
-      tags = [
-        "traefik.consulcatalog.connect=true"
-        "traefik.enable=true"
-        "traefik.http.routers.\${NOMAD_GROUP_NAME}.entrypoints=web,websecure"
-        "traefik.http.routers.\${NOMAD_GROUP_NAME}.middlewares=vpn-whitelist@file"
-        "traefik.http.routers.\${NOMAD_GROUP_NAME}.tls=true"
-      ];
-      connect.sidecarService.proxy = {
-        upstream."mimir-http".localBindPort = 8001;
+      service."tempo-http" = {
+        port = toString ports.http;
+        tags = [
+          "traefik.consulcatalog.connect=true"
+          "traefik.enable=true"
+          "traefik.http.routers.\${NOMAD_GROUP_NAME}.entrypoints=web,websecure"
+          "traefik.http.routers.\${NOMAD_GROUP_NAME}.middlewares=vpn-whitelist@file"
+          "traefik.http.routers.\${NOMAD_GROUP_NAME}.tls=true"
+        ];
+        connect.sidecarService.proxy = {
+          upstreams = [
+            { destinationName = "mimir-http"; localBindPort = 8001; }
+          ];
+        };
       };
-    };
-    service."tempo-otlp-grpc-mesh" = {
-      port = toString ports.otlp-grpc;
-      connect.sidecarService.proxy = { };
-    };
-    task."tempo" = {
-      driver = "docker";
-      #      vault = { };
-      user = "root:root";
+      service."tempo-otlp-grpc-mesh" = {
+        port = toString ports.otlp-grpc;
+        connect.sidecarService.proxy = { };
+      };
+      task."tempo" = {
+        driver = "docker";
+        #      vault = { };
+        user = "root:root";
 
-      config = {
-        image = "grafana/tempo:${version}";
-        args = [ "-config.file" "/local/tempo/local-config.yaml" ];
-      };
-      resources = {
-        cpu = cpu;
-        memoryMb = mem;
-        memoryMaxMb = builtins.ceil (2 * mem);
-      };
-      template."local/tempo/local-config.yaml" = {
-        changeMode = "restart";
-        embeddedTmpl = ''
+        config = {
+          image = "grafana/tempo:${version}";
+          args = [ "-config.file" "/local/tempo/local-config.yaml" ];
+        };
+        resources = {
+          cpu = cpu;
+          memory = mem;
+          memoryMax = builtins.ceil (2 * mem);
+        };
+        templates = [{
+          destination = "local/tempo/local-config.yaml";
+          changeMode = "restart";
+          data = ''
           auth_enabled: false
           server:
             http_listen_port: ${toString ports.http}
@@ -150,7 +157,8 @@ lib.mkJob "tempo" {
 
           overrides:
             metrics_generator_processors: [service-graphs, span-metrics] # enables metrics generator
-        '';
+          '';
+        }];
       };
     };
   };
