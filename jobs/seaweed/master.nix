@@ -186,8 +186,9 @@ let
 
 
               ec.encode -fullPercent=95 -quietFor=24h -rebalance -collection=documents
-              ec.encode -fullPercent=95 -quietFor=24h -rebalance -collection=immich-pictures
               ec.encode -fullPercent=95 -quietFor=24h -rebalance -collection=attic
+              # immich is encoded after much longer (30d) so that we load the timeline faster
+              ec.encode -fullPercent=95 -quietFor=720h -rebalance -collection=immich-pictures
 
               ec.rebuild -force
               ec.balance -force
