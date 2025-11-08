@@ -20,5 +20,8 @@ in
     ./seaweed/filer.nix
     ./seaweed/volume.nix
     ./ente.nix
+    ./digitemp.nix
+    ./shelly-exporter.nix
+    ./motioneye.nix
   ];
 }

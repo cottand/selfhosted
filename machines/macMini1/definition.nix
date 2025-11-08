@@ -1,6 +1,17 @@
-{ pkgs, ... }: {
+{ pkgs, lib, ... }:
+let
+  usbPlugin = builtins.fetchurl {
+    url = "https://gitlab.com/api/v4/projects/23395095/packages/generic/nomad-usb-device-plugin/0.4.0/nomad-usb-device-plugin-linux-amd64-0.4.0";
+    sha256 = "sha256:1vhw1754rmhvj98g56m3d2kb9l2agns5558jhic7c6k7i8qzcvf4";
+  };
+in
+{
   imports = [
     ./hardware-configuration.nix
+  ];
+
+  nixpkgs.config.permittedInsecurePackages = [
+    "broadcom-sta-6.30.223.271-57-6.12.42"
   ];
 
   boot.tmp.cleanOnBoot = true;
@@ -36,9 +47,28 @@
   nomadNode = {
     enable = true;
     enableSeaweedFsVolume = true;
+    hostVolumes."motioneye" = {
+      hostPath = "/motioneye.d";
+      readOnly = false;
+    };
   };
+  services.nomad.extraSettingsPlugins = [ ./plugins ];
+
+  services.nomad.extraPackages = [ pkgs.libusb1 ];
   services.nomad.settings = {
     datacenter = "london-home";
+    plugin."usb" = {
+      enabled = true;
+      included_vendor_ids = [ ];
+      excluded_vendor_ids = [ ];
+
+      included_product_ids = [ ];
+      excluded_product_ids = [ ];
+    };
+  };
+  programs.nix-ld = {
+    enable = true;
+    libraries = [ pkgs.libusb1 ];
   };
 
 

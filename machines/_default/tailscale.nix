@@ -13,7 +13,7 @@
   };
 
   deployment.keys."tailscale_authkey.txt" = {
-    keyCommand = [ "bws-get" "2410a192-c6d5-40ab-96ca-b1ea011bf4a9" ];
+    keyCommand = [ "bws-get" "698639a7-d836-4986-9b5a-82125ce751cb" ];
     destDir = "/opt/tailscaile";
     user = "root";
   };
