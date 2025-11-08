@@ -30,10 +30,9 @@
     # Nix pinned in order to be able to compile Nixmad
     #    pkgs.nixVersions.nix_2_19
     # until https://nixpkgs-tracker.ocfox.me/?pr=356133 lands
-    pkgs.nixVersions.nix_2_24
+    pkgs.nixVersions.latest
 
 
-    scripts.nixmad
     scripts.shipper
     scripts.bws-get
     scripts.keychain-get
