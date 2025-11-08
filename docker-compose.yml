@@ -1,0 +1,193 @@
+services:
+  orchserver:
+    build:
+      context: .
+      dockerfile: docker-orchserver.Dockerfile
+    ports:
+      - "10001:10001"
+      - "10002:10002"
+      - "10003:10003"
+      - "5672:5672"
+    environment:
+      - env=docker
+      - ServerPort1=10001
+      - ServerPort2=10002
+      - ServerPort3=10003
+      - ServerPublicName=orchserver
+    networks:
+      - app_network
+    # Needed to access host.docker.internal from inside the container - see server.app.config
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "internal-docker-host:host-gateway"
+
+
+  accountingmanager:
+    build:
+      context: .
+      dockerfile: docker-accounting-manager.Dockerfile
+    environment:
+      - env=docker
+    networks:
+      - app_network
+    # Needed to access host.docker.internal from inside the container - see client.app.config
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "internal-docker-host:host-gateway"
+    depends_on:
+      - orchserver
+
+
+  cashpositionmanager:
+    build:
+      context: .
+      dockerfile: docker-cashposition-manager.Dockerfile
+    environment:
+      - env=docker
+    networks:
+      - app_network
+    # Needed to access host.docker.internal from inside the container - see client.app.config
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "internal-docker-host:host-gateway"
+    depends_on:
+      - orchserver
+
+
+  documentmanager:
+    build:
+      context: .
+      dockerfile: docker-document-manager.Dockerfile
+    environment:
+      - env=docker
+    networks:
+      - app_network
+    # Needed to access host.docker.internal from inside the container - see client.app.config
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "internal-docker-host:host-gateway"
+    depends_on:
+      - orchserver
+
+
+  documentsendermanager:
+    build:
+      context: .
+      dockerfile: docker-document-sender-manager.Dockerfile
+    environment:
+      - env=docker
+    networks:
+      - app_network
+    # Needed to access host.docker.internal from inside the container - see client.app.config
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "internal-docker-host:host-gateway"
+    depends_on:
+      - orchserver
+
+
+  eventmanager:
+    build:
+      context: .
+      dockerfile: docker-event-manager.Dockerfile
+    environment:
+      - env=docker
+    networks:
+      - app_network
+    # Needed to access host.docker.internal from inside the container - see client.app.config
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "internal-docker-host:host-gateway"
+    depends_on:
+      - orchserver
+
+
+  paymentmanager:
+    build:
+      context: .
+      dockerfile: docker-payment-manager.Dockerfile
+    environment:
+      - env=docker
+    networks:
+      - app_network
+    # Needed to access host.docker.internal from inside the container - see client.app.config
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "internal-docker-host:host-gateway"
+    depends_on:
+      - orchserver
+
+
+  paymentpositionmanager:
+    build:
+      context: .
+      dockerfile: docker-payment-position-manager.Dockerfile
+    environment:
+      - env=docker
+    networks:
+      - app_network
+    # Needed to access host.docker.internal from inside the container - see client.app.config
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "internal-docker-host:host-gateway"
+    depends_on:
+      - orchserver
+
+  positionmanager:
+    build:
+      context: .
+      dockerfile: docker-position-manager.Dockerfile
+    environment:
+      - env=docker
+    networks:
+      - app_network
+    # Needed to access host.docker.internal from inside the container - see client.app.config
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "internal-docker-host:host-gateway"
+    depends_on:
+      - orchserver
+
+  webrestapiserver:
+    build:
+      context: .
+      dockerfile: docker-restapi-server.Dockerfile
+    ports:
+      - "5000:5000"
+      - "5001:5001"
+    environment:
+      - env=docker
+    networks:
+      - app_network
+    # Needed to access host.docker.internal from inside the container - see client.app.config
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "internal-docker-host:host-gateway"
+    depends_on:
+      - orchserver
+
+  webreportingserver:
+    build:
+      context: .
+      dockerfile: docker-reporting-server.Dockerfile
+    ports:
+      - "7000:7000"
+      - "7001:7001"
+    environment:
+      - env=docker
+    networks:
+      - app_network
+    # Needed to access host.docker.internal from inside the container - see client.app.config
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "internal-docker-host:host-gateway"
+    depends_on:
+      - orchserver
+
+# setup an isolated network for the containers to communicate with each other
+networks:
+  app_network:
+    driver: bridge
+
+
+  e

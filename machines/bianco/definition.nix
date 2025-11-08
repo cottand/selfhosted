@@ -14,10 +14,15 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.efi.efiSysMountPoint = "/boot/efi";
 
-  users.users.cottand.extraGroups = [ "networkmanager"  ];
+  users.users.cottand.extraGroups = [ "networkmanager" ];
 
   networking.firewall.enable = false;
   services.logind.lidSwitch = "ignore";
+
+
+  services.tailscale = {
+    extraSetFlags = [ "--advertise-exit-node" ];
+  };
 
   system.stateVersion = "22.11";
 }

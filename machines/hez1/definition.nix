@@ -42,5 +42,9 @@
   virtualisation.docker.enable = true;
   networking.firewall.checkReversePath = false;
 
+  services.tailscale = {
+    extraSetFlags = ["--advertise-exit-node"];
+  };
+
   system.stateVersion = "23.11";
 }

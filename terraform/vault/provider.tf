@@ -39,7 +39,7 @@ provider "bitwarden-secrets" {
 }
 
 data "bitwarden-secrets_secret" "awsTfUser" {
-  id = "29faed54-7b0f-47ce-b233-b186014331e1"
+  id = "495fba0d-82a0-46c0-8946-532a7e3e6209"
 }
 
 provider "aws" {
