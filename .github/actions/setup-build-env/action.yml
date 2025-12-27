@@ -11,12 +11,11 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Setup Tailscale
-      uses: tailscale/github-action@main
+    - uses: ./.github/actions/setup-networking
+      name: Set up networking
       with:
-        oauth-client-id: 'k13HPkibx421CNTRL'
-        oauth-secret: ${{ inputs.tailscale_oauth_clientsecret }}
-        tags: 'tag:ci-gha'
+        tailscale_oauth_clientsecret: ${{ inputs.tailscale_oauth_clientsecret }}
+        aarch64LinuxSupport: ${{ inputs.aarch64LinuxSupport }}
 
     - name: Read CA
       id: read_ca
@@ -38,23 +37,6 @@ runs:
         caCertificate: ${{ steps.read_ca.outputs.CA_BASE_64 }}
         secrets: |
           secret/data/nomad/job/attic/users/github-actions value | ATTIC_TOKEN ;
-
-    - name: Add 2024 CA
-      shell: bash
-      run: |
-        sudo apt-get install -y ca-certificates
-        sudo cp certs/root_2024_ca.crt /usr/local/share/ca-certificates
-        sudo update-ca-certificates
-
-    - name: Set up QEMU for aarch64 support
-      uses: docker/setup-qemu-action@v1
-      if: inputs.aarch64LinuxSupport
-
-    - uses: cachix/install-nix-action@v31
-      with:
-        github_access_token: '${{ github.token }}'
-        extra_nix_config: |
-          ${{ inputs.aarch64LinuxSupport && 'extra-platforms = aarch64-linux' || '' }}
 
     - name: Install Attic and nix-fast-build
       shell: bash
