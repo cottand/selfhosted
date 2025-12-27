@@ -10,10 +10,6 @@ in
     ./hardware-configuration.nix
   ];
 
-  nixpkgs.config.permittedInsecurePackages = [
-    "broadcom-sta-6.30.223.271-57-6.12.42"
-  ];
-
   boot.tmp.cleanOnBoot = true;
   # Bootloader.
   boot.loader.systemd-boot.enable = true;

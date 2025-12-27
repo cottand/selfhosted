@@ -24,6 +24,11 @@ resource "aws_iam_access_key" "vault-server-unseal2" {
   user = aws_iam_user.vault-server2.id
 }
 
+
+import {
+  id = "f14a73b1-908f-4d54-8cdf-f4239354daa0"
+  to = bitwarden-secrets_secret.vault-kms-creds
+}
 resource "bitwarden-secrets_secret" "vault-kms-creds" {
   key        = "awsKms/vault.env"
   value      = <<EOT

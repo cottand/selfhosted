@@ -121,6 +121,8 @@
       colmena = (import ./hive.nix) (inputs // { inherit overlays; });
 
       rootCa = ./certs/root_2024_ca.crt;
+
+      s = self;
     }
   ;
 }

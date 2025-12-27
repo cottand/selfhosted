@@ -7,6 +7,7 @@ let
   mem = 400;
   ports = {
     http = 8765;
+    stream = 9081;
   };
   sidecarResources = with builtins; mapAttrs (_: ceil) {
     cpu = 0.20 * cpu;
@@ -66,6 +67,27 @@ in
           "traefik.http.routers.${name}-http.tls=true"
         ];
       };
+      service."${name}-stream" = rec  {
+        connect.sidecarService = {
+          proxy = {
+            config = util.mkEnvoyProxyConfig {
+              otlpService = "proxy-${name}-stream";
+              otlpUpstreamPort = otlpPort;
+              protocol = "tcp";
+            };
+          };
+        };
+        connect.sidecarTask.resources = sidecarResources;
+        port = toString ports.stream;
+        checks = [
+        ];
+        tags = [
+          "traefik.enable=true"
+          "traefik.consulcatalog.connect=true"
+          "traefik.http.routers.${name}-stream.entrypoints=web,websecure"
+          "traefik.http.routers.${name}-stream.tls=true"
+        ];
+      };
       task."${name}" = {
         driver = "docker";
         vault = { };
@@ -102,7 +124,10 @@ in
           memoryMax = builtins.ceil (2 * mem);
 
           # Webcam C270 (Logitech, Inc.)
-          device."046d/usb/0825" = { };
+#          device."046d/usb/0825" = { };
+
+
+
           #          templates = [{
           #            destination = "local/config.conf";
           #            changeMode = "restart";

@@ -38,7 +38,6 @@ jobs:
       - uses: ./.github/actions/setup-build-env
         name: Set up build env
         with:
-          caCertificate: ${{ secrets.DCOTTA_ROOT_CA }}
           tailscale_oauth_clientsecret: ${{ secrets.TAILSCALE_OAUTH_CLIENTSECRET }}
       - name: Build package ${{ matrix.package }}
         continue-on-error: false
@@ -75,7 +74,6 @@ jobs:
       - uses: ./.github/actions/setup-build-env
         name: Set up build env
         with:
-          caCertificate: ${{ secrets.DCOTTA_ROOT_CA }}
           tailscale_oauth_clientsecret: ${{ secrets.TAILSCALE_OAUTH_CLIENTSECRET }}
           aarch64LinuxSupport: true
       - name: Build NixOS config for ${{ matrix.node }}
@@ -93,7 +91,6 @@ jobs:
       - uses: ./.github/actions/setup-build-env
         name: Set up build env
         with:
-          caCertificate: ${{ secrets.DCOTTA_ROOT_CA }}
           tailscale_oauth_clientsecret: ${{ secrets.TAILSCALE_OAUTH_CLIENTSECRET }}
 
       - name: Import Secrets
@@ -134,7 +131,6 @@ jobs:
       - uses: ./.github/actions/setup-build-env
         name: Set up build env
         with:
-          caCertificate: ${{ secrets.DCOTTA_ROOT_CA }}
           tailscale_oauth_clientsecret: ${{ secrets.TAILSCALE_OAUTH_CLIENTSECRET }}
 
       - name: Build services image

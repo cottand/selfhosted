@@ -44,7 +44,7 @@ provider "nomad" {
 }
 
 data "bitwarden-secrets_secret" "cloudflareToken" {
-  id = "d3f24d46-b0bd-4b63-99b5-b186013237b4"
+  id = "cb61fe49-b13d-412c-919e-ae6ed6866a78"
 }
 
 provider "cloudflare" {
@@ -52,7 +52,7 @@ provider "cloudflare" {
 }
 
 data "bitwarden-secrets_secret" "awsTfUser" {
-  id = "29faed54-7b0f-47ce-b233-b186014331e1"
+  id = "495fba0d-82a0-46c0-8946-532a7e3e6209"
 }
 
 provider "aws" {
@@ -63,7 +63,7 @@ provider "aws" {
 
 // expires 12 dec '24
 data "bitwarden-secrets_secret" "tailscale_api" {
-  id = "a3f637ca-58f0-4bf7-b8d4-b1ea0118edd7"
+  id = "8f760e22-98e2-4a43-b841-502efff0fc16"
 }
 
 provider "tailscale" {

@@ -1,6 +1,6 @@
 { util, time, defaults, ... }:
 let
-  version = "11.3.2";
+  version = "12.3.1";
   cpu = 100;
   mem = 240;
   ports = {
@@ -125,6 +125,9 @@ in
             destination = "local/config.ini";
             changeMode = "restart";
             data = ''
+              [panels]
+                disable_sanitize_html = true
+
               [database]
                 type = "postgres"
                 host = "${bind}:${toString ports.upDb}"

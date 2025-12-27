@@ -4,17 +4,10 @@ inputs:
   tailscale_oauth_clientsecret:
     description: 'Tailscale oauth client secret'
     required: true
-  caCertificate:
-    description: 'Base64 encoded CA certificate the server certificate was signed with. Defaults to CAs provided by Mozilla'
-    required: false
   aarch64LinuxSupport:
     description: 'Enable aarch64-linux support via QEMU'
     default: 'false'
     required: false
-#outputs:
-#  random-number:
-#    description: "Random number"
-#    value: ${{ steps.random-number-generator.outputs.random-number }}
 runs:
   using: "composite"
   steps:
@@ -25,6 +18,13 @@ runs:
         oauth-secret: ${{ inputs.tailscale_oauth_clientsecret }}
         tags: 'tag:ci-gha'
 
+    - name: Read CA
+      id: read_ca
+      shell: bash
+      run: |
+        echo 'CA_BASE_64<<EOF' >> $GITHUB_OUTPUT
+        cat certs/root_2024_ca.crt | base64 >> $GITHUB_OUTPUT
+        echo 'EOF' >> $GITHUB_OUTPUT
 
     - name: Import Secrets
       id: secrets
@@ -35,7 +35,7 @@ runs:
         path: jwt-github
         method: jwt
         jwtGithubAudience: sigstore
-        caCertificate: ${{ inputs.caCertificate }}
+        caCertificate: ${{ steps.read_ca.outputs.CA_BASE_64 }}
         secrets: |
           secret/data/nomad/job/attic/users/github-actions value | ATTIC_TOKEN ;
 

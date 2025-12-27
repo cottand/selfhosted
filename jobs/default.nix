@@ -23,5 +23,7 @@ in
     ./digitemp.nix
     ./shelly-exporter.nix
     ./motioneye.nix
+    ./mediamtx.nix
+    ./go2rtc.nix
   ];
 }
