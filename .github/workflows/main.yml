@@ -139,7 +139,7 @@ jobs:
 
       - name: Install skopeo
         run: |
-          nix profile install nixpkgs#skopeo
+          nix profile add nixpkgs#skopeo
 
       - name: Login to GHCR
         run: |
@@ -174,7 +174,7 @@ jobs:
           tailscale_oauth_clientsecret: ${{ secrets.TAILSCALE_OAUTH_CLIENTSECRET }}
       - name: Deploy dev-go
         run: |
-          grpcurl -v services-go-grpc.tfk.nd:443 s_rpc_nomad_api.NomadApi  -d '{"name":"dev-go", "version": ""}'
+          grpcurl -v -d '{"name":"dev-go", "version": ""}' services-go-grpc.tfk.nd:443 s_rpc_nomad_api.NomadApi/Deploy
 
 
 

@@ -92,7 +92,7 @@ func evalNixJobJSON(ctx context.Context, jobName string, repoSha string, errPara
 	state := store.NewState(nil)
 
 	evalString := fmt.Sprintf(`
-		  builtins.toJSON (builtins.getFlake "github:cottand/selfhosted/%s").nomadJobs.%s
+		  builtins.toJSON (builtins.getFlake "github:cottand/selfhosted/%s").legacyPackages.x86_64-linux.nomadJobs.%s
 	`, repoSha, jobName)
 
 	jobVal, err := state.EvalExpr(evalString, "/")

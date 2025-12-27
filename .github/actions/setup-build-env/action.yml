@@ -41,7 +41,7 @@ runs:
     - name: Install Attic and nix-fast-build
       shell: bash
       run: |
-        nix profile install nixpkgs#attic-client nixpkgs#nix-fast-build
+        nix profile add nixpkgs#attic-client nixpkgs#nix-fast-build
 
     - name: Configure Attic
       shell: bash
