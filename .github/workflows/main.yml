@@ -163,3 +163,18 @@ jobs:
         run: |
           attic push "$ATTIC_CACHE" result*
 
+  deploy-dev-go:
+    runs-on: ubuntu-latest
+    needs: build-images
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup-networking
+        name: Set up networking
+        with:
+          tailscale_oauth_clientsecret: ${{ secrets.TAILSCALE_OAUTH_CLIENTSECRET }}
+      - name: Deploy dev-go
+        run: |
+          grpcurl -v services-go-grpc.tfk.nd:443 s_rpc_nomad_api.NomadApi  -d '{"name":"dev-go", "version": ""}'
+
+
+
