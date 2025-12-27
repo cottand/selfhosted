@@ -3,7 +3,6 @@
 #}:
 { self, time, util, defaults, ... }:
 let
-  lib = (import ../../jobs/lib) { };
   name = "services-go";
   cpu = 100;
   mem = 200;
@@ -32,6 +31,7 @@ in
       autoRevert = true;
       autoPromote = true;
       canary = 1;
+
       stagger = 5 * time.second;
     };
 
@@ -64,15 +64,17 @@ in
         port = toString ports.http;
         meta.metrics_port = "\${NOMAD_HOST_PORT_metrics}";
         meta.metrics_path = "/metrics";
-        checks = [{
-          expose = true;
-          name = "metrics";
-          port = "metrics";
-          type = "http";
-          path = meta.metrics_path;
-          interval = 10 * time.second;
-          timeout = 3 * time.second;
-        }];
+        checks = [
+          {
+            expose = true;
+            name = "metrics";
+            port = "metrics";
+            type = "http";
+            path = meta.metrics_path;
+            interval = 10 * time.second;
+            timeout = 3 * time.second;
+          }
+        ];
         tags = [
           "traefik.enable=true"
           "traefik.consulcatalog.connect=true"
@@ -81,7 +83,7 @@ in
         ];
       };
       service."${name}-grpc" = {
-        connect.sidecarService.proxy.config = lib.mkEnvoyProxyConfig {
+        connect.sidecarService.proxy.config = util.mkEnvoyProxyConfig {
           otlpService = "proxy-${name}-grpc";
           otlpUpstreamPort = otlpPort;
           extra.local_request_timeout_ms = 5 * 60 * 1000;
@@ -121,7 +123,7 @@ in
           image = "ghcr.io/cottand/selfhosted/${name}:${version}";
         };
         env = {
-          HTTP_HOST = lib.localhost;
+          HTTP_HOST = "127.0.0.1";
           HTTP_PORT = toString ports.http;
           GRPC_PORT = toString ports.grpc;
           OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = "http://localhost:${toString otlpPort}";
