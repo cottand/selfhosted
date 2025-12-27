@@ -2,20 +2,21 @@ package module
 
 import (
 	"bytes"
-	"cloud.google.com/go/bigquery"
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"log/slog"
+	"net/http"
+	"time"
+
+	"cloud.google.com/go/bigquery"
 	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
 	"github.com/cottand/selfhosted/dev-go/lib/config"
 	s_rpc_nomad_api "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-nomad-api"
 	"github.com/cottand/selfhosted/dev-go/lib/secretstore"
 	"github.com/monzo/terrors"
-	"log/slog"
-	"net/http"
-	"time"
 )
 
 type WorkflowJobEntity struct {
@@ -140,8 +141,8 @@ func (s *scaffold) deploy(ctx context.Context, commit string) {
 	defer span.End()
 
 	_, err := s.nomad.Deploy(ctx, &s_rpc_nomad_api.Job{
-		Version:       &s_rpc_nomad_api.Job_Commit{Commit: commit},
-		JobPathInRepo: "dev-go/services/job.nix",
+		Version: &s_rpc_nomad_api.Job_Commit{Commit: commit},
+		Name:    "dev-go",
 	})
 	if err != nil {
 		slog.WarnContext(ctx, "failed to deploy job", "err", err.Error())
@@ -165,7 +166,7 @@ INSERT INTO dcotta-com.default.actions (inserted_at, head_branch, head_sha, stat
 	if err != nil {
 		return terrors.Augment(err, "failed to insert action into bq", nil)
 	}
-	slog.DebugContext(ctx,"successfully submitted BQ query ✅", "head_sha", event.WorkflowJob.HeadSha)
+	slog.DebugContext(ctx, "successfully submitted BQ query ✅", "head_sha", event.WorkflowJob.HeadSha)
 	// check BigQuery dashboard to see if the job succeeded
 	return nil
 }

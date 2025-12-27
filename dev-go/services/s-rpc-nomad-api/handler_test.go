@@ -11,12 +11,7 @@ func TestEvalNixJobJSON(t *testing.T) {
 	if os.Getenv("NIX_BUILD_TOP") != "" {
 		t.Skip("in nix env")
 	}
-	res, err := evalNixJobJSON(context.Background(),
-		"dev-go/services/job.nix",
-		"7b43cbe3275cef8dd514c12ba137bd98c85da6e6",
-		"7b43cbe",
-		nil,
-	)
+	res, err := evalNixJobJSON(context.Background(), "dev-go/services/job.nix", "7b43cbe3275cef8dd514c12ba137bd98c85da6e6", nil)
 	if err != nil {
 		t.Fatal(err.Error())
 	}

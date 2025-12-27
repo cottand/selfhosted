@@ -11,7 +11,7 @@ message Job {
     string commit = 1;
     bool latest = 2;
   }
-  string jobPathInRepo = 3;
+  string name = 3;
 }
 
 service NomadApi {

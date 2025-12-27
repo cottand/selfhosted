@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
+
 	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
 	"github.com/cottand/selfhosted/dev-go/lib/config"
 	pb "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-nomad-api"
@@ -11,8 +13,6 @@ import (
 	nomad "github.com/hashicorp/nomad/api"
 	"github.com/monzo/terrors"
 	"google.golang.org/protobuf/types/known/emptypb"
-	"log/slog"
-	"path"
 )
 
 type ProtoHandler struct {
@@ -43,21 +43,16 @@ func jobFileToSpec(ctx context.Context, job *pb.Job) (*nomad.Job, error) {
 	if job.GetLatest() {
 		return nil, terrors.New("not_implemented", "for now only specific commits are supported", nil)
 	}
-	jobPath := path.Clean(job.JobPathInRepo)
-	if path.Ext(jobPath) != ".nix" {
-		return nil, terrors.New("not_implemented", "for now only nixmad is supported", nil)
-	}
 	longSha := job.GetCommit()
-	shortSha := longSha[:7]
+	jobName := job.GetName()
 
 	errParams := map[string]string{
-		"file":     jobPath,
-		"shortSha": shortSha,
+		"job": jobName,
 	}
 
-	slog.DebugContext(ctx, "resolved commit", "sha", longSha, "shortSha", shortSha)
+	slog.DebugContext(ctx, "resolved commit", "sha", longSha, "job", jobName)
 
-	jobJSON, err := evalNixJobJSON(ctx, jobPath, longSha, shortSha, errParams)
+	jobJSON, err := evalNixJobJSON(ctx, jobName, longSha, errParams)
 	if err != nil {
 		return nil, terrors.Augment(err, "failed to evaluate job file", errParams)
 	}
@@ -81,7 +76,7 @@ func jobFileToSpec(ctx context.Context, job *pb.Job) (*nomad.Job, error) {
 	return parsed, nil
 }
 
-func evalNixJobJSON(ctx context.Context, jobFilePath string, repoSha string, version string, errParams map[string]string) (string, error) {
+func evalNixJobJSON(ctx context.Context, jobName string, repoSha string, errParams map[string]string) (string, error) {
 	tracer := bedrock.GetTracer(ctx)
 	ctx, span := tracer.Start(ctx, "evalNixJobJSON")
 	defer span.End()
@@ -97,13 +92,8 @@ func evalNixJobJSON(ctx context.Context, jobFilePath string, repoSha string, ver
 	state := store.NewState(nil)
 
 	evalString := fmt.Sprintf(`
-		let 
-		  flake = builtins.getFlake "github:cottand/selfhosted/%s";
-		  jobFile = import "${flake}/%s";
-		  withVersion = jobFile { version = "%s"; };
-		in
-		  builtins.toJSON withVersion
-	`, repoSha, jobFilePath, version)
+		  builtins.toJSON (builtins.getFlake "github:cottand/selfhosted/%s").nomadJobs.%s
+	`, repoSha, jobName)
 
 	jobVal, err := state.EvalExpr(evalString, "/")
 	if err != nil {
