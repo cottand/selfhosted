@@ -37,7 +37,7 @@ provider "bitwarden-secrets" {
 
 
 data "bitwarden-secrets_secret" "cloudflareToken" {
-  id = "d3f24d46-b0bd-4b63-99b5-b186013237b4"
+  id = "cb61fe49-b13d-412c-919e-ae6ed6866a78"
 }
 
 data "bitwarden-secrets_secret" "hetznerToken" {
@@ -53,7 +53,7 @@ provider "hcloud" {
 
 
 data "bitwarden-secrets_secret" "awsTfUser" {
-  id = "29faed54-7b0f-47ce-b233-b186014331e1"
+  id = "495fba0d-82a0-46c0-8946-532a7e3e6209"
 }
 
 locals {
@@ -82,7 +82,7 @@ provider "oci" {
 }
 
 data "bitwarden-secrets_secret" "zoneIds" {
-  id = "90566b46-9de6-486a-a1b5-b186013d4406"
+  id = "f0b0eb57-e7b1-4fae-88b4-eefceaf6b891"
 }
 
 # followed https://developer.hashicorp.com/terraform/tutorials/gcp-get-started

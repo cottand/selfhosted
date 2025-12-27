@@ -1,7 +1,7 @@
 data "bitwarden-secrets_secret" "pubIps" {
-  id = "dfa33ec1-cc6e-44a9-b6f3-b186013cb594"
+  id = "c5381067-ca1b-4aec-9671-448f714c0edc"
 }
 
 data "bitwarden-secrets_secret" "zoneIds" {
-  id = "90566b46-9de6-486a-a1b5-b186013d4406"
+  id = "f0b0eb57-e7b1-4fae-88b4-eefceaf6b891"
 }

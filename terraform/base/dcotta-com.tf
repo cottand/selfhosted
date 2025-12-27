@@ -9,6 +9,7 @@
 #   proxied = true
 # }
 
+# cloudflare cannot do 2-level deep subdomains, so we cannot do a wildcard like *.web.dcotta.com
 resource "cloudflare_record" "immich-cname-web-com" {
   zone_id = local.zoneIds["com"]
   name    = "immich"
@@ -17,6 +18,37 @@ resource "cloudflare_record" "immich-cname-web-com" {
   ttl     = 1
   comment = "tf managed"
   proxied = true
+}
+
+resource "cloudflare_record" "fish-cname-web-com" {
+  zone_id = local.zoneIds["com"]
+  name    = "fish"
+  type    = "CNAME"
+  value   = "web.dcotta.com"
+  ttl     = 1
+  comment = "tf managed"
+  proxied = true
+}
+
+
+resource "cloudflare_record" "wildcard-sh-com-1" {
+  zone_id = local.zoneIds["com"]
+  name    = "*.sh"
+  type    = "A"
+  value   = "100.82.72.56"
+  ttl     = 60
+  comment = "tf managed"
+  proxied = false
+}
+
+resource "cloudflare_record" "wildcard-sh-com-2" {
+  zone_id = local.zoneIds["com"]
+  name    = "*.sh"
+  type    = "A"
+  value   = "100.92.69.51"
+  ttl     = 60
+  comment = "tf managed"
+  proxied = false
 }
 
 resource "cloudflare_record" "google-indexing-proof" {

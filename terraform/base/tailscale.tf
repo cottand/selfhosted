@@ -6,6 +6,11 @@ resource "tailscale_tailnet_key" "default" {
 }
 
 
+import {
+  id = "698639a7-d836-4986-9b5a-82125ce751cb"
+  to = bitwarden-secrets_secret.ts_authkey_default
+}
+
 resource "bitwarden-secrets_secret" "ts_authkey_default" {
   key        = "tailscale/authkey/default"
   value      = tailscale_tailnet_key.default.key

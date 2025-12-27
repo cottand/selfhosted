@@ -28,6 +28,7 @@ in
       inherit overlays;
       system = lib.mkDefault "x86_64-linux";
       config.allowUnfree = true;
+      config.permittedInsecurePackages = [ "broadcom-sta-6.30.223.271-59-6.12.57" ];
     };
     deployment.tags = [ config.nixpkgs.system ];
     deployment.targetUser = "colmena";
@@ -74,15 +75,15 @@ in
     imports = [ ./machines/${name}/definition.nix ];
     deployment.tags = [ "local" "macmini" ];
   };
-  imac = {name, ...}: {
+  imac = { name, ... }: {
     imports = [ ./machines/${name}/definition.nix ];
     deployment.tags = [ "local" ];
   };
 }
-// (mkNodePool {
+  // (mkNodePool {
   names = with builtins; fromJSON (readFile "${self}/terraform/metal/oci_control.json");
   module = {
-   # hqsw has 1 core not 2
+    # hqsw has 1 core not 2
     imports = [ ./machines/ociControlWorker srvos.nixosModules.server ];
     deployment.tags = [ "oci-control" ];
     deployment.buildOnTarget = false;
