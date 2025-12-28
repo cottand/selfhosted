@@ -25,20 +25,23 @@ func (h *ProtoHandler) Deploy(ctx context.Context, job *pb.Job) (*emptypb.Empty,
 	if err != nil {
 		return nil, terrors.Augment(err, "failed to render job", nil)
 	}
+
 	dryRunEnabled, _ := config.Get(ctx, "deploy/dryRunEnabled").Bool()
 	if dryRunEnabled {
 		return &emptypb.Empty{}, nil
 	}
-	res, _, err := h.nomadClient.Jobs().Register(rendered, (&nomad.WriteOptions{}).WithContext(ctx))
+
+	writeOptions := (&nomad.WriteOptions{}).WithContext(ctx)
+	res, _, err := h.nomadClient.Jobs().Register(rendered, writeOptions)
 	if err != nil {
 		return nil, terrors.Augment(err, "failed to register job", nil)
 	}
+
 	slog.InfoContext(ctx, "successfully registered nomad job", "jobEvalId", res.EvalID, "jobName", rendered.Name)
 
 	return &emptypb.Empty{}, nil
 }
 
-// TODO adapt to new Nixmad options config
 func jobFileToSpec(ctx context.Context, job *pb.Job) (*nomad.Job, error) {
 	if job.GetLatest() {
 		return nil, terrors.New("not_implemented", "for now only specific commits are supported", nil)

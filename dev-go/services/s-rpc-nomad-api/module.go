@@ -3,14 +3,16 @@ package module
 import (
 	"context"
 	"errors"
+	"log/slog"
+	"net/http"
+	"os"
+
 	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
 	s_rpc_nomad_api "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-nomad-api"
 	nomad "github.com/hashicorp/nomad/api"
 	"github.com/monzo/terrors"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"google.golang.org/grpc"
-	"net/http"
-	"os"
 )
 
 func InitService() (*bedrock.Service, string, error) {
@@ -27,6 +29,15 @@ func InitService() (*bedrock.Service, string, error) {
 	})
 	if err != nil {
 		return nil, name, terrors.Augment(err, "failed to create nomad client", nil)
+	}
+
+	healthCheckRsp, err := nomadClient.Agent().Health()
+	if err != nil {
+		return nil, name, terrors.Augment(err, "failed to check nomad health", nil)
+	}
+	slog.Info("nomad health check", "msg", healthCheckRsp.Server.Message)
+	if !healthCheckRsp.Server.Ok {
+		return nil, name, errors.New("nomad server should be healthy before startup")
 	}
 	protoHandler := &ProtoHandler{
 		nomadClient: nomadClient,
