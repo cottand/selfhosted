@@ -39,7 +39,9 @@ func Register(driverName string, options ...Option) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	dri := db.Driver()
+
 	if err = db.Close(); err != nil {
 		return "", err
 	}
@@ -50,22 +52,26 @@ func Register(driverName string, options ...Option) (string, error) {
 	// Since we might want to register multiple OTel drivers to have different
 	// configurations, but potentially the same underlying database driver, we
 	// cycle through to find available driver names.
-	driverName = driverName + "-otelsql-"
-	for i := 0; i < maxDriverSlot; i++ {
+	driverName += "-otelsql-"
+
+	for i := range maxDriverSlot {
 		var (
 			found   = false
 			regName = driverName + strconv.FormatInt(int64(i), 10)
 		)
+
 		for _, name := range sql.Drivers() {
 			if name == regName {
 				found = true
 			}
 		}
+
 		if !found {
 			sql.Register(regName, newDriver(dri, newConfig(options...)))
 			return regName, nil
 		}
 	}
+
 	return "", errors.New("unable to register driver, all slots have been taken")
 }
 
@@ -76,12 +82,21 @@ func WrapDriver(dri driver.Driver, options ...Option) driver.Driver {
 
 // Open is a wrapper over sql.Open with OTel instrumentation.
 func Open(driverName, dataSourceName string, options ...Option) (*sql.DB, error) {
-	// Retrieve the driver implementation we need to wrap with instrumentation
-	db, err := sql.Open(driverName, "")
+	// Retrieve the driver implementation we need to wrap with instrumentation.
+	// The dataSourceName is used to bypass the driver's Open method, as some
+	// drivers validate the data source name first before actually opening
+	// connections.
+	// Any connection opened here (usually no connection will be opened) is not
+	// used, and it will be closed immediately to prevent leaking connections.
+	// Usually, no connection will be opened here if the driver implements
+	// the driver.DriverContext interface.
+	db, err := sql.Open(driverName, dataSourceName)
 	if err != nil {
 		return nil, err
 	}
+
 	d := db.Driver()
+
 	if err = db.Close(); err != nil {
 		return nil, err
 	}
@@ -93,6 +108,7 @@ func Open(driverName, dataSourceName string, options ...Option) (*sql.DB, error)
 		if err != nil {
 			return nil, err
 		}
+
 		return sql.OpenDB(connector), nil
 	}
 
@@ -107,20 +123,22 @@ func OpenDB(c driver.Connector, options ...Option) *sql.DB {
 	return sql.OpenDB(connector)
 }
 
-// RegisterDBStatsMetrics register sql.DBStats metrics with OTel instrumentation.
-func RegisterDBStatsMetrics(db *sql.DB, opts ...Option) error {
+// RegisterDBStatsMetrics registers sql.DBStats metrics with OTel instrumentation.
+// Call Unregister on the returned Registration when the db is no longer used.
+func RegisterDBStatsMetrics(db *sql.DB, opts ...Option) (metric.Registration, error) {
 	cfg := newConfig(opts...)
 	meter := cfg.Meter
 
 	instruments, err := newDBStatsInstruments(meter)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	_, err = meter.RegisterCallback(func(_ context.Context, observer metric.Observer) error {
+	reg, err := meter.RegisterCallback(func(_ context.Context, observer metric.Observer) error {
 		dbStats := db.Stats()
 
 		recordDBStatsMetrics(dbStats, instruments, cfg, observer)
+
 		return nil
 	}, instruments.connectionMaxOpen,
 		instruments.connectionOpen,
@@ -130,9 +148,10 @@ func RegisterDBStatsMetrics(db *sql.DB, opts ...Option) error {
 		instruments.connectionClosedMaxIdleTimeTotal,
 		instruments.connectionClosedMaxLifetimeTotal)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+
+	return reg, nil
 }
 
 func recordDBStatsMetrics(
@@ -143,6 +162,7 @@ func recordDBStatsMetrics(
 		metric.WithAttributes(cfg.Attributes...),
 	)
 
+	// TODO: optimize slice allocation.
 	observer.ObserveInt64(instruments.connectionOpen,
 		int64(dbStats.InUse),
 		metric.WithAttributes(append(cfg.Attributes, connectionStatusKey.String("inuse"))...),

@@ -49,7 +49,8 @@ func (s *otStmt) ExecContext(
 	ctx context.Context, args []driver.NamedValue,
 ) (result driver.Result, err error) {
 	method := MethodStmtExec
-	onDefer := recordMetric(ctx, s.cfg.Instruments, s.cfg.Attributes, method)
+	onDefer := recordMetric(ctx, s.cfg.Instruments, s.cfg, method, s.query, args)
+
 	defer func() {
 		onDefer(err)
 	}()
@@ -68,6 +69,7 @@ func (s *otStmt) ExecContext(
 
 	// StmtExecContext.ExecContext is not permitted to return ErrSkip. fall back to Exec.
 	var dargs []driver.Value
+
 	if dargs, err = namedValueToValue(args); err != nil {
 		return nil, err
 	}
@@ -85,12 +87,14 @@ func (s *otStmt) QueryContext(
 	ctx context.Context, args []driver.NamedValue,
 ) (rows driver.Rows, err error) {
 	method := MethodStmtQuery
-	onDefer := recordMetric(ctx, s.cfg.Instruments, s.cfg.Attributes, method)
+	onDefer := recordMetric(ctx, s.cfg.Instruments, s.cfg, method, s.query, args)
+
 	defer func() {
 		onDefer(err)
 	}()
 
 	var span trace.Span
+
 	var queryCtx context.Context
 	if filterSpan(ctx, s.cfg.SpanOptions, method, s.query, args) {
 		queryCtx, span = createSpan(ctx, s.cfg, method, true, s.query, args)
@@ -107,6 +111,7 @@ func (s *otStmt) QueryContext(
 	} else {
 		// StmtQueryContext.QueryContext is not permitted to return ErrSkip. fall back to Query.
 		var dargs []driver.Value
+
 		if dargs, err = namedValueToValue(args); err != nil {
 			return nil, err
 		}

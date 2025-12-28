@@ -8,8 +8,9 @@
 #  }
 #
 # You can build and cat this file to build all images.
-{ self, writeText, system, lib, ... }:
+{ self, writeText, stdenv, lib, ... }:
 let
+  system = stdenv.hostPlatform.system;
   services = self.legacyPackages.${system}.services;
   servicesWithImage = lib.attrsets.filterAttrs (_: svc: svc ? "image") services;
   images = with builtins; toJSON (mapAttrs (_: svc: toString svc.image.out) servicesWithImage);

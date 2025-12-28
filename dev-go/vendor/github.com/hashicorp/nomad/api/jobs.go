@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2015, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package api
@@ -12,7 +12,6 @@ import (
 	"net/url"
 	"sort"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/cronexpr"
@@ -75,9 +74,6 @@ type JobsParseRequest struct {
 	// JobHCL is an hcl jobspec
 	JobHCL string
 
-	// HCLv1 indicates whether the JobHCL should be parsed with the hcl v1 parser
-	HCLv1 bool `json:"hclv1,omitempty"`
-
 	// Variables are HCL2 variables associated with the job. Only works with hcl2.
 	//
 	// Interpreted as if it were the content of a variables file.
@@ -105,7 +101,7 @@ func (j *Jobs) ParseHCL(jobHCL string, canonicalize bool) (*Job, error) {
 }
 
 // ParseHCLOpts is used to request the server convert the HCL representation of a
-// Job to JSON on our behalf. Accepts HCL1 or HCL2 jobs as input.
+// Job to JSON on our behalf. Only accepts HCL2 jobs as input.
 func (j *Jobs) ParseHCLOpts(req *JobsParseRequest) (*Job, error) {
 	var job Job
 	_, err := j.client.put("/v1/jobs/parse", req, &job, nil)
@@ -124,12 +120,13 @@ func (j *Jobs) Validate(job *Job, q *WriteOptions) (*JobValidateResponse, *Write
 
 // RegisterOptions is used to pass through job registration parameters
 type RegisterOptions struct {
-	EnforceIndex   bool
-	ModifyIndex    uint64
-	PolicyOverride bool
-	PreserveCounts bool
-	EvalPriority   int
-	Submission     *JobSubmission
+	EnforceIndex      bool
+	ModifyIndex       uint64
+	PolicyOverride    bool
+	PreserveCounts    bool
+	PreserveResources bool
+	EvalPriority      int
+	Submission        *JobSubmission
 }
 
 // Register is used to register a new job. It returns the ID
@@ -156,6 +153,7 @@ func (j *Jobs) RegisterOpts(job *Job, opts *RegisterOptions, q *WriteOptions) (*
 		}
 		req.PolicyOverride = opts.PolicyOverride
 		req.PreserveCounts = opts.PreserveCounts
+		req.PreserveResources = opts.PreserveResources
 		req.EvalPriority = opts.EvalPriority
 		req.Submission = opts.Submission
 	}
@@ -180,7 +178,7 @@ func (j *Jobs) List(q *QueryOptions) ([]*JobListStub, *QueryMeta, error) {
 	return j.ListOptions(nil, q)
 }
 
-// List is used to list all of the existing jobs.
+// ListOptions is used to list all of the existing jobs.
 func (j *Jobs) ListOptions(opts *JobListOptions, q *QueryOptions) ([]*JobListStub, *QueryMeta, error) {
 	var resp []*JobListStub
 
@@ -267,8 +265,50 @@ func (j *Jobs) ScaleStatus(jobID string, q *QueryOptions) (*JobScaleStatusRespon
 // Versions is used to retrieve all versions of a particular job given its
 // unique ID.
 func (j *Jobs) Versions(jobID string, diffs bool, q *QueryOptions) ([]*Job, []*JobDiff, *QueryMeta, error) {
+	opts := &VersionsOptions{
+		Diffs: diffs,
+	}
+	return j.VersionsOpts(jobID, opts, q)
+}
+
+// VersionByTag is used to retrieve a job version by its VersionTag name.
+func (j *Jobs) VersionByTag(jobID, tag string, q *QueryOptions) (*Job, *QueryMeta, error) {
+	versions, _, qm, err := j.Versions(jobID, false, q)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Find the version with the matching tag
+	for _, version := range versions {
+		if version.VersionTag != nil && version.VersionTag.Name == tag {
+			return version, qm, nil
+		}
+	}
+
+	return nil, nil, fmt.Errorf("version tag %s not found for job %s", tag, jobID)
+}
+
+type VersionsOptions struct {
+	Diffs       bool
+	DiffTag     string
+	DiffVersion *uint64
+}
+
+func (j *Jobs) VersionsOpts(jobID string, opts *VersionsOptions, q *QueryOptions) ([]*Job, []*JobDiff, *QueryMeta, error) {
 	var resp JobVersionsResponse
-	qm, err := j.client.query(fmt.Sprintf("/v1/job/%s/versions?diffs=%v", url.PathEscape(jobID), diffs), &resp, q)
+
+	qp := url.Values{}
+	if opts != nil {
+		qp.Add("diffs", strconv.FormatBool(opts.Diffs))
+		if opts.DiffTag != "" {
+			qp.Add("diff_tag", opts.DiffTag)
+		}
+		if opts.DiffVersion != nil {
+			qp.Add("diff_version", strconv.FormatUint(*opts.DiffVersion, 10))
+		}
+	}
+
+	qm, err := j.client.query(fmt.Sprintf("/v1/job/%s/versions?%s", url.PathEscape(jobID), qp.Encode()), &resp, q)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -285,6 +325,7 @@ func (j *Jobs) Submission(jobID string, version int, q *QueryOptions) (*JobSubmi
 	if err != nil {
 		return nil, nil, err
 	}
+
 	return &sub, qm, nil
 }
 
@@ -490,16 +531,39 @@ func (j *Jobs) Summary(jobID string, q *QueryOptions) (*JobSummary, *QueryMeta, 
 	return &resp, qm, nil
 }
 
+// DispatchOptions is used to pass through job dispatch parameters
+type DispatchOptions struct {
+	JobID            string
+	Meta             map[string]string
+	Payload          []byte
+	IdPrefixTemplate string
+	Priority         int
+}
+
 func (j *Jobs) Dispatch(jobID string, meta map[string]string,
 	payload []byte, idPrefixTemplate string, q *WriteOptions) (*JobDispatchResponse, *WriteMeta, error) {
-	var resp JobDispatchResponse
-	req := &JobDispatchRequest{
+
+	return j.DispatchOpts(&DispatchOptions{
 		JobID:            jobID,
 		Meta:             meta,
 		Payload:          payload,
-		IdPrefixTemplate: idPrefixTemplate,
+		IdPrefixTemplate: idPrefixTemplate},
+		q,
+	)
+}
+
+// DispatchOpts is used to dispatch a new job with the passed DispatchOpts. It
+// returns the ID of the evaluation, along with any errors encountered.
+func (j *Jobs) DispatchOpts(opts *DispatchOptions, q *WriteOptions) (*JobDispatchResponse, *WriteMeta, error) {
+	var resp JobDispatchResponse
+	req := &JobDispatchRequest{
+		JobID:            opts.JobID,
+		Meta:             opts.Meta,
+		Payload:          opts.Payload,
+		IdPrefixTemplate: opts.IdPrefixTemplate,
+		Priority:         opts.Priority,
 	}
-	wm, err := j.client.put("/v1/job/"+url.PathEscape(jobID)+"/dispatch", req, &resp, q)
+	wm, err := j.client.put("/v1/job/"+url.PathEscape(opts.JobID)+"/dispatch", req, &resp, q)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -510,15 +574,13 @@ func (j *Jobs) Dispatch(jobID string, meta map[string]string,
 // enforceVersion is set, the job is only reverted if the current version is at
 // the passed version.
 func (j *Jobs) Revert(jobID string, version uint64, enforcePriorVersion *uint64,
-	q *WriteOptions, consulToken, vaultToken string) (*JobRegisterResponse, *WriteMeta, error) {
+	q *WriteOptions, _ string, _ string) (*JobRegisterResponse, *WriteMeta, error) {
 
 	var resp JobRegisterResponse
 	req := &JobRevertRequest{
 		JobID:               jobID,
 		JobVersion:          version,
 		EnforcePriorVersion: enforcePriorVersion,
-		ConsulToken:         consulToken,
-		VaultToken:          vaultToken,
 	}
 	wm, err := j.client.put("/v1/job/"+url.PathEscape(jobID)+"/revert", req, &resp, q)
 	if err != nil {
@@ -929,10 +991,11 @@ type ParameterizedJobConfig struct {
 // the job submission.
 type JobSubmission struct {
 	// Source contains the original job definition (may be in the format of
-	// hcl1, hcl2, or json).
+	// hcl1, hcl2, or json). HCL1 jobs can no longer be parsed.
 	Source string
 
-	// Format indicates what the Source content was (hcl1, hcl2, or json).
+	// Format indicates what the Source content was (hcl1, hcl2, or json). HCL1
+	// jobs can no longer be parsed.
 	Format string
 
 	// VariableFlags contains the CLI "-var" flag arguments as submitted with the
@@ -990,6 +1053,24 @@ func (j *JobUILink) Copy() *JobUILink {
 	}
 }
 
+type JobVersionTag struct {
+	Name        string
+	Description string
+	TaggedTime  int64
+}
+
+func (j *JobVersionTag) Copy() *JobVersionTag {
+	if j == nil {
+		return nil
+	}
+
+	return &JobVersionTag{
+		Name:        j.Name,
+		Description: j.Description,
+		TaggedTime:  j.TaggedTime,
+	}
+}
+
 func (js *JobSubmission) Canonicalize() {
 	if js == nil {
 		return
@@ -1003,9 +1084,7 @@ func (js *JobSubmission) Canonicalize() {
 	// characters to preserve them. This way, when the job gets stopped and
 	// restarted in the UI, variable values will be parsed correctly.
 	for k, v := range js.VariableFlags {
-		if strings.Contains(v, "\n") {
-			js.VariableFlags[k] = strings.ReplaceAll(v, "\n", "\\n")
-		}
+		js.VariableFlags[k] = url.QueryEscape(v)
 	}
 }
 
@@ -1046,8 +1125,6 @@ type Job struct {
 	Reschedule       *ReschedulePolicy       `hcl:"reschedule,block"`
 	Migrate          *MigrateStrategy        `hcl:"migrate,block"`
 	Meta             map[string]string       `hcl:"meta,block"`
-	ConsulToken      *string                 `mapstructure:"consul_token" hcl:"consul_token,optional"`
-	VaultToken       *string                 `mapstructure:"vault_token" hcl:"vault_token,optional"`
 	UI               *JobUIConfig            `hcl:"ui,block"`
 
 	/* Fields set by server, not sourced from job config file */
@@ -1068,6 +1145,7 @@ type Job struct {
 	CreateIndex              *uint64
 	ModifyIndex              *uint64
 	JobModifyIndex           *uint64
+	VersionTag               *JobVersionTag
 }
 
 // IsPeriodic returns whether a job is periodic.
@@ -1116,14 +1194,8 @@ func (j *Job) Canonicalize() {
 	if j.AllAtOnce == nil {
 		j.AllAtOnce = pointerOf(false)
 	}
-	if j.ConsulToken == nil {
-		j.ConsulToken = pointerOf("")
-	}
 	if j.ConsulNamespace == nil {
 		j.ConsulNamespace = pointerOf("")
-	}
-	if j.VaultToken == nil {
-		j.VaultToken = pointerOf("")
 	}
 	if j.VaultNamespace == nil {
 		j.VaultNamespace = pointerOf("")
@@ -1157,7 +1229,7 @@ func (j *Job) Canonicalize() {
 	}
 	if j.Update != nil {
 		j.Update.Canonicalize()
-	} else if *j.Type == JobTypeService {
+	} else if *j.Type == JobTypeService || *j.Type == JobTypeSystem {
 		j.Update = DefaultUpdateStrategy()
 	}
 	if j.Multiregion != nil {
@@ -1350,6 +1422,15 @@ func (j *Job) AddSpread(s *Spread) *Job {
 	return j
 }
 
+func (j *Job) GetScalingPoliciesPerTaskGroup() map[string]*ScalingPolicy {
+	ret := map[string]*ScalingPolicy{}
+	for _, tg := range j.TaskGroups {
+		ret[*tg.Name] = tg.Scaling
+	}
+
+	return ret
+}
+
 type WriteRequest struct {
 	// The target region for this write
 	Region string
@@ -1396,18 +1477,6 @@ type JobRevertRequest struct {
 	// version before reverting.
 	EnforcePriorVersion *uint64
 
-	// ConsulToken is the Consul token that proves the submitter of the job revert
-	// has access to the Service Identity policies associated with the job's
-	// Consul Connect enabled services. This field is only used to transfer the
-	// token and is not stored after the Job revert.
-	ConsulToken string `json:",omitempty"`
-
-	// VaultToken is the Vault token that proves the submitter of the job revert
-	// has access to any Vault policies specified in the targeted job version. This
-	// field is only used to authorize the revert and is not stored after the Job
-	// revert.
-	VaultToken string `json:",omitempty"`
-
 	WriteRequest
 }
 
@@ -1419,10 +1488,11 @@ type JobRegisterRequest struct {
 	// If EnforceIndex is set then the job will only be registered if the passed
 	// JobModifyIndex matches the current Jobs index. If the index is zero, the
 	// register only occurs if the job is new.
-	EnforceIndex   bool   `json:",omitempty"`
-	JobModifyIndex uint64 `json:",omitempty"`
-	PolicyOverride bool   `json:",omitempty"`
-	PreserveCounts bool   `json:",omitempty"`
+	EnforceIndex      bool   `json:",omitempty"`
+	JobModifyIndex    uint64 `json:",omitempty"`
+	PolicyOverride    bool   `json:",omitempty"`
+	PreserveCounts    bool   `json:",omitempty"`
+	PreserveResources bool   `json:",omitempty"`
 
 	// EvalPriority is an optional priority to use on any evaluation created as
 	// a result on this job registration. This value must be between 1-100
@@ -1529,6 +1599,10 @@ type DesiredUpdates struct {
 	DestructiveUpdate uint64
 	Canary            uint64
 	Preemptions       uint64
+	Disconnect        uint64
+	Reconnect         uint64
+	RescheduleNow     uint64
+	RescheduleLater   uint64
 }
 
 type JobDispatchRequest struct {
@@ -1536,6 +1610,7 @@ type JobDispatchRequest struct {
 	Payload          []byte
 	Meta             map[string]string
 	IdPrefixTemplate string
+	Priority         int
 }
 
 type JobDispatchResponse struct {
@@ -1623,4 +1698,23 @@ type JobStatusesRequest struct {
 	Jobs []NamespacedID
 	// IncludeChildren will include child (batch) jobs in the response.
 	IncludeChildren bool
+}
+
+type TagVersionRequest struct {
+	Version     uint64
+	Description string
+	WriteRequest
+}
+
+func (j *Jobs) TagVersion(jobID string, version uint64, name string, description string, q *WriteOptions) (*WriteMeta, error) {
+	var tagRequest = &TagVersionRequest{
+		Version:     version,
+		Description: description,
+	}
+
+	return j.client.put("/v1/job/"+url.PathEscape(jobID)+"/versions/"+name+"/tag", tagRequest, nil, q)
+}
+
+func (j *Jobs) UntagVersion(jobID string, name string, q *WriteOptions) (*WriteMeta, error) {
+	return j.client.delete("/v1/job/"+url.PathEscape(jobID)+"/versions/"+name+"/tag", nil, nil, q)
 }

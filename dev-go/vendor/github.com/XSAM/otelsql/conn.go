@@ -25,9 +25,9 @@ import (
 
 var (
 	_ driver.Pinger             = (*otConn)(nil)
-	_ driver.Execer             = (*otConn)(nil) // nolint
+	_ driver.Execer             = (*otConn)(nil) //nolint
 	_ driver.ExecerContext      = (*otConn)(nil)
-	_ driver.Queryer            = (*otConn)(nil) // nolint
+	_ driver.Queryer            = (*otConn)(nil) //nolint
 	_ driver.QueryerContext     = (*otConn)(nil)
 	_ driver.Conn               = (*otConn)(nil)
 	_ driver.ConnPrepareContext = (*otConn)(nil)
@@ -56,7 +56,8 @@ func (c *otConn) Ping(ctx context.Context) (err error) {
 	}
 
 	method := MethodConnPing
-	onDefer := recordMetric(ctx, c.cfg.Instruments, c.cfg.Attributes, method)
+	onDefer := recordMetric(ctx, c.cfg.Instruments, c.cfg, method, "", nil)
+
 	defer func() {
 		onDefer(err)
 	}()
@@ -64,25 +65,30 @@ func (c *otConn) Ping(ctx context.Context) (err error) {
 	if c.cfg.SpanOptions.Ping {
 		if filterSpan(ctx, c.cfg.SpanOptions, method, "", nil) {
 			var span trace.Span
+
 			ctx, span = createSpan(ctx, c.cfg, method, false, "", nil)
+
 			defer func() {
 				if err != nil {
 					recordSpanError(span, c.cfg.SpanOptions, err)
 				}
+
 				span.End()
 			}()
 		}
 	}
 
 	err = pinger.Ping(ctx)
+
 	return err
 }
 
 func (c *otConn) Exec(query string, args []driver.Value) (driver.Result, error) {
-	execer, ok := c.Conn.(driver.Execer) // nolint
+	execer, ok := c.Conn.(driver.Execer) //nolint
 	if !ok {
 		return nil, driver.ErrSkip
 	}
+
 	return execer.Exec(query, args)
 }
 
@@ -95,7 +101,8 @@ func (c *otConn) ExecContext(
 	}
 
 	method := MethodConnExec
-	onDefer := recordMetric(ctx, c.cfg.Instruments, c.cfg.Attributes, method)
+	onDefer := recordMetric(ctx, c.cfg.Instruments, c.cfg, method, query, args)
+
 	defer func() {
 		onDefer(err)
 	}()
@@ -111,14 +118,16 @@ func (c *otConn) ExecContext(
 		recordSpanError(span, c.cfg.SpanOptions, err)
 		return nil, err
 	}
+
 	return res, nil
 }
 
 func (c *otConn) Query(query string, args []driver.Value) (driver.Rows, error) {
-	queryer, ok := c.Conn.(driver.Queryer) // nolint
+	queryer, ok := c.Conn.(driver.Queryer) //nolint
 	if !ok {
 		return nil, driver.ErrSkip
 	}
+
 	return queryer.Query(query, args)
 }
 
@@ -131,12 +140,14 @@ func (c *otConn) QueryContext(
 	}
 
 	method := MethodConnQuery
-	onDefer := recordMetric(ctx, c.cfg.Instruments, c.cfg.Attributes, method)
+	onDefer := recordMetric(ctx, c.cfg.Instruments, c.cfg, method, query, args)
+
 	defer func() {
 		onDefer(err)
 	}()
 
 	var span trace.Span
+
 	queryCtx := ctx
 	if !c.cfg.SpanOptions.OmitConnQuery && filterSpan(ctx, c.cfg.SpanOptions, method, query, args) {
 		queryCtx, span = createSpan(ctx, c.cfg, method, true, query, args)
@@ -148,12 +159,14 @@ func (c *otConn) QueryContext(
 		recordSpanError(span, c.cfg.SpanOptions, err)
 		return nil, err
 	}
+
 	return newRows(ctx, rows, c.cfg), nil
 }
 
 func (c *otConn) PrepareContext(ctx context.Context, query string) (stmt driver.Stmt, err error) {
 	method := MethodConnPrepare
-	onDefer := recordMetric(ctx, c.cfg.Instruments, c.cfg.Attributes, method)
+	onDefer := recordMetric(ctx, c.cfg.Instruments, c.cfg, method, query, nil)
+
 	defer func() {
 		onDefer(err)
 	}()
@@ -172,15 +185,15 @@ func (c *otConn) PrepareContext(ctx context.Context, query string) (stmt driver.
 			return nil, err
 		}
 	} else {
-		if stmt, err = c.Conn.Prepare(commentedQuery); err != nil {
+		if stmt, err = c.Prepare(commentedQuery); err != nil {
 			return nil, err
 		}
 
 		select {
 		default:
 		case <-ctx.Done():
-			stmt.Close()
-			return nil, ctx.Err()
+			err := stmt.Close()
+			return nil, errors.Join(ctx.Err(), err)
 		}
 	}
 
@@ -189,14 +202,17 @@ func (c *otConn) PrepareContext(ctx context.Context, query string) (stmt driver.
 
 func (c *otConn) BeginTx(ctx context.Context, opts driver.TxOptions) (tx driver.Tx, err error) {
 	method := MethodConnBeginTx
-	onDefer := recordMetric(ctx, c.cfg.Instruments, c.cfg.Attributes, method)
+	onDefer := recordMetric(ctx, c.cfg.Instruments, c.cfg, method, "", nil)
+
 	defer func() {
 		onDefer(err)
 	}()
 
 	var beginTxCtx context.Context
+
 	if filterSpan(ctx, c.cfg.SpanOptions, method, "", nil) {
 		var span trace.Span
+
 		beginTxCtx, span = createSpan(ctx, c.cfg, method, false, "", nil)
 		defer span.End()
 		defer recordSpanErrorDeferred(span, c.cfg.SpanOptions, &err)
@@ -204,6 +220,7 @@ func (c *otConn) BeginTx(ctx context.Context, opts driver.TxOptions) (tx driver.
 		beginTxCtx = ctx
 	}
 
+	//nolint:nestif
 	if connBeginTx, ok := c.Conn.(driver.ConnBeginTx); ok {
 		if tx, err = connBeginTx.BeginTx(beginTxCtx, opts); err != nil {
 			return nil, err
@@ -235,6 +252,7 @@ func (c *otConn) BeginTx(ctx context.Context, opts driver.TxOptions) (tx driver.
 			}
 		}
 	}
+
 	return newTx(ctx, tx, c.cfg), nil
 }
 
@@ -246,7 +264,8 @@ func (c *otConn) ResetSession(ctx context.Context) (err error) {
 	}
 
 	method := MethodConnResetSession
-	onDefer := recordMetric(ctx, c.cfg.Instruments, c.cfg.Attributes, method)
+	onDefer := recordMetric(ctx, c.cfg.Instruments, c.cfg, method, "", nil)
+
 	defer func() {
 		onDefer(err)
 	}()
@@ -262,6 +281,7 @@ func (c *otConn) ResetSession(ctx context.Context) (err error) {
 		recordSpanError(span, c.cfg.SpanOptions, err)
 		return err
 	}
+
 	return nil
 }
 

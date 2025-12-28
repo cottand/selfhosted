@@ -1,6 +1,7 @@
 package pgconn
 
 import (
+	"container/list"
 	"context"
 	"crypto/md5"
 	"crypto/tls"
@@ -9,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"math"
 	"net"
 	"strconv"
@@ -134,7 +136,7 @@ func ConnectWithOptions(ctx context.Context, connString string, parseConfigOptio
 //
 // If config.Fallbacks are present they will sequentially be tried in case of error establishing network connection. An
 // authentication error will terminate the chain of attempts (like libpq:
-// https://www.postgresql.org/docs/11/libpq-connect.html#LIBPQ-MULTIPLE-HOSTS) and be returned as the error.
+// https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-MULTIPLE-HOSTS) and be returned as the error.
 func ConnectConfig(ctx context.Context, config *Config) (*PgConn, error) {
 	// Default values are set in ParseConfig. Enforce initial creation by ParseConfig rather than setting defaults from
 	// zero values.
@@ -267,12 +269,15 @@ func connectPreferred(ctx context.Context, config *Config, connectOneConfigs []*
 
 		var pgErr *PgError
 		if errors.As(err, &pgErr) {
-			const ERRCODE_INVALID_PASSWORD = "28P01"                    // wrong password
-			const ERRCODE_INVALID_AUTHORIZATION_SPECIFICATION = "28000" // wrong password or bad pg_hba.conf settings
-			const ERRCODE_INVALID_CATALOG_NAME = "3D000"                // db does not exist
-			const ERRCODE_INSUFFICIENT_PRIVILEGE = "42501"              // missing connect privilege
+			// pgx will try next host even if libpq does not in certain cases (see #2246)
+			// consider change for the next major version
+
+			const ERRCODE_INVALID_PASSWORD = "28P01"
+			const ERRCODE_INVALID_CATALOG_NAME = "3D000"   // db does not exist
+			const ERRCODE_INSUFFICIENT_PRIVILEGE = "42501" // missing connect privilege
+
+			// auth failed due to invalid password, db does not exist or user has no permission
 			if pgErr.Code == ERRCODE_INVALID_PASSWORD ||
-				pgErr.Code == ERRCODE_INVALID_AUTHORIZATION_SPECIFICATION && c.tlsConfig != nil ||
 				pgErr.Code == ERRCODE_INVALID_CATALOG_NAME ||
 				pgErr.Code == ERRCODE_INSUFFICIENT_PRIVILEGE {
 				return nil, allErrors
@@ -321,7 +326,15 @@ func connectOne(ctx context.Context, config *Config, connectConfig *connectOneCo
 	if connectConfig.tlsConfig != nil {
 		pgConn.contextWatcher = ctxwatch.NewContextWatcher(&DeadlineContextWatcherHandler{Conn: pgConn.conn})
 		pgConn.contextWatcher.Watch(ctx)
-		tlsConn, err := startTLS(pgConn.conn, connectConfig.tlsConfig)
+		var (
+			tlsConn net.Conn
+			err     error
+		)
+		if config.SSLNegotiation == "direct" {
+			tlsConn = tls.Client(pgConn.conn, connectConfig.tlsConfig)
+		} else {
+			tlsConn, err = startTLS(pgConn.conn, connectConfig.tlsConfig)
+		}
 		pgConn.contextWatcher.Unwatch() // Always unwatch `netConn` after TLS.
 		if err != nil {
 			pgConn.conn.Close()
@@ -329,6 +342,14 @@ func connectOne(ctx context.Context, config *Config, connectConfig *connectOneCo
 		}
 
 		pgConn.conn = tlsConn
+	}
+
+	if config.AfterNetConnect != nil {
+		pgConn.conn, err = config.AfterNetConnect(ctx, config, pgConn.conn)
+		if err != nil {
+			pgConn.conn.Close()
+			return nil, newPerDialConnectError("AfterNetConnect failed", err)
+		}
 	}
 
 	pgConn.contextWatcher = ctxwatch.NewContextWatcher(config.BuildContextWatcherHandler(pgConn))
@@ -354,9 +375,7 @@ func connectOne(ctx context.Context, config *Config, connectConfig *connectOneCo
 	}
 
 	// Copy default run-time params
-	for k, v := range config.RuntimeParams {
-		startupMsg.Parameters[k] = v
-	}
+	maps.Copy(startupMsg.Parameters, config.RuntimeParams)
 
 	startupMsg.Parameters["user"] = config.User
 	if config.Database != "" {
@@ -846,6 +865,10 @@ type StatementDescription struct {
 //
 // Prepare does not send a PREPARE statement to the server. It uses the PostgreSQL Parse and Describe protocol messages
 // directly.
+//
+// In extremely rare cases, Prepare may fail after the Parse is successful, but before the Describe is complete. In this
+// case, the returned error will be an error where errors.As with a *PrepareError succeeds and the *PrepareError has
+// ParseComplete set to true.
 func (pgConn *PgConn) Prepare(ctx context.Context, name, sql string, paramOIDs []uint32) (*StatementDescription, error) {
 	if err := pgConn.lock(); err != nil {
 		return nil, err
@@ -873,7 +896,8 @@ func (pgConn *PgConn) Prepare(ctx context.Context, name, sql string, paramOIDs [
 
 	psd := &StatementDescription{Name: name, SQL: sql}
 
-	var parseErr error
+	var ParseComplete bool
+	var pgErr *PgError
 
 readloop:
 	for {
@@ -884,20 +908,22 @@ readloop:
 		}
 
 		switch msg := msg.(type) {
+		case *pgproto3.ParseComplete:
+			ParseComplete = true
 		case *pgproto3.ParameterDescription:
 			psd.ParamOIDs = make([]uint32, len(msg.ParameterOIDs))
 			copy(psd.ParamOIDs, msg.ParameterOIDs)
 		case *pgproto3.RowDescription:
 			psd.Fields = pgConn.convertRowDescription(nil, msg)
 		case *pgproto3.ErrorResponse:
-			parseErr = ErrorResponseToPgError(msg)
+			pgErr = ErrorResponseToPgError(msg)
 		case *pgproto3.ReadyForQuery:
 			break readloop
 		}
 	}
 
-	if parseErr != nil {
-		return nil, parseErr
+	if pgErr != nil {
+		return nil, &PrepareError{err: pgErr, ParseComplete: ParseComplete}
 	}
 	return psd, nil
 }
@@ -979,7 +1005,8 @@ func noticeResponseToNotice(msg *pgproto3.NoticeResponse) *Notice {
 
 // CancelRequest sends a cancel request to the PostgreSQL server. It returns an error if unable to deliver the cancel
 // request, but lack of an error does not ensure that the query was canceled. As specified in the documentation, there
-// is no way to be sure a query was canceled. See https://www.postgresql.org/docs/11/protocol-flow.html#id-1.10.5.7.9
+// is no way to be sure a query was canceled.
+// See https://www.postgresql.org/docs/current/protocol-flow.html#PROTOCOL-FLOW-CANCELING-REQUESTS
 func (pgConn *PgConn) CancelRequest(ctx context.Context) error {
 	// Open a cancellation request to the same server. The address is taken from the net.Conn directly instead of reusing
 	// the connection config. This is important in high availability configurations where fallback connections may be
@@ -1128,7 +1155,7 @@ func (pgConn *PgConn) Exec(ctx context.Context, sql string) *MultiResultReader {
 // binary format. If resultFormats is nil all results will be in text format.
 //
 // ResultReader must be closed before PgConn can be used again.
-func (pgConn *PgConn) ExecParams(ctx context.Context, sql string, paramValues [][]byte, paramOIDs []uint32, paramFormats []int16, resultFormats []int16) *ResultReader {
+func (pgConn *PgConn) ExecParams(ctx context.Context, sql string, paramValues [][]byte, paramOIDs []uint32, paramFormats, resultFormats []int16) *ResultReader {
 	result := pgConn.execExtendedPrefix(ctx, paramValues)
 	if result.closed {
 		return result
@@ -1154,7 +1181,7 @@ func (pgConn *PgConn) ExecParams(ctx context.Context, sql string, paramValues []
 // binary format. If resultFormats is nil all results will be in text format.
 //
 // ResultReader must be closed before PgConn can be used again.
-func (pgConn *PgConn) ExecPrepared(ctx context.Context, stmtName string, paramValues [][]byte, paramFormats []int16, resultFormats []int16) *ResultReader {
+func (pgConn *PgConn) ExecPrepared(ctx context.Context, stmtName string, paramValues [][]byte, paramFormats, resultFormats []int16) *ResultReader {
 	result := pgConn.execExtendedPrefix(ctx, paramValues)
 	if result.closed {
 		return result
@@ -1361,7 +1388,14 @@ func (pgConn *PgConn) CopyFrom(ctx context.Context, r io.Reader, sql string) (Co
 				close(pgConn.cleanupDone)
 				return CommandTag{}, normalizeTimeoutError(ctx, err)
 			}
-			msg, _ := pgConn.receiveMessage()
+			// peekMessage never returns err in the bufferingReceive mode - it only forwards the bufferingReceive variables.
+			// Therefore, the only case for receiveMessage to return err is during handling of the ErrorResponse message type
+			// and using pgOnError handler to determine the connection is no longer valid (and thus closing the conn).
+			msg, serverError := pgConn.receiveMessage()
+			if serverError != nil {
+				close(abortCopyChan)
+				return CommandTag{}, serverError
+			}
 
 			switch msg := msg.(type) {
 			case *pgproto3.ErrorResponse:
@@ -1408,9 +1442,8 @@ func (pgConn *PgConn) CopyFrom(ctx context.Context, r io.Reader, sql string) (Co
 
 // MultiResultReader is a reader for a command that could return multiple results such as Exec or ExecBatch.
 type MultiResultReader struct {
-	pgConn   *PgConn
-	ctx      context.Context
-	pipeline *Pipeline
+	pgConn *PgConn
+	ctx    context.Context
 
 	rr *ResultReader
 
@@ -1443,12 +1476,8 @@ func (mrr *MultiResultReader) receiveMessage() (pgproto3.BackendMessage, error) 
 	switch msg := msg.(type) {
 	case *pgproto3.ReadyForQuery:
 		mrr.closed = true
-		if mrr.pipeline != nil {
-			mrr.pipeline.expectedReadyForQueryCount--
-		} else {
-			mrr.pgConn.contextWatcher.Unwatch()
-			mrr.pgConn.unlock()
-		}
+		mrr.pgConn.contextWatcher.Unwatch()
+		mrr.pgConn.unlock()
 	case *pgproto3.ErrorResponse:
 		mrr.err = ErrorResponseToPgError(msg)
 	}
@@ -1484,7 +1513,12 @@ func (mrr *MultiResultReader) NextResult() bool {
 			mrr.rr = &mrr.pgConn.resultReader
 			return true
 		case *pgproto3.EmptyQueryResponse:
-			return false
+			mrr.pgConn.resultReader = ResultReader{
+				commandConcluded: true,
+				closed:           true,
+			}
+			mrr.rr = &mrr.pgConn.resultReader
+			return true
 		}
 	}
 
@@ -1672,7 +1706,11 @@ func (rr *ResultReader) receiveMessage() (msg pgproto3.BackendMessage, err error
 	case *pgproto3.EmptyQueryResponse:
 		rr.concludeCommand(CommandTag{}, nil)
 	case *pgproto3.ErrorResponse:
-		rr.concludeCommand(CommandTag{}, ErrorResponseToPgError(msg))
+		pgErr := ErrorResponseToPgError(msg)
+		if rr.pipeline != nil {
+			rr.pipeline.state.HandleError(pgErr)
+		}
+		rr.concludeCommand(CommandTag{}, pgErr)
 	}
 
 	return msg, nil
@@ -1701,7 +1739,7 @@ type Batch struct {
 }
 
 // ExecParams appends an ExecParams command to the batch. See PgConn.ExecParams for parameter descriptions.
-func (batch *Batch) ExecParams(sql string, paramValues [][]byte, paramOIDs []uint32, paramFormats []int16, resultFormats []int16) {
+func (batch *Batch) ExecParams(sql string, paramValues [][]byte, paramOIDs []uint32, paramFormats, resultFormats []int16) {
 	if batch.err != nil {
 		return
 	}
@@ -1714,7 +1752,7 @@ func (batch *Batch) ExecParams(sql string, paramValues [][]byte, paramOIDs []uin
 }
 
 // ExecPrepared appends an ExecPrepared e command to the batch. See PgConn.ExecPrepared for parameter descriptions.
-func (batch *Batch) ExecPrepared(stmtName string, paramValues [][]byte, paramFormats []int16, resultFormats []int16) {
+func (batch *Batch) ExecPrepared(stmtName string, paramValues [][]byte, paramFormats, resultFormats []int16) {
 	if batch.err != nil {
 		return
 	}
@@ -1773,9 +1811,10 @@ func (pgConn *PgConn) ExecBatch(ctx context.Context, batch *Batch) *MultiResultR
 
 	batch.buf, batch.err = (&pgproto3.Sync{}).Encode(batch.buf)
 	if batch.err != nil {
+		pgConn.contextWatcher.Unwatch()
+		multiResult.err = normalizeTimeoutError(multiResult.ctx, batch.err)
 		multiResult.closed = true
-		multiResult.err = batch.err
-		pgConn.unlock()
+		pgConn.asyncClose()
 		return multiResult
 	}
 
@@ -1783,9 +1822,10 @@ func (pgConn *PgConn) ExecBatch(ctx context.Context, batch *Batch) *MultiResultR
 	defer pgConn.exitPotentialWriteReadDeadlock()
 	_, err := pgConn.conn.Write(batch.buf)
 	if err != nil {
+		pgConn.contextWatcher.Unwatch()
+		multiResult.err = normalizeTimeoutError(multiResult.ctx, err)
 		multiResult.closed = true
-		multiResult.err = err
-		pgConn.unlock()
+		pgConn.asyncClose()
 		return multiResult
 	}
 
@@ -1886,7 +1926,7 @@ func (pgConn *PgConn) flushWithPotentialWriteReadDeadlock() error {
 //
 // This should not be confused with the PostgreSQL protocol Sync message.
 func (pgConn *PgConn) SyncConn(ctx context.Context) error {
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		if pgConn.bgReader.Status() == bgreader.StatusStopped && pgConn.frontend.ReadBufferLen() == 0 {
 			return nil
 		}
@@ -1999,9 +2039,7 @@ type Pipeline struct {
 	conn *PgConn
 	ctx  context.Context
 
-	expectedReadyForQueryCount int
-	pendingSync                bool
-
+	state  pipelineState
 	err    error
 	closed bool
 }
@@ -2012,6 +2050,122 @@ type PipelineSync struct{}
 // CloseComplete is returned by GetResults when a CloseComplete message is received.
 type CloseComplete struct{}
 
+type pipelineRequestType int
+
+const (
+	pipelineNil pipelineRequestType = iota
+	pipelinePrepare
+	pipelineQueryParams
+	pipelineQueryPrepared
+	pipelineDeallocate
+	pipelineSyncRequest
+	pipelineFlushRequest
+)
+
+type pipelineRequestEvent struct {
+	RequestType       pipelineRequestType
+	WasSentToServer   bool
+	BeforeFlushOrSync bool
+}
+
+type pipelineState struct {
+	requestEventQueue          list.List
+	lastRequestType            pipelineRequestType
+	pgErr                      *PgError
+	expectedReadyForQueryCount int
+}
+
+func (s *pipelineState) Init() {
+	s.requestEventQueue.Init()
+	s.lastRequestType = pipelineNil
+}
+
+func (s *pipelineState) RegisterSendingToServer() {
+	for elem := s.requestEventQueue.Back(); elem != nil; elem = elem.Prev() {
+		val := elem.Value.(pipelineRequestEvent)
+		if val.WasSentToServer {
+			return
+		}
+		val.WasSentToServer = true
+		elem.Value = val
+	}
+}
+
+func (s *pipelineState) registerFlushingBufferOnServer() {
+	for elem := s.requestEventQueue.Back(); elem != nil; elem = elem.Prev() {
+		val := elem.Value.(pipelineRequestEvent)
+		if val.BeforeFlushOrSync {
+			return
+		}
+		val.BeforeFlushOrSync = true
+		elem.Value = val
+	}
+}
+
+func (s *pipelineState) PushBackRequestType(req pipelineRequestType) {
+	if req == pipelineNil {
+		return
+	}
+
+	if req != pipelineFlushRequest {
+		s.requestEventQueue.PushBack(pipelineRequestEvent{RequestType: req})
+	}
+	if req == pipelineFlushRequest || req == pipelineSyncRequest {
+		s.registerFlushingBufferOnServer()
+	}
+	s.lastRequestType = req
+
+	if req == pipelineSyncRequest {
+		s.expectedReadyForQueryCount++
+	}
+}
+
+func (s *pipelineState) ExtractFrontRequestType() pipelineRequestType {
+	for {
+		elem := s.requestEventQueue.Front()
+		if elem == nil {
+			return pipelineNil
+		}
+		val := elem.Value.(pipelineRequestEvent)
+		if !(val.WasSentToServer && val.BeforeFlushOrSync) {
+			return pipelineNil
+		}
+
+		s.requestEventQueue.Remove(elem)
+		if val.RequestType == pipelineSyncRequest {
+			s.pgErr = nil
+		}
+		if s.pgErr == nil {
+			return val.RequestType
+		}
+	}
+}
+
+func (s *pipelineState) HandleError(err *PgError) {
+	s.pgErr = err
+}
+
+func (s *pipelineState) HandleReadyForQuery() {
+	s.expectedReadyForQueryCount--
+}
+
+func (s *pipelineState) PendingSync() bool {
+	var notPendingSync bool
+
+	if elem := s.requestEventQueue.Back(); elem != nil {
+		val := elem.Value.(pipelineRequestEvent)
+		notPendingSync = (val.RequestType == pipelineSyncRequest) && val.WasSentToServer
+	} else {
+		notPendingSync = (s.lastRequestType == pipelineSyncRequest) || (s.lastRequestType == pipelineNil)
+	}
+
+	return !notPendingSync
+}
+
+func (s *pipelineState) ExpectedReadyForQuery() int {
+	return s.expectedReadyForQueryCount
+}
+
 // StartPipeline switches the connection to pipeline mode and returns a *Pipeline. In pipeline mode requests can be sent
 // to the server without waiting for a response. Close must be called on the returned *Pipeline to return the connection
 // to normal mode. While in pipeline mode, no methods that communicate with the server may be called except
@@ -2020,16 +2174,21 @@ type CloseComplete struct{}
 // Prefer ExecBatch when only sending one group of queries at once.
 func (pgConn *PgConn) StartPipeline(ctx context.Context) *Pipeline {
 	if err := pgConn.lock(); err != nil {
-		return &Pipeline{
+		pipeline := &Pipeline{
 			closed: true,
 			err:    err,
 		}
+		pipeline.state.Init()
+
+		return pipeline
 	}
 
 	pgConn.pipeline = Pipeline{
 		conn: pgConn,
 		ctx:  ctx,
 	}
+	pgConn.pipeline.state.Init()
+
 	pipeline := &pgConn.pipeline
 
 	if ctx != context.Background() {
@@ -2052,10 +2211,10 @@ func (p *Pipeline) SendPrepare(name, sql string, paramOIDs []uint32) {
 	if p.closed {
 		return
 	}
-	p.pendingSync = true
 
 	p.conn.frontend.SendParse(&pgproto3.Parse{Name: name, Query: sql, ParameterOIDs: paramOIDs})
 	p.conn.frontend.SendDescribe(&pgproto3.Describe{ObjectType: 'S', Name: name})
+	p.state.PushBackRequestType(pipelinePrepare)
 }
 
 // SendDeallocate deallocates a prepared statement.
@@ -2063,34 +2222,65 @@ func (p *Pipeline) SendDeallocate(name string) {
 	if p.closed {
 		return
 	}
-	p.pendingSync = true
 
 	p.conn.frontend.SendClose(&pgproto3.Close{ObjectType: 'S', Name: name})
+	p.state.PushBackRequestType(pipelineDeallocate)
 }
 
 // SendQueryParams is the pipeline version of *PgConn.QueryParams.
-func (p *Pipeline) SendQueryParams(sql string, paramValues [][]byte, paramOIDs []uint32, paramFormats []int16, resultFormats []int16) {
+func (p *Pipeline) SendQueryParams(sql string, paramValues [][]byte, paramOIDs []uint32, paramFormats, resultFormats []int16) {
 	if p.closed {
 		return
 	}
-	p.pendingSync = true
 
 	p.conn.frontend.SendParse(&pgproto3.Parse{Query: sql, ParameterOIDs: paramOIDs})
 	p.conn.frontend.SendBind(&pgproto3.Bind{ParameterFormatCodes: paramFormats, Parameters: paramValues, ResultFormatCodes: resultFormats})
 	p.conn.frontend.SendDescribe(&pgproto3.Describe{ObjectType: 'P'})
 	p.conn.frontend.SendExecute(&pgproto3.Execute{})
+	p.state.PushBackRequestType(pipelineQueryParams)
 }
 
 // SendQueryPrepared is the pipeline version of *PgConn.QueryPrepared.
-func (p *Pipeline) SendQueryPrepared(stmtName string, paramValues [][]byte, paramFormats []int16, resultFormats []int16) {
+func (p *Pipeline) SendQueryPrepared(stmtName string, paramValues [][]byte, paramFormats, resultFormats []int16) {
 	if p.closed {
 		return
 	}
-	p.pendingSync = true
 
 	p.conn.frontend.SendBind(&pgproto3.Bind{PreparedStatement: stmtName, ParameterFormatCodes: paramFormats, Parameters: paramValues, ResultFormatCodes: resultFormats})
 	p.conn.frontend.SendDescribe(&pgproto3.Describe{ObjectType: 'P'})
 	p.conn.frontend.SendExecute(&pgproto3.Execute{})
+	p.state.PushBackRequestType(pipelineQueryPrepared)
+}
+
+// SendFlushRequest sends a request for the server to flush its output buffer.
+//
+// The server flushes its output buffer automatically as a result of Sync being called,
+// or on any request when not in pipeline mode; this function is useful to cause the server
+// to flush its output buffer in pipeline mode without establishing a synchronization point.
+// Note that the request is not itself flushed to the server automatically; use Flush if
+// necessary. This copies the behavior of libpq PQsendFlushRequest.
+func (p *Pipeline) SendFlushRequest() {
+	if p.closed {
+		return
+	}
+
+	p.conn.frontend.Send(&pgproto3.Flush{})
+	p.state.PushBackRequestType(pipelineFlushRequest)
+}
+
+// SendPipelineSync marks a synchronization point in a pipeline by sending a sync message
+// without flushing the send buffer. This serves as the delimiter of an implicit
+// transaction and an error recovery point.
+//
+// Note that the request is not itself flushed to the server automatically; use Flush if
+// necessary. This copies the behavior of libpq PQsendPipelineSync.
+func (p *Pipeline) SendPipelineSync() {
+	if p.closed {
+		return
+	}
+
+	p.conn.frontend.SendSync(&pgproto3.Sync{})
+	p.state.PushBackRequestType(pipelineSyncRequest)
 }
 
 // Flush flushes the queued requests without establishing a synchronization point.
@@ -2115,28 +2305,14 @@ func (p *Pipeline) Flush() error {
 		return err
 	}
 
+	p.state.RegisterSendingToServer()
 	return nil
 }
 
 // Sync establishes a synchronization point and flushes the queued requests.
 func (p *Pipeline) Sync() error {
-	if p.closed {
-		if p.err != nil {
-			return p.err
-		}
-		return errors.New("pipeline closed")
-	}
-
-	p.conn.frontend.SendSync(&pgproto3.Sync{})
-	err := p.Flush()
-	if err != nil {
-		return err
-	}
-
-	p.pendingSync = false
-	p.expectedReadyForQueryCount++
-
-	return nil
+	p.SendPipelineSync()
+	return p.Flush()
 }
 
 // GetResults gets the next results. If results are present, results may be a *ResultReader, *StatementDescription, or
@@ -2150,7 +2326,7 @@ func (p *Pipeline) GetResults() (results any, err error) {
 		return nil, errors.New("pipeline closed")
 	}
 
-	if p.expectedReadyForQueryCount == 0 {
+	if p.state.ExtractFrontRequestType() == pipelineNil {
 		return nil, nil
 	}
 
@@ -2195,13 +2371,13 @@ func (p *Pipeline) getResults() (results any, err error) {
 		case *pgproto3.CloseComplete:
 			return &CloseComplete{}, nil
 		case *pgproto3.ReadyForQuery:
-			p.expectedReadyForQueryCount--
+			p.state.HandleReadyForQuery()
 			return &PipelineSync{}, nil
 		case *pgproto3.ErrorResponse:
 			pgErr := ErrorResponseToPgError(msg)
+			p.state.HandleError(pgErr)
 			return nil, pgErr
 		}
-
 	}
 }
 
@@ -2231,6 +2407,7 @@ func (p *Pipeline) getResultsPrepare() (*StatementDescription, error) {
 		// These should never happen here. But don't take chances that could lead to a deadlock.
 		case *pgproto3.ErrorResponse:
 			pgErr := ErrorResponseToPgError(msg)
+			p.state.HandleError(pgErr)
 			return nil, pgErr
 		case *pgproto3.CommandComplete:
 			p.conn.asyncClose()
@@ -2250,7 +2427,7 @@ func (p *Pipeline) Close() error {
 
 	p.closed = true
 
-	if p.pendingSync {
+	if p.state.PendingSync() {
 		p.conn.asyncClose()
 		p.err = errors.New("pipeline has unsynced requests")
 		p.conn.contextWatcher.Unwatch()
@@ -2259,7 +2436,7 @@ func (p *Pipeline) Close() error {
 		return p.err
 	}
 
-	for p.expectedReadyForQueryCount > 0 {
+	for p.state.ExpectedReadyForQuery() > 0 {
 		_, err := p.getResults()
 		if err != nil {
 			p.err = err

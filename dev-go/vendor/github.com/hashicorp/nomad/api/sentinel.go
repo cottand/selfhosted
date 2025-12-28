@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2015, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package api
@@ -82,3 +82,10 @@ type SentinelPolicyListStub struct {
 	CreateIndex      uint64
 	ModifyIndex      uint64
 }
+
+// Possible Sentinel scopes
+const (
+	SentinelScopeSubmitJob        = "submit-job"
+	SentinelScopeSubmitHostVolume = "submit-host-volume"
+	SentinelScopeSubmitCSIVolume  = "submit-csi-volume"
+)

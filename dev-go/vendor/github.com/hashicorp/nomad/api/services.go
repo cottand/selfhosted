@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2015, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package api
@@ -246,6 +246,7 @@ type Service struct {
 	TaskName          string            `mapstructure:"task" hcl:"task,optional"`
 	OnUpdate          string            `mapstructure:"on_update" hcl:"on_update,optional"`
 	Identity          *WorkloadIdentity `hcl:"identity,block"`
+	Weights           *ServiceWeights   `mapstructure:"weights" hcl:"weights,block"`
 
 	// Provider defines which backend system provides the service registration,
 	// either "consul" (default) or "nomad".
@@ -253,6 +254,9 @@ type Service struct {
 
 	// Cluster is valid only for Nomad Enterprise with provider: consul
 	Cluster string `hcl:"cluster,optional"`
+
+	// Kind defines the consul service kind, valid only when provider: consul
+	Kind string `hcl:"kind,optional"`
 }
 
 const (
@@ -307,6 +311,7 @@ func (s *Service) Canonicalize(t *Task, tg *TaskGroup, job *Job) {
 	}
 
 	s.Connect.Canonicalize()
+	s.Weights.Canonicalize()
 
 	// Canonicalize CheckRestart on Checks and merge Service.CheckRestart
 	// into each check.
@@ -330,5 +335,25 @@ func (s *Service) Canonicalize(t *Task, tg *TaskGroup, job *Job) {
 		if s.Checks[i].OnUpdate == "" {
 			s.Checks[i].OnUpdate = s.OnUpdate
 		}
+	}
+}
+
+// ServiceWeights is the jobspec block which configures how a service instance
+// is weighted in a DNS SRV request based on the service's health status.
+type ServiceWeights struct {
+	Passing int `hcl:"passing,optional"`
+	Warning int `hcl:"warning,optional"`
+}
+
+func (weights *ServiceWeights) Canonicalize() {
+	if weights == nil {
+		return
+	}
+
+	if weights.Passing <= 0 {
+		weights.Passing = 1
+	}
+	if weights.Warning <= 0 {
+		weights.Warning = 1
 	}
 }

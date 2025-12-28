@@ -23,6 +23,7 @@ func InitService() (*bedrock.Service, string, error) {
 		return nil, name, errors.New("NOMAD_TOKEN environment variable not set")
 	}
 	nomadClient, err := nomad.NewClient(&nomad.Config{
+		// available nomad API (https://developer.hashicorp.com/nomad/api-docs/task-api)
 		Address:    "unix:///secrets/api.sock",
 		SecretID:   token,
 		HttpClient: &http.Client{Transport: otelhttp.NewTransport(http.DefaultTransport)},

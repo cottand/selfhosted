@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2015, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package api
@@ -145,10 +145,11 @@ func (n *NUMAResource) Canonicalize() {
 }
 
 type Port struct {
-	Label       string `hcl:",label"`
-	Value       int    `hcl:"static,optional"`
-	To          int    `hcl:"to,optional"`
-	HostNetwork string `hcl:"host_network,optional"`
+	Label           string `hcl:",label"`
+	Value           int    `hcl:"static,optional"`
+	To              int    `hcl:"to,optional"`
+	HostNetwork     string `hcl:"host_network,optional"`
+	IgnoreCollision bool   `hcl:"ignore_collision,optional"`
 }
 
 type DNSConfig struct {
@@ -180,8 +181,10 @@ type NetworkResource struct {
 	CNI   *CNIConfig `hcl:"cni,block"`
 }
 
+// Megabits should not be used.
+//
 // COMPAT(0.13)
-// XXX Deprecated. Please do not use. The method will be removed in Nomad
+// Deprecated. Please do not use. The method will be removed in Nomad
 // 0.13 and is only being kept to allow any references to be removed before
 // then.
 func (n *NetworkResource) Megabits() int {
