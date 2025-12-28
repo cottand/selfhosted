@@ -41,6 +41,21 @@ const (
 	Iceberg        DataFormat = "ICEBERG"
 )
 
+// MetadataCacheMode describes the types of metadata cache mode for external data.
+type MetadataCacheMode string
+
+// Constants describing types of metadata cache mode for external data.
+const (
+	// Automatic metadata cache mode triggers automatic background refresh of
+	// metadata cache from the external source. Queries will use the latest
+	// available cache version within the table's maxStaleness interval.
+	Automatic MetadataCacheMode = "AUTOMATIC"
+	// Manual metadata cache mode triggers manual refresh of the
+	// metadata cache from external source. Queries will use the latest manually
+	// triggered cache version within the table's maxStaleness interval.
+	Manual MetadataCacheMode = "MANUAL"
+)
+
 // ExternalData is a table which is stored outside of BigQuery. It is implemented by
 // *ExternalDataConfig.
 // GCSReference also implements it, for backwards compatibility.
@@ -114,6 +129,31 @@ type ExternalDataConfig struct {
 	// When creating an external table, the user can provide a reference file with the table schema.
 	// This is enabled for the following formats: AVRO, PARQUET, ORC.
 	ReferenceFileSchemaURI string
+
+	// Metadata Cache Mode for the table. Set this to
+	// enable caching of metadata from external data source.
+	MetadataCacheMode MetadataCacheMode
+
+	// Time zone used when parsing timestamp values that do not
+	// have specific time zone information (e.g. 2024-04-20 12:34:56).
+	// The expected format is a IANA timezone string (e.g. America/Los_Angeles).
+	TimeZone string
+
+	// Format used to parse DATE values. Supports C-style and
+	// SQL-style values
+	DateFormat string
+
+	// Format used to parse DATETIME values. Supports
+	// C-style and SQL-style values.
+	DatetimeFormat string
+
+	// Format used to parse TIME values. Supports C-style and
+	// SQL-style values.
+	TimeFormat string
+
+	// Format used to parse TIMESTAMP values. Supports
+	// C-style and SQL-style values.
+	TimestampFormat string
 }
 
 func (e *ExternalDataConfig) toBQ() bq.ExternalDataConfiguration {
@@ -127,6 +167,12 @@ func (e *ExternalDataConfig) toBQ() bq.ExternalDataConfiguration {
 		HivePartitioningOptions: e.HivePartitioningOptions.toBQ(),
 		ConnectionId:            e.ConnectionID,
 		ReferenceFileSchemaUri:  e.ReferenceFileSchemaURI,
+		MetadataCacheMode:       string(e.MetadataCacheMode),
+		TimeZone:                e.TimeZone,
+		DateFormat:              e.DateFormat,
+		DatetimeFormat:          e.DatetimeFormat,
+		TimeFormat:              e.TimeFormat,
+		TimestampFormat:         e.TimestampFormat,
 	}
 	if e.Schema != nil {
 		q.Schema = e.Schema.toBQ()
@@ -152,6 +198,12 @@ func bqToExternalDataConfig(q *bq.ExternalDataConfiguration) (*ExternalDataConfi
 		HivePartitioningOptions: bqToHivePartitioningOptions(q.HivePartitioningOptions),
 		ConnectionID:            q.ConnectionId,
 		ReferenceFileSchemaURI:  q.ReferenceFileSchemaUri,
+		MetadataCacheMode:       MetadataCacheMode(q.MetadataCacheMode),
+		TimeZone:                q.TimeZone,
+		TimestampFormat:         q.TimestampFormat,
+		TimeFormat:              q.TimeFormat,
+		DateFormat:              q.DateFormat,
+		DatetimeFormat:          q.DatetimeFormat,
 	}
 	for _, v := range q.DecimalTargetTypes {
 		e.DecimalTargetTypes = append(e.DecimalTargetTypes, DecimalTargetType(v))
@@ -236,11 +288,26 @@ type CSVOptions struct {
 
 	// An optional custom string that will represent a NULL
 	// value in CSV import data.
+	//
+	// NullMarker and NullMarkers are mutually exclusive and should not be set at the same time.
 	NullMarker string
+
+	// An optional list of custom strings that will represent
+	// a NULL value in CSV import data.
+	//
+	// NullMarker and NullMarkers are mutually exclusive and should not be set at the same time.
+	NullMarkers []string
 
 	// Preserves the embedded ASCII control characters (the first 32 characters in the ASCII-table,
 	// from '\\x00' to '\\x1F') when loading from CSV. Only applicable to CSV, ignored for other formats.
 	PreserveASCIIControlCharacters bool
+
+	// SourceColumnMatch controls the strategy used to match loaded columns to the schema.
+	// If not set, a sensible default is chosen based on how the schema is provided. If
+	// autodetect is used, then columns are matched by name. Otherwise, columns
+	// are matched by position. This is done to keep the behavior
+	// backward-compatible.
+	SourceColumnMatch SourceColumnMatch
 }
 
 func (o *CSVOptions) populateExternalDataConfig(c *bq.ExternalDataConfiguration) {
@@ -252,6 +319,8 @@ func (o *CSVOptions) populateExternalDataConfig(c *bq.ExternalDataConfiguration)
 		Quote:                          o.quote(),
 		SkipLeadingRows:                o.SkipLeadingRows,
 		NullMarker:                     o.NullMarker,
+		NullMarkers:                    o.NullMarkers,
+		SourceColumnMatch:              string(o.SourceColumnMatch),
 		PreserveAsciiControlCharacters: o.PreserveASCIIControlCharacters,
 	}
 }
@@ -285,6 +354,8 @@ func bqToCSVOptions(q *bq.CsvOptions) *CSVOptions {
 		FieldDelimiter:                 q.FieldDelimiter,
 		SkipLeadingRows:                q.SkipLeadingRows,
 		NullMarker:                     q.NullMarker,
+		NullMarkers:                    q.NullMarkers,
+		SourceColumnMatch:              SourceColumnMatch(q.SourceColumnMatch),
 		PreserveASCIIControlCharacters: q.PreserveAsciiControlCharacters,
 	}
 	o.setQuote(q.Quote)

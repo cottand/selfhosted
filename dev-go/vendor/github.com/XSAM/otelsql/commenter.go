@@ -45,10 +45,14 @@ type commenter struct {
 	propagator propagation.TextMapPropagator
 }
 
-func newCommenter(enabled bool) *commenter {
+func newCommenter(enabled bool, propagator propagation.TextMapPropagator) *commenter {
+	if propagator == nil {
+		propagator = otel.GetTextMapPropagator()
+	}
+
 	return &commenter{
 		enabled:    enabled,
-		propagator: otel.GetTextMapPropagator(),
+		propagator: propagator,
 	}
 }
 
@@ -58,10 +62,12 @@ func (c *commenter) withComment(ctx context.Context, query string) string {
 	}
 
 	var cc commentCarrier
+
 	c.propagator.Inject(ctx, &cc)
 
 	if len(cc) == 0 {
 		return query
 	}
+
 	return fmt.Sprintf("%s /*%s*/", query, cc.Marshal())
 }

@@ -102,9 +102,20 @@ func Unauthorized(code, message string, params map[string]string) *Error {
 }
 
 // PreconditionFailed creates a new error indicating that one or more conditions
-// given in the request evaluated to false when tested on the server.
+// given in the request evaluated to false when tested on the server
+// or entities are in an invalid state in the server for the requested operation.
 func PreconditionFailed(code, message string, params map[string]string) *Error {
 	return errorFactory(errCode(ErrPreconditionFailed, code), message, params)
+}
+
+// UnexpectedPreconditionFailed creates a new error indicating that one or more conditions
+// given in the request evaluated to false when tested on the server
+// or entities are in an invalid state in the server for the requested operation.
+// Errors returned by this function are considered to be unexpected by default.
+func UnexpectedPreconditionFailed(code, message string, params map[string]string) *Error {
+	terr := PreconditionFailed(code, message, params)
+	terr.SetIsUnexpected(true)
+	return terr
 }
 
 // RateLimited creates a new error indicating that the request has been rate-limited,
@@ -117,10 +128,9 @@ func RateLimited(code, message string, params map[string]string) *Error {
 // Builds a stack based on the current call stack
 func errorFactory(code string, message string, params map[string]string) *Error {
 	err := &Error{
-		Code:         ErrUnknown,
-		Message:      message,
-		Params:       map[string]string{},
-		IsUnexpected: &notUnexpected,
+		Code:    ErrUnknown,
+		Message: message,
+		Params:  map[string]string{},
 	}
 	if len(code) > 0 {
 		err.Code = code

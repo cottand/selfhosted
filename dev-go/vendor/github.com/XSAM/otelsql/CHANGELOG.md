@@ -8,6 +8,154 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.41.0] - 2025-12-16
+
+### ⚠️ Notice ⚠️
+
+This release contains breaking changes:
+
+- `RegisterDBStatsMetrics` now returns `(metric.Registration, error)` (previously returned only `error`) so callers can `Unregister()` the callback and avoid memory leaks.
+  - If you need to unregister: `reg, err := RegisterDBStatsMetrics(...)` + `defer reg.Unregister()`.
+  - If you do not need to unregister: `_, err := RegisterDBStatsMetrics(...)`.
+- `WithAttributes` now appends attributes when specified multiple times (previously overwrote existing attributes).
+  - If you relied on overwriting: consolidate your attributes into a single `WithAttributes(...)` call.
+
+### Added
+
+- `WithTextMapPropagator` allows customization of the OTel text map propagator used by SQLCommenter. (#540)
+  This is an experimental feature and may be changed or removed in a later release.
+
+### Removed
+
+- Drop support for [Go 1.23]. (#533)
+
+### Changed
+
+- Reduce allocations and improve performance when creating spans. (#549)
+- Reduce allocations when recording metrics. (#550)
+- `RegisterDBStatsMetrics` now returns a `metric.Registration` so callbacks can be unregistered. (#580)
+- `WithAttributes` now accumulates attributes across multiple calls instead of overwriting. (#576)
+- Upgrade OTel to `v1.39.0`. (#583)
+
+## [0.40.0] - 2025-09-08
+
+This release is the last to support [Go 1.23].
+The next release will require at least [Go 1.24].
+
+### Added
+
+- Support testing of [Go 1.25]. (#517)
+
+### Changed
+
+- Upgrade OTel to `v1.38.0/v0.60.0`. (#510)
+
+## [0.39.0] - 2025-06-05
+
+> [!WARNING]
+> The new introduced `OTEL_SEMCONV_STABILITY_OPT_IN` environment variable will be supported for at least six months from this release. After this period, support for legacy metrics and Semantic Conventions `v1.24.0` may be removed in the next release.
+>
+> You can start the migration to the new Semantic Conventions `v1.30.0` by setting the `OTEL_SEMCONV_STABILITY_OPT_IN=database/dup` or `OTEL_SEMCONV_STABILITY_OPT_IN=database` environment variable in your application.
+>
+> See also the [Semantic conventions for database client metrics](https://opentelemetry.io/docs/specs/semconv/database/database-metrics/).
+
+### Added
+
+- Support to emit query related attributes for the v1.24.0 and v1.30.0 semantic conventions based on the value of the `OTEL_SEMCONV_STABILITY_OPT_IN` environment variable. (#478)
+
+  - `database/dup`: Emit both `db.statement` and `db.query.text` attributes.
+  - `database`: Emit `db.query.text` attribute.
+  - by default: Emit `db.statement` attribute.
+
+- New `db.client.operation.duration` metric following OpenTelemetry semantic conventions. (#480)
+- Support for configuring metrics behavior based on `OTEL_SEMCONV_STABILITY_OPT_IN` setting. (#480)
+
+  - `database/dup`: Emit both legacy latency and new duration `db.client.operation.duration` metrics.
+  - `database`: Emit new duration `db.client.operation.duration` metric.
+  - by default: Emit only the legacy latency metric.
+
+### Changed
+
+- Upgrade semantic conventions to `semconv/v1.30.0`. (#478)
+- Improve memory usage when recording metrics or creating spans. (#497)
+- Upgrade OTel to `v1.36.0/v0.58.0`. (#495)
+
+### Fixed
+
+- Data race issues when recording metrics or creating spans. (#497)
+
+## [0.38.0] - 2025-03-26
+
+### Added
+
+- `WithInstrumentErrorAttributesGetter` option to provide additional error-related attributes. (#440)
+
+### Changed
+
+- Upgrade OTel to `v1.35.0/v0.57.0`. (#437)
+
+### Removed
+
+- Drop support for Go `1.22`. (#447)
+
+## [0.37.0] - 2025-02-16
+
+### Added
+
+- `AttributesFromDSN` method to generate `server.address` and `server.port` attributes from a DSN. (#419)
+- Go 1.24 to supported versions. (#422)
+
+### Changed
+
+- Upgrade OTel to `v1.34.0/v0.56.0`. (#412)
+- Update the comment for the `WithAttributes` option to correctly describe the behavior on measurement creation. (#413)
+- Upgrade semantic conventions to `semconv/v1.24.0`. (#418)
+
+## [0.36.0] - 2024-12-18
+
+### Added
+
+- `DisableSkipErrMeasurement` option suppresses `driver.ErrSkip` as an error status in measurements if enabled. (#389)
+
+### Changed
+
+- Upgrade OTel to `v1.33.0/v0.55.0`. (#396)
+
+## [0.35.0] - 2024-10-11
+
+### Changed
+
+- Upgrade OTel to version `v1.31.0/v0.53.0`. (#374)
+
+## [0.34.0] - 2024-09-14
+
+The minimum supported Go version is `1.22`.
+
+### Added
+
+- Go 1.23 to supported versions. (#361)
+
+### Changed
+
+- The `Open` method uses the `dataSourceName` when calling `sql.Open`. (#359)
+
+  This change improves compatibility with certain drivers that perform a verification of the `dataSourceName` before establishing a connection.
+- Upgrade OTel to version `v1.30.0/v0.52.0`. (#356)
+
+### Removed
+
+- Support for Go `1.21`. (#356)
+
+## [0.33.0] - 2024-08-27
+
+### Added
+
+- `WithInstrumentAttributesGetter` option provides additional attributes when `latency` histogram is recorded. (#334)
+
+### Changed
+
+- Upgrade OTel to version `v1.29.0/v0.51.0`. (#336)
+
 ## [0.32.0] - 2024-07-05
 
 ### Changed
@@ -204,6 +352,7 @@ This update contains a breaking change of the removal of `SpanOptions.AllowRoot`
 ### Added
 
 - SpanOptions to suppress creation of spans. (#87, #102)
+
   - `OmitConnResetSession`
   - `OmitConnPrepare`
   - `OmitConnQuery`
@@ -351,7 +500,20 @@ It contains instrumentation for trace and depends on OTel `v0.18.0`.
 - Example code for a basic usage.
 - Apache-2.0 license.
 
-[Unreleased]: https://github.com/XSAM/otelsql/compare/v0.32.0...HEAD
+[Go 1.25]: https://go.dev/doc/go1.25
+[Go 1.24]: https://go.dev/doc/go1.24
+[Go 1.23]: https://go.dev/doc/go1.23
+
+[Unreleased]: https://github.com/XSAM/otelsql/compare/v0.41.0...HEAD
+[0.41.0]: https://github.com/XSAM/otelsql/releases/tag/v0.41.0
+[0.40.0]: https://github.com/XSAM/otelsql/releases/tag/v0.40.0
+[0.39.0]: https://github.com/XSAM/otelsql/releases/tag/v0.39.0
+[0.38.0]: https://github.com/XSAM/otelsql/releases/tag/v0.38.0
+[0.37.0]: https://github.com/XSAM/otelsql/releases/tag/v0.37.0
+[0.36.0]: https://github.com/XSAM/otelsql/releases/tag/v0.36.0
+[0.35.0]: https://github.com/XSAM/otelsql/releases/tag/v0.35.0
+[0.34.0]: https://github.com/XSAM/otelsql/releases/tag/v0.34.0
+[0.33.0]: https://github.com/XSAM/otelsql/releases/tag/v0.33.0
 [0.32.0]: https://github.com/XSAM/otelsql/releases/tag/v0.32.0
 [0.31.0]: https://github.com/XSAM/otelsql/releases/tag/v0.31.0
 [0.30.0]: https://github.com/XSAM/otelsql/releases/tag/v0.30.0

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2015, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package api
@@ -234,7 +234,6 @@ func (c *Config) ClientConfig(region, address string, tlsEnabled bool) *Config {
 		HttpAuth:   c.HttpAuth,
 		WaitTime:   c.WaitTime,
 		TLSConfig:  c.TLSConfig.Copy(),
-		url:        copyURL(c.url),
 	}
 
 	// Update the tls server name for connecting to a client

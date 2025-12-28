@@ -38,7 +38,7 @@ $(TOOLS)/%: | $(TOOLS)
 	$(GO) build -o $@ $(PACKAGE)
 
 GOLANGCI_LINT = $(TOOLS)/golangci-lint
-$(TOOLS)/golangci-lint: PACKAGE=github.com/golangci/golangci-lint/cmd/golangci-lint
+$(TOOLS)/golangci-lint: PACKAGE=github.com/golangci/golangci-lint/v2/cmd/golangci-lint
 
 .PHONY: tools
 tools: $(GOLANGCI_LINT)
@@ -60,7 +60,7 @@ build: generate
 	set -e; for dir in $(ALL_GO_MOD_DIRS); do \
 	  echo "$(GO) build $${dir}/..."; \
 	  (cd "$${dir}" && \
-	    $(GO) build -o ./bin/main ./... && \
+	    $(GO) build ./... && \
 		$(GO) list ./... \
 		  | grep -v third_party \
 		  | xargs $(GO) test -vet=off -run xxxxxMatchNothingxxxxx >/dev/null); \
@@ -71,7 +71,8 @@ build: generate
 TEST_TARGETS := test-default test-bench test-short test-verbose test-race
 .PHONY: $(TEST_TARGETS) test
 test-default: ARGS=-v -race
-test-bench:   ARGS=-run=xxxxxMatchNothingxxxxx -test.benchtime=1ms -bench=.
+# Check functionality of the code, not the performance
+test-bench:   ARGS=-run=xxxxxMatchNothingxxxxx -test.benchtime=1ms -bench=. -race
 test-short:   ARGS=-short
 test-verbose: ARGS=-v
 test-race:    ARGS=-race

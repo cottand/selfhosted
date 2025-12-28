@@ -57,6 +57,22 @@ type ExtractConfig struct {
 	// Experimental: this option is experimental and may be modified or removed in future versions,
 	// regardless of any other documented package stability guarantees.
 	JobTimeout time.Duration
+
+	// The reservation that job would use. User can specify a reservation to
+	// execute the job. If reservation is not set, reservation is determined
+	// based on the rules defined by the reservation assignments. The expected
+	// format is
+	// `projects/{project}/locations/{location}/reservations/{reservation}`.
+	Reservation string
+
+	// A target limit on the rate of slot consumption by this query. If set to a
+	// value > 0, BigQuery will attempt to limit the rate of slot consumption by
+	// this query to keep it below the configured limit, even if the query is
+	// eligible for more slots based on fair scheduling. The unused slots will be
+	// available for other jobs and queries to use.
+	//
+	// Note: This feature is not yet generally available.
+	MaxSlots int32
 }
 
 func (e *ExtractConfig) toBQ() *bq.JobConfiguration {
@@ -77,6 +93,8 @@ func (e *ExtractConfig) toBQ() *bq.JobConfiguration {
 			UseAvroLogicalTypes: e.UseAvroLogicalTypes,
 		},
 		JobTimeoutMs: e.JobTimeout.Milliseconds(),
+		Reservation:  e.Reservation,
+		MaxSlots:     int64(e.MaxSlots),
 	}
 	if e.Src != nil {
 		cfg.Extract.SourceTable = e.Src.toBQ()
@@ -106,6 +124,8 @@ func bqToExtractConfig(q *bq.JobConfiguration, c *Client) *ExtractConfig {
 		SrcModel:            bqToModel(qe.SourceModel, c),
 		UseAvroLogicalTypes: qe.UseAvroLogicalTypes,
 		JobTimeout:          time.Duration(q.JobTimeoutMs) * time.Millisecond,
+		Reservation:         q.Reservation,
+		MaxSlots:            int32(q.MaxSlots),
 	}
 }
 

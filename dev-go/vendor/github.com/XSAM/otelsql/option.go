@@ -17,13 +17,14 @@ package otelsql
 import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 )
 
 // Option is the interface that applies a configuration option.
 type Option interface {
 	// Apply sets the Option value of a config.
-	Apply(*config)
+	Apply(cfg *config)
 }
 
 var _ Option = OptionFunc(nil)
@@ -31,6 +32,7 @@ var _ Option = OptionFunc(nil)
 // OptionFunc implements the Option interface.
 type OptionFunc func(*config)
 
+// Apply sets the Option value of a config by calling the wrapped function.
 func (f OptionFunc) Apply(c *config) {
 	f(c)
 }
@@ -43,10 +45,11 @@ func WithTracerProvider(provider trace.TracerProvider) Option {
 	})
 }
 
-// WithAttributes specifies attributes that will be set to each span.
+// WithAttributes adds the attributes to each span and measurement.
+// If multiple of WithAttributes are passed, the attributes will be extended instead of being overwriting.
 func WithAttributes(attributes ...attribute.KeyValue) Option {
 	return OptionFunc(func(cfg *config) {
-		cfg.Attributes = attributes
+		cfg.Attributes = append(cfg.Attributes, attributes...)
 	})
 }
 
@@ -94,10 +97,46 @@ func WithSQLCommenter(enabled bool) Option {
 	})
 }
 
+// WithTextMapPropagator specifies a text map propagator to used by the SQLCommenter
+// option. If none is specified, the global text map propagator is used.
+//
+// Notice: This option is EXPERIMENTAL and may be changed or removed in a
+// later release.
+func WithTextMapPropagator(propagator propagation.TextMapPropagator) Option {
+	return OptionFunc(func(cfg *config) {
+		cfg.TextMapPropagator = propagator
+	})
+}
+
 // WithAttributesGetter takes AttributesGetter that will be called on every
 // span creations.
 func WithAttributesGetter(attributesGetter AttributesGetter) Option {
 	return OptionFunc(func(cfg *config) {
 		cfg.AttributesGetter = attributesGetter
+	})
+}
+
+// WithInstrumentAttributesGetter takes InstrumentAttributesGetter that will be called every time metric is recorded to instruments.
+func WithInstrumentAttributesGetter(instrumentAttributesGetter InstrumentAttributesGetter) Option {
+	return OptionFunc(func(cfg *config) {
+		cfg.InstrumentAttributesGetter = instrumentAttributesGetter
+	})
+}
+
+// WithDisableSkipErrMeasurement controls whether driver.ErrSkip is treated as an error in metrics.
+// When enabled, metric measurements with driver.ErrSkip will be recorded as status=ok instead of error.
+//
+// This option does not affect span error recording. To suppress driver.ErrSkip in spans, use
+// WithSpanOptions(SpanOptions{DisableErrSkip: true}).
+func WithDisableSkipErrMeasurement(disable bool) Option {
+	return OptionFunc(func(cfg *config) {
+		cfg.DisableSkipErrMeasurement = disable
+	})
+}
+
+// WithInstrumentErrorAttributesGetter takes InstrumentErrorAttributesGetter that will be called every time metric is recorded to instruments.
+func WithInstrumentErrorAttributesGetter(instrumentErrorAttributesGetter InstrumentErrorAttributesGetter) Option {
+	return OptionFunc(func(cfg *config) {
+		cfg.InstrumentErrorAttributesGetter = instrumentErrorAttributesGetter
 	})
 }

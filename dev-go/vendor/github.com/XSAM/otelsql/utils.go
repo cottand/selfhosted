@@ -18,14 +18,19 @@ import (
 	"context"
 	"database/sql/driver"
 	"errors"
+	"slices"
 	"time"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/metric"
-	semconv "go.opentelemetry.io/otel/semconv/v1.18.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.30.0"
 	"go.opentelemetry.io/otel/trace"
+
+	internalsemconv "github.com/XSAM/otelsql/internal/semconv"
 )
+
+var timeNow = time.Now
 
 func recordSpanErrorDeferred(span trace.Span, opts SpanOptions, err *error) {
 	recordSpanError(span, opts, *err)
@@ -35,14 +40,15 @@ func recordSpanError(span trace.Span, opts SpanOptions, err error) {
 	if span == nil {
 		return
 	}
+
 	if opts.RecordError != nil && !opts.RecordError(err) {
 		return
 	}
 
-	switch err {
-	case nil:
+	switch {
+	case err == nil:
 		return
-	case driver.ErrSkip:
+	case errors.Is(err, driver.ErrSkip):
 		if !opts.DisableErrSkip {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, "")
@@ -53,33 +59,106 @@ func recordSpanError(span trace.Span, opts SpanOptions, err error) {
 	}
 }
 
+func recordLegacyLatency(
+	ctx context.Context,
+	instruments *instruments,
+	cfg config,
+	duration time.Duration,
+	attributes []attribute.KeyValue,
+	method Method,
+	err error,
+) {
+	attributes = append(attributes, queryMethodKey.String(string(method)))
+
+	if err != nil {
+		if cfg.DisableSkipErrMeasurement && errors.Is(err, driver.ErrSkip) {
+			attributes = append(attributes, queryStatusKey.String("ok"))
+		} else {
+			attributes = append(attributes, queryStatusKey.String("error"))
+		}
+	} else {
+		attributes = append(attributes, queryStatusKey.String("ok"))
+	}
+
+	instruments.legacyLatency.Record(
+		ctx,
+		float64(duration.Nanoseconds())/1e6,
+		metric.WithAttributeSet(attribute.NewSet(attributes...)),
+	)
+}
+
+func recordDuration(
+	ctx context.Context,
+	instruments *instruments,
+	cfg config,
+	duration time.Duration,
+	attributes []attribute.KeyValue,
+	method Method,
+	err error,
+) {
+	attributes = append(attributes, semconv.DBOperationName(string(method)))
+	if err != nil && (!cfg.DisableSkipErrMeasurement || !errors.Is(err, driver.ErrSkip)) {
+		attributes = append(attributes, internalsemconv.ErrorTypeAttributes(err)...)
+	}
+
+	instruments.duration.Record(
+		ctx,
+		duration.Seconds(),
+		metric.WithAttributeSet(attribute.NewSet(attributes...)),
+	)
+}
+
+// TODO: remove instruments from arguments.
 func recordMetric(
 	ctx context.Context,
 	instruments *instruments,
-	defaultAttributes []attribute.KeyValue,
+	cfg config,
 	method Method,
+	query string,
+	args []driver.NamedValue,
 ) func(error) {
-	startTime := time.Now()
+	startTime := timeNow()
 
 	return func(err error) {
-		duration := float64(time.Since(startTime).Nanoseconds()) / 1e6
+		duration := timeNow().Sub(startTime)
 
-		attributes := defaultAttributes
-		if err != nil {
-			attributes = append(attributes, queryStatusKey.String("error"))
-		} else {
-			attributes = append(attributes, queryStatusKey.String("ok"))
+		var getterAttributes []attribute.KeyValue
+		if cfg.InstrumentAttributesGetter != nil {
+			getterAttributes = cfg.InstrumentAttributesGetter(ctx, method, query, args)
 		}
 
-		attributes = append(attributes, queryMethodKey.String(string(method)))
+		var errAttributes []attribute.KeyValue
 
-		instruments.latency.Record(
-			ctx,
-			duration,
-			metric.WithAttributes(attributes...),
+		if err != nil {
+			if cfg.InstrumentErrorAttributesGetter != nil {
+				errAttributes = cfg.InstrumentErrorAttributesGetter(err)
+			}
+		}
+
+		// number of attributes + InstrumentAttributesGetter + InstrumentErrorAttributesGetter + estimated 2 from recordDuration.
+		attributes := make(
+			[]attribute.KeyValue,
+			len(cfg.Attributes),
+			len(cfg.Attributes)+len(getterAttributes)+len(errAttributes)+2,
 		)
+		copy(attributes, cfg.Attributes)
+		attributes = append(attributes, getterAttributes...)
+		attributes = append(attributes, errAttributes...)
+
+		switch cfg.SemConvStabilityOptIn {
+		case internalsemconv.OTelSemConvStabilityOptInStable:
+			recordDuration(ctx, instruments, cfg, duration, attributes, method, err)
+		case internalsemconv.OTelSemConvStabilityOptInDup:
+			// Intentionally emit both legacy and new metrics for backward compatibility.
+			recordLegacyLatency(ctx, instruments, cfg, duration, slices.Clone(attributes), method, err)
+			recordDuration(ctx, instruments, cfg, duration, attributes, method, err)
+		case internalsemconv.OTelSemConvStabilityOptInNone:
+			recordLegacyLatency(ctx, instruments, cfg, duration, attributes, method, err)
+		}
 	}
 }
+
+var spanKindClientOption = trace.WithSpanKind(trace.SpanKindClient)
 
 func createSpan(
 	ctx context.Context,
@@ -89,18 +168,32 @@ func createSpan(
 	query string,
 	args []driver.NamedValue,
 ) (context.Context, trace.Span) {
-	attrs := cfg.Attributes
-	if enableDBStatement && !cfg.SpanOptions.DisableQuery {
-		attrs = append(attrs, semconv.DBStatementKey.String(query))
-	}
-	if cfg.AttributesGetter != nil {
-		attrs = append(attrs, cfg.AttributesGetter(ctx, method, query, args)...)
+	spanCtx, span := cfg.Tracer.Start(ctx, cfg.SpanNameFormatter(ctx, method, query), spanKindClientOption)
+	if span.IsRecording() {
+		var dbStatementAttributes []attribute.KeyValue
+		if enableDBStatement && !cfg.SpanOptions.DisableQuery {
+			dbStatementAttributes = cfg.DBQueryTextAttributes(query)
+		}
+
+		var getterAttributes []attribute.KeyValue
+		if cfg.AttributesGetter != nil {
+			getterAttributes = cfg.AttributesGetter(ctx, method, query, args)
+		}
+
+		// Allocate attributes slice (Attributes + AttributesGetter + DBQueryTextAttributes).
+		attributes := make(
+			[]attribute.KeyValue,
+			len(cfg.Attributes),
+			len(cfg.Attributes)+len(getterAttributes)+len(dbStatementAttributes),
+		)
+		copy(attributes, cfg.Attributes)
+		attributes = append(attributes, dbStatementAttributes...)
+		attributes = append(attributes, getterAttributes...)
+
+		span.SetAttributes(attributes...)
 	}
 
-	return cfg.Tracer.Start(ctx, cfg.SpanNameFormatter(ctx, method, query),
-		trace.WithSpanKind(trace.SpanKindClient),
-		trace.WithAttributes(attrs...),
-	)
+	return spanCtx, span
 }
 
 func filterSpan(
@@ -116,11 +209,14 @@ func filterSpan(
 // Copied from stdlib database/sql package: src/database/sql/ctxutil.go.
 func namedValueToValue(named []driver.NamedValue) ([]driver.Value, error) {
 	dargs := make([]driver.Value, len(named))
+
 	for n, param := range named {
 		if len(param.Name) > 0 {
 			return nil, errors.New("sql: driver does not support the use of Named Parameters")
 		}
+
 		dargs[n] = param.Value
 	}
+
 	return dargs, nil
 }
