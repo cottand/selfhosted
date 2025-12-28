@@ -28,7 +28,7 @@ in
       inherit overlays;
       system = lib.mkDefault "x86_64-linux";
       config.allowUnfree = true;
-      config.permittedInsecurePackages = [ "broadcom-sta-6.30.223.271-59-6.12.57" ];
+      config.permittedInsecurePackages = [ "broadcom-sta-6.30.223.271-59-6.12.63" ];
     };
     deployment.tags = [ config.nixpkgs.system ];
     deployment.targetUser = "colmena";
