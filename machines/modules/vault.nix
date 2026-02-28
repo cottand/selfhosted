@@ -21,10 +21,8 @@ in
       enable = true;
       storageBackend = "raft";
 
+       storagePath = "/vault/data";
       storageConfig = ''
-        # node_id = "node1"
-        path = "/vault/data"
-
 
         retry_join {
           leader_api_addr         = "https://inst-ad2ir-control.golden-dace.ts.net:8200"

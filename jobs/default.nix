@@ -25,5 +25,7 @@ in
     ./motioneye.nix
     ./mediamtx.nix
     ./go2rtc.nix
+    ./comet.nix
+    ./minecraft.nix
   ];
 }

@@ -126,3 +126,25 @@ resource "vault_kv_secret_v2" "cockroachdb-client-ente" {
     ca    = vault_pki_secret_backend_root_cert.root_2024.certificate
   })
 }
+
+
+resource "vault_pki_secret_backend_cert" "cockroachdb-client-comet" {
+  issuer_ref  = vault_pki_secret_backend_issuer.workloads-intermediate.issuer_ref
+  backend     = vault_mount.pki_workload_int.path
+  name        = vault_pki_secret_backend_role.intermediate_role-roach-client.name
+  common_name = "comet"
+
+  ttl    = 20200000
+  revoke = true
+  auto_renew = true
+}
+
+resource "vault_kv_secret_v2" "cockroachdb-client-comet" {
+  mount     = vault_mount.kv-secret.path
+  name      = "/nomad/job/roach/users/comet"
+  data_json = jsonencode({
+    key   = vault_pki_secret_backend_cert.cockroachdb-client-comet.private_key
+    chain = "${vault_pki_secret_backend_cert.cockroachdb-client-comet.certificate}\n${vault_pki_secret_backend_cert.cockroachdb-client-comet.ca_chain}"
+    ca    = vault_pki_secret_backend_root_cert.root_2024.certificate
+  })
+}

@@ -38,6 +38,7 @@ in
     meta.version = version;
 
     group.${name} = {
+      meta.version = version;
       count = 3;
       network = {
         inherit (defaults) dns;
@@ -113,7 +114,6 @@ in
 
       #      service."s-web-portfolio-http" = (import ./s-web-portfolio/consulService.nix) { inherit lib sidecarResources; };
       #      service."s-web-github-webhook-http" = (import ./s-web-github-webhook/consulService.nix) { inherit lib sidecarResources; };
-
       task.${name} = {
         inherit resources;
         driver = "docker";

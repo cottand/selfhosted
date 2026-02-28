@@ -34,16 +34,6 @@ in
     deployment.targetUser = "colmena";
   };
 
-  cosmo = { name, nodes, ... }: {
-    imports = [ ./machines/${name}/definition.nix ];
-    deployment.tags = [ "contabo" "nomad-server" ];
-  };
-
-  miki = { name, nodes, lib, ... }: {
-    imports = [ ./machines/${name}/definition.nix ];
-    deployment.tags = [ "contabo" "nomad-server" ];
-  };
-
   ari = { name, nodes, ... }: {
     imports = [ ./machines/${name}/definition.nix ];
     deployment.tags = [ "local" "nomad-client" ];

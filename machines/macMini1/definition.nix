@@ -53,7 +53,8 @@ in
   services.nomad.extraPackages = [ pkgs.libusb1 ];
   services.nomad.settings = {
     datacenter = "london-home";
-    plugin."usb" = {
+    # must match binary name
+    plugin."nomad-usb-device-plugin-linux-amd64-0.4.0" = {
       enabled = true;
       included_vendor_ids = [ ];
       excluded_vendor_ids = [ ];

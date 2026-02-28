@@ -23,7 +23,7 @@ scheme = "https"
 
 [entryPoints.websecure_public]
 address = ':{{ env "NOMAD_PORT_https_public" }}'
-http.middlewares = ["cloudflarewarp@file"]
+#http.middlewares = ["cloudflarewarp@file"]
 transport.respondingTimeouts.readTimeout = "5m"
 
 # redirects 44300 (in container) to 443
@@ -84,7 +84,7 @@ filename = "/etc/traefik/dynamic/traefik-dynamic.toml"
 otlp.grpc.endpoint = '{{ env "NOMAD_UPSTREAM_ADDR_tempo_otlp_grpc_mesh" }}'
 otlp.grpc.insecure = true
 
-[experimental.plugins]
-[experimental.plugins.cloudflarewarp]
-modulename = "github.com/BetterCorp/cloudflarewarp"
-version = "v1.3.0"
+#[experimental.plugins]
+#[experimental.plugins.cloudflarewarp]
+#moduleName = "github.com/BetterCorp/cloudflarewarp"
+#version = "v1.3.3"
