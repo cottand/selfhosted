@@ -4,6 +4,7 @@ let
   ports = {
     http-ui = 8080;
     http-ts = 8001;
+    # exposed in tailscale for node + in tailscale as service via sidecar
     https-ts = 44301;
     http-public = 8000;
     https-public = 44300;
@@ -51,15 +52,17 @@ in
       service."traefik-metrics" = {
         port = toString ports.metrics;
         tags = [ "metrics" ];
-        checks = [{
-          name = "metrics";
-          expose = true;
-          port = "metrics";
-          type = "http";
-          path = "/metrics";
-          interval = 10 * time.second;
-          timeout = 3 * time.second;
-        }];
+        checks = [
+#        {
+#          name = "metrics";
+#          expose = true;
+#          port = "metrics";
+#          type = "http";
+#          path = "/metrics";
+#          interval = 10 * time.second;
+#          timeout = 3 * time.second;
+#        }
+        ];
         connect = {
           sidecarService = { };
           sidecarTask.resources = sidecarResources;
@@ -87,6 +90,27 @@ in
         port = "http_ts";
         task = "traefik";
         connect.native = true;
+      };
+      task."traefik-ts-service" = {
+        vault = { };
+        driver = "docker";
+        config = {
+          image = "tailscale/tailscale:stable";
+          volumes = [
+          ];
+          args = [
+            "serve"
+            "--bg=false"
+            "--service=svc:traefik"
+            "--yes"
+            "--https=443 127.0.0.1:${ports.https-ts}"
+          ];
+        };
+        resources = {
+            cpu = 100;
+            memory = 100;
+            memoryMax = 500;
+        };
       };
       task."traefik" = {
         vault = { };

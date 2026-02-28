@@ -1,6 +1,5 @@
 { util, time, defaults, ... }:
 let
-  lib = (import ../lib) { };
   version = "0.32.X-debian";
   cpu = 120;
   mem = 200;
@@ -14,7 +13,7 @@ let
     memoryMax = 0.25 * mem + 100;
   };
   otlpPort = 9001;
-  bind = lib.localhost;
+  bind = "127.0.0.1";
   journalPath = "/var/log/journal";
 
 in
@@ -56,7 +55,7 @@ in
             { destinationName = "loki-http"; localBindPort = ports.upLoki; }
           ];
 
-          config = lib.mkEnvoyProxyConfig {
+          config = util.mkEnvoyProxyConfig {
             otlpUpstreamPort = otlpPort;
             otlpService = "vector-proxy";
             protocol = "http";
@@ -117,7 +116,9 @@ in
           [sources.journald]
             type = "journald"
             journal_directory = "${journalPath}"
-            exclude_units = []
+            exclude_units = [
+                docker
+            ]
             # Info and above
             include_matches.PRIORITY = [ "0", "1", "2", "3", "4", "5", "6" ]
           [transforms.journald_cleaned]

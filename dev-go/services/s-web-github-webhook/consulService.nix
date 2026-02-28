@@ -26,7 +26,7 @@ in
       "traefik.http.routers.${name}.tls=true"
       "traefik.http.routers.${name}.entrypoints=web, web_public, websecure, websecure_public"
 
-      "traefik.http.routers.${name}.middlewares=cloudflarewarp@file,${name}-stripprefix"
+      "traefik.http.routers.${name}.middlewares=${name}-stripprefix"
 
       "traefik.http.middlewares.${name}-stripprefix.stripprefix.prefixes=/${name}"
       "traefik.http.routers.${name}.rule=Host(`web.dcotta.com`) && PathPrefix(`/${name}`)"
