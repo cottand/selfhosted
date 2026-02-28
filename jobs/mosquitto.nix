@@ -35,11 +35,33 @@ in
         port."metrics".hostNetwork = "ts";
       };
 
-      service."${name}-metrics" = rec {
+      service."${name}-mqtt" ={
         connect.sidecarService = {
           proxy = {
             upstreams = [{ destinationName = "tempo-otlp-grpc-mesh"; localBindPort = otlpPort; }];
 
+            config = util.mkEnvoyProxyConfig {
+              otlpService = "proxy-${name}-mqtt";
+              otlpUpstreamPort = otlpPort;
+              protocol = "tcp";
+            };
+          };
+        };
+        connect.sidecarTask.resources = sidecarResources;
+        port = toString port;
+        checks = [];
+        tags = [
+          "traefik.enable=true"
+          "traefik.consulcatalog.connect=true"
+          #"traefik.tcp.routers.${name}-mqtt.tls.passthrough=true"
+          "traefik.tcp.routers.${name}-mqtt.rule=HostSNI(`${name}-mqtt.traefik`) || HostSNI(`${name}-mqtt.tfk.nd`)"
+          "traefik.tcp.routers.${name}-mqtt.entrypoints=web,websecure"
+          "traefik.tcp.routers.${name}-mqtt.tls=true"
+        ];
+      };
+      service."${name}-metrics" = rec {
+        connect.sidecarService = {
+          proxy = {
             config = util.mkEnvoyProxyConfig {
               otlpService = "proxy-${name}-metrics";
               otlpUpstreamPort = otlpPort;

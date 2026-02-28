@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"log/slog"
-	"reflect"
 	"sync"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
