@@ -53,6 +53,7 @@ in
             upstreams = [
               { destinationName = "tempo-otlp-grpc-mesh"; localBindPort = otlpPort; }
               { destinationName = "roach-db"; localBindPort = ports.upDb; }
+              { destinationName = "mosquitto-mqtt"; localBindPort = 1883; }
             ];
 
             config = util.mkEnvoyProxyConfig {
