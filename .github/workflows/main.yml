@@ -174,7 +174,8 @@ jobs:
           tailscale_oauth_clientsecret: ${{ secrets.TAILSCALE_OAUTH_CLIENTSECRET }}
       - name: Deploy dev-go
         run: |
-          grpcurl -v -d '{"name":"dev-go", "version": ""}' services-go-grpc.tfk.nd:443 s_rpc_nomad_api.NomadApi/Deploy
+          short_sha=$(git rev-parse --short "$GITHUB_SHA")
+          grpcurl -v -d $(printf '{"name":"dev-go", "commit": "%s"}' $short_sha) services-go-grpc.tfk.nd:443 s_rpc_nomad_api.NomadApi/Deploy
 
 
 
