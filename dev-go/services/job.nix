@@ -18,6 +18,7 @@ let
   };
   sidecarResources = util.mkResourcesWithFactor 0.15 resources;
   otlpPort = 9001;
+  # docker images are tagged with the repo's commit, and we can actually get that directly from nix
   version = self.inputs.nixpkgs.lib.strings.removeSuffix "-dirty" (self.shortRev or self.dirtyShortRev or "d43fc34");
 in
 {
