@@ -67,11 +67,22 @@ func handleButtonEvent(client mqtt.Client, message mqtt.Message) {
 	button := event.ServiceData.Button
 	slog.Info("BLE event", "button", button)
 
-	// short press of the first button
+	// short press of the 1st button
 	if button[0] == 254 {
 		// toggle both plugs
 		client.Publish("shelly/plug103/rpc", 1, false, []byte(`{"id":1, "src":"tmp", "method":"Switch.Toggle", "params": {"id":0}}`))
 		client.Publish("shelly/plug104/rpc", 1, false, []byte(`{"id":1, "src":"tmp", "method":"Switch.Toggle", "params": {"id":0}}`))
+	}
+
+	// single press of the 4th button
+	if button[3] == 1 {
+		// simply toggle the light
+		client.Publish("shelly/rgb105/rpc", 1, false, []byte(`{"id":1, "src":"tmp", "method":"Light.Toggle", "params": {"id":0}}`))
+	}
+
+	// double press of the 4th button
+	if button[3] == 2 {
+		// TODO figure out getting latest light status
 	}
 
 }
