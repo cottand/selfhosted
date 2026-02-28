@@ -117,7 +117,7 @@ in
             type = "journald"
             journal_directory = "${journalPath}"
             exclude_units = [
-                docker
+                docker,
             ]
             # Info and above
             include_matches.PRIORITY = [ "0", "1", "2", "3", "4", "5", "6" ]

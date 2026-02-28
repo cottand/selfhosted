@@ -27,5 +27,6 @@ in
     ./go2rtc.nix
     ./comet.nix
     ./minecraft.nix
+    ./mosquitto.nix
   ];
 }

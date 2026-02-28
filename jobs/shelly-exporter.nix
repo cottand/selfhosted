@@ -24,6 +24,7 @@ in
         mode = "bridge";
         port."metrics".hostNetwork = "ts";
       };
+      restart.mode = "delay";
 
       service."${name}-metrics" = rec  {
         connect.sidecarService = {
@@ -71,7 +72,7 @@ in
             "--server.bind=localhost:${toString ports.http}"
           ];
         };
-        env."SHELLY_HOST_SHELLYPLUSES" = "192.168.50.103,192.168.50.104";
+        env."SHELLY_HOST_SHELLYPLUSES" = "192.168.50.103,192.168.50.104,192.168.50.105";
         resources = {
           cpu = cpu;
           memory = mem;

@@ -23,6 +23,7 @@ in
         mode = "bridge";
         port."metrics".hostNetwork = "ts";
       };
+      restart.mode = "delay";
 
       service."${name}-metrics" = rec  {
         connect.sidecarService = {

@@ -34,13 +34,9 @@
 
 // AD 4: Rotation, 0x3F
 // Value: 0
-
-// Device name can be obtained if an active scan is performed
-// You can rely only on the address filtering and forego device name matching
-
 // CHANGE HERE
-function onButtonPress(BTHparsed) {
-    print("Button pressed, emitting event");
+function onButton1Press(BTHparsed) {
+    print("Button pressed");
 
     // Emits event
     Shelly.emitEvent("BLU_BUTTON", {
@@ -54,7 +50,54 @@ function onButtonPress(BTHparsed) {
     Shelly.call("Switch.Toggle", {id: 0});
 }
 
+function onButton4Press(BTHparsed) {
+    print("Button pressed");
+
+    // Emits event
+    Shelly.emitEvent("BLU_BUTTON", {
+        addr: BTHparsed.addr,
+        rssi: BTHparsed.rssi,
+        Button: BTHparsed.button,
+        Battery: BTHparsed.battery,
+    });
+
+    // Toggles the relay on the device
+    Shelly.call("Light.Toggle", {id: 0});
+}
+
+// https://shelly-api-docs.shelly.cloud/gen2/ComponentsAndServices/Light/
+function onButton4DoublePress(BTHparsed) {
+    print("Button pressed");
+
+    // Emits event
+    Shelly.emitEvent("BLU_BUTTON", {
+        addr: BTHparsed.addr,
+        rssi: BTHparsed.rssi,
+        Button: BTHparsed.button,
+        Battery: BTHparsed.battery,
+    });
+
+    Shelly.call("Light.GetStatus", {id: 0}, (lightStatus, errCode, errMsg)=> {
+        if (errCode) {
+            print("Error getting light status: " + errMsg);
+            return;
+        }
+
+        // if it's on already but with low brightness, turn it up to 100%
+        if (lightStatus.brightness < 90 && lightStatus.output) {
+            Shelly.call("Light.Set", {id: 0, brightness: 100});
+        } else {
+            // otherwise it was off or with full brightness, set it to dimmed
+            Shelly.call("Light.Set", {id: 0, on: true, brightness: 5});
+        }
+    });
+}
+
+
+// Device name can be obtained if an active scan is performed
+// You can rely only on the address filtering and forego device name matching
 // remove name prefix to not filter by device name
+
 // remove address to not filter by address
 // filtering early by address or device name allows for faster execution
 // actions is an array objects containing condition and action property
@@ -62,18 +105,35 @@ function onButtonPress(BTHparsed) {
 // e.g. if there is an addr property in condition and it matches the value of addr property
 // in BTH parsed object then the condition is true
 let CONFIG = {
-    // shelly_blu_name_prefix: "SBBT",
-    //shelly_blu_address: "bc:02:6e:c3:c8:b9",
+    shelly_blu_address: "94:b2:16:1d:c1:ed",
     actions: [
         {
             cond: {
-                addr: "94:b2:16:1d:c1:ed",
-                button: [1, 0, 0, 0],
+                //addr: "94:b2:16:1d:c1:ed",
+                button: [254, 0, 0, 0],
             },
-            action: onButtonPress,
+            action: onButton1Press,
         },
+        // {
+        //     cond: {
+        //         //addr: "94:b2:16:1d:c1:ed",
+        //         button: [0, 0, 0, 1],
+        //     },
+        //     action: onButton4Press,
+        // },
+        // {
+        //     cond: {
+        //         //addr: "94:b2:16:1d:c1:ed",
+        //         button: [0, 0, 0, 2],
+        //     },
+        //     action: onButton4DoublePress,
+        // },
     ],
 };
+
+
+
+
 // END OF CHANGE
 const SCAN_PARAM_WANT = {
     duration_ms: BLE.Scanner.INFINITE_SCAN,
@@ -242,7 +302,7 @@ function scanCB(ev, res) {
     // execute actions from CONFIG
     let aIdx = null;
     for (aIdx in CONFIG.actions) {
-        console.log("Eval action: ", JSON.stringify(CONFIG.actions[aIdx]));
+        //console.log("Eval action: ", JSON.stringify(CONFIG.actions[aIdx]));
         // skip if no condition defined
         if (typeof CONFIG.actions[aIdx]["cond"] === "undefined") continue;
         let cond = CONFIG.actions[aIdx]["cond"];
@@ -250,7 +310,7 @@ function scanCB(ev, res) {
         let run = true;
         for (cIdx in cond) {
             if (typeof BTHparsed[cIdx] === "undefined") run = false;
-            if (BTHparsed[cIdx] !== cond[cIdx]) {
+            if (JSON.stringify(BTHparsed[cIdx]) !== JSON.stringify(cond[cIdx])) {
                 //console.log("not equal: "+BTHparsed[cIdx]+" vs "+cond[cIdx]);
                 run = false;
             }
