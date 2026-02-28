@@ -16,7 +16,7 @@
 
   networking.firewall.enable = true;
   networking.firewall = {
-    allowedTCPPorts = [ 22 ];
+    allowedTCPPorts = [ 22 1883 ];
   };
 
   networking.firewall.trustedInterfaces = [ "nomad" "docker0" ];
@@ -43,6 +43,7 @@
   };
   services.nomad.settings = {
     datacenter = "london-home";
+    client.host_network."home_lan".cidr = "192.168.50.0/24";
   };
   services.tailscale = {
     extraSetFlags = ["--advertise-exit-node"];

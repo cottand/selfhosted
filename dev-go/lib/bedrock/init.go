@@ -52,10 +52,16 @@ func GetBaseConfig() (*BaseConfig, error) {
 		host = "localhost"
 	}
 
+	allocId, ok := os.LookupEnv("NOMAD_ALLOC_ID")
+	if !ok {
+		return nil, terrors.Augment(err, "could not determine alloc ID", nil)
+	}
+
 	return &BaseConfig{
 		HttpHost: host,
 		HttpPort: portNum,
 		GrpcPort: grpcPortNum,
+		AllocID: allocId,
 	}, nil
 }
 
@@ -63,6 +69,7 @@ type BaseConfig struct {
 	HttpHost string
 	HttpPort int
 	GrpcPort int
+	AllocID string
 }
 
 func (c *BaseConfig) HttpBind() string {

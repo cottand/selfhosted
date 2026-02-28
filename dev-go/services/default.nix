@@ -10,6 +10,7 @@
   s-rpc-portfolio-stats = callPackage ./s-rpc-portfolio-stats/package.nix { };
   s-rpc-nomad-api = callPackage ./s-rpc-nomad-api/package.nix { };
   s-rpc-vault = callPackage ./s-rpc-vault/package.nix { };
+  s-rpc-mqtt = callPackage ./s-rpc-mqtt/package.nix { };
 
   s-web-github-webhook = callPackage ./s-web-github-webhook/package.nix { };
   s-web-portfolio = callPackage ./s-web-portfolio/package.nix { };

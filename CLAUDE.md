@@ -77,6 +77,7 @@ Check service builds with `nix build .#services`.
 
 ### Set up a Nomad job
 
+0. Read other job definitions that might align with the same intent to understand how to structure the job (eg, traefik, grafana, attic, minecraft)
 1. Create a job definition under `jobs/` using the nix-nomad options format:
    ```nix
    { util, time, defaults, ... }: {
