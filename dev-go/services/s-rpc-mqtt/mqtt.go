@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"log/slog"
+	"reflect"
 	"sync"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -64,6 +65,14 @@ func handleButtonEvent(client mqtt.Client, message mqtt.Message) {
 		return
 	}
 
-	slog.Info("BLE event", "button", event.ServiceData.Button)
+	button := event.ServiceData.Button
+	slog.Info("BLE event", "button", button)
+
+	// short press of the first button
+	if button[0] == 254 {
+		// toggle both plugs
+		client.Publish("shelly/plug103/rpc", 1, false, []byte(`{"id":1, "src":"tmp", "method":"Switch.Toggle", "params": {"id":0}}`))
+		client.Publish("shelly/plug104/rpc", 1, false, []byte(`{"id":1, "src":"tmp", "method":"Switch.Toggle", "params": {"id":0}}`))
+	}
 
 }
