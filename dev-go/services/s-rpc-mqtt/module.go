@@ -22,7 +22,7 @@ func InitService() (*bedrock.Service, string, error) {
 	opts := mqtt.NewClientOptions()
 
 	opts.ClientID = Name + "_" + baseConfig.AllocID
-	opts.AddBroker("tcp://192.168.30.200:1883")
+	opts.AddBroker("tcp://192.168.50.200:1883")
 	client := mqtt.NewClient(opts)
 
 	router := &mqttRouter{c: client}
