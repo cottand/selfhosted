@@ -64,7 +64,7 @@ let
         default = true;
       };
       config.env = lib.mkIf config.addDefaultEnv {
-        DCOTTA_COM_NODE_CONSUL_IP = "\${attr.consul.dns.addr}";
+        DCOTTA_COM_NODE_CONSUL_IP = "\${attr.unique.consul.dns.addr}";
       };
     });
   };

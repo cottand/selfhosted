@@ -39,7 +39,7 @@ func getOrStart() (*consul.Client, error) {
 		return nil, terrors.PreconditionFailed("", "DCOTTA_COM_NODE_CONSUL_IP not found - seems we're not running in Nomad?", nil)
 	}
 	c, err := consul.NewClient(&consul.Config{
-		Address: "https://" + localAddr + ":8051",
+		Address: "https://" + localAddr + ":8501",
 	})
 	if err != nil {
 		return nil, terrors.Augment(err, "failed to init Consul client", nil)
