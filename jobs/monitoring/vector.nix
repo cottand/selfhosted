@@ -116,9 +116,8 @@ in
           [sources.journald]
             type = "journald"
             journal_directory = "${journalPath}"
-            exclude_units = [
-                docker,
-            ]
+            # does not exclude docker logs - those are a different source further below
+            exclude_units = [ "docker" ]
             # Info and above
             include_matches.PRIORITY = [ "0", "1", "2", "3", "4", "5", "6" ]
           [transforms.journald_cleaned]

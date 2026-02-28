@@ -28,7 +28,7 @@ jobs:
           - .#packages.x86_64-linux.nixmad
           - "github:zhaofengli/colmena#defaultPackage.x86_64-linux"
           - "github:Mic92/nix-fast-build/1.2.0#packages.x86_64-linux.default"
-          - ""
+        #  - ""
         host:
           - ubuntu-latest
     #          - macos-latest
@@ -175,7 +175,8 @@ jobs:
       - name: Deploy dev-go
         run: |
           short_sha=$(git rev-parse --short "$GITHUB_SHA")
-          grpcurl -v -d $(printf '{"name":"dev-go", "commit": "%s"}' $short_sha) services-go-grpc.tfk.nd:443 s_rpc_nomad_api.NomadApi/Deploy
+          payload=$(printf '{"name":"dev-go", "commit": "%s"}' $short_sha)
+          grpcurl -v -d "$payload" services-go-grpc.tfk.nd:443 s_rpc_nomad_api.NomadApi/Deploy
 
 
 
