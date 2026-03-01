@@ -27,15 +27,25 @@ func InitService() (*bedrock.Service, string, error) {
 	}
 
 	opts := mqtt.NewClientOptions()
-	opts.ClientID = Name + "_" + baseConfig.AllocID
+	opts.SetClientID(Name + "_" + baseConfig.AllocID)
 	opts.AddBroker(brokerAddr)
+
+	ctx, cancel := context.WithCancel(ctx)
+	opts.SetConnectionLostHandler(func(client mqtt.Client, err error) {
+		slog.WarnContext(ctx, "mqtt connection lost", "brokerAddr", brokerAddr, "err", err)
+
+		go func() {
+			router := &mqttRouter{c: client, clientId: opts.ClientID}
+			err := router.start(ctx)
+			if err != nil {
+				slog.ErrorContext(ctx, "failed to start mqtt router", "brokerAddr", brokerAddr, "err", err)
+			}
+		}()
+	})
 
 	client := mqtt.NewClient(opts)
 
 	router := &mqttRouter{c: client, clientId: opts.ClientID}
-	router.setupMqttRoutes()
-
-	ctx, cancel := context.WithCancel(ctx)
 
 	go func() {
 		err := router.start(ctx)

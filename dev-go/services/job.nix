@@ -157,7 +157,7 @@ in
         vault.env = true;
         vault.role = "services-go";
         vault.changeMode = "restart";
-        
+
         identities = [
           {
             #name = "default";
