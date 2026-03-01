@@ -157,10 +157,12 @@ in
         vault.env = true;
         vault.role = "services-go";
         vault.changeMode = "restart";
+        
         identities = [
           {
-            name = "default";
+            #name = "default";
             env = true;
+            file = true;
             changeMode = "restart";
           }
         ];

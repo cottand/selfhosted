@@ -32,7 +32,7 @@ func InitService() (*bedrock.Service, string, error) {
 
 	client := mqtt.NewClient(opts)
 
-	router := &mqttRouter{c: client}
+	router := &mqttRouter{c: client, clientId: opts.ClientID}
 	router.setupMqttRoutes()
 
 	ctx, cancel := context.WithCancel(ctx)

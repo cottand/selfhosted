@@ -3,10 +3,15 @@ package module
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log/slog"
+	"strconv"
 	"sync"
+	"time"
 
+	"github.com/cottand/selfhosted/dev-go/lib/locks"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/monzo/terrors"
 )
 
 type BLEEvent struct {
@@ -25,7 +30,8 @@ type ServiceData struct {
 }
 
 type mqttRouter struct {
-	c mqtt.Client
+	c        mqtt.Client
+	clientId string
 }
 
 func (r *mqttRouter) setupMqttRoutes() {
@@ -36,7 +42,7 @@ func (r *mqttRouter) start(ctx context.Context) error {
 	if token := r.c.Connect(); token.Wait() && token.Error() != nil {
 		return token.Error()
 	}
-	if token := r.c.Subscribe("94:b2:16:1d:c1:ed", 1, handleButtonEvent); token.Wait() && token.Error() != nil {
+	if token := r.c.Subscribe("94:b2:16:1d:c1:ed", 1, r.handleButtonEvent); token.Wait() && token.Error() != nil {
 		return token.Error()
 	}
 
@@ -44,11 +50,42 @@ func (r *mqttRouter) start(ctx context.Context) error {
 	return ctx.Err()
 }
 
+func (r *mqttRouter) shellyRPCResp(ctx context.Context, topic string, rpcMethod string, paramsJson string) (mqtt.Message, error) {
+	errParams := map[string]string{"rpcMethod": rpcMethod, "paramsJson": paramsJson}
+	recv := make(chan mqtt.Message)
+
+	replyTopic := fmt.Sprintf("%s/rpc", topic)
+	errParams["replyTopic"] = replyTopic
+	t := r.c.Subscribe(replyTopic, 1, func(client mqtt.Client, message mqtt.Message) {
+		recv <- message
+	})
+	if t.Wait() && t.Error() != nil {
+		return nil, terrors.Augment(t.Error(), "could not subscribe to topic", errParams)
+	}
+	defer r.c.Unsubscribe(replyTopic)
+
+	uniqueId := strconv.FormatInt(time.Now().UnixNano(), 10)
+	r.c.Publish(topic, 1, false, []byte(fmt.Sprintf(`{"id":%s, "src":"%s", "method":"%s", "params": %s}`, uniqueId, r.clientId, rpcMethod, paramsJson)))
+
+	select {
+	case msg := <-recv:
+		return msg, nil
+	case <-ctx.Done():
+		return nil, terrors.Augment(ctx.Err(), "context cancelled", errParams)
+	}
+}
+
 var processed = make(map[uint16]bool, 2^8)
 var processedMutex sync.Mutex
 
-func handleButtonEvent(client mqtt.Client, message mqtt.Message) {
+func (r *mqttRouter) handleButtonEvent(client mqtt.Client, message mqtt.Message) {
 	defer message.Ack()
+	lock, err := locks.Grab(fmt.Sprintf("mqtt-%s", message.Topic()))
+	if err != nil {
+		slog.Error("could not grab lock", "err", err)
+		return
+	}
+	defer lock.Release(context.Background())
 
 	processedMutex.Lock()
 	defer processedMutex.Unlock()
@@ -58,7 +95,7 @@ func handleButtonEvent(client mqtt.Client, message mqtt.Message) {
 	processed[message.MessageID()] = true
 
 	event := BLEEvent{}
-	err := json.Unmarshal(message.Payload(), &event)
+	err = json.Unmarshal(message.Payload(), &event)
 	if err != nil {
 		slog.Error("could not parse BLE event", "err", err, "payload", string(message.Payload()))
 		return
@@ -82,7 +119,11 @@ func handleButtonEvent(client mqtt.Client, message mqtt.Message) {
 
 	// double press of the 4th button
 	if button[3] == 2 {
-		// TODO figure out getting latest light status
+		lightStatus, err := r.shellyRPCResp(context.TODO(), "shelly/rgb105/rpc", "Light.GetStatus", `{id: 0}`)
+		if err != nil {
+			slog.Error("could not get light status", "err", err)
+			return
+		}
+		slog.Info("light status", "status", string(lightStatus.Payload()))
 	}
-
 }

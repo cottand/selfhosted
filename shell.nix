@@ -9,7 +9,7 @@
     # terraform and admin
     pkgs.terraform
     pkgs.vault-bin
-    pkgs.nomad_1_9
+    pkgs.nomad
     pkgs.consul
     pkgs.bws
 
@@ -45,6 +45,7 @@
     fish --init-command 'abbr -a weeds "nomad alloc exec -i -t -task seaweed-filer -job seaweed-filer weed shell -master seaweed-master-http.nomad:9333" ' && exit
   '';
 
+  # TODO could use tailscale services here!
   NOMAD_ADDR = "https://inst-kzsrv-control.golden-dace.ts.net:4646";
   CONSUL_ADDR = "https://inst-kzsrv-control.golden-dace.ts.net:8501";
   VAULT_ADDR = "https://vault.dcotta.com:8200";
