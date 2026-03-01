@@ -12,7 +12,6 @@ import (
 	"github.com/farcaller/gonix"
 	nomad "github.com/hashicorp/nomad/api"
 	"github.com/monzo/terrors"
-	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type ProtoHandler struct {
@@ -20,7 +19,7 @@ type ProtoHandler struct {
 	nomadClient *nomad.Client
 }
 
-func (h *ProtoHandler) Deploy(ctx context.Context, job *pb.Job) (*emptypb.Empty, error) {
+func (h *ProtoHandler) Deploy(ctx context.Context, job *pb.Job) (*pb.DeployResponse, error) {
 	rendered, err := jobFileToSpec(ctx, job)
 	if err != nil {
 		return nil, terrors.Augment(err, "failed to render job", nil)
@@ -28,7 +27,7 @@ func (h *ProtoHandler) Deploy(ctx context.Context, job *pb.Job) (*emptypb.Empty,
 
 	dryRunEnabled, _ := config.Get(ctx, "deploy/dryRunEnabled").Bool()
 	if dryRunEnabled {
-		return &emptypb.Empty{}, nil
+		return nil, nil
 	}
 
 	writeOptions := (&nomad.WriteOptions{}).WithContext(ctx)
@@ -39,7 +38,10 @@ func (h *ProtoHandler) Deploy(ctx context.Context, job *pb.Job) (*emptypb.Empty,
 
 	slog.InfoContext(ctx, "successfully registered nomad job", "jobEvalId", res.EvalID, "jobName", rendered.Name)
 
-	return &emptypb.Empty{}, nil
+	return &pb.DeployResponse{
+		Message: fmt.Sprintf("Deployed successfully (eval ID=%s)", res.EvalID),
+		Commit:  job.GetCommit(),
+	}, nil
 }
 
 func jobFileToSpec(ctx context.Context, job *pb.Job) (*nomad.Job, error) {
