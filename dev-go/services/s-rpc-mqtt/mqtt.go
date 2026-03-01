@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
@@ -86,7 +87,7 @@ func (r *mqttRouter) shellyRPCResp(ctx context.Context, topic string, rpcMethod 
 	errParams := map[string]string{"rpcMethod": rpcMethod, "paramsJson": paramsJson}
 	recv := make(chan mqtt.Message)
 
-	replyTopic := fmt.Sprintf("%s/rpc", topic)
+	replyTopic := fmt.Sprintf("%s/rpc", r.clientId)
 	errParams["replyTopic"] = replyTopic
 	t := r.c.Subscribe(replyTopic, 1, func(client mqtt.Client, message mqtt.Message) {
 		recv <- message
@@ -120,6 +121,10 @@ func (r *mqttRouter) handleButtonEvent(client mqtt.Client, message mqtt.Message)
 	err := json.Unmarshal(message.Payload(), &event)
 	if err != nil {
 		slog.Error("could not parse BLE event", "err", err, "payload", string(message.Payload()))
+		return
+	}
+
+	if pidSeen(event.ServiceData.PID) {
 		return
 	}
 
@@ -157,4 +162,15 @@ func (r *mqttRouter) handleButtonEvent(client mqtt.Client, message mqtt.Message)
 		}
 		slog.Info("light status", "status", string(lightStatus.Payload()))
 	}
+}
+
+var seenPIDs = map[int]struct{}{}
+var seenPIDsLock = &sync.Mutex{}
+
+func pidSeen(pid int) bool {
+	seenPIDsLock.Lock()
+	defer seenPIDsLock.Unlock()
+	_, ok := seenPIDs[pid]
+	seenPIDs[pid] = struct{}{}
+	return ok
 }
