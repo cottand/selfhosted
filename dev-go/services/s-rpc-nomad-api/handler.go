@@ -27,6 +27,7 @@ func (h *ProtoHandler) Deploy(ctx context.Context, job *pb.Job) (*pb.DeployRespo
 
 	dryRunEnabled, _ := config.Get(ctx, "deploy/dryRunEnabled").Bool()
 	if dryRunEnabled {
+		slog.DebugContext(ctx, "dry run enabled, skipping job")
 		return nil, nil
 	}
 
