@@ -89,6 +89,7 @@ func (r *mqttRouter) shellyRPCResp(ctx context.Context, topic string, rpcMethod 
 
 	replyTopic := fmt.Sprintf("%s/%s", topic, r.clientId)
 	errParams["replyTopic"] = replyTopic
+	// shelly replies on dst/rpc, see https://shelly-api-docs.shelly.cloud/gen2/ComponentsAndServices/Mqtt#step-6-receive-notifications-over-mqtt
 	t := r.c.Subscribe(replyTopic+"/rpc", 1, func(client mqtt.Client, message mqtt.Message) {
 		defer message.Ack()
 		go r.c.Unsubscribe(message.Topic())
@@ -100,7 +101,7 @@ func (r *mqttRouter) shellyRPCResp(ctx context.Context, topic string, rpcMethod 
 	}
 
 	uniqueId := strconv.FormatInt(time.Now().UnixNano(), 10)
-	pubT := r.c.Publish(topic, 1, false, []byte(fmt.Sprintf(`{"id":%s, "src":"%s", "method":"%s", "params": %s}`, uniqueId, r.clientId, rpcMethod, paramsJson)))
+	pubT := r.c.Publish(topic, 1, false, []byte(fmt.Sprintf(`{"id":%s, "src":"%s", "method":"%s", "params": %s}`, uniqueId, replyTopic, rpcMethod, paramsJson)))
 	if pubT.Wait() && pubT.Error() != nil {
 		return nil, terrors.Augment(pubT.Error(), "could not publish message", errParams)
 	}
