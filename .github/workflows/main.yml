@@ -25,10 +25,8 @@ jobs:
         package:
           # these have to be fully qualified nix flake paths
           - .#packages.x86_64-linux.bws-get
-          - .#packages.x86_64-linux.nixmad
           - "github:zhaofengli/colmena#defaultPackage.x86_64-linux"
           - "github:Mic92/nix-fast-build/1.2.0#packages.x86_64-linux.default"
-        #  - ""
         host:
           - ubuntu-latest
     #          - macos-latest

@@ -40,7 +40,7 @@ func InitService() (*bedrock.Service, string, error) {
 	go func() {
 		err := router.start(ctx)
 		if err != nil {
-			slog.Error("failed to start mqtt router", "err", err)
+			slog.ErrorContext(ctx, "failed to start mqtt router", "brokerAddr", brokerAddr, "err", err)
 		}
 	}()
 
