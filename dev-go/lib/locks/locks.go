@@ -43,7 +43,8 @@ var defaultQueryOpts = &consul.QueryOptions{}
 
 type Lock struct {
 	consulLock *consul.Lock
-	Lost       <-chan struct{}
+	//  Lock is a channel that is closed if our lock is lost or an error. This channel could be closed at any time due to session invalidation, communication errors, operator intervention, etc
+	Lost <-chan struct{}
 }
 
 func Grab(ctx context.Context, key string) (*Lock, error) {
