@@ -43,10 +43,13 @@ runs:
       run: |
         nix profile add nixpkgs#attic-client nixpkgs#nix-fast-build
 
+    - name: Setup detsys magic nix cache
+      uses: DeterminateSystems/magic-nix-cache-action@main
+
     - name: Configure Attic
       shell: bash
       run: |
         attic login --set-default central "$ATTIC_SERVER" "$ATTIC_TOKEN"
-        attic use "$ATTIC_CACHE"
+        #attic use "$ATTIC_CACHE"
       env:
         ATTIC_TOKEN: ${{ steps.secrets.outputs.ATTIC_TOKEN }}
