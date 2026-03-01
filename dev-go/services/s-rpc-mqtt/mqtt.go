@@ -42,6 +42,13 @@ func (r *mqttRouter) setupMqttRoutes() {
 }
 
 func (r *mqttRouter) start(ctx context.Context) error {
+	// service will block here until someone else releases the lock
+	lock, err := locks.Grab(ctx, fmt.Sprintf("services/%s/mqtt-leader", Name))
+	if err != nil {
+		return terrors.Augment(err, "failed to grab mqtt-leader lock", nil)
+	}
+	defer lock.Release(ctx)
+
 	defer r.c.Disconnect(250)
 	if token := r.c.Connect(); token.Wait() && token.Error() != nil {
 		return token.Error()
@@ -101,12 +108,6 @@ func (r *mqttRouter) handleButtonEvent(client mqtt.Client, message mqtt.Message)
 	defer span.End()
 
 	defer message.Ack()
-	lock, err := locks.Grab(fmt.Sprintf("mqtt-%s", message.Topic()))
-	if err != nil {
-		slog.Error("could not grab lock", "err", err)
-		return
-	}
-	defer lock.Release(ctx)
 
 	processedMutex.Lock()
 	defer processedMutex.Unlock()
@@ -116,7 +117,7 @@ func (r *mqttRouter) handleButtonEvent(client mqtt.Client, message mqtt.Message)
 	processed[message.MessageID()] = true
 
 	event := BLEEvent{}
-	err = json.Unmarshal(message.Payload(), &event)
+	err := json.Unmarshal(message.Payload(), &event)
 	if err != nil {
 		slog.Error("could not parse BLE event", "err", err, "payload", string(message.Payload()))
 		return
