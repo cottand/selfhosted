@@ -3,8 +3,6 @@ package s_rpc_nomad_api;
 
 option go_package = "github.com/Cottand/selfosted/dev-go/lib/proto/s-rpc-nomad-api";
 
-import "google/protobuf/empty.proto";
-
 
 message Job {
   oneof Version {
@@ -14,6 +12,11 @@ message Job {
   string name = 3;
 }
 
+message DeployResponse {
+  string message = 1;
+  string commit = 2;
+}
+
 service NomadApi {
-  rpc Deploy(Job) returns (google.protobuf.Empty) {}
+  rpc Deploy(Job) returns (DeployResponse) {}
 }
