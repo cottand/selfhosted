@@ -131,7 +131,7 @@ func validateWebhookHmac(ctx context.Context, payloadBody []byte, secret, digest
 			"actual":          actualSignature,
 		})
 	}
-	slog.InfoContext(ctx, "event validation OK ✅")
+	slog.DebugContext(ctx, "event validation OK ✅")
 	return nil
 }
 

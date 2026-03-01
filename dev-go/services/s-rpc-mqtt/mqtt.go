@@ -9,9 +9,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
 	"github.com/cottand/selfhosted/dev-go/lib/locks"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/monzo/terrors"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type BLEEvent struct {
@@ -50,7 +54,17 @@ func (r *mqttRouter) start(ctx context.Context) error {
 	return ctx.Err()
 }
 
-func (r *mqttRouter) shellyRPCResp(ctx context.Context, topic string, rpcMethod string, paramsJson string) (mqtt.Message, error) {
+var tracer = otel.Tracer(Name)
+
+func (r *mqttRouter) shellyRPCResp(ctx context.Context, topic string, rpcMethod string, paramsJson string) (_ mqtt.Message, err error) {
+	ctx, span := tracer.Start(ctx, "mqtt_call.shellyRPC")
+	defer span.End()
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+		}
+	}()
+
 	errParams := map[string]string{"rpcMethod": rpcMethod, "paramsJson": paramsJson}
 	recv := make(chan mqtt.Message)
 
@@ -58,6 +72,7 @@ func (r *mqttRouter) shellyRPCResp(ctx context.Context, topic string, rpcMethod 
 	errParams["replyTopic"] = replyTopic
 	t := r.c.Subscribe(replyTopic, 1, func(client mqtt.Client, message mqtt.Message) {
 		recv <- message
+		span.AddEvent("mqtt_receive", trace.WithAttributes(attribute.String("topic", message.Topic()), attribute.String("payload", string(message.Payload()))))
 	})
 	if t.Wait() && t.Error() != nil {
 		return nil, terrors.Augment(t.Error(), "could not subscribe to topic", errParams)
@@ -79,13 +94,19 @@ var processed = make(map[uint16]bool, 2^8)
 var processedMutex sync.Mutex
 
 func (r *mqttRouter) handleButtonEvent(client mqtt.Client, message mqtt.Message) {
+	ctx := bedrock.ContextForModule(Name, context.Background())
+	ctx, span := tracer.Start(ctx, "mqtt_handle.handleButtonEvent")
+	span.AddEvent("mqtt_receive", trace.WithAttributes(attribute.String("topic", message.Topic()), attribute.String("payload", string(message.Payload()))))
+
+	defer span.End()
+
 	defer message.Ack()
 	lock, err := locks.Grab(fmt.Sprintf("mqtt-%s", message.Topic()))
 	if err != nil {
 		slog.Error("could not grab lock", "err", err)
 		return
 	}
-	defer lock.Release(context.Background())
+	defer lock.Release(ctx)
 
 	processedMutex.Lock()
 	defer processedMutex.Unlock()
@@ -107,19 +128,27 @@ func (r *mqttRouter) handleButtonEvent(client mqtt.Client, message mqtt.Message)
 	// short press of the 1st button
 	if button[0] == 254 {
 		// toggle both plugs
-		client.Publish("shelly/plug103/rpc", 1, false, []byte(`{"id":1, "src":"tmp", "method":"Switch.Toggle", "params": {"id":0}}`))
-		client.Publish("shelly/plug104/rpc", 1, false, []byte(`{"id":1, "src":"tmp", "method":"Switch.Toggle", "params": {"id":0}}`))
+		_, err = r.shellyRPCResp(ctx, "shelly/plug103/rpc", "Switch.Toggle", `{id: 0}`)
+		if err != nil {
+			slog.ErrorContext(ctx, "could not toggle plug", "err", err)
+		}
+		_, err = r.shellyRPCResp(ctx, "shelly/plug104/rpc", "Switch.Toggle", `{id: 0}`)
+		if err != nil {
+			slog.ErrorContext(ctx, "could not toggle plug", "err", err)
+		}
 	}
 
 	// single press of the 4th button
 	if button[3] == 1 {
 		// simply toggle the light
-		client.Publish("shelly/rgb105/rpc", 1, false, []byte(`{"id":1, "src":"tmp", "method":"Light.Toggle", "params": {"id":0}}`))
+		if _, err := r.shellyRPCResp(ctx, "shelly/rgb105/rpc", "Light.Toggle", `{id: 0}`); err != nil {
+			slog.ErrorContext(ctx, "could not toggle light", "err", err)
+		}
 	}
 
 	// double press of the 4th button
 	if button[3] == 2 {
-		lightStatus, err := r.shellyRPCResp(context.TODO(), "shelly/rgb105/rpc", "Light.GetStatus", `{id: 0}`)
+		lightStatus, err := r.shellyRPCResp(ctx, "shelly/rgb105/rpc", "Light.GetStatus", `{id: 0}`)
 		if err != nil {
 			slog.Error("could not get light status", "err", err)
 			return
