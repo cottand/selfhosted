@@ -85,15 +85,15 @@ func (r *mqttRouter) shellyRPCResp(ctx context.Context, topic string, rpcMethod 
 	}()
 
 	errParams := map[string]string{"rpcMethod": rpcMethod, "paramsJson": paramsJson}
-	recv := make(chan mqtt.Message, 1)
+	recv := make(chan mqtt.Message)
 
-	replyTopic := fmt.Sprintf("%s/%s/rpc", topic, r.clientId)
+	replyTopic := fmt.Sprintf("%s/%s", topic, r.clientId)
 	errParams["replyTopic"] = replyTopic
-	t := r.c.Subscribe(replyTopic, 1, func(client mqtt.Client, message mqtt.Message) {
+	t := r.c.Subscribe(replyTopic+"/rpc", 1, func(client mqtt.Client, message mqtt.Message) {
 		defer message.Ack()
-		r.c.Unsubscribe(replyTopic)
-		recv <- message
+		go r.c.Unsubscribe(message.Topic())
 		span.AddEvent("mqtt_receive", trace.WithAttributes(attribute.String("topic", message.Topic()), attribute.String("payload", string(message.Payload()))))
+		recv <- message
 	})
 	if t.Wait() && t.Error() != nil {
 		return nil, terrors.Augment(t.Error(), "could not subscribe to topic", errParams)
