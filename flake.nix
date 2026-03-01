@@ -65,6 +65,8 @@
             nix_2_23 = inputs.nix.packages.${prev.system}.nix;
           };
 
+          # nixpkgs nomad is usually a version behind, so we pin it here when we want to get ahead
+          nomad = prev.nomad_1_10;
           vault-bin = (import inputs.nixpkgs-master { system = prev.system; config.allowUnfree = true; }).vault-bin;
         };
     in
