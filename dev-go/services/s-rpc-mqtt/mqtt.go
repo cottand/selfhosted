@@ -90,6 +90,7 @@ func (r *mqttRouter) shellyRPCResp(ctx context.Context, topic string, rpcMethod 
 	replyTopic := fmt.Sprintf("%s/rpc", r.clientId)
 	errParams["replyTopic"] = replyTopic
 	t := r.c.Subscribe(replyTopic, 1, func(client mqtt.Client, message mqtt.Message) {
+		defer message.Ack()
 		recv <- message
 		span.AddEvent("mqtt_receive", trace.WithAttributes(attribute.String("topic", message.Topic()), attribute.String("payload", string(message.Payload()))))
 	})
@@ -99,7 +100,10 @@ func (r *mqttRouter) shellyRPCResp(ctx context.Context, topic string, rpcMethod 
 	defer r.c.Unsubscribe(replyTopic)
 
 	uniqueId := strconv.FormatInt(time.Now().UnixNano(), 10)
-	r.c.Publish(topic, 1, false, []byte(fmt.Sprintf(`{"id":%s, "src":"%s", "method":"%s", "params": %s}`, uniqueId, r.clientId, rpcMethod, paramsJson)))
+	pubT := r.c.Publish(topic, 1, false, []byte(fmt.Sprintf(`{"id":%s, "src":"%s", "method":"%s", "params": %s}`, uniqueId, r.clientId, rpcMethod, paramsJson)))
+	if pubT.Wait() && pubT.Error() != nil {
+		return nil, terrors.Augment(pubT.Error(), "could not publish message", errParams)
+	}
 
 	select {
 	case msg := <-recv:
@@ -135,14 +139,18 @@ func (r *mqttRouter) handleButtonEvent(client mqtt.Client, message mqtt.Message)
 	// short press of the 1st button
 	if button[0] == 254 {
 		// toggle both plugs
-		_, err = r.shellyRPCResp(ctx, "shelly/plug103/rpc", "Switch.Toggle", `{id: 0}`)
-		if err != nil {
-			slog.ErrorContext(ctx, "could not toggle plug", "err", err)
-		}
-		_, err = r.shellyRPCResp(ctx, "shelly/plug104/rpc", "Switch.Toggle", `{id: 0}`)
-		if err != nil {
-			slog.ErrorContext(ctx, "could not toggle plug", "err", err)
-		}
+		go func() {
+			_, err = r.shellyRPCResp(ctx, "shelly/plug103/rpc", "Switch.Toggle", `{id: 0}`)
+			if err != nil {
+				slog.ErrorContext(ctx, "could not toggle plug", "err", err)
+			}
+		}()
+		go func() {
+			_, err = r.shellyRPCResp(ctx, "shelly/plug104/rpc", "Switch.Toggle", `{id: 0}`)
+			if err != nil {
+				slog.ErrorContext(ctx, "could not toggle plug", "err", err)
+			}
+		}()
 	}
 
 	// single press of the 4th button
