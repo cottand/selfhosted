@@ -46,7 +46,11 @@ type Lock struct {
 
 func Grab(key string) (*Lock, error) {
 	errParams := map[string]string{"lockKey": key}
-	lock, err := consulClient.LockKey(key)
+	client, err := getOrStart()
+	if err != nil {
+		return nil, terrors.Augment(err, "consul client not initialised", nil)
+	}
+	lock, err := client.LockKey(key)
 	if err != nil {
 		return nil, terrors.Augment(err, "failed to acquire lock", errParams)
 	}
