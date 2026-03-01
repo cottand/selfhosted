@@ -14,7 +14,7 @@ import (
 const Name = "s-rpc-mqtt"
 
 func InitService() (*bedrock.Service, string, error) {
-	ctx := context.Background()
+	ctx := bedrock.ContextForModule(Name, context.Background())
 	protoHandler := &ProtoHandler{}
 	baseConfig, err := bedrock.GetBaseConfig()
 	if err != nil {
