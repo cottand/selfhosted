@@ -39,6 +39,30 @@ type mqttRouter struct {
 	clientId string
 }
 
+type shellyLightStatusResponse struct {
+	Id     int64  `json:"id"`
+	Src    string `json:"src"`
+	Dst    string `json:"dst"`
+	Result struct {
+		Id          int    `json:"id"`
+		Source      string `json:"source"`
+		Output      bool   `json:"output"`
+		Brightness  int    `json:"brightness"`
+		Temperature struct {
+			TC float64 `json:"tC"`
+			TF float64 `json:"tF"`
+		} `json:"temperature"`
+		Aenergy struct {
+			Total    float64   `json:"total"`
+			ByMinute []float64 `json:"by_minute"`
+			MinuteTs int       `json:"minute_ts"`
+		} `json:"aenergy"`
+		Apower  float64 `json:"apower"`
+		Current float64 `json:"current"`
+		Voltage float64 `json:"voltage"`
+	} `json:"result"`
+}
+
 func (r *mqttRouter) start(ctx context.Context) error {
 	defer r.c.Disconnect(250)
 	if token := r.c.Connect(); token.Wait() && token.Error() != nil {
@@ -166,10 +190,24 @@ func (r *mqttRouter) handleButtonEvent(client mqtt.Client, message mqtt.Message)
 	if button[3] == 2 {
 		lightStatus, err := r.shellyRPCResp(ctx, "shelly/rgb105/rpc", "Light.GetStatus", `{id: 0}`)
 		if err != nil {
+			span.RecordError(err)
 			slog.Error("could not get light status", "err", err)
 			return
 		}
-		slog.Info("light status", "status", string(lightStatus.Payload()))
+		var parsed shellyLightStatusResponse
+		if err := json.Unmarshal(lightStatus.Payload(), &parsed); err != nil {
+			span.RecordError(err)
+			slog.Error("could not parse light status", "err", err)
+			return
+		}
+
+		if parsed.Result.Output && parsed.Result.Brightness < 90 {
+			// if the light is on but dim, make it bright
+			r.shellyRPCResp(ctx, "shelly/rgb105/rpc", "Light.Set", `{id: 0, brightness: 100, on: true}`)
+		} else {
+			// otherwise it's off (so make it on + dim) or it's bright (do the same)
+			r.shellyRPCResp(ctx, "shelly/rgb105/rpc", "Light.Set", `{id: 0, brightness: 10, on: true}`)
+		}
 	}
 }
 
