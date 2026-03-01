@@ -17,7 +17,7 @@ let
     memory = 300;
     memoryMax = 500;
   };
-   sidecarResources = util.mkResourcesWithFactor 0.10 resources;
+  sidecarResources = util.mkResourcesWithFactor 0.10 resources;
 in
 {
   job."traefik" = {
@@ -53,15 +53,15 @@ in
         port = toString ports.metrics;
         tags = [ "metrics" ];
         checks = [
-#        {
-#          name = "metrics";
-#          expose = true;
-#          port = "metrics";
-#          type = "http";
-#          path = "/metrics";
-#          interval = 10 * time.second;
-#          timeout = 3 * time.second;
-#        }
+          #        {
+          #          name = "metrics";
+          #          expose = true;
+          #          port = "metrics";
+          #          type = "http";
+          #          path = "/metrics";
+          #          interval = 10 * time.second;
+          #          timeout = 3 * time.second;
+          #        }
         ];
         connect = {
           sidecarService = { };
@@ -91,27 +91,27 @@ in
         task = "traefik";
         connect.native = true;
       };
-      task."traefik-ts-service" = {
-        vault = { };
-        driver = "docker";
-        config = {
-          image = "tailscale/tailscale:stable";
-          volumes = [
-          ];
-          args = [
-            "serve"
-            "--bg=false"
-            "--service=svc:traefik"
-            "--yes"
-            "--https=443 127.0.0.1:${ports.https-ts}"
-          ];
-        };
-        resources = {
-            cpu = 100;
-            memory = 100;
-            memoryMax = 500;
-        };
-      };
+#      task."traefik-ts-service" = {
+#        vault = { };
+#        driver = "docker";
+#        config = {
+#          image = "tailscale/tailscale:stable";
+#          volumes = [
+#          ];
+#          args = [
+#            "serve"
+#            "--bg=false"
+#            "--service=svc:traefik"
+#            "--yes"
+#            "--https=443 127.0.0.1:${toString ports.https-ts}"
+#          ];
+#        };
+#        resources = {
+#          cpu = 100;
+#          memory = 100;
+#          memoryMax = 500;
+#        };
+#      };
       task."traefik" = {
         vault = { };
         driver = "docker";
@@ -152,7 +152,9 @@ in
             '';
           }
         ];
-        identities = [{ }];
+        identities = [{
+          env = true;
+        }];
         inherit resources;
       };
     };
