@@ -5,14 +5,15 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
+	"time"
+
 	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
 	"github.com/cottand/selfhosted/dev-go/lib/util"
 	"github.com/monzo/terrors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"go.opentelemetry.io/otel/codes"
-	"log/slog"
-	"time"
 )
 
 var (

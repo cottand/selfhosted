@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"log/slog"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
 	"github.com/cottand/selfhosted/dev-go/lib/locks"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/monzo/terrors"
+	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -53,6 +53,7 @@ func (r *mqttRouter) start(ctx context.Context) error {
 		if err != nil {
 			return terrors.Augment(err, "failed to grab mqtt-leader lock", nil)
 		}
+		leaderGauge.Set(1)
 
 		slog.InfoContext(ctx, "became mqtt leader 🎉 starting router")
 
@@ -63,9 +64,11 @@ func (r *mqttRouter) start(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			// leave
+			leaderGauge.Set(0)
 			return ctx.Err()
 		case <-lock.Lost:
 			// try again!
+			leaderGauge.Set(0)
 			slog.InfoContext(ctx, "mqtt leadership lost, retrying")
 		}
 	}
@@ -108,24 +111,13 @@ func (r *mqttRouter) shellyRPCResp(ctx context.Context, topic string, rpcMethod 
 	}
 }
 
-var processed = make(map[uint16]bool, 2^8)
-var processedMutex sync.Mutex
-
 func (r *mqttRouter) handleButtonEvent(client mqtt.Client, message mqtt.Message) {
 	ctx := bedrock.ContextForModule(Name, context.Background())
 	ctx, span := tracer.Start(ctx, "mqtt_handle.handleButtonEvent")
 	span.AddEvent("mqtt_receive", trace.WithAttributes(attribute.String("topic", message.Topic()), attribute.String("payload", string(message.Payload()))))
 
 	defer span.End()
-
 	defer message.Ack()
-
-	processedMutex.Lock()
-	defer processedMutex.Unlock()
-	if processed[message.MessageID()] {
-		return
-	}
-	processed[message.MessageID()] = true
 
 	event := BLEEvent{}
 	err := json.Unmarshal(message.Payload(), &event)
@@ -136,6 +128,7 @@ func (r *mqttRouter) handleButtonEvent(client mqtt.Client, message mqtt.Message)
 
 	button := event.ServiceData.Button
 	slog.Info("BLE event", "button", button)
+	buttonEvent.With(prometheus.Labels{"button": fmt.Sprintf("[%d, %d, %d, %d]", button[0], button[1], button[2], button[3])}).Inc()
 
 	// short press of the 1st button
 	if button[0] == 254 {
