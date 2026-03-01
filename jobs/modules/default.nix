@@ -64,7 +64,8 @@ let
         default = true;
       };
       config.env = lib.mkIf config.addDefaultEnv {
-        DCOTTA_COM_NODE_CONSUL_IP = "\${attr.unique.consul.dns.addr}";
+        DCOTTA_COM_NODE_CONSUL_ADDR = "https://consul.traefik";
+#        DCOTTA_COM_NODE_CONSUL_ADDR = "https://\${attr.unique.consul.dns.addr}:8501";
       };
     });
   };

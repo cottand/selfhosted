@@ -34,12 +34,12 @@ func getOrStart() (*consul.Client, error) {
 	if consulClient != nil {
 		return consulClient, nil
 	}
-	localAddr, ok := os.LookupEnv("DCOTTA_COM_NODE_CONSUL_IP")
+	consulAddr, ok := os.LookupEnv("DCOTTA_COM_NODE_CONSUL_ADDR")
 	if !ok {
-		return nil, terrors.PreconditionFailed("", "DCOTTA_COM_NODE_CONSUL_IP not found - seems we're not running in Nomad?", nil)
+		return nil, terrors.PreconditionFailed("", "DCOTTA_COM_NODE_CONSUL_ADDR not found - seems we're not running in Nomad?", nil)
 	}
 	c, err := consul.NewClient(&consul.Config{
-		Address: "https://" + localAddr + ":8501",
+		Address: consulAddr,
 	})
 	if err != nil {
 		return nil, terrors.Augment(err, "failed to init Consul client", nil)
