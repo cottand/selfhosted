@@ -74,6 +74,9 @@ func (v *Value) getKV() (*consul.KVPair, error) {
 	if err != nil {
 		return nil, terrors.Augment(err, "failed to query Consul KV", nil)
 	}
+	if kv == nil {
+		return nil, terrors.NotFound("", "key not found", map[string]string{"path": path, "key": v.key})
+	}
 	return kv, nil
 }
 
