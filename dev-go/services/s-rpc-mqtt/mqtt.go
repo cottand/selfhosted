@@ -38,9 +38,6 @@ type mqttRouter struct {
 	clientId string
 }
 
-func (r *mqttRouter) setupMqttRoutes() {
-}
-
 func (r *mqttRouter) start(ctx context.Context) error {
 	defer r.c.Disconnect(250)
 	if token := r.c.Connect(); token.Wait() && token.Error() != nil {
