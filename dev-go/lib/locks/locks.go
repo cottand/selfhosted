@@ -2,10 +2,12 @@ package locks
 
 import (
 	"context"
+	"encoding/json"
 	"log/slog"
 	"os"
 	"sync"
 
+	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
 	consul "github.com/hashicorp/consul/api"
 	"github.com/monzo/terrors"
 )
@@ -44,16 +46,29 @@ type Lock struct {
 	Lost       <-chan struct{}
 }
 
-func Grab(key string) (*Lock, error) {
+func Grab(ctx context.Context, key string) (*Lock, error) {
 	errParams := map[string]string{"lockKey": key}
 	client, err := getOrStart()
 	if err != nil {
 		return nil, terrors.Augment(err, "consul client not initialised", nil)
 	}
-	lock, err := client.LockKey(key)
+	name, _ := bedrock.GetModuleName(ctx)
+	config, err := bedrock.GetBaseConfig()
+	if err != nil {
+		return nil, terrors.Augment(err, "failed to get base config", errParams)
+	}
+	lockValueBytes, err := json.Marshal(map[string]string{
+		"service":  name,
+		"alloc_id": config.AllocID,
+	})
+	lock, err := client.LockOpts(&consul.LockOptions{
+		Key:   key,
+		Value: lockValueBytes,
+	})
 	if err != nil {
 		return nil, terrors.Augment(err, "failed to acquire lock", errParams)
 	}
+
 	ch, err := lock.Lock(nil)
 	if err != nil {
 		return nil, terrors.Augment(err, "failed to acquire lock", errParams)
