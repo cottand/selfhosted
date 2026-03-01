@@ -85,19 +85,19 @@ func (r *mqttRouter) shellyRPCResp(ctx context.Context, topic string, rpcMethod 
 	}()
 
 	errParams := map[string]string{"rpcMethod": rpcMethod, "paramsJson": paramsJson}
-	recv := make(chan mqtt.Message)
+	recv := make(chan mqtt.Message, 1)
 
-	replyTopic := fmt.Sprintf("%s/rpc", r.clientId)
+	replyTopic := fmt.Sprintf("%s/%s/rpc", topic, r.clientId)
 	errParams["replyTopic"] = replyTopic
 	t := r.c.Subscribe(replyTopic, 1, func(client mqtt.Client, message mqtt.Message) {
 		defer message.Ack()
+		r.c.Unsubscribe(replyTopic)
 		recv <- message
 		span.AddEvent("mqtt_receive", trace.WithAttributes(attribute.String("topic", message.Topic()), attribute.String("payload", string(message.Payload()))))
 	})
 	if t.Wait() && t.Error() != nil {
 		return nil, terrors.Augment(t.Error(), "could not subscribe to topic", errParams)
 	}
-	defer r.c.Unsubscribe(replyTopic)
 
 	uniqueId := strconv.FormatInt(time.Now().UnixNano(), 10)
 	pubT := r.c.Publish(topic, 1, false, []byte(fmt.Sprintf(`{"id":%s, "src":"%s", "method":"%s", "params": %s}`, uniqueId, r.clientId, rpcMethod, paramsJson)))
