@@ -42,23 +42,34 @@ func (r *mqttRouter) setupMqttRoutes() {
 }
 
 func (r *mqttRouter) start(ctx context.Context) error {
-	// service will block here until someone else releases the lock
-	lock, err := locks.Grab(ctx, fmt.Sprintf("services/%s/mqtt-leader", Name))
-	if err != nil {
-		return terrors.Augment(err, "failed to grab mqtt-leader lock", nil)
-	}
-	defer lock.Release(ctx)
-
 	defer r.c.Disconnect(250)
 	if token := r.c.Connect(); token.Wait() && token.Error() != nil {
 		return token.Error()
 	}
-	if token := r.c.Subscribe("94:b2:16:1d:c1:ed", 1, r.handleButtonEvent); token.Wait() && token.Error() != nil {
-		return token.Error()
+
+	for {
+		// service will block here until someone else releases the lock
+		lock, err := locks.Grab(ctx, fmt.Sprintf("services/%s/mqtt-leader", Name))
+		if err != nil {
+			return terrors.Augment(err, "failed to grab mqtt-leader lock", nil)
+		}
+
+		slog.InfoContext(ctx, "became mqtt leader 🎉 starting router")
+
+		if token := r.c.Subscribe("94:b2:16:1d:c1:ed", 1, r.handleButtonEvent); token.Wait() && token.Error() != nil {
+			return token.Error()
+		}
+
+		select {
+		case <-ctx.Done():
+			// leave
+			return ctx.Err()
+		case <-lock.Lost:
+			// try again!
+			slog.InfoContext(ctx, "mqtt leadership lost, retrying")
+		}
 	}
 
-	<-ctx.Done()
-	return ctx.Err()
 }
 
 var tracer = otel.Tracer(Name)
