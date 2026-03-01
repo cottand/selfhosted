@@ -87,8 +87,7 @@ func (s *scaffold) handlePush(writer http.ResponseWriter, request *http.Request)
 		slog.DebugContext(ctx, "ignoring non-success push event")
 		return
 	}
-	newCtx := ctx
-	go s.deploy(newCtx, event.WorkflowJob.HeadSha)
+	go s.deploy(context.WithoutCancel(ctx), event.WorkflowJob.HeadSha)
 }
 
 func shouldAcceptEvent(event *WorkflowJobEvent) bool {
@@ -146,6 +145,7 @@ func (s *scaffold) deploy(ctx context.Context, commit string) {
 	})
 	if err != nil {
 		slog.WarnContext(ctx, "failed to deploy job", "err", err.Error())
+		span.RecordError(err)
 	}
 }
 
