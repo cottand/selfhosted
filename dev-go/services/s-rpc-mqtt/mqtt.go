@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
+	"github.com/cottand/selfhosted/dev-go/lib/config"
 	"github.com/cottand/selfhosted/dev-go/lib/locks"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/monzo/terrors"
@@ -202,11 +203,19 @@ func (r *mqttRouter) handleButtonEvent(client mqtt.Client, message mqtt.Message)
 		}
 
 		if parsed.Result.Output && parsed.Result.Brightness < 90 {
+			highBrightness, err := config.Get(ctx, "mqtt/lights/aquariumHigh").Int(70)
+			if err != nil {
+				slog.WarnContext(ctx, "could not get aquarium low brightness config", "err", err)
+			}
 			// if the light is on but dim, make it bright
-			r.shellyRPCResp(ctx, "shelly/rgb105/rpc", "Light.Set", `{id: 0, brightness: 100, on: true}`)
+			_, _ = r.shellyRPCResp(ctx, "shelly/rgb105/rpc", "Light.Set", fmt.Sprintf(`{id: 0, brightness: %d, on: true}`, highBrightness))
 		} else {
+			lowBrightness, err := config.Get(ctx, "mqtt/lights/aquariumLow").Int(4)
+			if err != nil {
+				slog.WarnContext(ctx, "could not get aquarium low brightness config", "err", err)
+			}
 			// otherwise it's off (so make it on + dim) or it's bright (do the same)
-			r.shellyRPCResp(ctx, "shelly/rgb105/rpc", "Light.Set", `{id: 0, brightness: 10, on: true}`)
+			_, _ = r.shellyRPCResp(ctx, "shelly/rgb105/rpc", "Light.Set", fmt.Sprintf(`{id: 0, brightness: %d, on: true}`, lowBrightness))
 		}
 	}
 }

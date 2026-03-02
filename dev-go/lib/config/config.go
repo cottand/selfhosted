@@ -3,13 +3,14 @@ package config
 import (
 	"context"
 	"fmt"
-	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
-	consul "github.com/hashicorp/consul/api"
-	"github.com/monzo/terrors"
 	"log/slog"
 	"os"
 	"strconv"
 	"sync"
+
+	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
+	consul "github.com/hashicorp/consul/api"
+	"github.com/monzo/terrors"
 )
 
 const (
@@ -99,4 +100,16 @@ func (v *Value) Bool() (bool, error) {
 		slog.WarnContext(v.ctx, "failed to parse bool from config", "err", err)
 	}
 	return b, err
+}
+
+func (v *Value) Int(default_ int) (int, error) {
+	kv, err := v.getKV()
+	if err != nil {
+		return default_, err
+	}
+	i, err := strconv.Atoi(string(kv.Value))
+	if err != nil {
+		return default_, err
+	}
+	return i, err
 }

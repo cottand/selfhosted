@@ -24,6 +24,11 @@
   services.logind.lidSwitch = "ignore";
 
 
+  services.tailscale = {
+    extraSetFlags = [ "--advertise-exit-node" ];
+  };
+
+
   networking.firewall.trustedInterfaces = [ "nomad" "docker0" ];
   virtualisation.docker.enable = true;
   networking.firewall.checkReversePath = false;
