@@ -20,12 +20,12 @@
     # WG whitelisted in lib/make-wireguard
     allowedTCPPorts = [ 22 ];
   };
-  
+
   services.logind.lidSwitch = "ignore";
 
 
   services.tailscale = {
-    extraSetFlags = [ "--advertise-exit-node" ];
+    extraSetFlags = [ "--advertise-exit-node" "--exit-node-allow-lan-access" ];
   };
 
 
