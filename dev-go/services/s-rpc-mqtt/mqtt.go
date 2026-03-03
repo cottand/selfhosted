@@ -36,8 +36,34 @@ type ServiceData struct {
 }
 
 type mqttRouter struct {
-	c        mqtt.Client
-	clientId string
+	c              mqtt.Client
+	clientId       string
+	lock           *locks.Lock
+	connectionLost chan struct{}
+}
+
+func newMqttRouter(brokerAddr string, clientID string) *mqttRouter {
+	opts := mqtt.NewClientOptions()
+	opts.SetClientID(clientID)
+	opts.AddBroker(brokerAddr)
+	// see https://github.com/eclipse-paho/paho.mqtt.golang?tab=readme-ov-file#common-problems
+	opts.SetOrderMatters(false)
+	opts.SetKeepAlive(5 * time.Second)
+	opts.SetAutoReconnect(true)
+
+	router := &mqttRouter{clientId: opts.ClientID}
+	opts.SetConnectionLostHandler(func(client mqtt.Client, err error) {
+		slog.WarnContext(
+			bedrock.CtxWithModuleName(context.TODO(), Name),
+			"mqtt connection lost",
+			"brokerAddr", brokerAddr, "err", err,
+		)
+		router.onDisconnect()
+	})
+
+	router.c = mqtt.NewClient(opts)
+
+	return router
 }
 
 type shellyLightStatusResponse struct {
@@ -64,38 +90,42 @@ type shellyLightStatusResponse struct {
 	} `json:"result"`
 }
 
-func (r *mqttRouter) start(ctx context.Context) error {
+func (r *mqttRouter) onDisconnect() {
+	r.connectionLost <- struct{}{}
+}
+
+// startConnection tries to grab the leadership lock and then connects to the mqtt broker.
+// It will then subscribe to the BLE events topic and handle button events.
+// It will not return unless there is an error
+func (r *mqttRouter) startConnection(ctx context.Context) error {
 	defer r.c.Disconnect(250)
+
+	// service will block here until someone else releases the lock
+	lock, err := locks.Grab(ctx, fmt.Sprintf("services/%s/mqtt-leader", Name))
+	if err != nil {
+		return terrors.Augment(err, "failed to grab mqtt-leader lock", nil)
+	}
+	leaderGauge.Set(1)
+	defer lock.Release(ctx)
+	defer leaderGauge.Set(0)
+
 	if token := r.c.Connect(); token.Wait() && token.Error() != nil {
 		return token.Error()
 	}
 
-	for {
-		// service will block here until someone else releases the lock
-		lock, err := locks.Grab(ctx, fmt.Sprintf("services/%s/mqtt-leader", Name))
-		if err != nil {
-			return terrors.Augment(err, "failed to grab mqtt-leader lock", nil)
-		}
-		leaderGauge.Set(1)
+	slog.InfoContext(ctx, "became mqtt leader 🎉 starting router")
 
-		slog.InfoContext(ctx, "became mqtt leader 🎉 starting router")
-
-		if token := r.c.Subscribe("94:b2:16:1d:c1:ed", 1, r.handleButtonEvent); token.Wait() && token.Error() != nil {
-			return token.Error()
-		}
-
-		select {
-		case <-ctx.Done():
-			// leave
-			leaderGauge.Set(0)
-			return ctx.Err()
-		case <-lock.Lost:
-			// try again!
-			leaderGauge.Set(0)
-			slog.InfoContext(ctx, "mqtt leadership lost, retrying")
-		}
+	if token := r.c.Subscribe("94:b2:16:1d:c1:ed", 1, r.handleButtonEvent); token.Wait() && token.Error() != nil {
+		return token.Error()
 	}
-
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-lock.Lost:
+		return terrors.InternalService("lost_lock", "mqtt-leader lock lost", nil)
+	case <-r.connectionLost:
+		return terrors.InternalService("disconnected", "lost connection to mqtt broker", nil)
+	}
 }
 
 var tracer = otel.Tracer(Name)
