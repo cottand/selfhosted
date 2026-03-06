@@ -115,7 +115,9 @@ func (r *mqttRouter) startConnection(ctx context.Context) error {
 
 	slog.InfoContext(ctx, "became mqtt leader 🎉 starting router")
 
-	if token := r.c.Subscribe("94:b2:16:1d:c1:ed", 1, r.handleButtonEvent); token.Wait() && token.Error() != nil {
+	if token := r.c.Subscribe("94:b2:16:1d:c1:ed", 1, func(c mqtt.Client, m mqtt.Message) {
+		go r.handleButtonEvent(c, m)
+	}); token.Wait() && token.Error() != nil {
 		return token.Error()
 	}
 	select {
@@ -130,7 +132,7 @@ func (r *mqttRouter) startConnection(ctx context.Context) error {
 
 var tracer = otel.Tracer(Name)
 
-func (r *mqttRouter) shellyRPCResp(ctx context.Context, topic string, rpcMethod string, paramsJson string) (_ mqtt.Message, err error) {
+func (r *mqttRouter) shellyRPCResp(ctx context.Context, topic string, rpcMethod string, paramsJson map[string]any) (_ mqtt.Message, err error) {
 	ctx, span := tracer.Start(ctx, "mqtt_call.shellyRPC")
 	defer span.End()
 	defer func() {
@@ -139,11 +141,12 @@ func (r *mqttRouter) shellyRPCResp(ctx context.Context, topic string, rpcMethod 
 		}
 	}()
 
-	errParams := map[string]string{"rpcMethod": rpcMethod, "paramsJson": paramsJson}
-	recv := make(chan mqtt.Message)
+	errParams := map[string]string{"rpcMethod": rpcMethod, "paramsJson": fmt.Sprint(paramsJson)}
 
+	recv := make(chan mqtt.Message, 1)
 	replyTopic := fmt.Sprintf("%s/%s", topic, r.clientId)
 	errParams["replyTopic"] = replyTopic
+
 	// shelly replies on dst/rpc, see https://shelly-api-docs.shelly.cloud/gen2/ComponentsAndServices/Mqtt#step-6-receive-notifications-over-mqtt
 	t := r.c.Subscribe(replyTopic+"/rpc", 1, func(client mqtt.Client, message mqtt.Message) {
 		defer message.Ack()
@@ -156,7 +159,16 @@ func (r *mqttRouter) shellyRPCResp(ctx context.Context, topic string, rpcMethod 
 	}
 
 	uniqueId := strconv.FormatInt(time.Now().UnixNano(), 10)
-	pubT := r.c.Publish(topic, 1, false, []byte(fmt.Sprintf(`{"id":%s, "src":"%s", "method":"%s", "params": %s}`, uniqueId, replyTopic, rpcMethod, paramsJson)))
+	payload, err := json.Marshal(map[string]any{
+		"id":     uniqueId,
+		"src":    replyTopic,
+		"method": rpcMethod,
+		"params": paramsJson,
+	})
+	if err != nil {
+		return nil, terrors.Augment(err, "could not marshal payload", errParams)
+	}
+	pubT := r.c.Publish(topic, 1, false, payload)
 	if pubT.Wait() && pubT.Error() != nil {
 		return nil, terrors.Augment(pubT.Error(), "could not publish message", errParams)
 	}
@@ -196,13 +208,13 @@ func (r *mqttRouter) handleButtonEvent(client mqtt.Client, message mqtt.Message)
 	if button[0] == 254 {
 		// toggle both plugs
 		go func() {
-			_, err = r.shellyRPCResp(ctx, "shelly/plug103/rpc", "Switch.Toggle", `{id: 0}`)
+			_, err = r.shellyRPCResp(ctx, "shelly/plug103/rpc", "Switch.Toggle", map[string]any{"id": 0})
 			if err != nil {
 				slog.ErrorContext(ctx, "could not toggle plug", "err", err)
 			}
 		}()
 		go func() {
-			_, err = r.shellyRPCResp(ctx, "shelly/plug104/rpc", "Switch.Toggle", `{id: 0}`)
+			_, err = r.shellyRPCResp(ctx, "shelly/plug104/rpc", "Switch.Toggle", map[string]any{"id": 0})
 			if err != nil {
 				slog.ErrorContext(ctx, "could not toggle plug", "err", err)
 			}
@@ -212,14 +224,14 @@ func (r *mqttRouter) handleButtonEvent(client mqtt.Client, message mqtt.Message)
 	// single press of the 4th button
 	if button[3] == 1 {
 		// simply toggle the light
-		if _, err := r.shellyRPCResp(ctx, "shelly/rgb105/rpc", "Light.Toggle", `{id: 0}`); err != nil {
+		if _, err := r.shellyRPCResp(ctx, "shelly/rgb105/rpc", "Light.Toggle", map[string]any{"id": 0}); err != nil {
 			slog.ErrorContext(ctx, "could not toggle light", "err", err)
 		}
 	}
 
 	// double press of the 4th button
 	if button[3] == 2 {
-		lightStatus, err := r.shellyRPCResp(ctx, "shelly/rgb105/rpc", "Light.GetStatus", `{id: 0}`)
+		lightStatus, err := r.shellyRPCResp(ctx, "shelly/rgb105/rpc", "Light.GetStatus", map[string]any{"id": 0})
 		if err != nil {
 			span.RecordError(err)
 			slog.Error("could not get light status", "err", err)
@@ -238,14 +250,20 @@ func (r *mqttRouter) handleButtonEvent(client mqtt.Client, message mqtt.Message)
 				slog.WarnContext(ctx, "could not get aquarium low brightness config", "err", err)
 			}
 			// if the light is on but dim, make it bright
-			_, _ = r.shellyRPCResp(ctx, "shelly/rgb105/rpc", "Light.Set", fmt.Sprintf(`{id: 0, brightness: %d, on: true}`, highBrightness))
+			_, err = r.shellyRPCResp(ctx, "shelly/rgb105/rpc", "Light.Set", map[string]any{"id": 0, "brightness": highBrightness, "on": true})
+			if err != nil {
+				slog.WarnContext(ctx, "could not set light", "err", err)
+			}
 		} else {
 			lowBrightness, err := config.Get(ctx, "mqtt/lights/aquariumLow").Int(4)
 			if err != nil {
 				slog.WarnContext(ctx, "could not get aquarium low brightness config", "err", err)
 			}
 			// otherwise it's off (so make it on + dim) or it's bright (do the same)
-			_, _ = r.shellyRPCResp(ctx, "shelly/rgb105/rpc", "Light.Set", fmt.Sprintf(`{id: 0, brightness: %d, on: true}`, lowBrightness))
+			_, err = r.shellyRPCResp(ctx, "shelly/rgb105/rpc", "Light.Set", map[string]any{"id": 0, "brightness": lowBrightness, "on": true})
+			if err != nil {
+				slog.WarnContext(ctx, "could not set light", "err", err)
+			}
 		}
 	}
 }
