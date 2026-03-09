@@ -1,4 +1,5 @@
-{ name, ... }: {
+{ name, pkgs, ... }:
+{
   imports = [
     ./hardware-configuration.nix
     ./networking.nix # generated at runtime by nixos-infect
@@ -43,7 +44,7 @@
   networking.firewall.checkReversePath = false;
 
   services.tailscale = {
-    extraSetFlags = ["--advertise-exit-node"];
+    extraSetFlags = [ "--advertise-exit-node" ];
   };
 
   system.stateVersion = "23.11";

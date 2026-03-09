@@ -29,7 +29,7 @@ runs:
       id: secrets
       uses: hashicorp/vault-action@v2
       with:
-        url: https://vault.dcotta.com:8200
+        url: https://vault.dcotta.com
         role: actions-ro
         path: jwt-github
         method: jwt

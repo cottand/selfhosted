@@ -64,6 +64,8 @@ in
   };
   ## implementation
   config = mkIf cfg.enable {
+    services.tailscale.serve.services."nomad".endpoints."tcp:443" = "tcp://localhost:4646";
+
     systemd.services.nomad.serviceConfig.Restart = lib.mkForce "always";
     environment.etc = {
       "nomad/config/client.hcl".text = (builtins.readFile ./defaultNomadConfig/client.hcl);

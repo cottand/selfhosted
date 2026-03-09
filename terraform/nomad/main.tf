@@ -44,6 +44,7 @@ resource "nomad_acl_policy" "immich-backup-read-buckets" {
   }
 }
 
+// used by ci/ terraform project as well
 resource "nomad_acl_policy" "job-submitter" {
   name      = "job-submitter"
   rules_hcl = file("policies/job-submitter.hcl")

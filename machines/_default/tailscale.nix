@@ -1,4 +1,4 @@
-{ config, ... }: {
+{ config, pkgs, lib, ... }: {
 
   services.tailscale = {
     enable = true;
@@ -10,6 +10,8 @@
     # - https://discourse.nixos.org/t/tailscale-ssh-destroys-nix-copy/38781
     # - https://github.com/tailscale/tailscale/issues/14167
     extraSetFlags = [ "--ssh" ];
+    useRoutingFeatures = "server";
+    serve.enable = true;
   };
 
   deployment.keys."tailscale_authkey.txt" = {
@@ -19,4 +21,5 @@
   };
 
   networking.firewall.trustedInterfaces = [ config.services.tailscale.interfaceName ];
+
 }
