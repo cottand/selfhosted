@@ -37,6 +37,10 @@ resource "vault_identity_oidc_client" "nomad" {
     "https://nomad.traefik/ui/settings/tokens",
     "https://nomad.traefik/oidc/callback",
     "https://nomad.traefik/ui/settings/tokens",
+
+    "${local.nomad_addr}/ui/settings/tokens",
+    "${local.nomad_addr}/oidc/callback",
+    "${local.nomad_addr}/ui/settings/tokens",
     "http://localhost:4649/oidc/callback",
   ]
   assignments = [

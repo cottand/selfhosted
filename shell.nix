@@ -46,9 +46,10 @@
   '';
 
   # TODO could use tailscale services here!
-  NOMAD_ADDR = "https://inst-kzsrv-control.golden-dace.ts.net:4646";
-  CONSUL_ADDR = "https://inst-kzsrv-control.golden-dace.ts.net:8501";
-  VAULT_ADDR = "https://vault.dcotta.com:8200";
+  NOMAD_ADDR = "https://nomad.dcotta.com";
+  CONSUL_ADDR = "https://consul.dcotta.com";
+
+  VAULT_ADDR = "https://vault.dcotta.com";
 
   NIX_PATH = "";
 

@@ -5,15 +5,22 @@
 # the OCI image to be built and run. There may optionally be an additional `.protos` attribute
 # which points to the codegenerated proto code for that specific service.
 #
-{ callPackage, ... }:
-{
-  s-rpc-portfolio-stats = callPackage ./s-rpc-portfolio-stats/package.nix { };
-  s-rpc-nomad-api = callPackage ./s-rpc-nomad-api/package.nix { };
-  s-rpc-vault = callPackage ./s-rpc-vault/package.nix { };
-  s-rpc-mqtt = callPackage ./s-rpc-mqtt/package.nix { };
-
-  s-web-github-webhook = callPackage ./s-web-github-webhook/package.nix { };
-  s-web-portfolio = callPackage ./s-web-portfolio/package.nix { };
+{ callPackage, lib, ... }:
+let
+  serviceFolders = lib.attrsets.filterAttrs
+    (fileName: type: type == "directory" && (lib.strings.hasPrefix "s-" fileName))
+    (builtins.readDir ./.);
+  services = builtins.mapAttrs (name: _: (callPackage ./${name}/package.nix { })) serviceFolders;
+in
+services // {
+  #  s-rpc-portfolio-stats = callPackage ./s-rpc-portfolio-stats/package.nix { };
+  #  s-rpc-nomad-api = callPackage ./s-rpc-nomad-api/package.nix { };
+  #  s-rpc-vault = callPackage ./s-rpc-vault/package.nix { };
+  #  s-rpc-mqtt = callPackage ./s-rpc-mqtt/package.nix { };
+  #  s-rpc-flights = callPackage ./s-rpc-flights/package.nix { };
+  #
+  #  s-web-github-webhook = callPackage ./s-web-github-webhook/package.nix { };
+  #  s-web-portfolio = callPackage ./s-web-portfolio/package.nix { };
 
   cron-vault-snapshot = callPackage ./cron-vault-snapshot/package.nix { };
 

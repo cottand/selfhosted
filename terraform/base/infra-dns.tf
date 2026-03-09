@@ -7,18 +7,14 @@ data "tailscale_device" "oci-control" {
   hostname = each.value
 }
 
-resource "cloudflare_record" "vault" {
-  for_each = local.oci-control-machines
-  name    = "vault"
-  type    = "A"
+resource "cloudflare_record" "tailscale_cnames" {
+  for_each = toset(["consul", "nomad", "vault"])
   zone_id = local.zoneIds["com"]
-  value = data.tailscale_device.oci-control[each.value].addresses[0]
+  name    = "${each.value}"
+  type    = "CNAME"
+  value   = "${each.value}.golden-dace.ts.net"
+  ttl     = 60
+  comment = "tf managed"
+  proxied = false
 }
 
-resource "cloudflare_record" "nomad" {
-  for_each = local.oci-control-machines
-  name    = "nomad"
-  type    = "A"
-  zone_id = local.zoneIds["com"]
-  value = data.tailscale_device.oci-control[each.value].addresses[0]
-}

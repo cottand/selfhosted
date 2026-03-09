@@ -49,6 +49,9 @@ resource "nomad_acl_auth_method" "vault" {
     allowed_redirect_uris = [
       "https://nomad.traefik/oidc/callback",
       "https://nomad.traefik/ui/settings/tokens",
+
+      "${local.nomad_addr}/oidc/callback",
+      "${local.nomad_addr}/ui/settings/tokens",
       "http://localhost:4649/oidc/callback",
     ]
   }

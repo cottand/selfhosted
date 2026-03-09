@@ -14,6 +14,11 @@ in
 
 
   config = mkIf cfg.enable {
+    services.tailscale.serve.services."vault".endpoints = {
+      "tcp:443" = "tcp://localhost:8200";
+      "tcp:8200" = "tcp://localhost:8200";
+    };
+
     deployment.tags = [ "vault" ];
     security.pki.certificateFiles = [ flakeInputs.self.rootCa ];
     systemd.tmpfiles.rules = [ "d /vault/data 1777 root root -" ];
@@ -21,7 +26,7 @@ in
       enable = true;
       storageBackend = "raft";
 
-       storagePath = "/vault/data";
+      storagePath = "/vault/data";
       storageConfig = ''
 
         retry_join {
@@ -32,14 +37,14 @@ in
           leader_client_key_file  = "/opt/vault/tls/vault-key.rsa"
         }
         retry_join {
-          leader_api_addr         = "https://inst-ad2ir-control.golden-dace.ts.net:8200"
+          leader_api_addr         = "https://inst-hqswv-control.golden-dace.ts.net:8200"
           leader_tls_servername   = "vault.dcotta.com"
           leader_ca_cert_file     = "/opt/vault/tls/vault-ca.pem"
           leader_client_cert_file = "/opt/vault/tls/vault-cert.pem"
           leader_client_key_file  = "/opt/vault/tls/vault-key.rsa"
         }
         retry_join {
-          leader_api_addr         = "https://inst-ad2ir-control.golden-dace.ts.net:8200"
+          leader_api_addr         = "https://inst-kzsrv-control.golden-dace.ts.net:8200"
           leader_tls_servername   = "vault.dcotta.com"
           leader_ca_cert_file     = "/opt/vault/tls/vault-ca.pem"
           leader_client_cert_file = "/opt/vault/tls/vault-cert.pem"
@@ -62,6 +67,13 @@ in
           # at /v1/sys/metrics 
           disable_hostname = true
           prometheus_retention_time = "6h"
+        }
+        listener "tcp" {
+          address = "127.0.0.1:8200"
+          # for checking client - not mandatory
+          tls_client_ca_file = "/opt/vault/tls/vault-ca.pem"
+          tls_cert_file = "${config.services.vault.tlsCertFile}"
+          tls_key_file = "${config.services.vault.tlsKeyFile}"
         }
         ${if config.consulNode.enable then ''
         service_registration "consul" {

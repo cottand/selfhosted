@@ -1,4 +1,4 @@
-{ name, ... }: {
+{ name, pkgs, ... }: {
   imports = [
     ./hardware-configuration.nix
     ./networking.nix # generated at runtime by nixos-infect
@@ -38,6 +38,7 @@
 
   virtualisation.docker.enable = true;
   networking.firewall.checkReversePath = false;
+
 
   system.stateVersion = "23.11";
 }

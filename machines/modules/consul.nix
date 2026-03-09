@@ -22,6 +22,7 @@ in
   };
 
   config = mkIf cfg.enable {
+    services.tailscale.serve.services."consul".endpoints."tcp:443" = "tcp://localhost:8501";
 
     vaultSecrets."consul.key.rsa" = {
       destDir = "/opt/consul/tls";

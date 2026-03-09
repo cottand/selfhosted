@@ -9,7 +9,6 @@ package s_rpc_nomad_api
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	_ "google.golang.org/protobuf/types/known/emptypb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -168,7 +167,7 @@ var File_s_rpc_nomad_api_def_proto protoreflect.FileDescriptor
 
 const file_s_rpc_nomad_api_def_proto_rawDesc = "" +
 	"\n" +
-	"\x19s-rpc-nomad-api/def.proto\x12\x0fs_rpc_nomad_api\x1a\x1bgoogle/protobuf/empty.proto\"X\n" +
+	"\x19s-rpc-nomad-api/def.proto\x12\x0fs_rpc_nomad_api\"X\n" +
 	"\x03Job\x12\x18\n" +
 	"\x06commit\x18\x01 \x01(\tH\x00R\x06commit\x12\x18\n" +
 	"\x06latest\x18\x02 \x01(\bH\x00R\x06latest\x12\x12\n" +
