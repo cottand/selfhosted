@@ -1,6 +1,6 @@
 locals {
   vault_addr = "https://${local.vault_host}"
-  vault_host  = "vault.dcotta.com"
+  vault_host  = "vault.dcotta.com:8200"
 
   nomad_addr = "https://nomad.dcotta.com"
 #   vault_host  = "inst-kzsrv-control.golden-dace.ts.net:8200"

@@ -7,11 +7,7 @@
 package s_rpc_flights
 
 import (
-	context "context"
 	grpc "google.golang.org/grpc"
-	codes "google.golang.org/grpc/codes"
-	status "google.golang.org/grpc/status"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -19,104 +15,62 @@ import (
 // Requires gRPC-Go v1.64.0 or later.
 const _ = grpc.SupportPackageIsVersion9
 
-const (
-	PortfolioStats_Report_FullMethodName = "/s_rpc_portfolio_stats.PortfolioStats/Report"
-)
-
-// PortfolioStatsClient is the client API for PortfolioStats service.
+// FlightsClient is the client API for Flights service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type PortfolioStatsClient interface {
-	Report(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
+type FlightsClient interface {
 }
 
-type portfolioStatsClient struct {
+type flightsClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewPortfolioStatsClient(cc grpc.ClientConnInterface) PortfolioStatsClient {
-	return &portfolioStatsClient{cc}
+func NewFlightsClient(cc grpc.ClientConnInterface) FlightsClient {
+	return &flightsClient{cc}
 }
 
-func (c *portfolioStatsClient) Report(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, PortfolioStats_Report_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// PortfolioStatsServer is the server API for PortfolioStats service.
-// All implementations must embed UnimplementedPortfolioStatsServer
+// FlightsServer is the server API for Flights service.
+// All implementations must embed UnimplementedFlightsServer
 // for forward compatibility.
-type PortfolioStatsServer interface {
-	Report(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
-	mustEmbedUnimplementedPortfolioStatsServer()
+type FlightsServer interface {
+	mustEmbedUnimplementedFlightsServer()
 }
 
-// UnimplementedPortfolioStatsServer must be embedded to have
+// UnimplementedFlightsServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedPortfolioStatsServer struct{}
+type UnimplementedFlightsServer struct{}
 
-func (UnimplementedPortfolioStatsServer) Report(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
-	return nil, status.Error(codes.Unimplemented, "method Report not implemented")
-}
-func (UnimplementedPortfolioStatsServer) mustEmbedUnimplementedPortfolioStatsServer() {}
-func (UnimplementedPortfolioStatsServer) testEmbeddedByValue()                        {}
+func (UnimplementedFlightsServer) mustEmbedUnimplementedFlightsServer() {}
+func (UnimplementedFlightsServer) testEmbeddedByValue()                 {}
 
-// UnsafePortfolioStatsServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to PortfolioStatsServer will
+// UnsafeFlightsServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to FlightsServer will
 // result in compilation errors.
-type UnsafePortfolioStatsServer interface {
-	mustEmbedUnimplementedPortfolioStatsServer()
+type UnsafeFlightsServer interface {
+	mustEmbedUnimplementedFlightsServer()
 }
 
-func RegisterPortfolioStatsServer(s grpc.ServiceRegistrar, srv PortfolioStatsServer) {
-	// If the following call panics, it indicates UnimplementedPortfolioStatsServer was
+func RegisterFlightsServer(s grpc.ServiceRegistrar, srv FlightsServer) {
+	// If the following call panics, it indicates UnimplementedFlightsServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&PortfolioStats_ServiceDesc, srv)
+	s.RegisterService(&Flights_ServiceDesc, srv)
 }
 
-func _PortfolioStats_Report_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PortfolioStatsServer).Report(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: PortfolioStats_Report_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PortfolioStatsServer).Report(ctx, req.(*emptypb.Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-// PortfolioStats_ServiceDesc is the grpc.ServiceDesc for PortfolioStats service.
+// Flights_ServiceDesc is the grpc.ServiceDesc for Flights service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var PortfolioStats_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "s_rpc_portfolio_stats.PortfolioStats",
-	HandlerType: (*PortfolioStatsServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "Report",
-			Handler:    _PortfolioStats_Report_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "s-rpc-flights/def.proto",
+var Flights_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "s_rpc_flights.Flights",
+	HandlerType: (*FlightsServer)(nil),
+	Methods:     []grpc.MethodDesc{},
+	Streams:     []grpc.StreamDesc{},
+	Metadata:    "s-rpc-flights/def.proto",
 }

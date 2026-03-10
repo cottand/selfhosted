@@ -29,7 +29,7 @@ runs:
       id: secrets
       uses: hashicorp/vault-action@v2
       with:
-        url: https://vault.dcotta.com
+        url: https://vault.golden-dace.ts.net
         role: actions-ro
         path: jwt-github
         method: jwt

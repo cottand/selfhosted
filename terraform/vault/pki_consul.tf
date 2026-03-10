@@ -26,12 +26,13 @@ resource "vault_pki_secret_backend_cert" "server-dc1-consul" {
   alt_names = [
     "01mar25-1.server.dc1.consul",
     "consul.traefik",
-    "consul.${tsDomain}",
+    "consul.${local.tsDomain}",
     "hez1.${local.tsDomain}",
     "hez2.${local.tsDomain}",
     "hez3.${local.tsDomain}",
   ]
   ip_sans = [
+    # used by vault and nomad to mTLS within local node
     "127.0.0.1",
   ]
 

@@ -10,6 +10,10 @@
     enable = true;
     enableSeaweedFsVolume = false;
   };
+  networking = {
+    # no IPv6 on OCI
+    enableIPv6 = lib.mkForce false; # oci nodes do not have IPv6
+  };
 
   services.nomad.settings = {
     datacenter = "frankfurt-oci";

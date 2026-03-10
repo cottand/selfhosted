@@ -17,11 +17,11 @@ import (
 
 func NewClient() (*vault.Client, error) {
 	vaultConfig := vault.DefaultConfig()
-	vaultConfig.Address = "https://vault.dcotta.com"
+	vaultConfig.Address = "https://vault.golden-dace.ts.net"
 	vaultConfig.DisableRedirects = false
 	transport := http.Transport{
 		TLSClientConfig: &tls.Config{
-			ServerName: "vault.dcotta.com",
+			ServerName: "vault.golden-dace.ts.net",
 		},
 	}
 	err := http2.ConfigureTransport(&transport)
