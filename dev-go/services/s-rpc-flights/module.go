@@ -2,7 +2,6 @@ package module
 
 import (
 	"context"
-	"embed"
 
 	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
 	s_rpc_flights "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-flights"
@@ -10,14 +9,11 @@ import (
 	"google.golang.org/grpc"
 )
 
-//go:embed migrations
-var dbMigrations embed.FS
-
 const name = "s-rpc-flights"
 
 func InitService() (*bedrock.Service, string, error) {
 	_ = bedrock.ContextForModule(name, context.Background())
-	db, err := bedrock.GetMigratedDB(name, dbMigrations)
+	db, err := bedrock.OpenDB()
 	if err != nil {
 		return nil, name, terrors.Propagate(err)
 	}

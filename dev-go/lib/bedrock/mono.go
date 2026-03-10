@@ -81,7 +81,7 @@ var addModuleNameToContextStream grpc.StreamServerInterceptor = func(srv any, st
 
 func RunRegistered() {
 	ctx := context.Background()
-	Init(ctx)
+	initBedrock(ctx)
 	grpcServer := grpc.NewServer(
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 		grpc.UnaryInterceptor(addModuleNameToContextUnary),
