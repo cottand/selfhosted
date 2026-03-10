@@ -4,6 +4,9 @@ import (
 	"database/sql"
 	"embed"
 	"errors"
+	"log/slog"
+	"os"
+
 	"github.com/XSAM/otelsql"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/cockroachdb"
@@ -11,8 +14,6 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/monzo/terrors"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
-	"log/slog"
-	"os"
 )
 
 // Migrate expects the first argument to have a folder called 'migrations'
@@ -24,7 +25,7 @@ func Migrate(db *sql.DB, serviceName string, migrations embed.FS) error {
 	if err != nil {
 		return terrors.Augment(err, "failed to create migration instance client", errParams)
 	}
-	sourceDriver, err := iofs.New(migrations, "migrations")
+	sourceDriver, err := iofs.New(migrations, "db-migrations")
 	if err != nil {
 		return terrors.Augment(err, "failed to open db migrations embedded fs", errParams)
 	}
@@ -45,7 +46,8 @@ func Migrate(db *sql.DB, serviceName string, migrations embed.FS) error {
 	return nil
 }
 
-func GetDb() (*sql.DB, error) {
+// OpenDB expects the caller to close the sql.DB returned
+func OpenDB() (*sql.DB, error) {
 	url, ok := os.LookupEnv("CRDB_CONN_URL")
 	if !ok {
 		return nil, errors.New("CRDB_CONN_URL environment variable not set")
@@ -54,16 +56,12 @@ func GetDb() (*sql.DB, error) {
 	return db, terrors.Augment(err, "failed to start db client", nil)
 }
 
-// GetMigratedDB (like Migrate) expects the first argument to have a folder called 'migrations'
-func GetMigratedDB(serviceName string, migrations embed.FS) (*sql.DB, error) {
-	db, err := GetDb()
+func migrateDB(migrations embed.FS) error {
+	db, err := OpenDB()
 	if err != nil {
-		return nil, terrors.Propagate(err)
+		return terrors.Propagate(err)
 	}
-	err = Migrate(db, serviceName, migrations)
-	if err != nil {
-		return nil, terrors.Augment(err, "failed to migrate database", nil)
-	}
-
-	return db, nil
+	defer db.Close()
+	err = Migrate(db, "main", migrations)
+	return terrors.Augment(err, "failed to migrate database", nil)
 }

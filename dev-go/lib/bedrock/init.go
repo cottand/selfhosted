@@ -2,6 +2,7 @@ package bedrock
 
 import (
 	"context"
+	"embed"
 	"fmt"
 	"log"
 	"log/slog"
@@ -15,7 +16,10 @@ import (
 
 type ShutdownFunc = func(ctx context.Context) error
 
-func Init(ctx context.Context) ShutdownFunc {
+//go:embed db-migrations
+var dbMigrations embed.FS
+
+func initBedrock(ctx context.Context) ShutdownFunc {
 	shutdown, err := setupOTelSDK(ctx)
 
 	if err != nil {
@@ -23,6 +27,10 @@ func Init(ctx context.Context) ShutdownFunc {
 		log.Fatalln(err)
 	}
 	slog.Info("bedrock initialized 🚀")
+
+	if err := migrateDB(dbMigrations); err != nil {
+		log.Fatalln(err)
+	}
 
 	return shutdown
 }
@@ -61,7 +69,7 @@ func GetBaseConfig() (*BaseConfig, error) {
 		HttpHost: host,
 		HttpPort: portNum,
 		GrpcPort: grpcPortNum,
-		AllocID: allocId,
+		AllocID:  allocId,
 	}, nil
 }
 
@@ -69,7 +77,7 @@ type BaseConfig struct {
 	HttpHost string
 	HttpPort int
 	GrpcPort int
-	AllocID string
+	AllocID  string
 }
 
 func (c *BaseConfig) HttpBind() string {
