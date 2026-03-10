@@ -37,3 +37,21 @@ resource "tailscale_dns_split_nameservers" "leng_seach_paths" {
   ]
   domain      = each.value
 }
+
+# Tailscale looks at port 53 but consul uses 8600
+# resource "tailscale_dns_split_nameservers" "consul_search_paths" {
+#   for_each = toset([
+#     "service.consul",
+#   ])
+#   nameservers = [
+#     # hez
+#     "100.92.69.51",
+#     "100.82.72.56",
+#     "100.98.28.95",
+#     # oci
+#     "100.120.133.44",
+#     "100.101.229.73",
+#     "100.72.17.90",
+#   ]
+#   domain      = each.value
+# }

@@ -98,6 +98,7 @@ in
     };
 
     # permissions from https://developer.hashicorp.com/vault/tutorials/raft/raft-deployment-guide
+    # TODO add these to BWS
     deployment.keys."vault-key.rsa" = {
       keyFile = secretPath + "pki/vault/key.rsa";
       destDir = "/opt/vault/tls";
@@ -107,7 +108,6 @@ in
     };
     deployment.keys."vault-cert.pem" = {
       keyFile = secretPath + "pki/vault/mesh-cert-chain.pem";
-      # keyFile = secretPath + "../certs/mesh-cert-chain.pem";
       destDir = "/opt/vault/tls";
       user = "root";
       group = "root";
@@ -115,7 +115,6 @@ in
     };
     deployment.keys."vault-ca.pem" = {
       keyFile = secretPath + "pki/vault/mesh-ca.pem";
-      # keyFile = secretPath + "../certs/mesh-ca.pem";
       destDir = "/opt/vault/tls";
       user = "root";
       group = "root";

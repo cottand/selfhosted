@@ -6,6 +6,6 @@ option go_package = "github.com/Cottand/selfosted/dev-go/lib/proto/s-rpc-flights
 import "google/protobuf/empty.proto";
 
 
-service PortfolioStats {
+service Flights {
 //  rpc Report (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 }

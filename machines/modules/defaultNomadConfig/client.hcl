@@ -53,13 +53,13 @@ plugin "docker" {
 
 vault {
   enabled               = true
-  address = "https://vault.mesh.dcotta.eu:8200" # TODO vault-in-ts?
+  address = "https://vault.dcotta.com:8200" # TODO vault-in-ts?
   jwt_auth_backend_path = "jwt-nomad" # must match tf
 
   # Provide a default workload identity configuration so jobs don't need to
   # specify one.
   default_identity {
-    aud  = ["vault.io"]
+    aud = ["vault.io"]
     env  = false
     file = false
     ttl  = "6h"

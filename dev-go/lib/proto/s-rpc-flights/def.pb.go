@@ -9,7 +9,7 @@ package s_rpc_flights
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
+	_ "google.golang.org/protobuf/types/known/emptypb"
 	reflect "reflect"
 	unsafe "unsafe"
 )
@@ -25,18 +25,13 @@ var File_s_rpc_flights_def_proto protoreflect.FileDescriptor
 
 const file_s_rpc_flights_def_proto_rawDesc = "" +
 	"\n" +
-	"\x17s-rpc-flights/def.proto\x12\x15s_rpc_portfolio_stats\x1a\x1bgoogle/protobuf/empty.proto2L\n" +
-	"\x0ePortfolioStats\x12:\n" +
-	"\x06Report\x12\x16.google.protobuf.Empty\x1a\x16.google.protobuf.Empty\"\x00B=Z;github.com/Cottand/selfosted/dev-go/lib/proto/s-rpc-flightsb\x06proto3"
+	"\x17s-rpc-flights/def.proto\x12\rs_rpc_flights\x1a\x1bgoogle/protobuf/empty.proto2\t\n" +
+	"\aFlightsB=Z;github.com/Cottand/selfosted/dev-go/lib/proto/s-rpc-flightsb\x06proto3"
 
-var file_s_rpc_flights_def_proto_goTypes = []any{
-	(*emptypb.Empty)(nil), // 0: google.protobuf.Empty
-}
+var file_s_rpc_flights_def_proto_goTypes = []any{}
 var file_s_rpc_flights_def_proto_depIdxs = []int32{
-	0, // 0: s_rpc_portfolio_stats.PortfolioStats.Report:input_type -> google.protobuf.Empty
-	0, // 1: s_rpc_portfolio_stats.PortfolioStats.Report:output_type -> google.protobuf.Empty
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
+	0, // [0:0] is the sub-list for method output_type
+	0, // [0:0] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name

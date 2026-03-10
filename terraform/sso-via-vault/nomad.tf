@@ -29,7 +29,10 @@ resource "nomad_acl_auth_method" "vault" {
 
   config {
     signing_algs = ["RS256", "EdDSA"]
-    oidc_discovery_url = "${local.vault_addr}/v1/identity/oidc/provider/${vault_identity_oidc_provider.provider.name}"
+    // we cannot use TS services here because they do not support hairpinning
+    // and OIDC discovery involves Nomad talking to Vault in the same box here
+    // https://tailscale.com/docs/features/tailscale-services#limitations
+    oidc_discovery_url = "https://vault.dcotta.com:8200/v1/identity/oidc/provider/${vault_identity_oidc_provider.provider.name}"
 
     oidc_client_id = vault_identity_oidc_client.nomad.client_id
     bound_audiences = [vault_identity_oidc_client.nomad.client_id]

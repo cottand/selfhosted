@@ -16,7 +16,7 @@ var dbMigrations embed.FS
 const name = "s-rpc-flights"
 
 func InitService() (*bedrock.Service, string, error) {
-	ctx := bedrock.ContextForModule(name, context.Background())
+	_ = bedrock.ContextForModule(name, context.Background())
 	db, err := bedrock.GetMigratedDB(name, dbMigrations)
 	if err != nil {
 		return nil, name, terrors.Propagate(err)
@@ -25,7 +25,7 @@ func InitService() (*bedrock.Service, string, error) {
 	service := &bedrock.Service{
 		Name: name,
 		RegisterGrpc: func(srv *grpc.Server) {
-			s_rpc_flights.RegisterPortfolioStatsServer(srv, &ProtoHandler{db: db})
+			s_rpc_flights.RegisterFlightsServer(srv, &ProtoHandler{db: db})
 		},
 		OnShutdown: func() error {
 			if db.Close() != nil {
