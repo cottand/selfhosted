@@ -20,11 +20,11 @@ import (
 func Migrate(db *sql.DB, serviceName string, migrations embed.FS) error {
 	dbname := serviceName
 	errParams := map[string]string{"db": dbname}
-
 	driver, err := cockroachdb.WithInstance(db, &cockroachdb.Config{DatabaseName: dbname})
 	if err != nil {
 		return terrors.Augment(err, "failed to create migration instance client", errParams)
 	}
+	defer driver.Close()
 	sourceDriver, err := iofs.New(migrations, "db-migrations")
 	if err != nil {
 		return terrors.Augment(err, "failed to open db migrations embedded fs", errParams)
