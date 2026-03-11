@@ -7,6 +7,7 @@ crypto/sha256
 crypto/tls
 database/sql
 embed
+encoding/csv
 encoding/hex
 encoding/json
 errors
@@ -24,6 +25,7 @@ github.com/hashicorp/nomad/api
 github.com/hashicorp/vault/api
 github.com/jackc/pgx/v5/stdlib
 github.com/monzo/terrors
+github.com/paulmach/go.geojson
 github.com/prometheus/client_golang/prometheus
 github.com/prometheus/client_golang/prometheus/promauto
 github.com/prometheus/client_golang/prometheus/promhttp
@@ -33,6 +35,7 @@ github.com/stretchr/testify/assert
 go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc
 go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp
 go.opentelemetry.io/otel
+go.opentelemetry.io/otel/attribute
 go.opentelemetry.io/otel/codes
 go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc
 go.opentelemetry.io/otel/propagation
@@ -51,6 +54,7 @@ google.golang.org/protobuf/reflect/protoreflect
 google.golang.org/protobuf/runtime/protoimpl
 google.golang.org/protobuf/types/known/emptypb
 google.golang.org/protobuf/types/known/timestamppb
+io
 iter
 log
 log/slog
