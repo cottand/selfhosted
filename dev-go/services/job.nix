@@ -25,6 +25,7 @@ in
   imports = [
     ./s-web-portfolio/consulService.nix
     ./s-web-github-webhook/consulService.nix
+    ./s-web-flights/consulService.nix
   ];
   job.${name} = {
     update = {
