@@ -4,12 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/cottand/selfhosted/dev-go/lib/util"
-	"github.com/monzo/terrors"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 	"log"
 	"log/slog"
 	"net"
@@ -17,6 +11,15 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/cottand/selfhosted/dev-go/lib/util"
+	"github.com/monzo/terrors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/reflection"
+	"google.golang.org/grpc/status"
 )
 
 var servicesHooks []RegistrationHook
@@ -53,7 +56,7 @@ var addModuleNameToContextUnary grpc.UnaryServerInterceptor = func(ctx context.C
 	service, method := parseFullMethod(info.FullMethod)
 	newCtx := ContextForModule(service, ctx)
 	newCtx = util.CtxWithLog(newCtx, slog.String("grpc_method", method))
-	return handler(newCtx, req)
+	return handlerTerrorsUnary(newCtx, req, info, handler)
 }
 
 // streamHandlerWithContext wraps a grpc.ServerStream to return a new context.Context via newCtx
@@ -76,7 +79,50 @@ var addModuleNameToContextStream grpc.StreamServerInterceptor = func(srv any, st
 			return newCtx
 		},
 	}
-	return handler(srv, newStream)
+	return handleTerrorsStream(srv, newStream, info, handler)
+}
+
+var handleTerrorsStream grpc.StreamServerInterceptor = func(srv any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+	err := handler(srv, stream)
+	if err == nil {
+		return nil
+	}
+
+	terr := &terrors.Error{}
+	if errors.As(err, &terr) {
+		for terrCode, grpcCode := range terrorToGrpcCode {
+			if terrors.Is(terr, terrCode) {
+				return status.Error(grpcCode, terr.Error())
+			}
+		}
+	}
+
+	return err
+}
+
+func handlerTerrorsUnary(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+	resp, err := handler(ctx, req)
+	if err == nil {
+		return resp, nil
+	}
+	terr := &terrors.Error{}
+	if errors.As(err, &terr) {
+		for terrCode, grpcCode := range terrorToGrpcCode {
+			if terrors.Is(terr, terrCode) {
+				return resp, status.Error(grpcCode, terr.Error())
+			}
+		}
+	}
+	return resp, err
+}
+
+var terrorToGrpcCode = map[string]codes.Code{
+	terrors.ErrTimeout:            codes.DeadlineExceeded,
+	terrors.ErrNotFound:           codes.NotFound,
+	terrors.ErrBadRequest:         codes.InvalidArgument,
+	terrors.ErrForbidden:          codes.PermissionDenied,
+	terrors.ErrUnknown:            codes.Unknown,
+	terrors.ErrPreconditionFailed: codes.FailedPrecondition,
 }
 
 func RunRegistered() {

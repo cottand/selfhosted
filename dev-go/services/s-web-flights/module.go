@@ -10,15 +10,15 @@ import (
 	"time"
 
 	"cloud.google.com/go/bigquery"
-	s_rpc_nomad_api "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-nomad-api"
+	s_rpc_flights "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-flights"
 	"github.com/monzo/terrors"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 import "github.com/cottand/selfhosted/dev-go/lib/bedrock"
 
 type scaffold struct {
-	nomad s_rpc_nomad_api.NomadApiClient
-	bq    *bigquery.Client
+	flights s_rpc_flights.FlightsClient
+	bq      *bigquery.Client
 }
 
 func InitService() (*bedrock.Service, string, error) {
@@ -30,7 +30,7 @@ func InitService() (*bedrock.Service, string, error) {
 	}
 
 	s := &scaffold{
-		nomad: s_rpc_nomad_api.NewNomadApiClient(conn),
+		flights: s_rpc_flights.NewFlightsClient(conn),
 	}
 
 	srv := &http.Server{

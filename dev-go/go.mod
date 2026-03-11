@@ -36,6 +36,8 @@ require (
 //google.golang.org/grpc/health/grpc_health_v1
 )
 
+require github.com/paulmach/go.geojson v1.5.0
+
 require (
 	cloud.google.com/go v0.123.0 // indirect
 	cloud.google.com/go/auth v0.18.2 // indirect
