@@ -38,6 +38,8 @@
     scripts.keychain-get
     scripts.gen-protos
 
+    pkgs.oapi-codegen
+
     pkgs.protoc-gen-go
   ];
   shellHook = ''

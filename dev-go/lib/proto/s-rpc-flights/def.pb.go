@@ -9,8 +9,9 @@ package s_rpc_flights
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	_ "google.golang.org/protobuf/types/known/emptypb"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	reflect "reflect"
+	sync "sync"
 	unsafe "unsafe"
 )
 
@@ -21,20 +22,161 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type Flight struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Src           *Airport               `protobuf:"bytes,1,opt,name=src,proto3" json:"src,omitempty"`
+	Dst           *Airport               `protobuf:"bytes,2,opt,name=dst,proto3" json:"dst,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Flight) Reset() {
+	*x = Flight{}
+	mi := &file_s_rpc_flights_def_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Flight) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Flight) ProtoMessage() {}
+
+func (x *Flight) ProtoReflect() protoreflect.Message {
+	mi := &file_s_rpc_flights_def_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Flight.ProtoReflect.Descriptor instead.
+func (*Flight) Descriptor() ([]byte, []int) {
+	return file_s_rpc_flights_def_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *Flight) GetSrc() *Airport {
+	if x != nil {
+		return x.Src
+	}
+	return nil
+}
+
+func (x *Flight) GetDst() *Airport {
+	if x != nil {
+		return x.Dst
+	}
+	return nil
+}
+
+type Airport struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	Lat           float64                `protobuf:"fixed64,2,opt,name=lat,proto3" json:"lat,omitempty"`
+	Lon           float64                `protobuf:"fixed64,3,opt,name=lon,proto3" json:"lon,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Airport) Reset() {
+	*x = Airport{}
+	mi := &file_s_rpc_flights_def_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Airport) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Airport) ProtoMessage() {}
+
+func (x *Airport) ProtoReflect() protoreflect.Message {
+	mi := &file_s_rpc_flights_def_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Airport.ProtoReflect.Descriptor instead.
+func (*Airport) Descriptor() ([]byte, []int) {
+	return file_s_rpc_flights_def_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *Airport) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *Airport) GetLat() float64 {
+	if x != nil {
+		return x.Lat
+	}
+	return 0
+}
+
+func (x *Airport) GetLon() float64 {
+	if x != nil {
+		return x.Lon
+	}
+	return 0
+}
+
 var File_s_rpc_flights_def_proto protoreflect.FileDescriptor
 
 const file_s_rpc_flights_def_proto_rawDesc = "" +
 	"\n" +
-	"\x17s-rpc-flights/def.proto\x12\rs_rpc_flights\x1a\x1bgoogle/protobuf/empty.proto2\t\n" +
-	"\aFlightsB=Z;github.com/Cottand/selfosted/dev-go/lib/proto/s-rpc-flightsb\x06proto3"
+	"\x17s-rpc-flights/def.proto\x12\rs_rpc_flights\x1a\x1bgoogle/protobuf/empty.proto\"\\\n" +
+	"\x06Flight\x12(\n" +
+	"\x03src\x18\x01 \x01(\v2\x16.s_rpc_flights.AirportR\x03src\x12(\n" +
+	"\x03dst\x18\x02 \x01(\v2\x16.s_rpc_flights.AirportR\x03dst\"A\n" +
+	"\aAirport\x12\x12\n" +
+	"\x04code\x18\x01 \x01(\tR\x04code\x12\x10\n" +
+	"\x03lat\x18\x02 \x01(\x01R\x03lat\x12\x10\n" +
+	"\x03lon\x18\x03 \x01(\x01R\x03lon2E\n" +
+	"\aFlights\x12:\n" +
+	"\aListAll\x12\x16.google.protobuf.Empty\x1a\x15.s_rpc_flights.Flight0\x01B=Z;github.com/Cottand/selfosted/dev-go/lib/proto/s-rpc-flightsb\x06proto3"
 
-var file_s_rpc_flights_def_proto_goTypes = []any{}
+var (
+	file_s_rpc_flights_def_proto_rawDescOnce sync.Once
+	file_s_rpc_flights_def_proto_rawDescData []byte
+)
+
+func file_s_rpc_flights_def_proto_rawDescGZIP() []byte {
+	file_s_rpc_flights_def_proto_rawDescOnce.Do(func() {
+		file_s_rpc_flights_def_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_s_rpc_flights_def_proto_rawDesc), len(file_s_rpc_flights_def_proto_rawDesc)))
+	})
+	return file_s_rpc_flights_def_proto_rawDescData
+}
+
+var file_s_rpc_flights_def_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_s_rpc_flights_def_proto_goTypes = []any{
+	(*Flight)(nil),        // 0: s_rpc_flights.Flight
+	(*Airport)(nil),       // 1: s_rpc_flights.Airport
+	(*emptypb.Empty)(nil), // 2: google.protobuf.Empty
+}
 var file_s_rpc_flights_def_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	1, // 0: s_rpc_flights.Flight.src:type_name -> s_rpc_flights.Airport
+	1, // 1: s_rpc_flights.Flight.dst:type_name -> s_rpc_flights.Airport
+	2, // 2: s_rpc_flights.Flights.ListAll:input_type -> google.protobuf.Empty
+	0, // 3: s_rpc_flights.Flights.ListAll:output_type -> s_rpc_flights.Flight
+	3, // [3:4] is the sub-list for method output_type
+	2, // [2:3] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_s_rpc_flights_def_proto_init() }
@@ -48,12 +190,13 @@ func file_s_rpc_flights_def_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_s_rpc_flights_def_proto_rawDesc), len(file_s_rpc_flights_def_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   0,
+			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_s_rpc_flights_def_proto_goTypes,
 		DependencyIndexes: file_s_rpc_flights_def_proto_depIdxs,
+		MessageInfos:      file_s_rpc_flights_def_proto_msgTypes,
 	}.Build()
 	File_s_rpc_flights_def_proto = out.File
 	file_s_rpc_flights_def_proto_goTypes = nil

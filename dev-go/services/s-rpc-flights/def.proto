@@ -7,5 +7,16 @@ import "google/protobuf/empty.proto";
 
 
 service Flights {
-//  rpc Report (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc ListAll(google.protobuf.Empty) returns (stream Flight);
+}
+
+message Flight {
+  Airport src = 1;
+  Airport dst = 2;
+}
+
+message Airport {
+  string code = 1;
+  double lat = 2;
+  double lon = 3;
 }
