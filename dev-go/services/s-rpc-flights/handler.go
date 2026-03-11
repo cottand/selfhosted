@@ -15,8 +15,6 @@ import (
 	"github.com/monzo/terrors"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -71,7 +69,7 @@ func (h *ProtoHandler) ListAll(_ *emptypb.Empty, stream grpc.ServerStreamingServ
 		}
 	}
 
-	return status.Error(codes.Unimplemented, "method ListAll not implemented")
+	return nil
 }
 
 func loadAirports(ctx context.Context) (map[string]Airport, error) {
