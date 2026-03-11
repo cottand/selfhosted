@@ -7,7 +7,11 @@
 package s_rpc_flights
 
 import (
+	context "context"
 	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -15,10 +19,15 @@ import (
 // Requires gRPC-Go v1.64.0 or later.
 const _ = grpc.SupportPackageIsVersion9
 
+const (
+	Flights_ListAll_FullMethodName = "/s_rpc_flights.Flights/ListAll"
+)
+
 // FlightsClient is the client API for Flights service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type FlightsClient interface {
+	ListAll(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Flight], error)
 }
 
 type flightsClient struct {
@@ -29,10 +38,30 @@ func NewFlightsClient(cc grpc.ClientConnInterface) FlightsClient {
 	return &flightsClient{cc}
 }
 
+func (c *flightsClient) ListAll(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Flight], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Flights_ServiceDesc.Streams[0], Flights_ListAll_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[emptypb.Empty, Flight]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Flights_ListAllClient = grpc.ServerStreamingClient[Flight]
+
 // FlightsServer is the server API for Flights service.
 // All implementations must embed UnimplementedFlightsServer
 // for forward compatibility.
 type FlightsServer interface {
+	ListAll(*emptypb.Empty, grpc.ServerStreamingServer[Flight]) error
 	mustEmbedUnimplementedFlightsServer()
 }
 
@@ -43,6 +72,9 @@ type FlightsServer interface {
 // pointer dereference when methods are called.
 type UnimplementedFlightsServer struct{}
 
+func (UnimplementedFlightsServer) ListAll(*emptypb.Empty, grpc.ServerStreamingServer[Flight]) error {
+	return status.Error(codes.Unimplemented, "method ListAll not implemented")
+}
 func (UnimplementedFlightsServer) mustEmbedUnimplementedFlightsServer() {}
 func (UnimplementedFlightsServer) testEmbeddedByValue()                 {}
 
@@ -64,6 +96,17 @@ func RegisterFlightsServer(s grpc.ServiceRegistrar, srv FlightsServer) {
 	s.RegisterService(&Flights_ServiceDesc, srv)
 }
 
+func _Flights_ListAll_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(emptypb.Empty)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(FlightsServer).ListAll(m, &grpc.GenericServerStream[emptypb.Empty, Flight]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Flights_ListAllServer = grpc.ServerStreamingServer[Flight]
+
 // Flights_ServiceDesc is the grpc.ServiceDesc for Flights service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -71,6 +114,12 @@ var Flights_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "s_rpc_flights.Flights",
 	HandlerType: (*FlightsServer)(nil),
 	Methods:     []grpc.MethodDesc{},
-	Streams:     []grpc.StreamDesc{},
-	Metadata:    "s-rpc-flights/def.proto",
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "ListAll",
+			Handler:       _Flights_ListAll_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "s-rpc-flights/def.proto",
 }
