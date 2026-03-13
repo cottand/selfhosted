@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>GeoJSON Globe</title>
+  <script src="https://cesium.com/downloads/cesiumjs/releases/1.115/Build/Cesium/Cesium.js"></script>
+  <link href="https://cesium.com/downloads/cesiumjs/releases/1.115/Build/Cesium/Widgets/widgets.css" rel="stylesheet" />
+  <style> html, body, #cesiumContainer { height: 100%; margin: 0; padding: 0; } </style>
+</head>
+<body>
+  <div id="cesiumContainer"></div>
+  <script>
+    const GEOJSON_URL = "https://s-web-flights.tfk.nd/geomap-arcs.geojson";
+
+    const viewer = new Cesium.Viewer('cesiumContainer', {
+      timeline: false,
+      animation: false,
+    });
+
+    const dataSource = Cesium.GeoJsonDataSource.load(GEOJSON_URL, {
+      stroke: Cesium.Color.HOTPINK,
+      fill: Cesium.Color.HOTPINK.withAlpha(0.5),
+      strokeWidth: 3,
+    });
+
+    viewer.dataSources.add(dataSource);
+    dataSource.then(ds => viewer.zoomTo(ds));
+  </script>
+</body>
+</html>
