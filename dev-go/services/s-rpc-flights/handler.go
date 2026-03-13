@@ -59,36 +59,20 @@ func (h *ProtoHandler) ListAll(_ *emptypb.Empty, stream grpc.ServerStreamingServ
 	return nil
 }
 
+func (h *ProtoHandler) EmissionsForJourney(ctx context.Context, req *s_rpc_flights.Journey) (*s_rpc_flights.EmissionsForJourneyResponse, error) {
+	distance, err := distanceBetweenAirportsKm(ctx, req.SrcAirportCode, req.DstAirportCode)
+	if err != nil {
+		return nil, terrors.Augment(err, "failed to calculate distance", nil)
+	}
+
+	co2ekg := flightKmToCO2e(distance)
+
+	return &s_rpc_flights.EmissionsForJourneyResponse{
+		CO2Ekg: co2ekg,
+	}, nil
+}
+
 type ProtoHandler struct {
 	s_rpc_flights.UnimplementedFlightsServer
 	db *sql.DB
-}
-
-var closedAirports = map[string]Airport{
-	"SXF": {
-		Name:    "Berlin Schönefeld",
-		Lat:     52.380001,
-		Lon:     13.5225,
-		Iata:    "SXF",
-		Country: "DE",
-	},
-}
-
-func airportFromCode(ctx context.Context, airportCode string) (*s_rpc_flights.Airport, error) {
-	byIata, err := loadAirports(ctx)
-	if err != nil {
-		return nil, terrors.Augment(err, "airport", nil)
-	}
-	a, ok := byIata[airportCode]
-	if !ok {
-		a, ok = closedAirports[airportCode]
-		if !ok {
-			return nil, terrors.NotFound("airport", "unknown airport code", map[string]string{"code": airportCode})
-		}
-	}
-	return &s_rpc_flights.Airport{
-		Code: a.Iata,
-		Lat:  a.Lat,
-		Lon:  a.Lon,
-	}, nil
 }

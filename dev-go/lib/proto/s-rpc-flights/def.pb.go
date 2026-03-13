@@ -134,6 +134,102 @@ func (x *Airport) GetLon() float64 {
 	return 0
 }
 
+type Journey struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	SrcAirportCode string                 `protobuf:"bytes,1,opt,name=src_airport_code,json=srcAirportCode,proto3" json:"src_airport_code,omitempty"`
+	DstAirportCode string                 `protobuf:"bytes,2,opt,name=dst_airport_code,json=dstAirportCode,proto3" json:"dst_airport_code,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *Journey) Reset() {
+	*x = Journey{}
+	mi := &file_s_rpc_flights_def_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Journey) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Journey) ProtoMessage() {}
+
+func (x *Journey) ProtoReflect() protoreflect.Message {
+	mi := &file_s_rpc_flights_def_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Journey.ProtoReflect.Descriptor instead.
+func (*Journey) Descriptor() ([]byte, []int) {
+	return file_s_rpc_flights_def_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *Journey) GetSrcAirportCode() string {
+	if x != nil {
+		return x.SrcAirportCode
+	}
+	return ""
+}
+
+func (x *Journey) GetDstAirportCode() string {
+	if x != nil {
+		return x.DstAirportCode
+	}
+	return ""
+}
+
+type EmissionsForJourneyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	CO2Ekg        float64                `protobuf:"fixed64,1,opt,name=CO2ekg,proto3" json:"CO2ekg,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EmissionsForJourneyResponse) Reset() {
+	*x = EmissionsForJourneyResponse{}
+	mi := &file_s_rpc_flights_def_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EmissionsForJourneyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EmissionsForJourneyResponse) ProtoMessage() {}
+
+func (x *EmissionsForJourneyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_s_rpc_flights_def_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EmissionsForJourneyResponse.ProtoReflect.Descriptor instead.
+func (*EmissionsForJourneyResponse) Descriptor() ([]byte, []int) {
+	return file_s_rpc_flights_def_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *EmissionsForJourneyResponse) GetCO2Ekg() float64 {
+	if x != nil {
+		return x.CO2Ekg
+	}
+	return 0
+}
+
 var File_s_rpc_flights_def_proto protoreflect.FileDescriptor
 
 const file_s_rpc_flights_def_proto_rawDesc = "" +
@@ -145,9 +241,15 @@ const file_s_rpc_flights_def_proto_rawDesc = "" +
 	"\aAirport\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\tR\x04code\x12\x10\n" +
 	"\x03lat\x18\x02 \x01(\x01R\x03lat\x12\x10\n" +
-	"\x03lon\x18\x03 \x01(\x01R\x03lon2E\n" +
+	"\x03lon\x18\x03 \x01(\x01R\x03lon\"]\n" +
+	"\aJourney\x12(\n" +
+	"\x10src_airport_code\x18\x01 \x01(\tR\x0esrcAirportCode\x12(\n" +
+	"\x10dst_airport_code\x18\x02 \x01(\tR\x0edstAirportCode\"5\n" +
+	"\x1bEmissionsForJourneyResponse\x12\x16\n" +
+	"\x06CO2ekg\x18\x01 \x01(\x01R\x06CO2ekg2\xa0\x01\n" +
 	"\aFlights\x12:\n" +
-	"\aListAll\x12\x16.google.protobuf.Empty\x1a\x15.s_rpc_flights.Flight0\x01B=Z;github.com/Cottand/selfosted/dev-go/lib/proto/s-rpc-flightsb\x06proto3"
+	"\aListAll\x12\x16.google.protobuf.Empty\x1a\x15.s_rpc_flights.Flight0\x01\x12Y\n" +
+	"\x13EmissionsForJourney\x12\x16.s_rpc_flights.Journey\x1a*.s_rpc_flights.EmissionsForJourneyResponseB=Z;github.com/Cottand/selfosted/dev-go/lib/proto/s-rpc-flightsb\x06proto3"
 
 var (
 	file_s_rpc_flights_def_proto_rawDescOnce sync.Once
@@ -161,19 +263,23 @@ func file_s_rpc_flights_def_proto_rawDescGZIP() []byte {
 	return file_s_rpc_flights_def_proto_rawDescData
 }
 
-var file_s_rpc_flights_def_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_s_rpc_flights_def_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_s_rpc_flights_def_proto_goTypes = []any{
-	(*Flight)(nil),        // 0: s_rpc_flights.Flight
-	(*Airport)(nil),       // 1: s_rpc_flights.Airport
-	(*emptypb.Empty)(nil), // 2: google.protobuf.Empty
+	(*Flight)(nil),                      // 0: s_rpc_flights.Flight
+	(*Airport)(nil),                     // 1: s_rpc_flights.Airport
+	(*Journey)(nil),                     // 2: s_rpc_flights.Journey
+	(*EmissionsForJourneyResponse)(nil), // 3: s_rpc_flights.EmissionsForJourneyResponse
+	(*emptypb.Empty)(nil),               // 4: google.protobuf.Empty
 }
 var file_s_rpc_flights_def_proto_depIdxs = []int32{
 	1, // 0: s_rpc_flights.Flight.src:type_name -> s_rpc_flights.Airport
 	1, // 1: s_rpc_flights.Flight.dst:type_name -> s_rpc_flights.Airport
-	2, // 2: s_rpc_flights.Flights.ListAll:input_type -> google.protobuf.Empty
-	0, // 3: s_rpc_flights.Flights.ListAll:output_type -> s_rpc_flights.Flight
-	3, // [3:4] is the sub-list for method output_type
-	2, // [2:3] is the sub-list for method input_type
+	4, // 2: s_rpc_flights.Flights.ListAll:input_type -> google.protobuf.Empty
+	2, // 3: s_rpc_flights.Flights.EmissionsForJourney:input_type -> s_rpc_flights.Journey
+	0, // 4: s_rpc_flights.Flights.ListAll:output_type -> s_rpc_flights.Flight
+	3, // 5: s_rpc_flights.Flights.EmissionsForJourney:output_type -> s_rpc_flights.EmissionsForJourneyResponse
+	4, // [4:6] is the sub-list for method output_type
+	2, // [2:4] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name
 	2, // [2:2] is the sub-list for extension extendee
 	0, // [0:2] is the sub-list for field type_name
@@ -190,7 +296,7 @@ func file_s_rpc_flights_def_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_s_rpc_flights_def_proto_rawDesc), len(file_s_rpc_flights_def_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
