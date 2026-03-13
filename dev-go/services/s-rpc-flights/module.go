@@ -12,11 +12,14 @@ import (
 const name = "s-rpc-flights"
 
 func InitService() (*bedrock.Service, string, error) {
-	_ = bedrock.ContextForModule(name, context.Background())
+	ctx := bedrock.ContextForModule(name, context.Background())
 	db, err := bedrock.OpenDB()
 	if err != nil {
 		return nil, name, terrors.Propagate(err)
 	}
+	ctx, cancel := context.WithCancel(ctx)
+
+	go RefreshPromStats(ctx, db)
 
 	service := &bedrock.Service{
 		Name: name,
@@ -24,6 +27,7 @@ func InitService() (*bedrock.Service, string, error) {
 			s_rpc_flights.RegisterFlightsServer(srv, &ProtoHandler{db: db})
 		},
 		OnShutdown: func() error {
+			cancel()
 			if db.Close() != nil {
 				return terrors.Augment(err, "failed to close DB", nil)
 			}
