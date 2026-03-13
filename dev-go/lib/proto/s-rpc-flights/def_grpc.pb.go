@@ -20,7 +20,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Flights_ListAll_FullMethodName = "/s_rpc_flights.Flights/ListAll"
+	Flights_ListAll_FullMethodName             = "/s_rpc_flights.Flights/ListAll"
+	Flights_EmissionsForJourney_FullMethodName = "/s_rpc_flights.Flights/EmissionsForJourney"
 )
 
 // FlightsClient is the client API for Flights service.
@@ -28,6 +29,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type FlightsClient interface {
 	ListAll(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Flight], error)
+	EmissionsForJourney(ctx context.Context, in *Journey, opts ...grpc.CallOption) (*EmissionsForJourneyResponse, error)
 }
 
 type flightsClient struct {
@@ -57,11 +59,22 @@ func (c *flightsClient) ListAll(ctx context.Context, in *emptypb.Empty, opts ...
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Flights_ListAllClient = grpc.ServerStreamingClient[Flight]
 
+func (c *flightsClient) EmissionsForJourney(ctx context.Context, in *Journey, opts ...grpc.CallOption) (*EmissionsForJourneyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EmissionsForJourneyResponse)
+	err := c.cc.Invoke(ctx, Flights_EmissionsForJourney_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FlightsServer is the server API for Flights service.
 // All implementations must embed UnimplementedFlightsServer
 // for forward compatibility.
 type FlightsServer interface {
 	ListAll(*emptypb.Empty, grpc.ServerStreamingServer[Flight]) error
+	EmissionsForJourney(context.Context, *Journey) (*EmissionsForJourneyResponse, error)
 	mustEmbedUnimplementedFlightsServer()
 }
 
@@ -74,6 +87,9 @@ type UnimplementedFlightsServer struct{}
 
 func (UnimplementedFlightsServer) ListAll(*emptypb.Empty, grpc.ServerStreamingServer[Flight]) error {
 	return status.Error(codes.Unimplemented, "method ListAll not implemented")
+}
+func (UnimplementedFlightsServer) EmissionsForJourney(context.Context, *Journey) (*EmissionsForJourneyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method EmissionsForJourney not implemented")
 }
 func (UnimplementedFlightsServer) mustEmbedUnimplementedFlightsServer() {}
 func (UnimplementedFlightsServer) testEmbeddedByValue()                 {}
@@ -107,13 +123,36 @@ func _Flights_ListAll_Handler(srv interface{}, stream grpc.ServerStream) error {
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Flights_ListAllServer = grpc.ServerStreamingServer[Flight]
 
+func _Flights_EmissionsForJourney_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Journey)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FlightsServer).EmissionsForJourney(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Flights_EmissionsForJourney_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FlightsServer).EmissionsForJourney(ctx, req.(*Journey))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Flights_ServiceDesc is the grpc.ServiceDesc for Flights service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Flights_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "s_rpc_flights.Flights",
 	HandlerType: (*FlightsServer)(nil),
-	Methods:     []grpc.MethodDesc{},
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "EmissionsForJourney",
+			Handler:    _Flights_EmissionsForJourney_Handler,
+		},
+	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "ListAll",

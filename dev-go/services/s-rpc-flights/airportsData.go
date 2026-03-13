@@ -10,8 +10,39 @@ import (
 	"strings"
 	"sync"
 
+	s_rpc_flights "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-flights"
+	"github.com/monzo/terrors"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
+
+var closedAirports = map[string]Airport{
+	"SXF": {
+		Name:    "Berlin Schönefeld",
+		Lat:     52.380001,
+		Lon:     13.5225,
+		Iata:    "SXF",
+		Country: "DE",
+	},
+}
+
+func airportFromCode(ctx context.Context, airportCode string) (*s_rpc_flights.Airport, error) {
+	byIata, err := loadAirports(ctx)
+	if err != nil {
+		return nil, terrors.Augment(err, "airport", nil)
+	}
+	a, ok := byIata[airportCode]
+	if !ok {
+		a, ok = closedAirports[airportCode]
+		if !ok {
+			return nil, terrors.NotFound("airport", "unknown airport code", map[string]string{"code": airportCode})
+		}
+	}
+	return &s_rpc_flights.Airport{
+		Code: a.Iata,
+		Lat:  a.Lat,
+		Lon:  a.Lon,
+	}, nil
+}
 
 var (
 	airportsOnce sync.Once

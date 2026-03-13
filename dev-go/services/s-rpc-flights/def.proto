@@ -8,6 +8,7 @@ import "google/protobuf/empty.proto";
 
 service Flights {
   rpc ListAll(google.protobuf.Empty) returns (stream Flight);
+  rpc EmissionsForJourney(Journey) returns (EmissionsForJourneyResponse);
 }
 
 message Flight {
@@ -19,4 +20,13 @@ message Airport {
   string code = 1;
   double lat = 2;
   double lon = 3;
+}
+
+message Journey {
+  string src_airport_code = 1;
+  string dst_airport_code = 2;
+}
+
+message EmissionsForJourneyResponse {
+  double CO2ekg = 1;
 }
