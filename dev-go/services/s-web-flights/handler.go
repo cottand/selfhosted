@@ -24,6 +24,11 @@ func (s *scaffold) MakeHTTPHandler() http.Handler {
 	return mux
 }
 
+func addHeaders(writer http.ResponseWriter) {
+	writer.Header().Set("Content-Type", geojsonContentType)
+	writer.Header().Set("Access-Control-Allow-Origin", "*")
+}
+
 func (s *scaffold) geoMap(writer http.ResponseWriter, request *http.Request) {
 	str, err := s.constructGeoMap(request.Context(), false)
 	if err != nil {
@@ -31,7 +36,7 @@ func (s *scaffold) geoMap(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	writer.Header().Set("Content-Type", geojsonContentType)
+	addHeaders(writer)
 	_, _ = writer.Write(str)
 }
 
@@ -42,7 +47,7 @@ func (s *scaffold) geoMapWithArcs(writer http.ResponseWriter, request *http.Requ
 		return
 	}
 
-	writer.Header().Set("Content-Type", geojsonContentType)
+	addHeaders(writer)
 	_, _ = writer.Write(str)
 }
 
