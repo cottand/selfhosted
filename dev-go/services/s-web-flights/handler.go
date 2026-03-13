@@ -14,11 +14,13 @@ import (
 	geojson "github.com/paulmach/go.geojson"
 )
 
+const geojsonContentType = "application/geo+json"
+
 func (s *scaffold) MakeHTTPHandler() http.Handler {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/geomap.json", s.geoMap)
-	mux.HandleFunc("/geomap-arcs.json", s.geoMapWithArcs)
+	mux.HandleFunc("/geomap.geojson", s.geoMap)
+	mux.HandleFunc("/geomap-arcs.geojson", s.geoMapWithArcs)
 	return mux
 }
 
@@ -29,7 +31,7 @@ func (s *scaffold) geoMap(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	writer.Header().Set("Content-Type", "application/json")
+	writer.Header().Set("Content-Type", geojsonContentType)
 	_, _ = writer.Write(str)
 }
 
@@ -40,7 +42,7 @@ func (s *scaffold) geoMapWithArcs(writer http.ResponseWriter, request *http.Requ
 		return
 	}
 
-	writer.Header().Set("Content-Type", "application/json")
+	writer.Header().Set("Content-Type", geojsonContentType)
 	_, _ = writer.Write(str)
 }
 

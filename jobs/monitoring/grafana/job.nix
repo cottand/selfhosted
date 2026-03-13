@@ -58,6 +58,7 @@ in
               { destinationName = "tempo-http"; localBindPort = 8001; }
               { destinationName = "loki-http"; localBindPort = 8002; }
               { destinationName = "tempo-otlp-grpc-mesh"; localBindPort = otlpPort; }
+              { destinationName = "s-web-flights"; localBindPort = 8010; }
             ];
             config = util.mkEnvoyProxyConfig {
               otlpService = "proxy-grafana-http";

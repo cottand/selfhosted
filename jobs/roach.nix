@@ -1,6 +1,11 @@
 { util, time, defaults, ... }:
 let
-  version = "v24.3.17";
+  # !! do not mess with the version in one go - upgrade one by one !!
+  versionOf = {
+    hez1 = "v25.4.6";
+    hez2 = "v25.4.6";
+    hez3 = "v25.4.6";
+  };
   cache = "70MB";
   maxSqlMem = "${toString (mem * 0.5)}MB";
   cpu = 1200;
@@ -62,7 +67,7 @@ let
       mode = "bridge";
       port."metrics" = { to = webPort; hostNetwork = "ts"; };
       port."health".hostNetwork = "ts";
-      
+
       reservedPorts = {
         "rpc" = { static = binds.${node}; hostNetwork = "ts"; };
         "rpc-local" = { static = binds.${node}; hostNetwork = "local-hetzner"; };
@@ -162,7 +167,7 @@ let
       }];
       driver = "docker";
       config = {
-        image = "cockroachdb/cockroach:${version}";
+        image = "cockroachdb/cockroach:${versionOf.${node}}";
         args = [
           "start"
           "--advertise-addr=${advertiseOf.${node}}"
