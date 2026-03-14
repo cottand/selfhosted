@@ -1,5 +1,6 @@
-{ writeShellScriptBin, self, system, util, ... }:
+{ writeShellScriptBin, self, stdenv, util, ... }:
 let
+  system = stdenv.hostPlatform.system;
   services = builtins.attrNames self.legacyPackages.${system}.services;
   perServiceCommand = map
     (name: (if (self.legacyPackages.${system}.services.${name} ? "protos") then

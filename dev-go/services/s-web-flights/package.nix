@@ -1,9 +1,10 @@
-{ buildGoModule, dockerTools, bash, buildEnv, system, util, ... }:
+{ buildGoModule, dockerTools, bash, buildEnv, stdenv, util, ... }:
 let
   name = "s-web-portfolio";
 
   src = util.cleanSourceForGoService name;
 
+  system = stdenv.hostPlatform.system;
   assetsEnv = buildEnv {
     name = "${name}-assets";
     paths = [

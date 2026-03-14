@@ -188,7 +188,8 @@ func (x *Journey) GetDstAirportCode() string {
 
 type EmissionsForJourneyResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	CO2Ekg        float64                `protobuf:"fixed64,1,opt,name=CO2ekg,proto3" json:"CO2ekg,omitempty"`
+	CO2EKg        float64                `protobuf:"fixed64,1,opt,name=CO2e_kg,json=CO2eKg,proto3" json:"CO2e_kg,omitempty"`
+	DistanceKm    float64                `protobuf:"fixed64,2,opt,name=distance_km,json=distanceKm,proto3" json:"distance_km,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -223,9 +224,16 @@ func (*EmissionsForJourneyResponse) Descriptor() ([]byte, []int) {
 	return file_s_rpc_flights_def_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *EmissionsForJourneyResponse) GetCO2Ekg() float64 {
+func (x *EmissionsForJourneyResponse) GetCO2EKg() float64 {
 	if x != nil {
-		return x.CO2Ekg
+		return x.CO2EKg
+	}
+	return 0
+}
+
+func (x *EmissionsForJourneyResponse) GetDistanceKm() float64 {
+	if x != nil {
+		return x.DistanceKm
 	}
 	return 0
 }
@@ -244,9 +252,11 @@ const file_s_rpc_flights_def_proto_rawDesc = "" +
 	"\x03lon\x18\x03 \x01(\x01R\x03lon\"]\n" +
 	"\aJourney\x12(\n" +
 	"\x10src_airport_code\x18\x01 \x01(\tR\x0esrcAirportCode\x12(\n" +
-	"\x10dst_airport_code\x18\x02 \x01(\tR\x0edstAirportCode\"5\n" +
-	"\x1bEmissionsForJourneyResponse\x12\x16\n" +
-	"\x06CO2ekg\x18\x01 \x01(\x01R\x06CO2ekg2\xa0\x01\n" +
+	"\x10dst_airport_code\x18\x02 \x01(\tR\x0edstAirportCode\"W\n" +
+	"\x1bEmissionsForJourneyResponse\x12\x17\n" +
+	"\aCO2e_kg\x18\x01 \x01(\x01R\x06CO2eKg\x12\x1f\n" +
+	"\vdistance_km\x18\x02 \x01(\x01R\n" +
+	"distanceKm2\xa0\x01\n" +
 	"\aFlights\x12:\n" +
 	"\aListAll\x12\x16.google.protobuf.Empty\x1a\x15.s_rpc_flights.Flight0\x01\x12Y\n" +
 	"\x13EmissionsForJourney\x12\x16.s_rpc_flights.Journey\x1a*.s_rpc_flights.EmissionsForJourneyResponseB=Z;github.com/Cottand/selfosted/dev-go/lib/proto/s-rpc-flightsb\x06proto3"

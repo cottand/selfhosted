@@ -68,7 +68,8 @@ func (h *ProtoHandler) EmissionsForJourney(ctx context.Context, req *s_rpc_fligh
 	co2ekg := flightKmToCO2e(distance)
 
 	return &s_rpc_flights.EmissionsForJourneyResponse{
-		CO2Ekg: co2ekg,
+		DistanceKm: distance,
+		CO2EKg:     co2ekg,
 	}, nil
 }
 
