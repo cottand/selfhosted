@@ -28,5 +28,6 @@ message Journey {
 }
 
 message EmissionsForJourneyResponse {
-  double CO2ekg = 1;
+  double CO2e_kg = 1;
+  double distance_km = 2;
 }
