@@ -7,6 +7,8 @@
     memoryMax = factor * memoryMax + 60;
   };
 
+  localhost = "127.0.0.1";
+
   mkEnvoyProxyConfig =
     { otlpService
     , otlpUpstreamPort

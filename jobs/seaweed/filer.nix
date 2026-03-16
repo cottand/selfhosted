@@ -1,7 +1,7 @@
 { util, time, defaults, ... }:
 let
   name = "seaweed-filer";
-  version = "3.87";
+  version = "4.03";
   cpu = 100;
   mem = 200;
   ports = {

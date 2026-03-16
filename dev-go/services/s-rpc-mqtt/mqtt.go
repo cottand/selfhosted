@@ -5,14 +5,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"net/url"
 	"strconv"
 	"sync"
 	"time"
 
 	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
 	"github.com/cottand/selfhosted/dev-go/lib/config"
-	"github.com/cottand/selfhosted/dev-go/lib/locks"
-	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/eclipse/paho.golang/autopaho"
+	"github.com/eclipse/paho.golang/paho"
 	"github.com/monzo/terrors"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel"
@@ -35,35 +36,60 @@ type ServiceData struct {
 	Button        []int `json:"button"`
 }
 
-type mqttRouter struct {
-	c              mqtt.Client
-	clientId       string
-	lock           *locks.Lock
-	connectionLost chan struct{}
+type mqttScaffold struct {
+	cm       *autopaho.ConnectionManager
+	clientId string
 }
 
-func newMqttRouter(brokerAddr string, clientID string) *mqttRouter {
-	opts := mqtt.NewClientOptions()
-	opts.SetClientID(clientID)
-	opts.AddBroker(brokerAddr)
-	// see https://github.com/eclipse-paho/paho.mqtt.golang?tab=readme-ov-file#common-problems
-	opts.SetOrderMatters(false)
-	opts.SetKeepAlive(5 * time.Second)
-	opts.SetAutoReconnect(true)
+func newMqtt(ctx context.Context, brokerAddr string, clientID string) (*mqttScaffold, error) {
+	u, err := url.Parse(brokerAddr)
+	if err != nil {
+		return nil, terrors.Augment(err, "could not parse broker URL", nil)
+	}
 
-	router := &mqttRouter{clientId: opts.ClientID}
-	opts.SetConnectionLostHandler(func(client mqtt.Client, err error) {
-		slog.WarnContext(
-			bedrock.CtxWithModuleName(context.TODO(), Name),
-			"mqtt connection lost",
-			"brokerAddr", brokerAddr, "err", err,
-		)
-		router.onDisconnect()
-	})
+	scaffold := &mqttScaffold{clientId: clientID}
 
-	router.c = mqtt.NewClient(opts)
+	cfg := autopaho.ClientConfig{
+		ServerUrls:                    []*url.URL{u},
+		KeepAlive:                     5,
+		CleanStartOnInitialConnection: true,
+		SessionExpiryInterval:         60,
+		OnConnectionUp: func(cm *autopaho.ConnectionManager, connAck *paho.Connack) {
+			slog.InfoContext(ctx, "mqtt connection up, subscribing to BLE events")
+			// MQTT v5 shared subscription: the broker delivers each message to
+			// only one subscriber in the group, removing the need for a distributed lock.
+			if _, err := cm.Subscribe(ctx, &paho.Subscribe{
+				Subscriptions: []paho.SubscribeOptions{
+					{Topic: "$share/" + Name + "/94:b2:16:1d:c1:ed", QoS: 1},
+				},
+			}); err != nil {
+				slog.ErrorContext(ctx, "failed to subscribe to BLE events", "err", err)
+			}
+		},
+		OnConnectError: func(err error) {
+			slog.ErrorContext(ctx, "mqtt connection error", "err", err)
+		},
+		ClientConfig: paho.ClientConfig{
+			ClientID: clientID,
+			OnPublishReceived: []func(paho.PublishReceived) (bool, error){
+				func(pr paho.PublishReceived) (bool, error) {
+					if pr.Packet.Topic == "94:b2:16:1d:c1:ed" {
+						go scaffold.handleButtonEvent(pr.Packet)
+						return true, nil
+					}
+					return false, nil
+				},
+			},
+		},
+	}
 
-	return router
+	cm, err := autopaho.NewConnection(ctx, cfg)
+	if err != nil {
+		return nil, terrors.Augment(err, "could not create mqtt connection", nil)
+	}
+	scaffold.cm = cm
+
+	return scaffold, nil
 }
 
 type shellyLightStatusResponse struct {
@@ -90,49 +116,9 @@ type shellyLightStatusResponse struct {
 	} `json:"result"`
 }
 
-func (r *mqttRouter) onDisconnect() {
-	r.connectionLost <- struct{}{}
-}
-
-// startConnection tries to grab the leadership lock and then connects to the mqtt broker.
-// It will then subscribe to the BLE events topic and handle button events.
-// It will not return unless there is an error
-func (r *mqttRouter) startConnection(ctx context.Context) error {
-	defer r.c.Disconnect(250)
-
-	// service will block here until someone else releases the lock
-	lock, err := locks.Grab(ctx, fmt.Sprintf("services/%s/mqtt-leader", Name))
-	if err != nil {
-		return terrors.Augment(err, "failed to grab mqtt-leader lock", nil)
-	}
-	leaderGauge.Set(1)
-	defer lock.Release(ctx)
-	defer leaderGauge.Set(0)
-
-	if token := r.c.Connect(); token.Wait() && token.Error() != nil {
-		return token.Error()
-	}
-
-	slog.InfoContext(ctx, "became mqtt leader 🎉 starting router")
-
-	if token := r.c.Subscribe("94:b2:16:1d:c1:ed", 1, func(c mqtt.Client, m mqtt.Message) {
-		go r.handleButtonEvent(c, m)
-	}); token.Wait() && token.Error() != nil {
-		return token.Error()
-	}
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case <-lock.Lost:
-		return terrors.InternalService("lost_lock", "mqtt-leader lock lost", nil)
-	case <-r.connectionLost:
-		return terrors.InternalService("disconnected", "lost connection to mqtt broker", nil)
-	}
-}
-
 var tracer = otel.Tracer(Name)
 
-func (r *mqttRouter) shellyRPCResp(ctx context.Context, topic string, rpcMethod string, paramsJson map[string]any) (_ mqtt.Message, err error) {
+func (r *mqttScaffold) shellyRPCResp(ctx context.Context, topic string, rpcMethod string, paramsJson map[string]any) (_ *paho.Publish, err error) {
 	ctx, span := tracer.Start(ctx, "mqtt_call.shellyRPC")
 	defer span.End()
 	defer func() {
@@ -143,20 +129,35 @@ func (r *mqttRouter) shellyRPCResp(ctx context.Context, topic string, rpcMethod 
 
 	errParams := map[string]string{"rpcMethod": rpcMethod, "paramsJson": fmt.Sprint(paramsJson)}
 
-	recv := make(chan mqtt.Message, 1)
+	recv := make(chan *paho.Publish, 1)
 	replyTopic := fmt.Sprintf("%s/%s", topic, r.clientId)
+	// shelly replies on dst/rpc, see https://shelly-api-docs.shelly.cloud/gen2/ComponentsAndServices/Mqtt#step-6-receive-notifications-over-mqtt
+	replySubTopic := replyTopic + "/rpc"
 	errParams["replyTopic"] = replyTopic
 
-	// shelly replies on dst/rpc, see https://shelly-api-docs.shelly.cloud/gen2/ComponentsAndServices/Mqtt#step-6-receive-notifications-over-mqtt
-	t := r.c.Subscribe(replyTopic+"/rpc", 1, func(client mqtt.Client, message mqtt.Message) {
-		defer message.Ack()
-		go r.c.Unsubscribe(message.Topic())
-		span.AddEvent("mqtt_receive", trace.WithAttributes(attribute.String("topic", message.Topic()), attribute.String("payload", string(message.Payload()))))
-		recv <- message
+	removeHandler := r.cm.AddOnPublishReceived(func(pr autopaho.PublishReceived) (bool, error) {
+		if pr.Packet.Topic != replySubTopic {
+			return false, nil
+		}
+		span.AddEvent("mqtt_receive", trace.WithAttributes(
+			attribute.String("topic", pr.Packet.Topic),
+			attribute.String("payload", string(pr.Packet.Payload)),
+		))
+		recv <- pr.Packet
+		return true, nil
 	})
-	if t.Wait() && t.Error() != nil {
-		return nil, terrors.Augment(t.Error(), "could not subscribe to topic", errParams)
+	defer removeHandler()
+
+	if _, err := r.cm.Subscribe(ctx, &paho.Subscribe{
+		Subscriptions: []paho.SubscribeOptions{
+			{Topic: replySubTopic, QoS: 1},
+		},
+	}); err != nil {
+		return nil, terrors.Augment(err, "could not subscribe to topic", errParams)
 	}
+	defer func() {
+		_, _ = r.cm.Unsubscribe(ctx, &paho.Unsubscribe{Topics: []string{replySubTopic}})
+	}()
 
 	uniqueId := strconv.FormatInt(time.Now().UnixNano(), 10)
 	payload, err := json.Marshal(map[string]any{
@@ -168,9 +169,13 @@ func (r *mqttRouter) shellyRPCResp(ctx context.Context, topic string, rpcMethod 
 	if err != nil {
 		return nil, terrors.Augment(err, "could not marshal payload", errParams)
 	}
-	pubT := r.c.Publish(topic, 1, false, payload)
-	if pubT.Wait() && pubT.Error() != nil {
-		return nil, terrors.Augment(pubT.Error(), "could not publish message", errParams)
+
+	if _, err := r.cm.Publish(ctx, &paho.Publish{
+		QoS:     1,
+		Topic:   topic,
+		Payload: payload,
+	}); err != nil {
+		return nil, terrors.Augment(err, "could not publish message", errParams)
 	}
 
 	select {
@@ -181,18 +186,17 @@ func (r *mqttRouter) shellyRPCResp(ctx context.Context, topic string, rpcMethod 
 	}
 }
 
-func (r *mqttRouter) handleButtonEvent(client mqtt.Client, message mqtt.Message) {
+func (r *mqttScaffold) handleButtonEvent(packet *paho.Publish) {
 	ctx := bedrock.ContextForModule(Name, context.Background())
 	ctx, span := tracer.Start(ctx, "mqtt_handle.handleButtonEvent")
-	span.AddEvent("mqtt_receive", trace.WithAttributes(attribute.String("topic", message.Topic()), attribute.String("payload", string(message.Payload()))))
+	span.AddEvent("mqtt_receive", trace.WithAttributes(attribute.String("topic", packet.Topic), attribute.String("payload", string(packet.Payload))))
 
 	defer span.End()
-	defer message.Ack()
 
 	event := BLEEvent{}
-	err := json.Unmarshal(message.Payload(), &event)
+	err := json.Unmarshal(packet.Payload, &event)
 	if err != nil {
-		slog.Error("could not parse BLE event", "err", err, "payload", string(message.Payload()))
+		slog.Error("could not parse BLE event", "err", err, "payload", string(packet.Payload))
 		return
 	}
 
@@ -238,7 +242,7 @@ func (r *mqttRouter) handleButtonEvent(client mqtt.Client, message mqtt.Message)
 			return
 		}
 		var parsed shellyLightStatusResponse
-		if err := json.Unmarshal(lightStatus.Payload(), &parsed); err != nil {
+		if err := json.Unmarshal(lightStatus.Payload, &parsed); err != nil {
 			span.RecordError(err)
 			slog.Error("could not parse light status", "err", err)
 			return

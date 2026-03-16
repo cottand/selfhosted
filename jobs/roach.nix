@@ -7,8 +7,8 @@ let
     hez3 = "v25.4.6";
   };
   cache = "70MB";
-  maxSqlMem = "${toString (mem * 0.5)}MB";
-  cpu = 1200;
+  maxSqlMem = "${toString (mem * 0.6)}MB";
+  cpu = 1500;
   mem = 1500;
   rpcPort = 26257;
   webPort = 8080;

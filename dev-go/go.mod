@@ -9,7 +9,6 @@ require (
 	github.com/XSAM/otelsql v0.41.0
 	github.com/aws/aws-sdk-go-v2 v1.41.2
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.96.2
-	github.com/eclipse/paho.mqtt.golang v1.5.1
 	github.com/farcaller/gonix v0.3.2
 	github.com/golang-migrate/migrate/v4 v4.19.1
 	github.com/hashicorp/consul/api v1.33.4
@@ -37,6 +36,7 @@ require (
 )
 
 require (
+	github.com/eclipse/paho.golang v0.23.0
 	github.com/golang/geo v0.0.0-20260302211937-87f5a40ea07a
 	github.com/paulmach/go.geojson v1.5.0
 )

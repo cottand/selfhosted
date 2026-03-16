@@ -51,7 +51,7 @@
   NOMAD_ADDR = "https://nomad.dcotta.com";
   CONSUL_ADDR = "https://consul.dcotta.com";
 
-  VAULT_ADDR = "https://vault.dcotta.com";
+  VAULT_ADDR = "https://vault.dcotta.com:8200";
 
   NIX_PATH = "";
 
