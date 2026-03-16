@@ -27,6 +27,7 @@ github.com/hashicorp/nomad/api
 github.com/hashicorp/vault/api
 github.com/jackc/pgx/v5/stdlib
 github.com/monzo/terrors
+github.com/patrickmn/go-cache
 github.com/paulmach/go.geojson
 github.com/prometheus/client_golang/prometheus
 github.com/prometheus/client_golang/prometheus/promauto

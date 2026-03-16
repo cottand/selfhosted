@@ -1,4 +1,4 @@
-{ buildGoModule, dockerTools, bash, buildEnv, system, util, ... }:
+{ buildGoModule, dockerTools, bash, buildEnv, util, ... }:
 let
   name = builtins.baseNameOf ./.;
 

@@ -103,6 +103,7 @@ in
           memoryMax = builtins.ceil (2 * mem);
         };
 
+        env.MOSQUITTO_UNSAFE_ALLOW_SYMLINKS = "true";
         templates = [{
           destination = "local/mosquitto.conf";
           changeMode = "restart";
