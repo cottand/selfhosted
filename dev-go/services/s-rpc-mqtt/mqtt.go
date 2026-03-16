@@ -176,7 +176,8 @@ type shellyLightStatusResponse struct {
 var tracer = otel.Tracer(Name)
 
 func (r *mqttScaffold) shellyRPCResp(ctx context.Context, topic string, rpcMethod string, paramsJson map[string]any) (_ *paho.Publish, err error) {
-	ctx, span := tracer.Start(ctx, "mqtt_call.shellyRPC")
+	ctx, span := tracer.Start(ctx, "mqtt_call.shellyRPC", trace.WithAttributes(attribute.String("topic", topic), attribute.String("rpcMethod", rpcMethod), attribute.String("paramsJson", fmt.Sprint(paramsJson))))
+	ctx, _ = context.WithDeadline(ctx, time.Now().Add(10*time.Second))
 	defer span.End()
 	defer func() {
 		if err != nil {
@@ -246,9 +247,8 @@ func (r *mqttScaffold) shellyRPCResp(ctx context.Context, topic string, rpcMetho
 func (r *mqttScaffold) handleButtonEvent(packet *paho.Publish) {
 	ctx := bedrock.ContextForModule(Name, context.Background())
 	ctx, span := tracer.Start(ctx, "mqtt_handle.handleButtonEvent")
-	span.AddEvent("mqtt_receive", trace.WithAttributes(attribute.String("topic", packet.Topic), attribute.String("payload", string(packet.Payload))))
-
 	defer span.End()
+	span.AddEvent("mqtt_receive", trace.WithAttributes(attribute.String("topic", packet.Topic), attribute.String("payload", string(packet.Payload))))
 
 	event := BLEEvent{}
 	err := json.Unmarshal(packet.Payload, &event)
