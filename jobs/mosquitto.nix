@@ -110,6 +110,7 @@ in
           data = ''
             listener ${toString port} 0.0.0.0
             allow_anonymous true
+            log_type all
           '';
         }];
 
