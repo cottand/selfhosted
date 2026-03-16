@@ -46,11 +46,13 @@ type mqttScaffold struct {
 }
 
 type leaderState struct {
-	isLeader atomic.Bool
+	isLeader *atomic.Bool
 }
 
 func newLeaderState(ctx context.Context) *leaderState {
-	ls := &leaderState{}
+	ls := &leaderState{
+		isLeader: &atomic.Bool{},
+	}
 	go ls.run(ctx)
 	return ls
 }

@@ -11,6 +11,8 @@ transport.respondingTimeouts.readTimeout = "15m"
 [entryPoints.websecure]
 address = ':{{ env "NOMAD_PORT_https_ts" }}'
 transport.respondingTimeouts.readTimeout = "15m"
+transport.respondingTimeouts.writeTimeout = "15m"
+transport.respondingTimeouts.idleTimeout = "15m"
 
 # redirects 8000 (in container) to 443
 [entryPoints.web_public]
