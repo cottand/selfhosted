@@ -7,7 +7,6 @@ import (
 	"log/slog"
 	"net/url"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
@@ -15,6 +14,7 @@ import (
 	"github.com/eclipse/paho.golang/autopaho"
 	"github.com/eclipse/paho.golang/paho"
 	"github.com/monzo/terrors"
+	cache "github.com/patrickmn/go-cache"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -41,6 +41,8 @@ type mqttScaffold struct {
 	clientId string
 }
 
+const buttonTopic = "94:b2:16:1d:c1:ed"
+
 func newMqtt(ctx context.Context, brokerAddr string, clientID string) (*mqttScaffold, error) {
 	u, err := url.Parse(brokerAddr)
 	if err != nil {
@@ -58,13 +60,15 @@ func newMqtt(ctx context.Context, brokerAddr string, clientID string) (*mqttScaf
 			slog.InfoContext(ctx, "mqtt connection up, subscribing to BLE events")
 			// MQTT v5 shared subscription: the broker delivers each message to
 			// only one subscriber in the group, removing the need for a distributed lock.
+			topic := "$share/" + Name + "/" + buttonTopic
 			if _, err := cm.Subscribe(ctx, &paho.Subscribe{
 				Subscriptions: []paho.SubscribeOptions{
-					{Topic: "$share/" + Name + "/94:b2:16:1d:c1:ed", QoS: 1},
+					{Topic: topic, QoS: 1},
 				},
 			}); err != nil {
 				slog.ErrorContext(ctx, "failed to subscribe to BLE events", "err", err)
 			}
+			slog.InfoContext(ctx, "subscribed to BLE events", "topic", topic)
 		},
 		OnConnectError: func(err error) {
 			slog.ErrorContext(ctx, "mqtt connection error", "err", err)
@@ -73,7 +77,7 @@ func newMqtt(ctx context.Context, brokerAddr string, clientID string) (*mqttScaf
 			ClientID: clientID,
 			OnPublishReceived: []func(paho.PublishReceived) (bool, error){
 				func(pr paho.PublishReceived) (bool, error) {
-					if pr.Packet.Topic == "94:b2:16:1d:c1:ed" {
+					if pr.Packet.Topic == buttonTopic {
 						go scaffold.handleButtonEvent(pr.Packet)
 						return true, nil
 					}
@@ -86,6 +90,10 @@ func newMqtt(ctx context.Context, brokerAddr string, clientID string) (*mqttScaf
 	cm, err := autopaho.NewConnection(ctx, cfg)
 	if err != nil {
 		return nil, terrors.Augment(err, "could not create mqtt connection", nil)
+	}
+	err = cm.AwaitConnection(ctx)
+	if err != nil {
+		return nil, terrors.Augment(err, "could not await mqtt connection", nil)
 	}
 	scaffold.cm = cm
 
@@ -272,13 +280,9 @@ func (r *mqttScaffold) handleButtonEvent(packet *paho.Publish) {
 	}
 }
 
-var seenPIDs = map[int]struct{}{}
-var seenPIDsLock = &sync.Mutex{}
+var seenPIDs = cache.New(10*time.Second, 10*time.Second)
 
 func pidSeen(pid int) bool {
-	seenPIDsLock.Lock()
-	defer seenPIDsLock.Unlock()
-	_, ok := seenPIDs[pid]
-	seenPIDs[pid] = struct{}{}
-	return ok
+	found, _ := seenPIDs.IncrementInt(strconv.Itoa(pid), 1)
+	return found == 0
 }

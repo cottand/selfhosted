@@ -38,6 +38,7 @@ require (
 require (
 	github.com/eclipse/paho.golang v0.23.0
 	github.com/golang/geo v0.0.0-20260302211937-87f5a40ea07a
+	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/paulmach/go.geojson v1.5.0
 )
 

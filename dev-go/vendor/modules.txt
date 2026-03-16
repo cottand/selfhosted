@@ -425,6 +425,9 @@ github.com/monzo/terrors/stack
 # github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822
 ## explicit
 github.com/munnerz/goautoneg
+# github.com/patrickmn/go-cache v2.1.0+incompatible
+## explicit
+github.com/patrickmn/go-cache
 # github.com/paulmach/go.geojson v1.5.0
 ## explicit; go 1.18
 github.com/paulmach/go.geojson
