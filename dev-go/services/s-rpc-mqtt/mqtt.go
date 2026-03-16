@@ -7,10 +7,13 @@ import (
 	"log/slog"
 	"net/url"
 	"strconv"
+	"sync/atomic"
 	"time"
 
 	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
 	"github.com/cottand/selfhosted/dev-go/lib/config"
+	"github.com/cottand/selfhosted/dev-go/lib/locks"
+	"github.com/cottand/selfhosted/dev-go/lib/util"
 	"github.com/eclipse/paho.golang/autopaho"
 	"github.com/eclipse/paho.golang/paho"
 	"github.com/monzo/terrors"
@@ -39,6 +42,44 @@ type ServiceData struct {
 type mqttScaffold struct {
 	cm       *autopaho.ConnectionManager
 	clientId string
+	leader   *leaderState
+}
+
+type leaderState struct {
+	isLeader atomic.Bool
+}
+
+func newLeaderState(ctx context.Context) *leaderState {
+	ls := &leaderState{}
+	go ls.run(ctx)
+	return ls
+}
+
+func (ls *leaderState) run(ctx context.Context) {
+	lockKey := fmt.Sprintf("services/%s/mqtt-leader", Name)
+	for {
+		if ctx.Err() != nil {
+			return
+		}
+		lock, err := locks.Grab(ctx, lockKey)
+		if err != nil {
+			slog.ErrorContext(ctx, "failed to grab mqtt-leader lock", "err", err)
+			continue
+		}
+		defer lock.Release(ctx)
+		ls.isLeader.Store(true)
+		leaderGauge.Set(1)
+		slog.InfoContext(ctx, "became mqtt leader")
+
+		select {
+		case <-ctx.Done():
+			return
+		case <-lock.Lost:
+			slog.InfoContext(ctx, "lost mqtt-leader lock")
+		}
+		ls.isLeader.Store(false)
+		leaderGauge.Set(0)
+	}
 }
 
 const buttonTopic = "94:b2:16:1d:c1:ed"
@@ -49,7 +90,14 @@ func newMqtt(ctx context.Context, brokerAddr string, clientID string) (*mqttScaf
 		return nil, terrors.Augment(err, "could not parse broker URL", nil)
 	}
 
-	scaffold := &mqttScaffold{clientId: clientID}
+	scaffold := &mqttScaffold{
+		clientId: clientID,
+		leader:   newLeaderState(ctx),
+	}
+	ctx = util.CtxWithLog(ctx,
+		slog.String("mqtt-broker", brokerAddr),
+		slog.String("mqtt-client-id", clientID),
+	)
 
 	cfg := autopaho.ClientConfig{
 		ServerUrls:                    []*url.URL{u},
@@ -57,18 +105,14 @@ func newMqtt(ctx context.Context, brokerAddr string, clientID string) (*mqttScaf
 		CleanStartOnInitialConnection: true,
 		SessionExpiryInterval:         60,
 		OnConnectionUp: func(cm *autopaho.ConnectionManager, connAck *paho.Connack) {
-			slog.InfoContext(ctx, "mqtt connection up, subscribing to BLE events")
-			// MQTT v5 shared subscription: the broker delivers each message to
-			// only one subscriber in the group, removing the need for a distributed lock.
-			topic := "$share/" + Name + "/" + buttonTopic
 			if _, err := cm.Subscribe(ctx, &paho.Subscribe{
 				Subscriptions: []paho.SubscribeOptions{
-					{Topic: topic, QoS: 1},
+					{Topic: buttonTopic, QoS: 1},
 				},
 			}); err != nil {
 				slog.ErrorContext(ctx, "failed to subscribe to BLE events", "err", err)
 			}
-			slog.InfoContext(ctx, "subscribed to BLE events", "topic", topic)
+			slog.InfoContext(ctx, "mqtt connection up, subscribed to BLE events")
 		},
 		OnConnectError: func(err error) {
 			slog.ErrorContext(ctx, "mqtt connection error", "err", err)
@@ -78,7 +122,9 @@ func newMqtt(ctx context.Context, brokerAddr string, clientID string) (*mqttScaf
 			OnPublishReceived: []func(paho.PublishReceived) (bool, error){
 				func(pr paho.PublishReceived) (bool, error) {
 					if pr.Packet.Topic == buttonTopic {
-						go scaffold.handleButtonEvent(pr.Packet)
+						if scaffold.leader.isLeader.Load() {
+							go scaffold.handleButtonEvent(pr.Packet)
+						}
 						return true, nil
 					}
 					return false, nil
