@@ -68,13 +68,13 @@ func (ls *leaderState) run(ctx context.Context) {
 			slog.ErrorContext(ctx, "failed to grab mqtt-leader lock", "err", err)
 			continue
 		}
-		defer lock.Release(ctx)
 		ls.isLeader.Store(true)
 		leaderGauge.Set(1)
 		slog.InfoContext(ctx, "became mqtt leader")
 
 		select {
 		case <-ctx.Done():
+			lock.Release(ctx)
 			return
 		case <-lock.Lost:
 			slog.InfoContext(ctx, "lost mqtt-leader lock")
