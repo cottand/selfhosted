@@ -6,6 +6,12 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
+var leaderGauge = promauto.NewGauge(prometheus.GaugeOpts{
+	Namespace: util.KebabToSnakeCase(Name),
+	Name:      "mqtt_leader",
+	Help:      "Whether this node thinks they are the leader",
+})
+
 var buttonEvent = promauto.NewCounterVec(prometheus.CounterOpts{
 	Namespace: util.KebabToSnakeCase(Name),
 	Name:      "button_event",

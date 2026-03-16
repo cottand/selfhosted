@@ -12,19 +12,7 @@ import (
 	"github.com/monzo/terrors"
 )
 
-var clientMutex = &sync.Mutex{}
-var consulClient *consul.Client
-
-func getOrStart() (*consul.Client, error) {
-	if consulClient != nil {
-		return consulClient, nil
-	}
-	clientMutex.Lock()
-	defer clientMutex.Unlock()
-
-	if consulClient != nil {
-		return consulClient, nil
-	}
+var loadConsulClient = sync.OnceValues(func() (*consul.Client, error) {
 	consulAddr, ok := os.LookupEnv("DCOTTA_COM_NODE_CONSUL_ADDR")
 	if !ok {
 		return nil, terrors.PreconditionFailed("", "DCOTTA_COM_NODE_CONSUL_ADDR not found - seems we're not running in Nomad?", nil)
@@ -35,11 +23,8 @@ func getOrStart() (*consul.Client, error) {
 	if err != nil {
 		return nil, terrors.Augment(err, "failed to init Consul client", nil)
 	}
-	consulClient = c
 	return c, nil
-}
-
-var defaultQueryOpts = &consul.QueryOptions{}
+})
 
 type Lock struct {
 	consulLock *consul.Lock
@@ -49,7 +34,7 @@ type Lock struct {
 
 func Grab(ctx context.Context, key string) (*Lock, error) {
 	errParams := map[string]string{"lockKey": key}
-	client, err := getOrStart()
+	client, err := loadConsulClient()
 	if err != nil {
 		return nil, terrors.Augment(err, "consul client not initialised", nil)
 	}

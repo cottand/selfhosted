@@ -35,7 +35,7 @@ in
         port."metrics".hostNetwork = "ts";
       };
 
-      service."${name}-mqtt" ={
+      service."${name}-mqtt" = {
         connect.sidecarService = {
           proxy = {
             upstreams = [{ destinationName = "tempo-otlp-grpc-mesh"; localBindPort = otlpPort; }];
@@ -49,7 +49,7 @@ in
         };
         connect.sidecarTask.resources = sidecarResources;
         port = toString port;
-        checks = [];
+        checks = [ ];
         tags = [
           "traefik.enable=true"
           "traefik.consulcatalog.connect=true"
@@ -110,8 +110,8 @@ in
           data = ''
             listener ${toString port} 0.0.0.0
             allow_anonymous true
-            log_type all
           '';
+          #log_type all
         }];
 
         config.mount = [{
