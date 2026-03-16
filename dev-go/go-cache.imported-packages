@@ -15,7 +15,8 @@ fmt
 github.com/XSAM/otelsql
 github.com/aws/aws-sdk-go-v2/aws
 github.com/aws/aws-sdk-go-v2/service/s3
-github.com/eclipse/paho.mqtt.golang
+github.com/eclipse/paho.golang/autopaho
+github.com/eclipse/paho.golang/paho
 github.com/farcaller/gonix
 github.com/golang-migrate/migrate/v4
 github.com/golang-migrate/migrate/v4/database/cockroachdb
@@ -59,8 +60,10 @@ io
 iter
 log
 log/slog
+math
 net
 net/http
+net/url
 os
 os/exec
 path

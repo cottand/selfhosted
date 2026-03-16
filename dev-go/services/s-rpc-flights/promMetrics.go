@@ -114,7 +114,8 @@ func refreshYearlyCo2(ctx context.Context, db *sql.DB, year int) error {
 	}
 
 	flightFootprint.With(prometheus.Labels{"year": strconv.Itoa(year)}).Set(totalKg)
-	slog.InfoContext(ctx, "greatest flight", "flight", greatestFlight)
+	// TODO extra metric
+	slog.DebugContext(ctx, "greatest flight", "flight", greatestFlight)
 
 	return nil
 }

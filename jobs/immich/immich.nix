@@ -1,7 +1,6 @@
 { util, time, defaults, ... }:
 let
-  lib = (import ../lib) { };
-  version = "v1.139.3";
+  version = "v2.5.6";
   domain = "immich.dcotta.com";
   ports = {
     http = 8080;
@@ -24,10 +23,10 @@ let
   };
   sidecarResources = util.mkResourcesWithFactor 0.18 resources;
   otlpPort = 9001;
-  bind = lib.localhost;
+  bind = util.localhost;
   restart = {
     attempts = 4;
-    interval = 10 * lib.minutes;
+    interval = 10 * time.minute;
     delay = 20 * time.second;
     mode = "delay";
   };
@@ -74,7 +73,7 @@ in
               { destinationName = "immich-redis"; localBindPort = ports.redis; }
               { destinationName = "immich-ml-http"; localBindPort = ports.ml-http; }
             ];
-            config = lib.mkEnvoyProxyConfig {
+            config = util.mkEnvoyProxyConfig {
               otlpService = "proxy-immich-http";
               otlpUpstreamPort = otlpPort;
               protocol = "http";
@@ -160,9 +159,9 @@ in
           IMMICH_PORT = toString ports.http;
           IMMICH_HOST = bind;
           DB_DATABASE_NAME = "immich";
-          DB_HOSTNAME = lib.localhost;
+          DB_HOSTNAME = util.localhost;
           DB_PORT = toString ports.postgres;
-          REDIS_HOSTNAME = lib.localhost;
+          REDIS_HOSTNAME = util.localhost;
           REDIS_PORT = toString ports.redis;
           IMMCH_ENV = "production";
           IMMICH_MEDIA_LOCATION = "/vol/immich-pictures";
@@ -246,7 +245,7 @@ in
                   };
                   logging = { enabled = true; level = "log"; };
                   machineLearning = {
-                    urls = [ "http://${lib.localhost}:${toString ports.ml-http}" ];
+                    urls = [ "http://${util.localhost}:${toString ports.ml-http}" ];
                     #                                classification = { enabled = true; minScore = 0.7; modelName = "microsoft/resnet-50"; };
                     clip = { enabled = true; modelName = "ViT-B-32::openai"; };
                     duplicateDetection = { enabled = true; maxDistance = 0.01; };

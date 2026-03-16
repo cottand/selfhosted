@@ -1,7 +1,7 @@
 { util, time, defaults, ... }:
 let
   name = "seaweed-volume";
-  version = "3.95";
+  version = "3.97";
 
   ports = {
     http = 7002;
@@ -172,9 +172,8 @@ in
             # from master DNS and well-known ports so that job is not reset
             "-mserver=hez1.${util.tailscaleDns}:9333,hez2.${util.tailscaleDns}:9333,hez3.${util.tailscaleDns}:9333"
             "-dir=/volume"
-            "-max=0"
             #"-dataCenter=\${node.datacenter}"
-#            "-dataCenter=global"
+            #            "-dataCenter=global"
             "-rack=\${node.unique.name}"
             "-ip=\${node.unique.name}.${util.tailscaleDns}"
             "-ip.bind=0.0.0.0"

@@ -2,7 +2,6 @@ package module
 
 import (
 	"context"
-	"errors"
 	"log/slog"
 
 	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
@@ -27,16 +26,12 @@ func InitService() (*bedrock.Service, string, error) {
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
-	go func() {
-		for {
-			err := newMqttRouter(brokerAddr, Name+"_"+baseConfig.AllocID).
-				startConnection(ctx)
-			if err != nil && !errors.Is(err, context.Canceled) {
-				slog.ErrorContext(ctx, "failed to start mqtt router", "brokerAddr", brokerAddr, "err", err)
-				return
-			}
-		}
-	}()
+	router, err := newMqtt(ctx, brokerAddr, Name+"_"+baseConfig.AllocID)
+	if err != nil {
+		cancel()
+		slog.ErrorContext(ctx, "failed to create mqtt router", "brokerAddr", brokerAddr, "err", err)
+		return nil, Name, err
+	}
 
 	return &bedrock.Service{
 		Name: Name,
@@ -45,6 +40,7 @@ func InitService() (*bedrock.Service, string, error) {
 		},
 		OnShutdown: func() error {
 			cancel()
+			<-router.cm.Done()
 			return nil
 		},
 	}, Name, nil

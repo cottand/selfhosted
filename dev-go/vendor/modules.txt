@@ -179,10 +179,17 @@ github.com/cockroachdb/cockroach-go/v2/crdb
 # github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 ## explicit
 github.com/davecgh/go-spew/spew
-# github.com/eclipse/paho.mqtt.golang v1.5.1
+# github.com/eclipse/paho.golang v0.23.0
 ## explicit; go 1.24.0
-github.com/eclipse/paho.mqtt.golang
-github.com/eclipse/paho.mqtt.golang/packets
+github.com/eclipse/paho.golang/autopaho
+github.com/eclipse/paho.golang/autopaho/queue
+github.com/eclipse/paho.golang/autopaho/queue/memory
+github.com/eclipse/paho.golang/packets
+github.com/eclipse/paho.golang/paho
+github.com/eclipse/paho.golang/paho/log
+github.com/eclipse/paho.golang/paho/session
+github.com/eclipse/paho.golang/paho/session/state
+github.com/eclipse/paho.golang/paho/store/memory
 # github.com/farcaller/gonix v0.3.2
 ## explicit; go 1.19
 github.com/farcaller/gonix
