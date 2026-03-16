@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/url"
 	"strconv"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -261,7 +262,7 @@ func (r *mqttScaffold) handleButtonEvent(packet *paho.Publish) {
 	}
 
 	button := event.ServiceData.Button
-	slog.Info("BLE event", "button", button)
+	slog.InfoContext(ctx, "BLE event", "button", button)
 	buttonEvent.With(prometheus.Labels{"button": fmt.Sprintf("[%d, %d, %d, %d]", button[0], button[1], button[2], button[3])}).Inc()
 
 	// short press of the 1st button
@@ -328,9 +329,18 @@ func (r *mqttScaffold) handleButtonEvent(packet *paho.Publish) {
 	}
 }
 
+// seenPIDs is a cache so that we can reuse PIDs
 var seenPIDs = cache.New(10*time.Second, 10*time.Second)
 
+// cache is thread-safe, but we need seenPIDsLock so that we can compare-and-set
+var seenPIDsLock = &sync.Mutex{}
+
 func pidSeen(pid int) bool {
-	found, _ := seenPIDs.IncrementInt(strconv.Itoa(pid), 1)
-	return found != 0
+	seenPIDsLock.Lock()
+	defer seenPIDsLock.Unlock()
+	_, ok := seenPIDs.Get(strconv.Itoa(pid))
+
+	seenPIDs.Set(strconv.Itoa(pid), 1, cache.DefaultExpiration)
+
+	return ok
 }
