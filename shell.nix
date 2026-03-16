@@ -44,7 +44,10 @@
   ];
   shellHook = ''
     export BWS_ACCESS_TOKEN=$(security find-generic-password -gw -l "bitwarden/secret/m3-cli")
-    fish --init-command 'abbr -a weeds "nomad alloc exec -i -t -task seaweed-filer -job seaweed-filer weed shell -master seaweed-master-http.nomad:9333" ' && exit
+    fish \
+        --init-command 'abbr -a weeds "nomad alloc exec -i -t -task seaweed-filer -job seaweed-filer weed shell -master seaweed-master-http.nomad:9333" ' \
+        --init-command 'abbr -a ship --set-cursor  "nix eval .#nomadJobs.% --json | nomad run -json -" ' \
+        && exit
   '';
 
   # TODO could use tailscale services here!

@@ -284,5 +284,5 @@ var seenPIDs = cache.New(10*time.Second, 10*time.Second)
 
 func pidSeen(pid int) bool {
 	found, _ := seenPIDs.IncrementInt(strconv.Itoa(pid), 1)
-	return found == 0
+	return found != 0
 }

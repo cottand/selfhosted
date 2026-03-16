@@ -4,8 +4,8 @@
 { self, time, util, defaults, ... }:
 let
   name = "services-go";
-  cpu = 100;
-  mem = 200;
+  cpu = 300;
+  mem = 300;
   ports = {
     http = 8080;
     grpc = 8081;
