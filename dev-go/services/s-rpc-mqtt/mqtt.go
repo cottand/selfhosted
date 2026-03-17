@@ -202,6 +202,7 @@ func (r *mqttScaffold) shellyRPCResp(ctx context.Context, topic string, rpcMetho
 			attribute.String("payload", string(pr.Packet.Payload)),
 		))
 		recv <- pr.Packet
+		close(recv)
 		return true, nil
 	})
 	defer removeHandler()
@@ -304,12 +305,12 @@ func (r *mqttScaffold) handleButtonEvent(packet *paho.Publish) {
 			slog.Error("could not parse light status", "err", err)
 			return
 		}
+		highBrightness, err := config.Get(ctx, "mqtt/lights/aquariumHigh").Int(70)
+		if err != nil {
+			slog.WarnContext(ctx, "could not get aquarium low brightness config", "err", err)
+		}
 
-		if parsed.Result.Output && parsed.Result.Brightness < 90 {
-			highBrightness, err := config.Get(ctx, "mqtt/lights/aquariumHigh").Int(70)
-			if err != nil {
-				slog.WarnContext(ctx, "could not get aquarium low brightness config", "err", err)
-			}
+		if parsed.Result.Output && parsed.Result.Brightness < highBrightness {
 			// if the light is on but dim, make it bright
 			_, err = r.shellyRPCResp(ctx, "shelly/rgb105/rpc", "Light.Set", map[string]any{"id": 0, "brightness": highBrightness, "on": true})
 			if err != nil {
