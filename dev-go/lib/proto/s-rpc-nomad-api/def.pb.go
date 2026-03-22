@@ -9,6 +9,7 @@ package s_rpc_nomad_api
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -163,11 +164,175 @@ func (x *DeployResponse) GetCommit() string {
 	return ""
 }
 
+type ListJobsResponse struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	JobId             string                 `protobuf:"bytes,1,opt,name=jobId,proto3" json:"jobId,omitempty"`
+	JobDefinitionJson []byte                 `protobuf:"bytes,2,opt,name=jobDefinitionJson,proto3" json:"jobDefinitionJson,omitempty"`
+	Stopped           bool                   `protobuf:"varint,3,opt,name=stopped,proto3" json:"stopped,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *ListJobsResponse) Reset() {
+	*x = ListJobsResponse{}
+	mi := &file_s_rpc_nomad_api_def_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListJobsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListJobsResponse) ProtoMessage() {}
+
+func (x *ListJobsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_s_rpc_nomad_api_def_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListJobsResponse.ProtoReflect.Descriptor instead.
+func (*ListJobsResponse) Descriptor() ([]byte, []int) {
+	return file_s_rpc_nomad_api_def_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ListJobsResponse) GetJobId() string {
+	if x != nil {
+		return x.JobId
+	}
+	return ""
+}
+
+func (x *ListJobsResponse) GetJobDefinitionJson() []byte {
+	if x != nil {
+		return x.JobDefinitionJson
+	}
+	return nil
+}
+
+func (x *ListJobsResponse) GetStopped() bool {
+	if x != nil {
+		return x.Stopped
+	}
+	return false
+}
+
+type ReadJobDefinitionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	JobId         string                 `protobuf:"bytes,1,opt,name=jobId,proto3" json:"jobId,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReadJobDefinitionRequest) Reset() {
+	*x = ReadJobDefinitionRequest{}
+	mi := &file_s_rpc_nomad_api_def_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReadJobDefinitionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReadJobDefinitionRequest) ProtoMessage() {}
+
+func (x *ReadJobDefinitionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_s_rpc_nomad_api_def_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReadJobDefinitionRequest.ProtoReflect.Descriptor instead.
+func (*ReadJobDefinitionRequest) Descriptor() ([]byte, []int) {
+	return file_s_rpc_nomad_api_def_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *ReadJobDefinitionRequest) GetJobId() string {
+	if x != nil {
+		return x.JobId
+	}
+	return ""
+}
+
+type ReadJobDefinitionResponse struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	JobId             string                 `protobuf:"bytes,1,opt,name=jobId,proto3" json:"jobId,omitempty"`
+	JobDefinitionJson []byte                 `protobuf:"bytes,2,opt,name=jobDefinitionJson,proto3" json:"jobDefinitionJson,omitempty"`
+	Stopped           bool                   `protobuf:"varint,3,opt,name=stopped,proto3" json:"stopped,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *ReadJobDefinitionResponse) Reset() {
+	*x = ReadJobDefinitionResponse{}
+	mi := &file_s_rpc_nomad_api_def_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReadJobDefinitionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReadJobDefinitionResponse) ProtoMessage() {}
+
+func (x *ReadJobDefinitionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_s_rpc_nomad_api_def_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReadJobDefinitionResponse.ProtoReflect.Descriptor instead.
+func (*ReadJobDefinitionResponse) Descriptor() ([]byte, []int) {
+	return file_s_rpc_nomad_api_def_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *ReadJobDefinitionResponse) GetJobId() string {
+	if x != nil {
+		return x.JobId
+	}
+	return ""
+}
+
+func (x *ReadJobDefinitionResponse) GetJobDefinitionJson() []byte {
+	if x != nil {
+		return x.JobDefinitionJson
+	}
+	return nil
+}
+
+func (x *ReadJobDefinitionResponse) GetStopped() bool {
+	if x != nil {
+		return x.Stopped
+	}
+	return false
+}
+
 var File_s_rpc_nomad_api_def_proto protoreflect.FileDescriptor
 
 const file_s_rpc_nomad_api_def_proto_rawDesc = "" +
 	"\n" +
-	"\x19s-rpc-nomad-api/def.proto\x12\x0fs_rpc_nomad_api\"X\n" +
+	"\x19s-rpc-nomad-api/def.proto\x12\x0fs_rpc_nomad_api\x1a\x1bgoogle/protobuf/empty.proto\"X\n" +
 	"\x03Job\x12\x18\n" +
 	"\x06commit\x18\x01 \x01(\tH\x00R\x06commit\x12\x18\n" +
 	"\x06latest\x18\x02 \x01(\bH\x00R\x06latest\x12\x12\n" +
@@ -175,9 +340,21 @@ const file_s_rpc_nomad_api_def_proto_rawDesc = "" +
 	"\aVersion\"B\n" +
 	"\x0eDeployResponse\x12\x18\n" +
 	"\amessage\x18\x01 \x01(\tR\amessage\x12\x16\n" +
-	"\x06commit\x18\x02 \x01(\tR\x06commit2M\n" +
+	"\x06commit\x18\x02 \x01(\tR\x06commit\"p\n" +
+	"\x10ListJobsResponse\x12\x14\n" +
+	"\x05jobId\x18\x01 \x01(\tR\x05jobId\x12,\n" +
+	"\x11jobDefinitionJson\x18\x02 \x01(\fR\x11jobDefinitionJson\x12\x18\n" +
+	"\astopped\x18\x03 \x01(\bR\astopped\"0\n" +
+	"\x18ReadJobDefinitionRequest\x12\x14\n" +
+	"\x05jobId\x18\x01 \x01(\tR\x05jobId\"y\n" +
+	"\x19ReadJobDefinitionResponse\x12\x14\n" +
+	"\x05jobId\x18\x01 \x01(\tR\x05jobId\x12,\n" +
+	"\x11jobDefinitionJson\x18\x02 \x01(\fR\x11jobDefinitionJson\x12\x18\n" +
+	"\astopped\x18\x03 \x01(\bR\astopped2\x90\x02\n" +
 	"\bNomadApi\x12A\n" +
-	"\x06Deploy\x12\x14.s_rpc_nomad_api.Job\x1a\x1f.s_rpc_nomad_api.DeployResponse\"\x00B?Z=github.com/Cottand/selfosted/dev-go/lib/proto/s-rpc-nomad-apib\x06proto3"
+	"\x06Deploy\x12\x14.s_rpc_nomad_api.Job\x1a\x1f.s_rpc_nomad_api.DeployResponse\"\x00\x12S\n" +
+	"\x12ListJobDefinitions\x12\x16.google.protobuf.Empty\x1a!.s_rpc_nomad_api.ListJobsResponse\"\x000\x01\x12l\n" +
+	"\x11ReadJobDefinition\x12).s_rpc_nomad_api.ReadJobDefinitionRequest\x1a*.s_rpc_nomad_api.ReadJobDefinitionResponse\"\x00B?Z=github.com/Cottand/selfosted/dev-go/lib/proto/s-rpc-nomad-apib\x06proto3"
 
 var (
 	file_s_rpc_nomad_api_def_proto_rawDescOnce sync.Once
@@ -191,16 +368,24 @@ func file_s_rpc_nomad_api_def_proto_rawDescGZIP() []byte {
 	return file_s_rpc_nomad_api_def_proto_rawDescData
 }
 
-var file_s_rpc_nomad_api_def_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_s_rpc_nomad_api_def_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_s_rpc_nomad_api_def_proto_goTypes = []any{
-	(*Job)(nil),            // 0: s_rpc_nomad_api.Job
-	(*DeployResponse)(nil), // 1: s_rpc_nomad_api.DeployResponse
+	(*Job)(nil),                       // 0: s_rpc_nomad_api.Job
+	(*DeployResponse)(nil),            // 1: s_rpc_nomad_api.DeployResponse
+	(*ListJobsResponse)(nil),          // 2: s_rpc_nomad_api.ListJobsResponse
+	(*ReadJobDefinitionRequest)(nil),  // 3: s_rpc_nomad_api.ReadJobDefinitionRequest
+	(*ReadJobDefinitionResponse)(nil), // 4: s_rpc_nomad_api.ReadJobDefinitionResponse
+	(*emptypb.Empty)(nil),             // 5: google.protobuf.Empty
 }
 var file_s_rpc_nomad_api_def_proto_depIdxs = []int32{
 	0, // 0: s_rpc_nomad_api.NomadApi.Deploy:input_type -> s_rpc_nomad_api.Job
-	1, // 1: s_rpc_nomad_api.NomadApi.Deploy:output_type -> s_rpc_nomad_api.DeployResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
+	5, // 1: s_rpc_nomad_api.NomadApi.ListJobDefinitions:input_type -> google.protobuf.Empty
+	3, // 2: s_rpc_nomad_api.NomadApi.ReadJobDefinition:input_type -> s_rpc_nomad_api.ReadJobDefinitionRequest
+	1, // 3: s_rpc_nomad_api.NomadApi.Deploy:output_type -> s_rpc_nomad_api.DeployResponse
+	2, // 4: s_rpc_nomad_api.NomadApi.ListJobDefinitions:output_type -> s_rpc_nomad_api.ListJobsResponse
+	4, // 5: s_rpc_nomad_api.NomadApi.ReadJobDefinition:output_type -> s_rpc_nomad_api.ReadJobDefinitionResponse
+	3, // [3:6] is the sub-list for method output_type
+	0, // [0:3] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -221,7 +406,7 @@ func file_s_rpc_nomad_api_def_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_s_rpc_nomad_api_def_proto_rawDesc), len(file_s_rpc_nomad_api_def_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

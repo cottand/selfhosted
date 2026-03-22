@@ -1,6 +1,6 @@
 { lib
 , self
-, system
+, stdenv
 , nix-filter
 , runCommand
 , runCommandLocal
@@ -13,6 +13,7 @@
 }:
 let
   inherit (lib) sources;
+  inherit (stdenv.hostPlatform) system;
 in
 rec {
   cleanNixFiles = src: nix-filter {
@@ -39,15 +40,26 @@ rec {
     in
     runCommand "protos-for-${serviceName}"
       {
-        nativeBuildInputs = [ protobuf protoc-gen-go protoc-gen-go-grpc ];
+        nativeBuildInputs = [
+          protobuf
+          protoc-gen-go
+          protoc-gen-go-grpc
+          self.legacyPackages.${system}.scripts.protoc-gen-devgo
+        ];
       }
       ''
+        set -e
         mkdir $out
         ${if (builtins.pathExists protoPath)
         then
+         # https://ksysoev.github.io/posts/creating-protoc-plugin
          ''
            pushd ${svc}
-           protoc -I=./ --go_out=$out --go_opt=${go_opt} --go-grpc_out=$out --go-grpc_opt=${go_opt} ${serviceName}/*.proto
+           protoc -I=./ \
+             --go_out=$out      --go_opt=${go_opt} \
+             --go-grpc_out=$out --go-grpc_opt=${go_opt} \
+             --devgo_out=$out   --devgo_opt=${go_opt} \
+             ${serviceName}/*.proto
            popd
            mv $out/${serviceName}/* $out
            rm -rf $out/${serviceName}

@@ -11,6 +11,7 @@ let
 
         cat $generated/def.pb.go >> dev-go/lib/proto/${name}/def.pb.go
         cat $generated/def_grpc.pb.go >> dev-go/lib/proto/${name}/def_grpc.pb.go
+        cat $generated/def_devgo.pb.go >> dev-go/lib/proto/${name}/def_devgo.pb.go
       '' else ""
     ))
     services;
