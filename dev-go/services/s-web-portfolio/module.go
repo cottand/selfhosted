@@ -3,10 +3,8 @@ package module
 import (
 	"context"
 	"errors"
-	s_rpc_portfolio_stats "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-portfolio-stats"
 	"github.com/monzo/terrors"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	"log"
 	"log/slog"
 	"net"
 	"net/http"
@@ -18,15 +16,7 @@ const Name = "s-web-portfolio"
 
 func InitService() (*bedrock.Service, string, error) {
 	ctx := bedrock.ContextForModule(Name, context.Background())
-	conn, err := bedrock.NewGrpcConn()
-	if err != nil {
-		log.Fatalf(terrors.Propagate(err).Error())
-	}
-
-	stats := s_rpc_portfolio_stats.NewPortfolioStatsClient(conn)
-
 	scaff := &scaffold{
-		stats:          stats,
 		doGrpcUpstream: true,
 	}
 
@@ -49,11 +39,8 @@ func InitService() (*bedrock.Service, string, error) {
 	service := &bedrock.Service{
 		Name: Name,
 		OnShutdown: func() error {
-			if conn.Close() != nil {
-				return terrors.Augment(err, "failed to close gRPC conn", nil)
-			}
 			if serverErr != nil {
-				return terrors.Augment(err, "failed to close gRPC conn", nil)
+				return terrors.Augment(serverErr, "failed to close http server", nil)
 			}
 			return nil
 		},

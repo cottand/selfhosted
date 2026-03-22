@@ -52,7 +52,7 @@ func (s *scaffold) geoMapWithArcs(writer http.ResponseWriter, request *http.Requ
 }
 
 func (s *scaffold) constructGeoMap(ctx context.Context, doArcs bool) ([]byte, error) {
-	all, err := s.flights.ListAll(ctx, &emptypb.Empty{})
+	all, err := s_rpc_flights.ListAll(ctx, &emptypb.Empty{})
 	if err != nil {
 		return nil, terrors.Augment(err, "failed to list flights", nil)
 	}

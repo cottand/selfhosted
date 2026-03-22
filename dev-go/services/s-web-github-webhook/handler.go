@@ -139,7 +139,7 @@ func (s *scaffold) deploy(ctx context.Context, commit string) {
 	ctx, span := tracer.Start(ctx, "deployOnPush")
 	defer span.End()
 
-	_, err := s.nomad.Deploy(ctx, &s_rpc_nomad_api.Job{
+	_, err := s_rpc_nomad_api.Deploy(ctx, &s_rpc_nomad_api.Job{
 		Version: &s_rpc_nomad_api.Job_Commit{Commit: commit},
 		Name:    "dev-go",
 	})
