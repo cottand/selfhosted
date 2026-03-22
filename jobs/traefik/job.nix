@@ -1,6 +1,6 @@
 { util, time, defaults, ... }:
 let
-  version = "3.3";
+  version = "3.6";
   ports = {
     http-ui = 8080;
     http-ts = 8001;
