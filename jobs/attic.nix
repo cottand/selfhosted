@@ -193,7 +193,12 @@ in
             config = util.mkEnvoyProxyConfig {
               otlpService = "proxy-attic-http";
               otlpUpstreamPort = otlpPort;
-              protocol = "http";
+
+              # to avoid 504s
+              # https://developer.hashicorp.com/consul/docs/reference/proxy/envoy#dynamic-configuration
+              extra.local_request_timeout_ms = 5  * 60 * 1000;
+              extra.local_idle_timeout_ms = 5  * 60 * 1000;
+              extra.protocol = "http";
             };
           };
         };

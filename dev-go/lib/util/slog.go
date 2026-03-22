@@ -4,6 +4,8 @@ import (
 	"context"
 	"iter"
 	"log/slog"
+
+	"go.opentelemetry.io/otel/trace"
 )
 
 const contextLogKeyName = "context_log_key_0rjf02"
@@ -43,6 +45,15 @@ func (c ContextLogHandler) Handle(ctx context.Context, record slog.Record) error
 			record.AddAttrs(attr...)
 		}
 	}
+
+	// record slog errors in span
+	record.Attrs(func(attr slog.Attr) bool {
+		if err, ok := attr.Value.Any().(error); ok {
+			trace.SpanFromContext(ctx).RecordError(err)
+		}
+		return true
+	})
+
 	return c.Next.Handle(ctx, record)
 }
 

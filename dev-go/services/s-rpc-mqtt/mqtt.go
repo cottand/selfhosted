@@ -293,41 +293,44 @@ func (r *mqttScaffold) handleButtonEvent(packet *paho.Publish) {
 
 	// double press of the 4th button
 	if button[3] == 2 {
-		lightStatus, err := r.shellyRPCResp(ctx, "shelly/rgb105/rpc", "Light.GetStatus", map[string]any{"id": 0})
+		if err := r.handleButton4DoublePress(ctx); err != nil {
+			slog.ErrorContext(ctx, "could not handle double press", "err", err)
+		}
+	}
+}
+
+func (r *mqttScaffold) handleButton4DoublePress(ctx context.Context) error {
+	lightStatus, err := r.shellyRPCResp(ctx, "shelly/rgb105/rpc", "Light.GetStatus", map[string]any{"id": 0})
+	if err != nil {
+		return terrors.Augment(err, "could not get light status", nil)
+	}
+	var parsed shellyLightStatusResponse
+	if err := json.Unmarshal(lightStatus.Payload, &parsed); err != nil {
+		return terrors.Augment(err, "could not parse light status", nil)
+	}
+	highBrightness, err := config.Get(ctx, "mqtt/lights/aquariumHigh").Int(70)
+	if err != nil {
+		slog.WarnContext(ctx, "could not get aquarium low brightness config", "err", err)
+	}
+
+	if parsed.Result.Output && parsed.Result.Brightness < highBrightness {
+		// if the light is on but dim, make it bright
+		_, err = r.shellyRPCResp(ctx, "shelly/rgb105/rpc", "Light.Set", map[string]any{"id": 0, "brightness": highBrightness, "on": true})
 		if err != nil {
-			span.RecordError(err)
-			slog.Error("could not get light status", "err", err)
-			return
+			return terrors.Augment(err, "could not set light", nil)
 		}
-		var parsed shellyLightStatusResponse
-		if err := json.Unmarshal(lightStatus.Payload, &parsed); err != nil {
-			span.RecordError(err)
-			slog.Error("could not parse light status", "err", err)
-			return
-		}
-		highBrightness, err := config.Get(ctx, "mqtt/lights/aquariumHigh").Int(70)
+	} else {
+		lowBrightness, err := config.Get(ctx, "mqtt/lights/aquariumLow").Int(4)
 		if err != nil {
 			slog.WarnContext(ctx, "could not get aquarium low brightness config", "err", err)
 		}
-
-		if parsed.Result.Output && parsed.Result.Brightness < highBrightness {
-			// if the light is on but dim, make it bright
-			_, err = r.shellyRPCResp(ctx, "shelly/rgb105/rpc", "Light.Set", map[string]any{"id": 0, "brightness": highBrightness, "on": true})
-			if err != nil {
-				slog.WarnContext(ctx, "could not set light", "err", err)
-			}
-		} else {
-			lowBrightness, err := config.Get(ctx, "mqtt/lights/aquariumLow").Int(4)
-			if err != nil {
-				slog.WarnContext(ctx, "could not get aquarium low brightness config", "err", err)
-			}
-			// otherwise it's off (so make it on + dim) or it's bright (do the same)
-			_, err = r.shellyRPCResp(ctx, "shelly/rgb105/rpc", "Light.Set", map[string]any{"id": 0, "brightness": lowBrightness, "on": true})
-			if err != nil {
-				slog.WarnContext(ctx, "could not set light", "err", err)
-			}
+		// otherwise it's off (so make it on + dim) or it's bright (do the same)
+		_, err = r.shellyRPCResp(ctx, "shelly/rgb105/rpc", "Light.Set", map[string]any{"id": 0, "brightness": lowBrightness, "on": true})
+		if err != nil {
+			return terrors.Augment(err, "could not set light", nil)
 		}
 	}
+	return nil
 }
 
 // seenPIDs is a cache so that we can reuse PIDs
