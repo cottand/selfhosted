@@ -19,8 +19,7 @@ var _ pb.AutoscalerServer = &ProtoHandler{}
 
 type ProtoHandler struct {
 	pb.UnimplementedAutoscalerServer
-	nomad s_rpc_nomad_api.NomadApiClient
-	db    *sql.DB
+	db *sql.DB
 }
 
 func NewHandler() (*ProtoHandler, error) {
@@ -29,14 +28,8 @@ func NewHandler() (*ProtoHandler, error) {
 		return nil, terrors.Propagate(err)
 	}
 
-	conn, err := bedrock.NewGrpcConn()
-	if err != nil {
-		return nil, terrors.Propagate(err)
-	}
-
 	return &ProtoHandler{
-		db:    db,
-		nomad: s_rpc_nomad_api.NewNomadApiClient(conn),
+		db: db,
 	}, nil
 }
 
@@ -49,7 +42,6 @@ func (h *ProtoHandler) Close() error {
 
 func (h *ProtoHandler) EvalAllScalingStatus(ctx context.Context, _ *emptypb.Empty) (*pb.EvalAllScalingStatusResponse, error) {
 	defs, err := s_rpc_nomad_api.ListJobDefinitions(ctx, &emptypb.Empty{})
-	h.nomad.ListJobDefinitions(ctx, &emptypb.Empty{})
 	if err != nil {
 		return nil, terrors.Augment(err, "failed to list job definitions", nil)
 	}

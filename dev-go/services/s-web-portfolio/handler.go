@@ -8,7 +8,6 @@ import (
 )
 
 type scaffold struct {
-	stats          s_rpc_portfolio_stats.PortfolioStatsClient
 	doGrpcUpstream bool
 }
 
@@ -31,7 +30,7 @@ func (s *scaffold) handleHttpBrowse(rw http.ResponseWriter, req *http.Request) {
 	rw.Header().Set("Access-Control-Allow-Origin", "https://nico.dcotta.com")
 	go func() {
 		if s.doGrpcUpstream {
-			_, _ = s.stats.Report(context.WithoutCancel(req.Context()), &s_rpc_portfolio_stats.Visit{
+			_, _ = s_rpc_portfolio_stats.Report(context.WithoutCancel(req.Context()), &s_rpc_portfolio_stats.Visit{
 				Url:       parsed.Url,
 				Ip:        req.Header.Get("X-Forwarded-For"),
 				UserAgent: req.Header.Get("User-Agent"),
