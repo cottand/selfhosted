@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -19,14 +20,19 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	NomadApi_Deploy_FullMethodName = "/s_rpc_nomad_api.NomadApi/Deploy"
+	NomadApi_Deploy_FullMethodName             = "/s_rpc_nomad_api.NomadApi/Deploy"
+	NomadApi_ListJobDefinitions_FullMethodName = "/s_rpc_nomad_api.NomadApi/ListJobDefinitions"
+	NomadApi_ReadJobDefinition_FullMethodName  = "/s_rpc_nomad_api.NomadApi/ReadJobDefinition"
 )
 
 // NomadApiClient is the client API for NomadApi service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type NomadApiClient interface {
+	// Deploy deploys a job from a Nix definition
 	Deploy(ctx context.Context, in *Job, opts ...grpc.CallOption) (*DeployResponse, error)
+	ListJobDefinitions(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ListJobsResponse], error)
+	ReadJobDefinition(ctx context.Context, in *ReadJobDefinitionRequest, opts ...grpc.CallOption) (*ReadJobDefinitionResponse, error)
 }
 
 type nomadApiClient struct {
@@ -47,11 +53,43 @@ func (c *nomadApiClient) Deploy(ctx context.Context, in *Job, opts ...grpc.CallO
 	return out, nil
 }
 
+func (c *nomadApiClient) ListJobDefinitions(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ListJobsResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &NomadApi_ServiceDesc.Streams[0], NomadApi_ListJobDefinitions_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[emptypb.Empty, ListJobsResponse]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type NomadApi_ListJobDefinitionsClient = grpc.ServerStreamingClient[ListJobsResponse]
+
+func (c *nomadApiClient) ReadJobDefinition(ctx context.Context, in *ReadJobDefinitionRequest, opts ...grpc.CallOption) (*ReadJobDefinitionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReadJobDefinitionResponse)
+	err := c.cc.Invoke(ctx, NomadApi_ReadJobDefinition_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // NomadApiServer is the server API for NomadApi service.
 // All implementations must embed UnimplementedNomadApiServer
 // for forward compatibility.
 type NomadApiServer interface {
+	// Deploy deploys a job from a Nix definition
 	Deploy(context.Context, *Job) (*DeployResponse, error)
+	ListJobDefinitions(*emptypb.Empty, grpc.ServerStreamingServer[ListJobsResponse]) error
+	ReadJobDefinition(context.Context, *ReadJobDefinitionRequest) (*ReadJobDefinitionResponse, error)
 	mustEmbedUnimplementedNomadApiServer()
 }
 
@@ -64,6 +102,12 @@ type UnimplementedNomadApiServer struct{}
 
 func (UnimplementedNomadApiServer) Deploy(context.Context, *Job) (*DeployResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Deploy not implemented")
+}
+func (UnimplementedNomadApiServer) ListJobDefinitions(*emptypb.Empty, grpc.ServerStreamingServer[ListJobsResponse]) error {
+	return status.Error(codes.Unimplemented, "method ListJobDefinitions not implemented")
+}
+func (UnimplementedNomadApiServer) ReadJobDefinition(context.Context, *ReadJobDefinitionRequest) (*ReadJobDefinitionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReadJobDefinition not implemented")
 }
 func (UnimplementedNomadApiServer) mustEmbedUnimplementedNomadApiServer() {}
 func (UnimplementedNomadApiServer) testEmbeddedByValue()                  {}
@@ -104,6 +148,35 @@ func _NomadApi_Deploy_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _NomadApi_ListJobDefinitions_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(emptypb.Empty)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(NomadApiServer).ListJobDefinitions(m, &grpc.GenericServerStream[emptypb.Empty, ListJobsResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type NomadApi_ListJobDefinitionsServer = grpc.ServerStreamingServer[ListJobsResponse]
+
+func _NomadApi_ReadJobDefinition_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReadJobDefinitionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NomadApiServer).ReadJobDefinition(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NomadApi_ReadJobDefinition_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NomadApiServer).ReadJobDefinition(ctx, req.(*ReadJobDefinitionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // NomadApi_ServiceDesc is the grpc.ServiceDesc for NomadApi service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -115,7 +188,17 @@ var NomadApi_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "Deploy",
 			Handler:    _NomadApi_Deploy_Handler,
 		},
+		{
+			MethodName: "ReadJobDefinition",
+			Handler:    _NomadApi_ReadJobDefinition_Handler,
+		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "ListJobDefinitions",
+			Handler:       _NomadApi_ListJobDefinitions_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "s-rpc-nomad-api/def.proto",
 }

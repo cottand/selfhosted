@@ -25,7 +25,7 @@ in
       weight = -80;
     }];
     group."grafana" = {
-      count = 2;
+      count = 3;
       network = {
         inherit (defaults) dns;
         mode = "bridge";

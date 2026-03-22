@@ -3,6 +3,16 @@ package s_rpc_nomad_api;
 
 option go_package = "github.com/Cottand/selfosted/dev-go/lib/proto/s-rpc-nomad-api";
 
+import "google/protobuf/empty.proto";
+
+
+service NomadApi {
+  // Deploy deploys a job from a Nix definition
+  rpc Deploy(Job) returns (DeployResponse) {}
+  rpc ListJobDefinitions(google.protobuf.Empty) returns (stream ListJobsResponse) {}
+  rpc ReadJobDefinition(ReadJobDefinitionRequest) returns (ReadJobDefinitionResponse) {}
+}
+
 
 message Job {
   oneof Version {
@@ -17,6 +27,18 @@ message DeployResponse {
   string commit = 2;
 }
 
-service NomadApi {
-  rpc Deploy(Job) returns (DeployResponse) {}
+message ListJobsResponse {
+  string jobId = 1;
+  bytes jobDefinitionJson = 2;
+  bool stopped = 3;
+}
+
+message ReadJobDefinitionRequest {
+  string jobId = 1;
+}
+
+message ReadJobDefinitionResponse {
+  string jobId = 1;
+  bytes jobDefinitionJson = 2;
+  bool stopped = 3;
 }

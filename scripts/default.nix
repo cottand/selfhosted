@@ -6,6 +6,7 @@
   all-images = callPackage ./all-images { inherit self; };
   gen-protos = callPackage ./gen-protos.nix { inherit self; };
   shipper = callPackage ./shipper.nix { inherit self; };
+  protoc-gen-devgo = callPackage ./protoc-gen-devgo.nix { inherit self; };
 
   # fetches a secret from bitwarden-secret by ID
   # usage: bws-get <ID>

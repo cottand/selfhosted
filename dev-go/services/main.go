@@ -3,6 +3,7 @@ package main
 //goland:noinspection GoSnakeCaseUsage
 import (
 	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
+	s_rpc_autoscaler "github.com/cottand/selfhosted/dev-go/services/s-rpc-autoscaler"
 	s_rpc_flights "github.com/cottand/selfhosted/dev-go/services/s-rpc-flights"
 	s_rpc_mqtt "github.com/cottand/selfhosted/dev-go/services/s-rpc-mqtt"
 	s_rpc_nomad "github.com/cottand/selfhosted/dev-go/services/s-rpc-nomad-api"
@@ -14,11 +15,12 @@ import (
 )
 
 func main() {
+	bedrock.Register(s_rpc_autoscaler.InitService)
 	bedrock.Register(s_rpc_flights.InitService)
+	bedrock.Register(s_rpc_mqtt.InitService)
 	bedrock.Register(s_rpc_nomad.InitService)
 	bedrock.Register(s_rpc_portfolio_stats.InitService)
 	bedrock.Register(s_rpc_vault.InitService)
-	bedrock.Register(s_rpc_mqtt.InitService)
 
 	bedrock.Register(s_web_portfolio.InitService)
 	bedrock.Register(s_web_github_webhook.InitService)

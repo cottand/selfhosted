@@ -1,0 +1,20 @@
+syntax = "proto3";
+package s_rpc_autoscaler;
+
+option go_package = "github.com/Cottand/selfosted/dev-go/lib/proto/s-rpc-autoscaler";
+
+import "google/protobuf/empty.proto";
+
+service Autoscaler {
+  rpc EvalAllScalingStatus(google.protobuf.Empty) returns (EvalAllScalingStatusResponse);
+}
+
+enum ScalingStrategy {
+  None = 0;
+  Basic = 1;
+}
+
+
+message EvalAllScalingStatusResponse {
+}
+
