@@ -7,6 +7,8 @@ address = ':{{ env "NOMAD_PORT_dns_ts" }}/udp'
 [entrypoints.web]
 address = ':{{ env "NOMAD_PORT_http_ts" }}'
 transport.respondingTimeouts.readTimeout = "15m"
+transport.respondingTimeouts.writeTimeout = "15m"
+transport.respondingTimeouts.idleTimeout = "15m"
 
 [entryPoints.websecure]
 address = ':{{ env "NOMAD_PORT_https_ts" }}'
