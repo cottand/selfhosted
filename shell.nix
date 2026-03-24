@@ -50,7 +50,6 @@
         && exit
   '';
 
-  # TODO could use tailscale services here!
   NOMAD_ADDR = "https://nomad.dcotta.com";
   CONSUL_ADDR = "https://consul.dcotta.com";
 
