@@ -1,6 +1,6 @@
 {
   nixConfig = {
-    extra-substituters = [ "https://attic.tfk.nd/default" ];
+    #extra-substituters = [ "https://attic.tfk.nd/default" ];
   };
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";

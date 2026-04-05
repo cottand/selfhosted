@@ -18,7 +18,7 @@ terraform {
 
 variable "vault_addr" {
   type    = string
-  default = "https://vault.dcotta.com"
+  default = "https://vault.dcotta.com:8200"
 }
 provider "vault" {
   address         = var.vault_addr
