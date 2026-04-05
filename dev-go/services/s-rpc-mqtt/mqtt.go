@@ -266,17 +266,42 @@ func (r *mqttScaffold) handleButtonEvent(packet *paho.Publish) {
 	slog.InfoContext(ctx, "BLE event", "button", button)
 	buttonEvent.With(prometheus.Labels{"button": fmt.Sprintf("[%d, %d, %d, %d]", button[0], button[1], button[2], button[3])}).Inc()
 
-	// short press of the 1st button
-	if button[0] == 254 {
-		// toggle both plugs
+	// double press of the 1st button
+	if button[0] == 2 {
+		for _, id := range []string{"shelly/plug103/rpc", "shelly/plug104/rpc", "shelly/plug106/rpc"} {
+			go func(id string) {
+				_, err = r.shellyRPCResp(ctx, id, "Switch.Toggle", map[string]any{"id": 0})
+				if err != nil {
+					slog.ErrorContext(ctx, "could not toggle plug", "err", err)
+				}
+			}(id)
+		}
+	}
+
+	// single press of the 1st button
+	if button[0] == 1 {
 		go func() {
 			_, err = r.shellyRPCResp(ctx, "shelly/plug103/rpc", "Switch.Toggle", map[string]any{"id": 0})
 			if err != nil {
 				slog.ErrorContext(ctx, "could not toggle plug", "err", err)
 			}
 		}()
+	}
+
+	// short press of the 2nd button
+	if button[1] == 254 {
 		go func() {
 			_, err = r.shellyRPCResp(ctx, "shelly/plug104/rpc", "Switch.Toggle", map[string]any{"id": 0})
+			if err != nil {
+				slog.ErrorContext(ctx, "could not toggle plug", "err", err)
+			}
+		}()
+	}
+
+	// short press of the 3rd button
+	if button[2] == 254 {
+		go func() {
+			_, err = r.shellyRPCResp(ctx, "shelly/plug106/rpc", "Switch.Toggle", map[string]any{"id": 0})
 			if err != nil {
 				slog.ErrorContext(ctx, "could not toggle plug", "err", err)
 			}

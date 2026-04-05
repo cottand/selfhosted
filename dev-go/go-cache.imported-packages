@@ -53,6 +53,7 @@ google.golang.org/grpc/codes
 google.golang.org/grpc/credentials/insecure
 google.golang.org/grpc/reflection
 google.golang.org/grpc/status
+google.golang.org/protobuf/compiler/protogen
 google.golang.org/protobuf/reflect/protoreflect
 google.golang.org/protobuf/runtime/protoimpl
 google.golang.org/protobuf/types/known/emptypb
@@ -72,6 +73,7 @@ reflect
 strconv
 strings
 sync
+sync/atomic
 testing
 time
 unsafe
