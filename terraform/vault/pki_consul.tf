@@ -4,7 +4,7 @@ locals {
 
 resource "vault_pki_secret_backend_role" "intermediate_role-consul-dc1" {
   backend          = vault_mount.pki_workload_int.path
-  issuer_ref       = vault_pki_secret_backend_issuer.workloads-intermediate.issuer_ref
+  issuer_ref       = vault_pki_secret_backend_issuer.workloads-intermediate_2.issuer_ref
   name             = "dcotta-consul-dc1"
   ttl              = 12920000
   max_ttl          = 12920000 # 10 months ish
@@ -18,7 +18,7 @@ resource "vault_pki_secret_backend_role" "intermediate_role-consul-dc1" {
 
 
 resource "vault_pki_secret_backend_cert" "server-dc1-consul" {
-  issuer_ref  = vault_pki_secret_backend_issuer.workloads-intermediate.issuer_ref
+  issuer_ref  = vault_pki_secret_backend_issuer.workloads-intermediate_2.issuer_ref
   backend     = vault_pki_secret_backend_role.intermediate_role-consul-dc1.backend
   name        = vault_pki_secret_backend_role.intermediate_role-consul-dc1.name
   common_name = "server.dc1.consul"

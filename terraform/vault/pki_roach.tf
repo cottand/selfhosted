@@ -1,6 +1,6 @@
 resource "vault_pki_secret_backend_role" "intermediate_role-roach-node" {
   backend            = vault_mount.pki_workload_int.path
-  issuer_ref         = vault_pki_secret_backend_issuer.workloads-intermediate.issuer_ref
+  issuer_ref         = vault_pki_secret_backend_issuer.workloads-intermediate_2.issuer_ref
   name               = "dcotta-dot-eu-long-workloads"
   ttl                = 72200000
   max_ttl = 72200000 # 100 months ish
@@ -14,11 +14,27 @@ resource "vault_pki_secret_backend_role" "intermediate_role-roach-node" {
   allow_wildcard_certificates = true
 }
 
+resource "vault_pki_secret_backend_role" "intermediate_role-roach-node3" {
+  backend            = vault_mount.pki_workload_int.path
+  issuer_ref         = vault_pki_secret_backend_issuer.workloads-intermediate_2.issuer_ref
+  name               = "dcotta-dot-eu-long-workloads-3"
+  ttl                = 60*60*24 * 365 *5 #5yr
+  max_ttl = 60*60*24 * 365 *5 #5yr
+  allow_ip_sans      = true
+  key_type           = "rsa"
+  key_bits           = 4096
+  allowed_domains    = ["roach-db.tfk.nd", "roach-web.tfk.nd", "node", local.tsDomain]
+  allow_subdomains   = true
+  allow_bare_domains = true
+  allow_localhost    = false
+  allow_wildcard_certificates = true
+}
+
 
 resource "vault_pki_secret_backend_cert" "cockroachdb" {
   issuer_ref  = vault_pki_secret_backend_issuer.intermediate.issuer_ref
-  backend     = vault_pki_secret_backend_role.intermediate_role-roach-node.backend
-  name        = vault_pki_secret_backend_role.intermediate_role-roach-node.name
+  backend     = vault_pki_secret_backend_role.intermediate_role-roach-node3.backend
+  name        = vault_pki_secret_backend_role.intermediate_role-roach-node3.name
   common_name = "cockroachdb-2025-mar-01.roach-db.tfk.nd"
   alt_names   = [
     "*.${local.tsDomain}",
@@ -35,6 +51,7 @@ resource "vault_pki_secret_backend_cert" "cockroachdb" {
 
   ttl    = 42200000
   revoke = true
+  auto_renew = true
 }
 
 resource "vault_kv_secret_v2" "cockroachdb-cert" {
@@ -51,10 +68,10 @@ resource "vault_kv_secret_v2" "cockroachdb-cert" {
 ### TODO role to provision cockraochdb users _ CHANGE FIELDS
 resource "vault_pki_secret_backend_role" "intermediate_role-roach-client" {
   backend           = vault_mount.pki_workload_int.path
-  issuer_ref        = vault_pki_secret_backend_issuer.workloads-intermediate.issuer_ref
+  issuer_ref        = vault_pki_secret_backend_issuer.workloads-intermediate_2.issuer_ref
   name              = "dcotta-dot-eu-roach-client"
-  ttl               = 72200000
-  max_ttl           = 72200000
+  ttl               = 60*60*24*365*5
+  max_ttl           = 60*60*24*365*5
   allow_ip_sans     = false
   allow_localhost   = false
   enforce_hostnames = false
@@ -64,7 +81,7 @@ resource "vault_pki_secret_backend_role" "intermediate_role-roach-client" {
 }
 
 resource "vault_pki_secret_backend_cert" "cockroachdb-client-root" {
-  issuer_ref  = vault_pki_secret_backend_issuer.workloads-intermediate.issuer_ref
+  issuer_ref  = vault_pki_secret_backend_issuer.workloads-intermediate_2.issuer_ref
   backend     = vault_mount.pki_workload_int.path
   name        = vault_pki_secret_backend_role.intermediate_role-roach-client.name
   common_name = "root"
@@ -85,7 +102,7 @@ resource "vault_kv_secret_v2" "cockroachdb-client-root" {
 }
 
 resource "vault_pki_secret_backend_cert" "cockroachdb-client-grafana" {
-  issuer_ref  = vault_pki_secret_backend_issuer.workloads-intermediate.issuer_ref
+  issuer_ref  = vault_pki_secret_backend_issuer.workloads-intermediate_2.issuer_ref
   backend     = vault_mount.pki_workload_int.path
   name        = vault_pki_secret_backend_role.intermediate_role-roach-client.name
   common_name = "grafana"
@@ -107,7 +124,7 @@ resource "vault_kv_secret_v2" "cockroachdb-client-grafana" {
 
 
 resource "vault_pki_secret_backend_cert" "cockroachdb-client-ente" {
-  issuer_ref  = vault_pki_secret_backend_issuer.workloads-intermediate.issuer_ref
+  issuer_ref  = vault_pki_secret_backend_issuer.workloads-intermediate_2.issuer_ref
   backend     = vault_mount.pki_workload_int.path
   name        = vault_pki_secret_backend_role.intermediate_role-roach-client.name
   common_name = "ente"
@@ -129,7 +146,7 @@ resource "vault_kv_secret_v2" "cockroachdb-client-ente" {
 
 
 resource "vault_pki_secret_backend_cert" "cockroachdb-client-comet" {
-  issuer_ref  = vault_pki_secret_backend_issuer.workloads-intermediate.issuer_ref
+  issuer_ref  = vault_pki_secret_backend_issuer.workloads-intermediate_2.issuer_ref
   backend     = vault_mount.pki_workload_int.path
   name        = vault_pki_secret_backend_role.intermediate_role-roach-client.name
   common_name = "comet"

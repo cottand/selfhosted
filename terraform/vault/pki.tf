@@ -107,7 +107,7 @@ resource "vault_pki_secret_backend_role" "intermediate_role" {
   issuer_ref         = vault_pki_secret_backend_issuer.intermediate.issuer_ref
   name               = "dcotta-int"
   ttl                = 2596400
-  max_ttl = 20592000 # 8 months ish
+  max_ttl = 60*60*24 * 365 * 5
   allow_ip_sans      = true
   key_type           = "rsa"
   key_bits           = 4096
