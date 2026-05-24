@@ -26,7 +26,7 @@ resource "vault_generic_endpoint" "pki_int_acme" {
 
 resource "vault_pki_secret_backend_role" "intermediate_role-acme" {
   backend          = vault_mount.pki_workload_int.path
-  issuer_ref       = vault_pki_secret_backend_issuer.workloads-intermediate.issuer_ref
+  issuer_ref       = vault_pki_secret_backend_issuer.workloads-intermediate_2.issuer_ref
   name             = "dcotta-dot-eu-acme"
   ttl              = 1292000
   max_ttl = 1292000 # 1 months ish

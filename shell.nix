@@ -19,7 +19,7 @@
 
     pkgs.colmena
     pkgs.fish
-    pkgs.seaweedfs
+    #pkgs.seaweedfs
     pkgs.wander
     pkgs.attic-client
     pkgs.grpcurl

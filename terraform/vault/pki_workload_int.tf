@@ -11,37 +11,37 @@ resource "vault_mount" "pki_workload_int" {
 resource "vault_pki_secret_backend_intermediate_cert_request" "workload-csr-request" {
   backend     = vault_mount.pki_workload_int.path
   type        = "internal"
-  common_name = "dcotta Workloads Intermediate Authority"
+  common_name = "dcotta Workloads Intermediate Authority 2"
 }
 
-resource "vault_pki_secret_backend_root_sign_intermediate" "workload_intermediate" {
+resource "vault_pki_secret_backend_root_sign_intermediate" "workload_intermediate_2" {
   backend     = vault_mount.pki.path
-  common_name = "dcotta2 workloads intermediate"
+  common_name = "dcotta4 workloads intermediate"
   csr         = vault_pki_secret_backend_intermediate_cert_request.workload-csr-request.csr
   format      = "pem_bundle"
-  ttl         = 75480000
+  ttl         = 60*60*24*365*5
   issuer_ref  = vault_pki_secret_backend_root_cert.root_2024.issuer_id
 }
 
 # step 2.5
 # vault write pki_int/intermediate/set-signed certificate=@intermediate.cert.pem
 
-resource "vault_pki_secret_backend_intermediate_set_signed" "workload_intermediate" {
+resource "vault_pki_secret_backend_intermediate_set_signed" "workload_intermediate_2" {
   backend     = vault_mount.pki_workload_int.path
-  certificate = vault_pki_secret_backend_root_sign_intermediate.workload_intermediate.certificate
+  certificate = vault_pki_secret_backend_root_sign_intermediate.workload_intermediate_2.certificate
 }
 
 # manage the issuer created for the set signed
-resource "vault_pki_secret_backend_issuer" "workloads-intermediate" {
+resource "vault_pki_secret_backend_issuer" "workloads-intermediate_2" {
   backend     = vault_mount.pki_workload_int.path
-  issuer_ref  = vault_pki_secret_backend_intermediate_set_signed.workload_intermediate.imported_issuers[0]
+  issuer_ref  = vault_pki_secret_backend_intermediate_set_signed.workload_intermediate_2.imported_issuers[0]
   issuer_name = "dcotta-dot-workloads-intermediate"
 }
 
 
 resource "vault_pki_secret_backend_role" "intermediate_role-workloads" {
   backend          = vault_mount.pki_workload_int.path
-  issuer_ref       = vault_pki_secret_backend_issuer.workloads-intermediate.issuer_ref
+  issuer_ref       = vault_pki_secret_backend_issuer.workloads-intermediate_2.issuer_ref
   name             = "dcotta-dot-eu-workloads"
   ttl              = 1292000
   max_ttl          = 12 * 1292000 # 1 month ish
@@ -54,7 +54,7 @@ resource "vault_pki_secret_backend_role" "intermediate_role-workloads" {
 }
 
 resource "vault_pki_secret_backend_cert" "traefik-internal-wildcard-cert" {
-  issuer_ref  = vault_pki_secret_backend_issuer.workloads-intermediate.issuer_ref
+  issuer_ref  = vault_pki_secret_backend_issuer.workloads-intermediate_2.issuer_ref
   backend     = vault_mount.pki_workload_int.path
   name        = vault_pki_secret_backend_role.intermediate_role-workloads.name
   common_name = "wildcard-cert-dec-2024.traefik"

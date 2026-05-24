@@ -3,8 +3,22 @@
 
   nixpkgs.system = "aarch64-linux";
 
+  # https://github.com/NixOS/nixpkgs/issues/23926#issuecomment-320370183
+  #boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.grub.configurationLimit = 1;
 
+  # smaller font than unicode to shave off a few MB on the boot partition
+  boot.loader.grub.font = "${pkgs.grub2}/share/grub/ascii.pf2";
+  # stores efi stuff in the EFI partition only, rather than all of /boot,
+  # so that there is room for kernels
+  #
+  # see https://github.com/NixOS/nixpkgs/issues/23926#issuecomment-320370183
+#  boot.loader.efi.efiSysMountPoint = "/boot/efi";
+  fileSystems."/boot" = {
+#  fileSystems."/boot/efi" = {
+    device = "/dev/sda15";
+    fsType = "vfat";
+  };
   ## Nomad
   nomadNode = {
     enable = true;

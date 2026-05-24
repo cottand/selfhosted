@@ -66,8 +66,26 @@
           };
 
           # nixpkgs nomad is usually a version behind, so we pin it here when we want to get ahead
-          nomad = prev.nomad_1_10;
+          nomad = prev.nomad_1_11;
           vault-bin = (import inputs.nixpkgs-master { system = prev.system; config.allowUnfree = true; }).vault-bin;
+
+          seaweedfs = prev.seaweedfs.overrideAttrs {
+            version = "4.28";
+            src = prev.fetchFromGitHub {
+              owner = "seaweedfs";
+              repo = "seaweedfs";
+              tag = "4.28";
+              leaveDotGit = true;
+              postFetch = ''
+                pushd "$out"
+                git rev-parse --short HEAD 2>/dev/null >$out/COMMIT
+                find "$out" -name .git -print0 | xargs -0 rm -rf
+                popd
+              '';
+              hash = "sha256-AmMr2Y3LXQkjSSm1dsOP0IEbyk5v6JAU9x9hCupTFOs=";
+            };
+            vendorHash = "sha256-6/0d7rmZZahRJ9tlrOR84/B+u1311bWjvPKz/sZ86Dc=";
+          };
         };
     in
     (utils.lib.eachDefaultSystem (system:
