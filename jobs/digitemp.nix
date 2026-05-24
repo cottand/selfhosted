@@ -69,6 +69,7 @@ in
           privileged = true;
           mounts = [{
             type = "bind";
+            # if it's not at /dev/ttyUSB0 try not using a USB hub
             source = "/dev/ttyUSB0";
             target = "/dev/ttyUSB0";
             readonly = false;
