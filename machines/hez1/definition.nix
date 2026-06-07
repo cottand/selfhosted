@@ -35,6 +35,14 @@
       hostPath = "/immich-db.d";
       readOnly = false;
     };
+    hostVolumes."seaweedfs-admin" = {
+      hostPath = "/seaweed-admin.d";
+      readOnly = false;
+    };
+    hostVolumes."seaweedfs-worker" = {
+      hostPath = "/seaweed-worker.d";
+      readOnly = false;
+    };
   };
   services.nomad.settings = {
     client.meta.controlPlane = "true";

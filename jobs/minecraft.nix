@@ -4,7 +4,8 @@ let
   image = "itzg/minecraft-server";
   version = "latest";
   cpu = 3000;
-  mem = 2500;
+  memGb = 5;
+  mem = (memGb + 1) * 1024;
   port = 25565;
   sidecarResources = with builtins; mapAttrs (_: ceil) {
     cpu = 0.20 * cpu;
@@ -86,7 +87,7 @@ in
           DIFFICULTY = "normal";
           MODE = "creative";
           MAX_PLAYERS = "2";
-          MEMORY = "2G";
+          MEMORY = "${toString memGb}G";
           ONLINE_MODE = "false";
           MOTD = "D'COTTA";
           VIEW_DISTANCE = "24";

@@ -1,6 +1,6 @@
 { util, time, defaults, ... }:
 let
-  version = "4.03";
+  version = "4.31";
   cpu = 100;
   mem = 200;
   sidecarResources = with builtins; mapAttrs (_: ceil) {
@@ -190,12 +190,12 @@ let
               # immich is encoded after much longer (30d) so that we load the timeline faster
               # ec.encode -fullPercent=95 -quietFor=720h -rebalance -collection=immich-pictures
 
-              ec.rebuild -force
-              ec.balance -force
+              ec.rebuild -apply
+              ec.balance -apply
 
-              volume.deleteEmpty -quietFor=24h -force
-              volume.balance -force
-              volume.fix.replication -force
+              volume.deleteEmpty -quietFor=24h -apply
+              volume.balance -apply
+              volume.fix.replication -apply
 
               s3.clean.uploads -timeAgo=24h
               unlock

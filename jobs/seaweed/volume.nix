@@ -1,7 +1,8 @@
 { util, time, defaults, ... }:
 let
   name = "seaweed-volume";
-  version = "3.97";
+#    version = "4.31";
+  version = "4.00";
 
   ports = {
     http = 7002;
@@ -10,7 +11,7 @@ let
     oltp = 4321;
   };
   cpu = 120;
-  mem = 350;
+  mem = 600;
   sidecarResources = with builtins; mapAttrs (_: ceil) {
     cpu = 0.15 * cpu;
     memory = 0.20 * mem;
@@ -25,11 +26,19 @@ in
       maxParallel = 1;
       stagger = 20 * time.second;
     };
-    constraints = [{
-      attribute = "\${meta.seaweedfs_volume}";
-      value = "true";
-      operator = "=";
-    }];
+    constraints = [
+      {
+        attribute = "\${meta.seaweedfs_volume}";
+        operator = "=";
+        value = "true";
+      }
+      # to run weed fix, disable a vol first:
+      #      {
+      #        attribute = "\${meta.box}";
+      #        operator = "!=";
+      #        value = "xps2";
+      #      }
+    ];
 
     group."seaweed-volume" = {
       restart = {
@@ -151,6 +160,7 @@ in
 
       task."seaweed" = {
         driver = "docker";
+        user = "root:root";
 
         volumeMounts = [{
           volume = "seaweed-volume";

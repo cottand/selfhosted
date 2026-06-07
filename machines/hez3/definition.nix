@@ -31,6 +31,10 @@
       hostPath = "/roach.d";
       readOnly = false;
     };
+    hostVolumes."seaweedfs-worker" = {
+      hostPath = "/seaweed-worker.d";
+      readOnly = false;
+    };
   };
   services.nomad.settings = {
     client.meta.controlPlane = "true";

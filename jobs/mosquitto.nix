@@ -75,7 +75,8 @@ in
           metrics_port = "\${NOMAD_HOST_PORT_metrics}";
           metrics_path = "/metrics";
         };
-        checks = [{
+        checks = [
+        {
           expose = true;
           name = "metrics";
           port = "metrics";
@@ -83,7 +84,8 @@ in
           path = meta.metrics_path;
           interval = 10 * time.second;
           timeout = 3 * time.second;
-        }];
+        }
+        ];
         tags = [
           "traefik.enable=false"
         ];
