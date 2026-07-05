@@ -131,7 +131,7 @@ func encodeFirstPointFixedLength(e *encoder, pi, qi uint32, level int, piCoder, 
 //
 // In addition, provides a lossless method to compress a sequence of points even
 // if some points are not the center of level-k cells. These points are stored
-// exactly, using 3 double precision values, after the above encoded string,
+// exactly, using 3 float64 values, after the above encoded string,
 // together with their index in the sequence (this leads to some redundancy - it
 // is expected that only a small fraction of the points are not cell centers).
 //
@@ -154,14 +154,14 @@ type faceRun struct {
 
 func decodeFaceRun(d *decoder) faceRun {
 	faceAndCount := d.readUvarint()
-	ret := faceRun{
+	fr := faceRun{
 		face:  int(faceAndCount % NumFaces),
 		count: int(faceAndCount / NumFaces),
 	}
-	if ret.count <= 0 && d.err == nil {
+	if fr.count <= 0 && d.err == nil {
 		d.err = errors.New("non-positive count for face run")
 	}
-	return ret
+	return fr
 }
 
 func decodeFaces(numVertices int, d *decoder) []faceRun {
@@ -235,20 +235,20 @@ func decodePointsCompressed(d *decoder, level int, target []Point) {
 		target[i] = Point{facePiQitoXYZ(iter.curFace, pi, qi, level)}
 	}
 
-	numOffCenter := int(d.readUvarint())
+	numOffCenter := d.readUvarint()
 	if d.err != nil {
 		return
 	}
-	if numOffCenter > len(target) {
+	if numOffCenter > uint64(len(target)) {
 		d.err = fmt.Errorf("numOffCenter = %d, should be at most len(target) = %d", numOffCenter, len(target))
 		return
 	}
 	for range numOffCenter {
-		idx := int(d.readUvarint())
+		idx := d.readUvarint()
 		if d.err != nil {
 			return
 		}
-		if idx >= len(target) {
+		if idx >= uint64(len(target)) {
 			d.err = fmt.Errorf("off center index = %d, should be < len(target) = %d", idx, len(target))
 			return
 		}
