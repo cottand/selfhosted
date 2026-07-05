@@ -796,6 +796,7 @@ func (t *Table) Create(ctx context.Context, tm *TableMetadata) (err error) {
 		TableId:   t.TableID,
 	}
 
+	ctx = setDatasetItemTraceMetadata(ctx, t.ProjectID, t.DatasetID, "tables")
 	req := t.c.bqs.Tables.Insert(t.ProjectID, t.DatasetID, table).Context(ctx)
 	setClientHeader(req.Header())
 	return runWithRetry(ctx, func() (err error) {
@@ -935,6 +936,7 @@ func (t *Table) Metadata(ctx context.Context, opts ...TableMetadataOption) (md *
 	ctx = trace.StartSpan(ctx, "cloud.google.com/go/bigquery.Table.Metadata")
 	defer func() { trace.EndSpan(ctx, err) }()
 
+	ctx = setTableTraceMetadata(ctx, t.ProjectID, t.DatasetID, t.TableID)
 	tgc := &tableGetCall{
 		call: t.c.bqs.Tables.Get(t.ProjectID, t.DatasetID, t.TableID).Context(ctx),
 	}
@@ -1028,6 +1030,7 @@ func (t *Table) Delete(ctx context.Context) (err error) {
 	ctx = trace.StartSpan(ctx, "cloud.google.com/go/bigquery.Table.Delete")
 	defer func() { trace.EndSpan(ctx, err) }()
 
+	ctx = setTableTraceMetadata(ctx, t.ProjectID, t.DatasetID, t.TableID)
 	call := t.c.bqs.Tables.Delete(t.ProjectID, t.DatasetID, t.TableID).Context(ctx)
 	setClientHeader(call.Header())
 
@@ -1084,6 +1087,7 @@ func (t *Table) Update(ctx context.Context, tm TableMetadataToUpdate, etag strin
 		return nil, err
 	}
 
+	ctx = setTableTraceMetadata(ctx, t.ProjectID, t.DatasetID, t.TableID)
 	tpc := &tablePatchCall{
 		call: t.c.bqs.Tables.Patch(t.ProjectID, t.DatasetID, t.TableID, bqt).Context(ctx),
 	}
