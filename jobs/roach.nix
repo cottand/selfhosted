@@ -1,10 +1,12 @@
 { util, time, defaults, ... }:
 let
   # !! do not mess with the version in one go - upgrade one by one !!
+  # https://www.cockroachlabs.com/docs/releases/v25.4
+  # https://www.cockroachlabs.com/docs/stable/upgrade-cockroach-version#finalize-a-major-version-upgrade-manually
   versionOf = {
-    hez1 = "v25.4.6";
-    hez2 = "v25.4.6";
-    hez3 = "v25.4.6";
+    hez1 = "v25.4.12";
+    hez2 = "v25.4.12";
+    hez3 = "v25.4.12";
   };
   cache = "70MB";
   maxSqlMem = "${toString (mem * 0.6)}MB";
@@ -30,6 +32,7 @@ let
     hez2 = "10.0.1.2:2801";
     hez3 = "10.0.1.3:2801";
   };
+  otlpPort = 9001;
   certsForUser = name: [
     {
       destination = "/secrets/client.${name}.key";
@@ -76,7 +79,14 @@ let
     service."roach-db" = {
       port = toString sqlPort;
       connect = {
-        sidecarService = { };
+        sidecarService = {
+          proxy.config = util.mkEnvoyProxyConfig {
+            otlpService = "proxy-roach-db";
+            otlpUpstreamPort = otlpPort;
+            protocol = "tcp";
+          };
+          proxy.upstreams = [{ destinationName = "tempo-otlp-grpc-mesh"; localBindPort = otlpPort; }];
+        };
         sidecarTask.resources = sidecarResources;
       };
       task = "roach";

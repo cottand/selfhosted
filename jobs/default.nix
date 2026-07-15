@@ -19,6 +19,7 @@ in
     ./seaweed/master.nix
     ./seaweed/filer.nix
     ./seaweed/volume.nix
+    ./seaweed/backup.nix
 #    ./seaweed/admin.nix
 #    ./seaweed/worker.nix
     ./ente.nix

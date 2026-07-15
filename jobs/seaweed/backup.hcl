@@ -62,7 +62,7 @@ bucket = "{{ .bucketName }}"
 endpoint = "https://{{ .endpoint }}"
 {{ end }}
 region = "us-east-005"
-directory = "/snapshot2/"    # destination directory - snapshot := non incremental
+directory = "/snapshot3/"    # destination directory - snapshot := non incremental
 is_incremental = false 
 EOF
       }
