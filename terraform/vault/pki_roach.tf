@@ -51,7 +51,7 @@ resource "vault_pki_secret_backend_cert" "cockroachdb" {
 
   ttl    = 42200000
   revoke = true
-  auto_renew = true
+      auto_renew = true
 }
 
 resource "vault_kv_secret_v2" "cockroachdb-cert" {

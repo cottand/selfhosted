@@ -12,6 +12,7 @@
     pkgs.nomad
     pkgs.consul
     pkgs.bws
+    pkgs.postgresql
 
     # gcloud + components
     # see https://nixos.wiki/wiki/Google_Cloud_SDK

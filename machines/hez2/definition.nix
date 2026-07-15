@@ -34,6 +34,10 @@
       hostPath = "/seaweed-worker.d";
       readOnly = false;
     };
+    hostVolumes."ente-db" = {
+      hostPath = "/ente-db.d";
+      readOnly = false;
+    };
   };
   services.nomad.settings = {
     client.meta.controlPlane = "true";
