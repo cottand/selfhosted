@@ -19,6 +19,11 @@ variable "vault_policy" {
   type = string
 }
 
+variable "ttl" {
+  type = number
+  default = 30 * 60 * 60
+}
+
 
 
 resource "vault_policy" "policy" {
@@ -39,7 +44,7 @@ resource "vault_jwt_auth_backend_role" "role" {
   })
   token_type             = "service"
   token_policies         = [var.name]
-  token_period           = 30 * 60 * 60
+  token_period           = var.ttl
   token_explicit_max_ttl = 0
   backend                = var.vault_backend
 }

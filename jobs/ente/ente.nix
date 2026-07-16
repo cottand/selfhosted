@@ -24,7 +24,8 @@ let
 
   # Web addresses
   enteWebUrl = "https://ente.tfk.nd";
-  enteApiUrl = "https://ente-server.tfk.nd";
+  enteApiHost = "ente-api.dcotta.com";
+  enteApiUrl = "https://${enteApiHost}";
   version = "latest";
 
   webApps = [
@@ -35,8 +36,16 @@ let
     { name = "ente-cast"; port = ports.cast; }
     { name = "ente-share"; port = ports.share; }
     { name = "ente-embed"; port = ports.embed; }
-    { name = "ente-locker"; port = ports.locker; }
     { name = "ente-memories"; port = ports.memories; }
+    {
+      name = "ente-locker";
+      port = ports.locker;
+      extraTags = [
+        "traefik.http.routers.ente-locker-pub.entrypoints=websecure_public"
+        "traefik.http.routers.ente-locker-pub.rule=Host(`ente-locker.dcotta.com`)"
+        "traefik.http.routers.ente-locker-pub.tls=true"
+      ];
+    }
   ];
 
   mkWebService = app: {
@@ -78,7 +87,7 @@ let
         #        "traefik.http.middlewares.${app.name}-headers.headers.accesscontrolalloworiginlist=https://${app.name}.tfk.nd,${enteApiUrl}"
         #        "traefik.http.middlewares.${app.name}-headers.headers.accesscontrolmaxage=100"
         #        "traefik.http.middlewares.${app.name}-headers.headers.addvaryheader=true"
-      ];
+      ] ++ (app.extraTags or [ ]);
     };
   };
 
@@ -155,9 +164,9 @@ in
           tags = [
             "traefik.enable=true"
             "traefik.consulcatalog.connect=true"
-            "traefik.http.routers.ente-api.middlewares=vpn-whitelist@file"
-            "traefik.http.routers.ente-api.entrypoints=web, websecure"
+            "traefik.http.routers.ente-api.entrypoints=web, websecure, websecure_public"
             "traefik.http.routers.ente-api.tls=true"
+            "traefik.http.routers.ente-api.rule=Host(`${enteApiHost}`)"
 
             "traefik.http.routers.ente-api.middlewares=ente-api-headers"
 
@@ -166,6 +175,7 @@ in
             "traefik.http.middlewares.ente-api-headers.headers.accesscontrolalloworiginlist=*"
             "traefik.http.middlewares.ente-api-headers.headers.accesscontrolmaxage=100"
             "traefik.http.middlewares.ente-api-headers.headers.addvaryheader=true"
+
           ];
         };
       } // webServices;
