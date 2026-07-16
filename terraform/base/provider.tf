@@ -61,7 +61,10 @@ provider "aws" {
   secret_key = jsondecode(data.bitwarden-secrets_secret.awsTfUser.value)["secret_key"]
 }
 
-// expires 12 dec '24
+// expires often (90d) renew at
+// https://console.tailscale.com/admin/settings/keys
+// and paste in
+// https://vault.bitwarden.com/#/sm/6fbc3b2a-28df-48ba-a6b5-b36b011cf150/projects/853d6833-835b-4f59-b35c-0d56c8443d54/secrets
 data "bitwarden-secrets_secret" "tailscale_api" {
   id = "8f760e22-98e2-4a43-b841-502efff0fc16"
 }

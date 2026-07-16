@@ -12,6 +12,7 @@ in
     ./traefik/job.nix
     ./roach.nix
     ./immich/immich.nix
+    ./immich/backup-db.nix
     ./monitoring/grafana/job.nix
     ./monitoring/vector.nix
     ./monitoring/tempo.nix
@@ -22,7 +23,8 @@ in
     ./seaweed/backup.nix
 #    ./seaweed/admin.nix
 #    ./seaweed/worker.nix
-    ./ente.nix
+    ./ente/ente.nix
+    ./ente/backup-ente-db.nix
     ./digitemp.nix
     ./shelly-exporter.nix
     ./motioneye.nix

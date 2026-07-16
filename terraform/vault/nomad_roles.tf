@@ -20,9 +20,14 @@ module "workload-role-services-db-rw-default" {
 }
 
 
+# Add new nomad roles here (rather than using modules above)
+# as it allows defining several vault policies per role
+#
+# The nomad role name needs to appear in role.name in the nomad job spec.
+#
+# The above and the below methods are different ways of doing the same thing
+# and one day I should get rid of the top one :')
 locals {
-
-
   # name: {
   #    policies -> [string],
   #    ttl -> int,
@@ -31,6 +36,14 @@ locals {
     "nomad-workload-default" = {
       policies = [
         vault_policy.nomad-workloads-base.name,
+      ]
+      ttl = 10 * 24 * 60 * 60 # 10d
+    }
+
+    "ente-backup-maker" = {
+      policies = [
+        vault_policy.nomad-workloads-base.name,
+        vault_policy.ente-backup-maker.name,
       ]
       ttl = 10 * 24 * 60 * 60 # 10d
     }

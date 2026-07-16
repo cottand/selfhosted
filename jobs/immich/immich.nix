@@ -199,7 +199,18 @@ in
 
               IMMICH_SERVER_URL=http://{{ env "NOMAD_IP_server" }}:{{ env "NOMAD_HOST_PORT_server" }}
 
+
               ENABLE_TYPESENSE="false"
+
+              {{ with secret "secret/data/nomad/job/immich/b2" }}
+              IMMICH_STORAGE_BACKEND=s3
+              IMMICH_S3_BUCKET=cottand-immich-gallery
+              IMMICH_S3_REGION=us-east-005
+              IMMICH_S3_ACCESS_KEY_ID={{ .Data.data.keyID }}
+              IMMICH_S3_SECRET_ACCESS_KEY={{ .Data.data.applicationKey }}
+              IMMICH_S3_ENDPOINT=https://s3.us-east-005.backblazeb2.com
+              IMMICH_S3_SERVE_MODE=redirect
+              {{ end }}
             '';
           }
           {

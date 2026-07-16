@@ -20,6 +20,25 @@ resource "cloudflare_record" "immich-cname-web-com" {
   proxied = true
 }
 
+resource "cloudflare_record" "ente-locker-cname-web-com" {
+  zone_id = local.zoneIds["com"]
+  name    = "ente-locker"
+  type    = "CNAME"
+  value   = "web.dcotta.com"
+  ttl     = 1
+  comment = "tf managed"
+  proxied = true
+}
+resource "cloudflare_record" "ente-api-cname-web-com" {
+  zone_id = local.zoneIds["com"]
+  name    = "ente-api"
+  type    = "CNAME"
+  value   = "web.dcotta.com"
+  ttl     = 1
+  comment = "tf managed"
+  proxied = true
+}
+
 resource "cloudflare_record" "fish-cname-web-com" {
   zone_id = local.zoneIds["com"]
   name    = "fish"
