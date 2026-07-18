@@ -1,6 +1,6 @@
 { util, time, defaults, ... }:
 let
-  version = "v2.5.6";
+  version = "v5.1.1";
   domain = "immich.dcotta.com";
   ports = {
     http = 8080;
@@ -152,7 +152,7 @@ in
         vault = { };
 
         config = {
-          image = "ghcr.io/immich-app/immich-server:${version}";
+          image = "ghcr.io/open-noodle/gallery-server:${version}";
           image_pull_timeout = "10m";
         };
         env = {
@@ -169,6 +169,8 @@ in
           IMMICH_TELEMETRY_INCLUDE = "all";
           IMMICH_API_METRICS_PORT = toString ports.metrics;
           IMMICH_MICROSERVICES_METRICS_PORT = toString ports.services-mertrics;
+          IMMICH_LOG_FORMAT="json";
+
           NODE_EXTRA_CA_CERTS = "/local/ca.crt";
 
 
@@ -228,6 +230,7 @@ in
             data =
               let
                 json = {
+                  backup.database.enabled = false;
                   image = {
                     colorspace = "p3";
                     extractEmbedded = false;
@@ -258,16 +261,16 @@ in
                   machineLearning = {
                     urls = [ "http://${util.localhost}:${toString ports.ml-http}" ];
                     #                                classification = { enabled = true; minScore = 0.7; modelName = "microsoft/resnet-50"; };
-                    clip = { enabled = true; modelName = "ViT-B-32::openai"; };
+#                    clip = { enabled = true; modelName = "ViT-B-32::openai"; };
                     duplicateDetection = { enabled = true; maxDistance = 0.01; };
                     enabled = true;
-                    facialRecognition = {
-                      enabled = true;
-                      maxDistance = 0.6;
-                      minFaces = 1;
-                      minScore = 0.7;
-                      modelName = "buffalo_l";
-                    };
+#                    facialRecognition = {
+#                      enabled = true;
+#                      maxDistance = 0.6;
+#                      minFaces = 1;
+#                      minScore = 0.7;
+#                      modelName = "buffalo_l";
+#                    };
                   };
                   newVersionCheck.enabled = true;
                   passwordLogin.enabled = true;
@@ -348,8 +351,7 @@ in
         vault = { };
 
         config = {
-          image = "ghcr.io/immich-app/immich-machine-learning:${version}";
-          #     TODO?   args = [];
+          image = "ghcr.io/open-noodle/gallery-ml:${version}";
         };
         env = {
           IMMICH_PORT = toString ports.ml-http;
@@ -418,7 +420,7 @@ in
         driver = "docker";
 
         config = {
-          image = "ghcr.io/immich-app/postgres:14-vectorchord0.3.0-pgvectors0.2.0";
+          image = "ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0";
           ports = [ "postgres" ];
         };
         env = {

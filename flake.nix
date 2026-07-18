@@ -3,7 +3,7 @@
     #extra-substituters = [ "https://attic.tfk.nd/default" ];
   };
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
     nixpkgs-master.url = "github:nixos/nixpkgs";
 
     srvos.url = "github:nix-community/srvos";
