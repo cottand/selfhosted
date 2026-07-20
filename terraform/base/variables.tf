@@ -1,6 +1,6 @@
 variable "vault_addr" {
   type    = string
-  default = "https://maco.mesh.dcotta.eu:8200"
+  default = "https://vault.dcotta.com:8200"
 }
 
 variable "bitwarden_project_id" {

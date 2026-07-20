@@ -33,5 +33,6 @@ in
     ./comet.nix
     ./minecraft.nix
     ./mosquitto.nix
+    ./papra.nix
   ];
 }
