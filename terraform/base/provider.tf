@@ -20,6 +20,10 @@ terraform {
       source  = "tailscale/tailscale"
       version = "0.23.0"
     }
+      b2 = {
+        source  = "Backblaze/b2"
+        version = "~> 0.13"
+      }
   }
 }
 
@@ -33,9 +37,17 @@ provider "bitwarden-secrets" {
   access_token = data.external.keychain-bw-token.result.value
 }
 
+data "bitwarden-secrets_secret" "b2-access" {
+  id = "eb3a4c55-862c-4258-8e4d-b48c00d79177"
+}
+provider "b2" {
+  application_key_id = jsondecode(data.bitwarden-secrets_secret.b2-access.value)["keyID"]
+  application_key = jsondecode(data.bitwarden-secrets_secret.b2-access.value)["applicationKey"]
+}
+
 provider "vault" {
   address         = var.vault_addr
-  skip_tls_verify = true
+  #skip_tls_verify = true
 }
 
 provider "nomad" {
