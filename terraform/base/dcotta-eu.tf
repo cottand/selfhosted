@@ -23,8 +23,8 @@ module "node_cosmo" {
   name        = "cosmo"
   ip4_pub     = local.pubIp["ip4"]["cosmo"]
   ip6_pub     = local.pubIp["ip6"]["cosmo"]
-  do_ip4_pub = true
-  do_ip6_pub = true
+  do_ip4_pub  = true
+  do_ip6_pub  = true
 }
 
 module "node_ari" {
@@ -54,8 +54,8 @@ module "node_bianco" {
   name        = "bianco"
   ip4_pub     = null
   ip6_pub     = null
-  do_ip4_pub = false
-  do_ip6_pub = false
+  do_ip4_pub  = false
+  do_ip6_pub  = false
 }
 
 module "nodes_hz" {
@@ -72,22 +72,34 @@ module "nodes_hz" {
   do_ip6_pub = true
 }
 
-resource "cloudflare_record" "nico-cname-web" {
+
+
+resource "cloudflare_dns_record" "nico-cname-web" {
   zone_id = local.zoneIds["eu"]
   name    = "nico"
   type    = "CNAME"
-  value   = "hez1.vps.dcotta.eu"
   ttl     = 1
   comment = "tf managed"
   proxied = true
+  content = "hez1.vps.dcotta.eu"
 }
 
-resource "cloudflare_record" "lemmy-cname-web" {
+moved {
+  from = cloudflare_record.nico-cname-web
+  to   = cloudflare_dns_record.nico-cname-web
+}
+
+resource "cloudflare_dns_record" "lemmy-cname-web" {
   zone_id = local.zoneIds["eu"]
   name    = "r"
   type    = "CNAME"
-  value   = "web.dcotta.eu"
   ttl     = 1
   comment = "tf managed"
   proxied = true
+  content = "web.dcotta.eu"
+}
+
+moved {
+  from = cloudflare_record.lemmy-cname-web
+  to   = cloudflare_dns_record.lemmy-cname-web
 }

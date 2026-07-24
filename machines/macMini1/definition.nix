@@ -53,6 +53,8 @@ in
   services.nomad.extraPackages = [ pkgs.libusb1 ];
   services.nomad.settings = {
     datacenter = "london-home";
+    # use interface for Ethernet instead of CIDR so that it doesn't hook up to the WiFi
+    client.host_network."home_lan".interface = "enp3s0f0";
     # must match binary name
     plugin."nomad-usb-device-plugin-linux-amd64-0.4.0" = {
       enabled = true;

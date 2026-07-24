@@ -14,7 +14,7 @@ resource "cloudflare_pages_project" "nico-dcotta-com" {
 resource "cloudflare_pages_domain" "domains" {
   for_each = toset(var.domains)
   account_id   = var.cf_account_id
-  domain       = each.value
+  name       = each.value
   project_name = cloudflare_pages_project.nico-dcotta-com.name
 }
 

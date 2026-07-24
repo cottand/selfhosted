@@ -13,6 +13,12 @@ terraform {
       s3 = "https://s3.us-east-005.backblazeb2.com"
     }
   }
+  required_providers {
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "5.22.0"
+    }
+  }
 }
 
 data "terraform_remote_state" "metal" {

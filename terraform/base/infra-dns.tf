@@ -7,30 +7,9 @@ data "tailscale_device" "oci-control" {
   hostname = each.value
 }
 
-resource "cloudflare_record" "vault" {
-  for_each = local.oci-control-machines
-  zone_id  = local.zoneIds["com"]
-  name     = "vault"
-  type     = "A"
-  content    = data.tailscale_device.oci-control[each.value].addresses[0]
-  ttl      = 60
-  comment  = "tf managed"
-  proxied  = false
-}
 
 
 
-resource "cloudflare_record" "tailscale_cnames" {
-  // we want vault to remain manual
-  for_each = toset(["consul", "nomad"])
-  zone_id  = local.zoneIds["com"]
-  name     = each.value
-  type     = "CNAME"
-  content    = "${each.value}.golden-dace.ts.net"
-  ttl      = 60
-  comment  = "tf managed"
-  proxied  = false
-}
 
 # resource "cloudflare_record" "tailscale_as" {
 #   // ts services
@@ -44,3 +23,36 @@ resource "cloudflare_record" "tailscale_cnames" {
 #   proxied  = false
 # }
 #
+
+resource "cloudflare_dns_record" "vault" {
+  for_each = local.oci-control-machines
+  zone_id  = local.zoneIds["com"]
+  name     = "vault"
+  type     = "A"
+  content  = data.tailscale_device.oci-control[each.value].addresses[0]
+  ttl      = 60
+  comment  = "tf managed"
+  proxied  = false
+}
+
+moved {
+  from = cloudflare_record.vault
+  to   = cloudflare_dns_record.vault
+}
+
+resource "cloudflare_dns_record" "tailscale_cnames" {
+  // we want vault to remain manual
+  for_each = toset(["consul", "nomad"])
+  zone_id  = local.zoneIds["com"]
+  name     = each.value
+  type     = "CNAME"
+  content  = "${each.value}.golden-dace.ts.net"
+  ttl      = 60
+  comment  = "tf managed"
+  proxied  = false
+}
+
+moved {
+  from = cloudflare_record.tailscale_cnames
+  to   = cloudflare_dns_record.tailscale_cnames
+}
