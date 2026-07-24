@@ -179,7 +179,11 @@ in
           OTEL_SERVICE_NAME = "immich";
           OTEL_SDK_DISABLED = "false";
         };
-        inherit resources;
+        resources = rec {
+            cpu = 600;
+            memory = 2000;
+            memoryMax = 2 * memory;
+          };
         volumeMounts = [
           {
             volume = "immich-pictures";

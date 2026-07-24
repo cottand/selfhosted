@@ -6,7 +6,7 @@ terraform {
     }
     cloudflare = {
       source  = "cloudflare/cloudflare"
-      version = "~> 4.0"
+      version = "5.22.0"
     }
     bitwarden-secrets = {
       source  = "sebastiaan-dev/bitwarden-secrets"
@@ -20,10 +20,10 @@ terraform {
       source  = "tailscale/tailscale"
       version = "0.23.0"
     }
-      b2 = {
-        source  = "Backblaze/b2"
-        version = "~> 0.13"
-      }
+    b2 = {
+      source  = "Backblaze/b2"
+      version = "~> 0.13"
+    }
   }
 }
 
@@ -42,11 +42,11 @@ data "bitwarden-secrets_secret" "b2-access" {
 }
 provider "b2" {
   application_key_id = jsondecode(data.bitwarden-secrets_secret.b2-access.value)["keyID"]
-  application_key = jsondecode(data.bitwarden-secrets_secret.b2-access.value)["applicationKey"]
+  application_key    = jsondecode(data.bitwarden-secrets_secret.b2-access.value)["applicationKey"]
 }
 
 provider "vault" {
-  address         = var.vault_addr
+  address = var.vault_addr
   #skip_tls_verify = true
 }
 

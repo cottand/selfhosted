@@ -16,4 +16,7 @@
       }
     '';
   };
+  services.nomad.settings = {
+    client.host_network."home_lan".cidr = "192.168.50.0/24";
+  };
 }

@@ -16,6 +16,7 @@
   services.nomad.extraSettingsPlugins = [ ./plugins ];
   services.nomad.extraPackages = [ pkgs.libusb1 ];
   services.nomad.settings = {
+    client.host_network."home_lan".cidr = "192.168.50.0/24";
     # must match binary name
     plugin."nomad-usb-device-plugin-linux-amd64-0.4.0" = {
       enabled = true;

@@ -27,15 +27,15 @@ resource "tailscale_dns_split_nameservers" "leng_seach_paths" {
     "traefik",
     "nomad",
     "tfk.nd",
-#     "com",
-#     "net"
+    #     "com",
+    #     "net"
   ])
   nameservers = [
     "100.92.69.51",
     "100.82.72.56",
     "100.98.28.95",
   ]
-  domain      = each.value
+  domain = each.value
 }
 
 # Tailscale looks at port 53 but consul uses 8600

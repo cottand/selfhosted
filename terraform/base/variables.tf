@@ -4,6 +4,6 @@ variable "vault_addr" {
 }
 
 variable "bitwarden_project_id" {
-  type = string
+  type    = string
   default = "853d6833-835b-4f59-b35c-0d56c8443d54"
 }
