@@ -1,6 +1,6 @@
 { util, time, defaults, ... }:
 let
-  version = "v5.1.1";
+  version = "v5.2.2";
   domain = "immich.dcotta.com";
   ports = {
     http = 8080;

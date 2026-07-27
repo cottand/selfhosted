@@ -36,6 +36,18 @@ var (
 		Name:      "flight_yearly_footprint",
 		Help:      "Footprint for year of flights",
 	}, []string{"year"})
+
+	latestFlight = promauto.NewGauge(prometheus.GaugeOpts{
+		Namespace: util.KebabToSnakeCase(name),
+		Name:      "last_flight_timestamp",
+		Help:      "Date of latest flight (unix millis)",
+	})
+
+	flightsPerAirline = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: util.KebabToSnakeCase(name),
+		Name:      "flights_per_airline",
+		Help:      "flights broken down per airline",
+	}, []string{"airline_code"})
 )
 
 // RefreshPromStats returns when ctx is cancelled or done
@@ -46,6 +58,8 @@ func RefreshPromStats(ctx context.Context, db *sql.DB) {
 		var errs []error
 		errs = append(
 			errs,
+			refreshLatestFlight(ctx, db),
+			refreshAirlines(ctx, db),
 			refreshFlights(ctx, db),
 			totalAirports(ctx, db),
 			refreshYearlyCo2(ctx, db, 2024),
@@ -135,6 +149,38 @@ func refreshFlights(ctx context.Context, db *sql.DB) error {
 		}
 	}
 	flightsStat.Set(float64(counted))
+	return nil
+}
+
+func refreshAirlines(ctx context.Context, db *sql.DB) error {
+	query := `select airline_code, count(*) from "s-rpc-flights".flight group by airline_code;`
+	rows, err := db.QueryContext(ctx, query)
+	if err != nil {
+		return terrors.Augment(err, "failed to query airlines", nil)
+	}
+	defer rows.Close()
+
+	var airlineCode string
+	var counted int64
+
+	for rows.Next() {
+		err = rows.Scan(&airlineCode, &counted)
+		flightsPerAirline.
+			With(prometheus.Labels{"airline_code": airlineCode}).
+			Set(float64(counted))
+	}
+	return nil
+}
+
+func refreshLatestFlight(ctx context.Context, db *sql.DB) error {
+	query := `select max(departure_date) from "s-rpc-flights".flight`
+	row := db.QueryRowContext(ctx, query)
+	var latestDate time.Time
+	err := row.Scan(&latestDate)
+	if err != nil {
+		return terrors.Augment(err, "failed to query latest flight", nil)
+	}
+	latestFlight.Set(float64(latestDate.UnixMilli()))
 	return nil
 }
 
