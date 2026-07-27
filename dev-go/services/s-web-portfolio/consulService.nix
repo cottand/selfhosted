@@ -24,7 +24,7 @@ in
       "traefik.enable=true"
       "traefik.consulcatalog.connect=true"
       "traefik.http.routers.${name}.tls=true"
-      "traefik.http.routers.${name}.entrypoints=web, web_public, websecure, websecure_public"
+      "traefik.http.routers.${name}.entrypoints=web, websecure, cloudflared"
       "traefik.http.routers.${name}.middlewares=${name}-stripprefix"
       "traefik.http.middlewares.${name}-stripprefix.stripprefix.prefixes=/${name}"
       "traefik.http.routers.${name}.rule=Host(`web.dcotta.com`) && PathPrefix(`/${name}`)"
@@ -32,7 +32,7 @@ in
 
 
       "traefik.http.routers.${name}-redir.tls=true"
-      "traefik.http.routers.${name}-redir.entrypoints=web, web_public, websecure, websecure_public"
+      "traefik.http.routers.${name}-redir.entrypoints=web, websecure, cloudflared"
       "traefik.http.routers.${name}-redir.middlewares=${name}-redir"
       "traefik.http.routers.${name}-redir.rule=Host(`nico.dcotta.eu`)"
 

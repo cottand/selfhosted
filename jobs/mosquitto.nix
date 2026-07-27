@@ -23,7 +23,7 @@ in
       constraints = [{
         attribute = "\${meta.box}";
         operator = "=";
-        value = "macMini1";
+        value = "ari";
       }];
 
       network = {

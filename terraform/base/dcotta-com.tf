@@ -12,10 +12,6 @@
 
 
 
-
-
-
-
 # resource "cloudflare_load_balancer" "web-dcotta-com" {
 #   default_pool_ids = []
 #   fallback_pool_id = ""
@@ -27,16 +23,8 @@
 #   account_id = l
 #   name       = ""
 # }
+
 # cloudflare cannot do 2-level deep subdomains, so we cannot do a wildcard like *.web.dcotta.com
-resource "cloudflare_dns_record" "immich-cname-web-com" {
-  zone_id = local.zoneIds["com"]
-  name    = "immich"
-  type    = "CNAME"
-  ttl     = 1
-  comment = "tf managed"
-  proxied = true
-  content = "web.dcotta.com"
-}
 
 moved {
   from = cloudflare_record.immich-cname-web-com

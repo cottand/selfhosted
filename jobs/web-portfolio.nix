@@ -37,7 +37,7 @@ in
           "traefik.enable=true"
           "traefik.consulcatalog.connect=true"
           "traefik.http.routers.\${NOMAD_GROUP_NAME}.rule=Host(`nico.dcotta.eu`)"
-          "traefik.http.routers.\${NOMAD_GROUP_NAME}.entrypoints=web, web_public, websecure, websecure_public"
+          "traefik.http.routers.\${NOMAD_GROUP_NAME}.entrypoints=web, websecure, cloudflared"
           "traefik.http.routers.\${NOMAD_GROUP_NAME}.tls=true"
           "traefik.http.routers.\${NOMAD_GROUP_NAME}.middlewares=\${NOMAD_GROUP_NAME}-redir"
           "traefik.http.middlewares.\${NOMAD_GROUP_NAME}-redir.redirectregex.regex=nico.dcotta.eu/(.*)"
@@ -45,7 +45,7 @@ in
           "traefik.http.middlewares.\${NOMAD_GROUP_NAME}-redir.redirectregex.permanent=true"
 
           "traefik.http.routers.\${NOMAD_GROUP_NAME}-com.rule=Host(`nico.dcotta.com`)"
-          "traefik.http.routers.\${NOMAD_GROUP_NAME}-com.entrypoints=web, web_public, websecure, websecure_public"
+          "traefik.http.routers.\${NOMAD_GROUP_NAME}-com.entrypoints=web, websecure, cloudflared"
           "traefik.http.routers.\${NOMAD_GROUP_NAME}-com.tls=true"
         ];
         port = "http";

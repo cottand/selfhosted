@@ -11,6 +11,7 @@ let
     sql = 5432;
     metrics = 3520;
     otlp = 9001;
+    cloudflared = 8888;
   };
   resources = {
     cpu = 300;
@@ -91,27 +92,60 @@ in
         task = "traefik";
         connect.native = true;
       };
-#      task."traefik-ts-service" = {
-#        vault = { };
-#        driver = "docker";
-#        config = {
-#          image = "tailscale/tailscale:stable";
-#          volumes = [
-#          ];
-#          args = [
-#            "serve"
-#            "--bg=false"
-#            "--service=svc:traefik"
-#            "--yes"
-#            "--https=443 127.0.0.1:${toString ports.https-ts}"
-#          ];
-#        };
-#        resources = {
-#          cpu = 100;
-#          memory = 100;
-#          memoryMax = 500;
-#        };
-#      };
+      #      task."traefik-ts-service" = {
+      #        vault = { };
+      #        driver = "docker";
+      #        config = {
+      #          image = "tailscale/tailscale:stable";
+      #          volumes = [
+      #          ];
+      #          args = [
+      #            "serve"
+      #            "--bg=false"
+      #            "--service=svc:traefik"
+      #            "--yes"
+      #            "--https=443 127.0.0.1:${toString ports.https-ts}"
+      #          ];
+      #        };
+      #        resources = {
+      #          cpu = 100;
+      #          memory = 100;
+      #          memoryMax = 500;
+      #        };
+      #      };
+      task."cloudflared" = {
+        lifecycle = {
+          hook = "poststart";
+          sidecar = true;
+        };
+        driver = "docker";
+        vault = { };
+        config = {
+          image = "cloudflare/cloudflared:latest";
+          args = [
+            "tunnel"
+            "--no-autoupdate"
+            "--metrics"
+            "0.0.0.0:2000"
+            "run"
+          ];
+        };
+        resources = {
+          cpu = 100;
+          memory = 128;
+          memoryMax = 256;
+        };
+        templates = [{
+          destination = "secrets/cloudflared.env";
+          changeMode = "restart";
+          env = true;
+          data = ''
+            {{ with secret "secret/data/nomad/job/traefik/cloudflared" }}
+            TUNNEL_TOKEN={{ .Data.data.token }}
+            {{ end }}
+          '';
+        }];
+      };
       task."traefik" = {
         vault = { };
         driver = "docker";
