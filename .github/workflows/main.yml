@@ -28,7 +28,7 @@ jobs:
           - "github:zhaofengli/colmena#defaultPackage.x86_64-linux"
           - "github:Mic92/nix-fast-build/1.2.0#packages.x86_64-linux.default"
         host:
-          - ubuntu-latest
+          - ubuntu-22.04
     #          - macos-latest
     runs-on: ${{ matrix.host }}
     steps:
@@ -44,7 +44,7 @@ jobs:
             -f ${{ matrix.package }}
 
   resolve-nodes:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     outputs:
       nodes: ${{ steps.list.outputs.nodes }}
     steps:
@@ -61,7 +61,7 @@ jobs:
           echo "nodes=$NODES" >> "$GITHUB_OUTPUT"
   
   build-nixos-configs:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -83,7 +83,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/setup-build-env
@@ -123,7 +123,7 @@ jobs:
 
 
   build-images:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: ./.github/actions/setup-build-env
@@ -162,7 +162,7 @@ jobs:
           attic push "$ATTIC_CACHE" result*
 
   deploy-dev-go:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: build-images
     steps:
       - uses: actions/checkout@v3
