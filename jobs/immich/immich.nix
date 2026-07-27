@@ -90,7 +90,7 @@ in
           "traefik.http.routers.immich-http.rule=Host(`immich-http.tfk.nd`)"
           "traefik.http.routers.immich-http.tls=true"
 
-          "traefik.http.routers.immich-http-pub.entrypoints=websecure_public"
+          "traefik.http.routers.immich-http-pub.entrypoints=cloudflared"
           "traefik.http.routers.immich-http-pub.rule=Host(`${domain}`)"
           "traefik.http.routers.immich-http-pub.tls=true"
         ];

@@ -21,6 +21,12 @@ transport.respondingTimeouts.idleTimeout = "15m"
 address = ':{{ env "NOMAD_PORT_http_public" }}'
 transport.respondingTimeouts.readTimeout = "5m"
 
+[entrypoints.cloudflared]
+address = ':8888'
+transport.respondingTimeouts.readTimeout = "15m"
+transport.respondingTimeouts.writeTimeout = "15m"
+transport.respondingTimeouts.idleTimeout = "15m"
+
 [entryPoints.web_public.http.redirections.entryPoint]
 to = "websecure"
 scheme = "https"

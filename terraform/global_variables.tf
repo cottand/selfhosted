@@ -13,4 +13,9 @@ locals {
   oci = {
     tenancyOcid = "ocid1.tenancy.oc1..aaaaaaaa5umazgc4ircdizxgjixccyal2nkmemxnpzcrwgwjsrzcz4omw32q"
   }
+
+  cloudflare = {
+    account_id = "a0668acd2601331c666d054c71470a40"
+    zone_id_com = ""
+  }
 }

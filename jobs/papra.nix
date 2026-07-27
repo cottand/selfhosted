@@ -67,8 +67,8 @@ in
         tags = [
           "traefik.enable=true"
           "traefik.consulcatalog.connect=true"
-          "traefik.http.routers.papra-http.entrypoints=web,websecure"
-          "traefik.http.routers.papra-http.rule=Host(`papra-http.tfk.nd`)"
+          "traefik.http.routers.papra-http.entrypoints=web,websecure,cloudflared"
+          "traefik.http.routers.papra-http.rule=Host(`papra-http.tfk.nd`) || Host(`papra.dcotta.com`)"
           "traefik.http.routers.papra-http.tls=true"
         ];
       };
@@ -85,7 +85,7 @@ in
         env = {
           DOCUMENT_STORAGE_DRIVER = "s3";
           DOCUMENT_STORAGE_S3_FORCE_PATH_STYLE = "true";
-          APP_BASE_URL = "https://papra-http.tfk.nd";
+          APP_BASE_URL = "https://papra.dcotta.com";
 
           AUTH_IS_REGISTRATION_ENABLED = "false";
           AUTH_SHOW_LEGAL_LINKS = "false";
