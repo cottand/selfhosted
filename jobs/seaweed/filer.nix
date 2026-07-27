@@ -21,7 +21,7 @@ let
   otlpPort = 9001;
 in
 {
-#  imports = [ ./filer-sftp.nix ];
+  #  imports = [ ./filer-sftp.nix ];
   job."${name}" = {
     update = {
       maxParallel = 1;
@@ -189,10 +189,10 @@ in
             "-rack=\${node.unique.name}"
 
 
-            #            "-webdav"
-            #            "-webdav.port=${toString ports.webdav}"
-            #            "-webdav.cacheDir=/alloc/data/"
-            #            "-webdav.cacheCapacityMB=1024"
+            "-webdav"
+            "-webdav.port=${toString ports.webdav}"
+            "-webdav.cacheDir=/alloc/data/"
+            "-webdav.cacheCapacityMB=1024"
           ];
           mounts = [{
             type = "bind";

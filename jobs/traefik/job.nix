@@ -12,6 +12,7 @@ let
     metrics = 3520;
     otlp = 9001;
     cloudflared = 8888;
+    cloudflared_metrics = 2000;
   };
   resources = {
     cpu = 300;
@@ -47,6 +48,7 @@ in
           "https_public" = { static = 443; to = ports.https-public; hostNetwork = "public"; };
           # hardcoded so that prometheus can find it after restart
           "metrics" = { static = 3194; to = ports.metrics; hostNetwork = "ts"; };
+          "cloudflared_metrics" = { static = 3195; to = ports.cloudflared_metrics; hostNetwork = "ts"; };
           "sql" = { static = ports.sql; hostNetwork = "ts"; };
         };
       };
@@ -69,6 +71,26 @@ in
           sidecarTask.resources = sidecarResources;
         };
         meta.metrics_port = "\${NOMAD_HOST_PORT_metrics}";
+      };
+      service."traefik-cloudflared-metrics" = {
+        port = toString ports.cloudflared_metrics;
+        tags = [ "metrics" ];
+        checks = [
+          {
+            name = "cf-metrics";
+            expose = true;
+            port = "cloudflared_metrics";
+            type = "http";
+            path = "/metrics";
+            interval = 10 * time.second;
+            timeout = 3 * time.second;
+          }
+        ];
+        connect = {
+          sidecarService = { };
+          sidecarTask.resources = sidecarResources;
+        };
+        meta.metrics_port = "\${NOMAD_HOST_PORT_cloudflared_metrics}";
       };
       service."traefik" = {
         tags = [
@@ -126,7 +148,7 @@ in
             "tunnel"
             "--no-autoupdate"
             "--metrics"
-            "0.0.0.0:2000"
+            "0.0.0.0:${toString ports.cloudflared_metrics}"
             "run"
           ];
         };
