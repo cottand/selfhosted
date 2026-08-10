@@ -72,10 +72,17 @@ in
           "traefik.enable=true"
           "traefik.consulcatalog.connect=true"
           "traefik.http.routers.safebucket-http.entrypoints=web,websecure,cloudflared"
-          "traefik.http.routers.safebucket-http.rule=Host(`safebucket-http.tfk.nd`) || Host(`${host}`)"
+          "traefik.http.routers.safebucket-http.rule=Host(`${host}`)"
           "traefik.http.routers.safebucket-http.tls=true"
           "traefik.http.routers.safebucket-http.middlewares=safebucket-csp"
           "traefik.http.middlewares.safebucket-csp.headers.customResponseHeaders.Content-Security-Policy=default-src 'self'; media-src 'self' ${b2Endpoint}; img-src 'self' ${b2Endpoint} data: blob:; connect-src 'self' ${b2Endpoint}; frame-src 'self' ${b2Endpoint} blob: data:; object-src 'self' ${b2Endpoint} blob: data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:"
+
+          "traefik.http.routers.safebucket-banner.entrypoints=web,websecure,cloudflared"
+          "traefik.http.routers.safebucket-banner.rule=Host(`${host}`) && Path(`/safebucket_banner.png`)"
+          "traefik.http.routers.safebucket-banner.tls=true"
+          "traefik.http.routers.safebucket-banner.service=github-raw@file"
+          "traefik.http.routers.safebucket-banner.middlewares=safebucket-banner-path"
+          "traefik.http.middlewares.safebucket-banner-path.replacepath.path=/cottand/selfhosted/refs/heads/master/misc/dcotta-subsystems-cropped.png"
         ];
       };
 
