@@ -12,6 +12,7 @@ This repository contains the configuration-as-code for a personal self-hosted cl
 - `secret/` - Encrypted secrets and PKI certificates
 - `misc/` - Miscellaneous configs and dashboards
 - `scripts/` - Build and deployment scripts
+- `docs/` - Documentation and guides, for your reference
 
 ## Key Technologies
 
@@ -89,5 +90,6 @@ Check service builds with `nix build .#services`.
    }
    ```
 2. Add the job definition to `jobs/default.nix` imports
-3. Validate with `nix eval .#nomadJobs.{name} --json`
-4. Report as done
+3. Add the job definition to git
+4. Validate with `nix eval .#nomadJobs.{name} --json`
+5. Report as done

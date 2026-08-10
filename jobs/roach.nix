@@ -222,7 +222,7 @@ let
           '';
           perms = "0600";
         }
-      ] ++ builtins.concatLists (map certsForUser [ "root" "grafana" "ente" ]);
+      ] ++ builtins.concatLists (map certsForUser [ "root" "grafana" "ente" "safebucket" ]);
     };
   };
 in
