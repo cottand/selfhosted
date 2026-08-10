@@ -34,5 +34,6 @@ in
     ./minecraft.nix
     ./mosquitto.nix
     ./papra.nix
+    ./safebucket.nix
   ];
 }

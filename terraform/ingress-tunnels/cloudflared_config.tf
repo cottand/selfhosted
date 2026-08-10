@@ -8,6 +8,7 @@ locals {
   dcotta_com_subdomains_ingress_via_cloudflared = toset([
     "papra",
     "immich",
+    "files",
   ])
 }
 
@@ -38,9 +39,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "traefik-config" {
             http2_origin  = true
           }
       }],
-      [{
-        service = "http_status:404"
-      }]
+      [{ service = "http_status:404" }]
     )
   }
 }

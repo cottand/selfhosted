@@ -15,7 +15,7 @@ let
     cloudflared_metrics = 2000;
   };
   resources = {
-    cpu = 300;
+    cpu = 550;
     memory = 300;
     memoryMax = 500;
   };

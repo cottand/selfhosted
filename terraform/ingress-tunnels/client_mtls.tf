@@ -24,7 +24,7 @@ locals {
 # TODO doesn't work for some reason, do in UI
 resource "cloudflare_certificate_authorities_hostname_associations" "mtls_hostnames" {
   zone_id             = local.zoneIds["com"]
-  hostnames           = local.full_domains_list
+  hostnames           = concat(local.full_domains_list, ["files.dcotta.com"])
   mtls_certificate_id = cloudflare_mtls_certificate.dcotta_com_mtls.id
 }
 
@@ -34,11 +34,29 @@ resource "cloudflare_ruleset" "ingress-ruleset" {
   phase   = "http_request_firewall_custom"
   zone_id = local.zoneIds["com"]
 
-  rules = [{
-    description = "Client MTLS for ${join(", ", local.subdomains_requiring_client_mtls)}"
-    expression  = format("(http.host in { %s } and not cf.tls_client_auth.cert_verified)", join(" ", [for host in local.full_domains_list : "\"${host}\""]))
-    action      = "block"
-    ref         = "mtls_papra"
-  }]
+  rules = [
+    {
+      description = "Client MTLS for ${join(", ", local.subdomains_requiring_client_mtls)}"
+      expression  = format("(http.host in { %s } and not cf.tls_client_auth.cert_verified)", join(" ", [for host in local.full_domains_list : "\"${host}\""]))
+      action      = "block"
+      ref         = "mtls_single_domain"
+    },
+    {
+
+      description = "Client MTLS for safebucket (except for share paths)"
+      expression  = format( <<EOT
+       (http.host in { "files.dcotta.com" }
+and not cf.tls_client_auth.cert_verified
+and not http.request.uri.path wildcard "/assets/*"
+and not http.request.uri.path wildcard "/api/v1/shares/*"
+and not http.request.uri.path wildcard "/shares/*"
+and not http.request.uri.path == "/config.json"
+)
+        EOT
+      )
+      action      = "block"
+      ref         = "mtls_safebucket"
+    }
+  ]
 }
 
