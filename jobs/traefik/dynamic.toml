@@ -52,6 +52,11 @@ address = "hez2.golden-dace.ts.net:4646"
 [[tcp.services.nomad.loadBalancer.servers]]
 address = "hez3.golden-dace.ts.net:4646"
 
+[http.services.github-raw.loadBalancer]
+passHostHeader = false
+[[http.services.github-raw.loadBalancer.servers]]
+url = "https://raw.githubusercontent.com"
+
 [tcp.services.consul.loadBalancer]
 [[tcp.services.consul.loadBalancer.servers]]
 address = "hez1.golden-dace.ts.net:8501"
