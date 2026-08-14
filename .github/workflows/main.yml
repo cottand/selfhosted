@@ -133,8 +133,8 @@ jobs:
 
       - name: Build services image
         run: |
-          nix-fast-build --eval-workers 1 --no-nom --option build-fallback true -f .#legacyPackages.x86_64-linux.scripts.all-images
-          #nix-fast-build --eval-workers 1 --no-nom --attic-cache=default --option build-fallback true -f .#legacyPackages.x86_64-linux.scripts.all-images
+          #nix-fast-build --eval-workers 1 --no-nom --option build-fallback true -f .#legacyPackages.x86_64-linux.scripts.all-images
+          nix-fast-build --eval-workers 1 --no-nom --attic-cache=default --option build-fallback true -f .#legacyPackages.x86_64-linux.scripts.all-images
 
       - name: Install skopeo
         run: |
