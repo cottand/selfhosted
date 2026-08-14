@@ -53,7 +53,7 @@ and not http.request.uri.path wildcard "/shares/*"
 and not http.request.uri.path == "/config.json"
 )
         EOT
-      )
+        )
       action      = "block"
       ref         = "mtls_safebucket"
     }
