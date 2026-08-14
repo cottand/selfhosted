@@ -49,7 +49,9 @@ func (r *mqttScaffold) aquariumTempPoll(ctx context.Context) error {
 		return terrors.Augment(err, "could not parse temp status", nil)
 	}
 
-	tempStat.Set(parsed.Result.TC)
+	if parsed.Result != nil {
+		tempStat.Set(parsed.Result.TC)
+	}
 
 	return nil
 }
@@ -57,7 +59,7 @@ func (r *mqttScaffold) aquariumTempPoll(ctx context.Context) error {
 type shellyTempStatusResponse struct {
 	Dst    string `json:"dst"`
 	Id     int    `json:"id"`
-	Result struct {
+	Result *struct {
 		Id int     `json:"id"`
 		TC float64 `json:"tC"`
 		TF float64 `json:"tF"`

@@ -16,6 +16,44 @@ let
   kiB = 1024;
   chunkFactor = 4;
 
+  bucketConfigFiler = ''
+    [storage]
+    type = "s3"
+    # The AWS region
+    region = "us-east-1"
+
+    # The name of the bucket
+    bucket = "attic"
+    #endpoint = "http://localhost:${toString ports.upS3}"
+    #endpoint = "https://seaweed-filer-s3.tfk.nd"
+
+    # If unset, the credentials are read from the `AWS_ACCESS_KEY_ID` and
+    # `AWS_SECRET_ACCESS_KEY` environment variables.
+    [storage.credentials]
+      access_key_id = ""
+      secret_access_key = ""
+
+  '';
+
+  bucketConfigB2 = ''
+    {{ with secret "secret/data/nomad/job/attic/b2" }}
+    [storage]
+    type = "s3"
+    # The AWS region
+    region = "{{ .Data.data.region }}"
+
+    # The name of the bucket
+    bucket = "{{ .Data.data.bucket }}"
+    endpoint = "https://{{ .Data.data.endpoint }}"
+
+    # If unset, the credentials are read from the `AWS_ACCESS_KEY_ID` and
+    # `AWS_SECRET_ACCESS_KEY` environment variables.
+    [storage.credentials]
+      access_key_id = "{{ .Data.data.keyID }}"
+      secret_access_key = "{{ .Data.data.applicationKey }}"
+    {{ end }}
+  '';
+
   mkGroup = { mode, count, resources, service }: {
     inherit count service;
     update = {
@@ -106,23 +144,9 @@ let
             heartbeat = true
 
             # File storage configuration
-            [storage]
-            type = "s3"
-
-            # ## S3 Storage (set type to "s3" and uncomment below)
-            # The AWS region
-            region = "us-east-1"
-
-            # The name of the bucket
-            bucket = "attic"
-            #endpoint = "http://localhost:${toString ports.upS3}"
-            endpoint = "https://seaweed-filer-s3.tfk.nd"
-
-            # If unset, the credentials are read from the `AWS_ACCESS_KEY_ID` and
-            # `AWS_SECRET_ACCESS_KEY` environment variables.
-            [storage.credentials]
-              access_key_id = ""
-              secret_access_key = ""
+            # you need to delete DB tables before messing with this :c
+            # otherwise the app will expect chunks that do not exist
+            ${bucketConfigB2}
 
             # Warning: If you change any of the values here, it will be
             # difficult to reuse existing chunks for newly-uploaded NARs
@@ -196,8 +220,8 @@ in
 
               # to avoid 504s
               # https://developer.hashicorp.com/consul/docs/reference/proxy/envoy#dynamic-configuration
-              extra.local_request_timeout_ms = 5  * 60 * 1000;
-              extra.local_idle_timeout_ms = 5  * 60 * 1000;
+              extra.local_request_timeout_ms = 5 * 60 * 1000;
+              extra.local_idle_timeout_ms = 5 * 60 * 1000;
               extra.protocol = "http";
             };
           };
@@ -222,7 +246,7 @@ in
           "traefik.enable=true"
           "traefik.consulcatalog.connect=true"
           "traefik.http.routers.\${NOMAD_GROUP_NAME}-http.entrypoints=web,websecure"
-          "traefik.http.routers.\${NOMAD_GROUP_NAME}-http.tls=true"
+          "traefik.http.routers.\${NOMAD_GROUP_NAME} -http.tls=true"
         ];
       };
     };
@@ -255,3 +279,4 @@ in
     };
   };
 }
+
