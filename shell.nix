@@ -13,6 +13,8 @@
     pkgs.consul
     pkgs.bws
     pkgs.postgresql
+    pkgs.mqttui
+    pkgs.nix-diff
 
     # gcloud + components
     # see https://nixos.wiki/wiki/Google_Cloud_SDK
