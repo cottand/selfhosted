@@ -165,7 +165,7 @@ let
 
             # Zero (default) means time-based garbage-collection is
             # disabled by default. You can enable it on a per-cache basis.
-            default-retention-period = "6 months"
+            default-retention-period = "3 months"
             #default-retention-period = "1 minute"
           '';
         }
