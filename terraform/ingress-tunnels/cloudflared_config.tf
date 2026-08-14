@@ -9,6 +9,7 @@ locals {
     "papra",
     "immich",
     "files",
+    "fish",
   ])
 }
 

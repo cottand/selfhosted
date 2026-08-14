@@ -66,17 +66,17 @@ in
 
 
             # only match rtc stream for webcam
-#            (
-#              "traefik.http.routers.${fishRouter}.rule=Host(`fish.dcotta.com`) || Host(`fish.dcotta.com`) && (" +
-#              "   (Query(`src`, `webcam`) && PathPrefix(`/stream.html`))" +
-#              "|| (Query(`src`, `webcam`) && PathPrefix(`/api/ws`)     )" +
-#              "||  PathPrefix(`/video-stream.js`)" +
-#              "||  PathPrefix(`/video-rtc.js`)" +
-#              ")"
-#            )
-#            "traefik.http.routers.${fishRouter}.entrypoints=web, web_public, websecure, websecure_public"
-#            "traefik.http.routers.${fishRouter}.tls=true"
-#            "traefik.http.routers.${fishRouter}.middlewares=${redirectMiddleware}"
+            (
+              "traefik.http.routers.${fishRouter}.rule=Host(`fish.dcotta.com`) || Host(`fish.dcotta.com`) && (" +
+              "   (Query(`src`, `webcam`) && PathPrefix(`/stream.html`))" +
+              "|| (Query(`src`, `webcam`) && PathPrefix(`/api/ws`)     )" +
+              "||  PathPrefix(`/video-stream.js`)" +
+              "||  PathPrefix(`/video-rtc.js`)" +
+              ")"
+            )
+            "traefik.http.routers.${fishRouter}.entrypoints=web, web_public, websecure, websecure_public, cloudflared"
+            "traefik.http.routers.${fishRouter}.tls=true"
+            "traefik.http.routers.${fishRouter}.middlewares=${redirectMiddleware}"
 
             # redirect fish.dcotta.com -> fish.dcotta.com/stream.html?src=webcam
             "traefik.http.middlewares.${redirectMiddleware}.redirectregex.regex=fish.dcotta.com/$"
@@ -146,7 +146,7 @@ in
 
               rtsp:
                 listen: ":${toString ports.rtsp}"
-                default_query: "video=h264"
+                #default_query: "video=h264"
 
               webrtc:
                 listen: "localhost:${toString ports.webrtc}"
@@ -154,12 +154,15 @@ in
               streams:
                 webcam:
                    # we have 1024x576, 1280x960...
-                  #- ffmpeg:device?video=/dev/video0&video_size=1024x576&framerate=30#video=h264
-                  - v4l2:device?video=/dev/video0&input_format=yuyv422&video_size=1024x576&framerate=30
+                  - ffmpeg:device?video=/dev/video0&video_size=1024x576&framerate=30#video=h264
+                  #??- ffmpeg:device?video=/dev/video0&input_format=yuyv422&video_size=1024x576&framerate=30
+                  #- v4l2:device?video=/dev/video0&input_format=yuyv422&video_size=1024x576&framerate=30
                   #- v4l2:device?video=/dev/video0&input_format=mjpeg&video_size=1280x960&framerate=30
+                webcam_h265:
+                  - ffmpeg:rtsp://localhost:${toString ports.rtsp}/webcam#video=h264#drawtext=x=2:y=2:fontsize=12:fontcolor=white:box=1:boxcolor=black
 
               ffmpeg:
-                global: "-hide_banner -loglevel error"
+                global: "-hide_banner -loglevel warning"
 
               publish:
                 webcam:

@@ -68,6 +68,7 @@ in
         ## /shares/
         ## /api/v1/shares
         ## /assets/
+        ## /config.json
         ##
           "traefik.enable=true"
           "traefik.consulcatalog.connect=true"
