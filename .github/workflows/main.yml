@@ -133,15 +133,18 @@ jobs:
 
       - name: Build services image
         run: |
-          nix-fast-build --eval-workers 1 --no-nom --attic-cache=default --option build-fallback true -f .#legacyPackages.x86_64-linux.scripts.all-images
+          nix-fast-build --eval-workers 1 --no-nom --option build-fallback true -f .#legacyPackages.x86_64-linux.scripts.all-images
+          #nix-fast-build --eval-workers 1 --no-nom --attic-cache=default --option build-fallback true -f .#legacyPackages.x86_64-linux.scripts.all-images
 
       - name: Install skopeo
         run: |
-          nix profile add nixpkgs#skopeo
+          # too new versions of skopeo mess us up, see https://github.com/NixOS/nixpkgs/issues/541378
+          # nix profile add nixpkgs#skopeo
+          sudo apt install -y skopeo
 
       - name: Login to GHCR
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | skopeo login -u ${{ github.actor }} --password-stdin https://ghcr.io
+          skopeo login ghcr.io -u ${{ github.actor }} -p "${{ secrets.GITHUB_TOKEN }}"
 
       - name: Push all images
         shell: python

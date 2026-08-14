@@ -19,3 +19,10 @@ module "bucket-safebucket" {
   b2_bucket_name                 = "cottand-safebucket"
   vault_secret_path_for_b2_creds = "nomad/job/safebucket/b2"
 }
+
+module "bucket-attic" {
+  source = "../modules/b2-bucket"
+
+  b2_bucket_name                 = "cottand-attic"
+  vault_secret_path_for_b2_creds = "nomad/job/attic/b2"
+}
