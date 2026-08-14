@@ -107,6 +107,7 @@ jobs:
 
       - name: Build web portfolio
         run: |
+          # always fetches latest
           nix build -L github:cottand/web-portfolio#static
 
       - name: Deploy
