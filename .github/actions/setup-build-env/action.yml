@@ -50,6 +50,6 @@ runs:
       shell: bash
       run: |
         attic login --set-default central "$ATTIC_SERVER" "$ATTIC_TOKEN"
-        #attic use "$ATTIC_CACHE"
+        attic use "$ATTIC_CACHE"
       env:
         ATTIC_TOKEN: ${{ steps.secrets.outputs.ATTIC_TOKEN }}
