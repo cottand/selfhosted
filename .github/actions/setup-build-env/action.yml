@@ -43,8 +43,9 @@ runs:
       run: |
         nix profile add nixpkgs#attic-client nixpkgs#nix-fast-build
 
-    - name: Setup detsys magic nix cache
-      uses: DeterminateSystems/magic-nix-cache-action@main
+    # Now that we have the attic cache going, disable this for now as it adds 15s to build times
+    #    - name: Setup detsys magic nix cache
+    #      uses: DeterminateSystems/magic-nix-cache-action@main
 
     - name: Configure Attic
       shell: bash
