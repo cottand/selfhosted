@@ -160,7 +160,7 @@ data "cloudflare_ip_ranges" "cloudflare" {}
 
 
 resource "oci_core_network_security_group_security_rule" "from_cloudflare" {
-  for_each = toset(data.cloudflare_ip_ranges.cloudflare.ipv4_cidr_blocks)
+  for_each = toset(data.cloudflare_ip_ranges.cloudflare.ipv4_cidrs)
 
   direction                 = "INGRESS"
   network_security_group_id = oci_core_network_security_group.lb_ingress.id
@@ -232,6 +232,7 @@ resource "oci_core_nat_gateway" "default" {
   compartment_id = local.ociRoot
   vcn_id         = oci_core_vcn.base.id
 }
+
 
 resource "cloudflare_record" "web" {
   for_each = toset(local.zoneIdsList)

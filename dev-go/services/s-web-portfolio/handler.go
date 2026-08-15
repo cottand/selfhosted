@@ -9,6 +9,7 @@ import (
 
 	s_rpc_portfolio_stats "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-portfolio-stats"
 	s_rpc_prometheus "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-prometheus"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
 	"net/http"
@@ -65,11 +66,14 @@ func (s *scaffold) handleAquariumTemp(rw http.ResponseWriter, req *http.Request)
 
 	cachedMutex.RLock()
 	defer cachedMutex.RUnlock()
+
 	if time.Since(cachedAt) < 20*time.Second {
+		span.SetAttributes(attribute.Bool("cached", true))
 		rw.WriteHeader(http.StatusOK)
 		_ = json.NewEncoder(rw).Encode(aquariumTempResponse{TempC: cachedValue})
 		return
 	}
+	span.SetAttributes(attribute.Bool("cached", false))
 
 	tempC, err := s_rpc_prometheus.QueryInstant(req.Context(), &s_rpc_prometheus.QueryInstantRequest{
 		PromQLQuery: "avg(s_rpc_mqtt_pill107_temp)",
@@ -87,9 +91,6 @@ func (s *scaffold) handleAquariumTemp(rw http.ResponseWriter, req *http.Request)
 		rw.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
-	cachedMutex.Lock()
-	defer cachedMutex.Unlock()
 
 	go refreshCache(parsed, time.Now())
 
