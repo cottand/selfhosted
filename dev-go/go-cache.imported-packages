@@ -30,6 +30,8 @@ github.com/jackc/pgx/v5/stdlib
 github.com/monzo/terrors
 github.com/patrickmn/go-cache
 github.com/paulmach/go.geojson
+github.com/prometheus/client_golang/api
+github.com/prometheus/client_golang/api/prometheus/v1
 github.com/prometheus/client_golang/prometheus
 github.com/prometheus/client_golang/prometheus/promauto
 github.com/prometheus/client_golang/prometheus/promhttp
