@@ -1,7 +1,7 @@
 { util, time, defaults, ... }:
 let
   lib = (import ../lib) { };
-  version = "2.6.1";
+  version = "3.0.3";
   cpu = 256;
   mem = 700;
   ports = {
@@ -35,47 +35,47 @@ in
           hostNetwork = "ts";
         };
       };
-    service."tempo-metrics" = {
-      port = toString ports.http;
-      connect.sidecarService = {
-        proxy = { };
+      service."tempo-metrics" = {
+        port = toString ports.http;
+        connect.sidecarService = {
+          proxy = { };
+        };
+
+
+        connect.sidecarTask.resources = sidecarResources;
+        checks = [
+          {
+            expose = true;
+            name = "tempo healthcheck";
+            port = "metrics";
+            type = "http";
+            path = "/metrics";
+            interval = 30 * time.second;
+            timeout = 10 * time.second;
+            checkRestart = {
+              limit = 3;
+              grace = 120 * time.second;
+              ignoreWarnings = false;
+            };
+          }
+          # TODO implement http healthcheck at /ready
+          #        {
+          #          expose = true;
+          #          name = "ready";
+          #          portLabel = "ready";
+          #          type = "http";
+          #          path = "/ready";
+          #          interval = 30 * lib.seconds;
+          #          timeout = 10 * lib.seconds;
+          #          checkRestart = {
+          #            limit = 3;
+          #            grace = 120 * time.second;
+          #            ignoreWarnings = false;
+          #          };
+          #        }
+        ];
+        meta.metrics_port = "\${NOMAD_PORT_metrics}";
       };
-
-
-      connect.sidecarTask.resources = sidecarResources;
-      checks = [
-        {
-          expose = true;
-          name = "tempo healthcheck";
-          port = "metrics";
-          type = "http";
-          path = "/metrics";
-          interval = 30 * time.second;
-          timeout = 10 * time.second;
-          checkRestart = {
-            limit = 3;
-            grace = 120 * time.second;
-            ignoreWarnings = false;
-          };
-        }
-        # TODO implement http healthcheck at /ready
-        #        {
-        #          expose = true;
-        #          name = "ready";
-        #          portLabel = "ready";
-        #          type = "http";
-        #          path = "/ready";
-        #          interval = 30 * lib.seconds;
-        #          timeout = 10 * lib.seconds;
-        #          checkRestart = {
-        #            limit = 3;
-        #            grace = 120 * time.second;
-        #            ignoreWarnings = false;
-        #          };
-        #        }
-      ];
-      meta.metrics_port = "\${NOMAD_PORT_metrics}";
-    };
       service."tempo-http" = {
         port = toString ports.http;
         tags = [
@@ -113,50 +113,49 @@ in
           destination = "local/tempo/local-config.yaml";
           changeMode = "restart";
           data = ''
-          auth_enabled: false
-          server:
-            http_listen_port: ${toString ports.http}
-            grpc_listen_port: ${toString ports.grpc}
+            auth_enabled: false
+            server:
+              http_listen_port: ${toString ports.http}
+              grpc_listen_port: ${toString ports.grpc}
 
-          distributor:
-            # each of these has their separate config - see https://grafana.com/docs/tempo/latest/configuration/#distributor
-            receivers:
-              # see https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jaegerreceiver
-              jaeger:
-                protocols:
-              otlp:
-                protocols:
-                    grpc:
-                      endpoint: 0.0.0.0:${toString ports.otlp-grpc}
+            distributor:
+              # each of these has their separate config - see https://grafana.com/docs/tempo/latest/configuration/#distributor
+              receivers:
+                # see https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/jaegerreceiver
+                jaeger:
+                  protocols:
+                otlp:
+                  protocols:
+                      grpc:
+                        endpoint: 0.0.0.0:${toString ports.otlp-grpc}
 
-          #ingester:
-            #max_block_duration: 5m               # cut the headblock when this much time passes. this is being set for demo purposes and should probably be left alone normally
 
-          compactor:
-            compaction:
-              block_retention: 12h                # overall Tempo trace retention.
+            metrics_generator:
+              registry:
+                external_labels:
+                  source: tempo
+                  cluster: nomad
+              storage:
+                path: /alloc/data/tempo/generator/wal
+                remote_write:
+                  - url: http://localhost:8001/api/v1/push
+                    send_exemplars: true
 
-          metrics_generator:
-            registry:
-              external_labels:
-                source: tempo
-                cluster: nomad
             storage:
-              path: /alloc/data/tempo/generator/wal
-              remote_write:
-                - url: http://localhost:8001/api/v1/push
-                  send_exemplars: true
+              trace:
+                backend: local                     # backend configuration to use
+                wal:
+                  path: /alloc/data/tempo/wal             # where to store the the wal locally
+                local:
+                  path: /alloc/data/tempo/blocks
+                # block: {version: vParquet5}
 
-          storage:
-            trace:
-              backend: local                     # backend configuration to use
-              wal:
-                path: /alloc/data/tempo/wal             # where to store the the wal locally
-              local:
-                path: /alloc/data/tempo/blocks
-
-          overrides:
-            metrics_generator_processors: [service-graphs, span-metrics] # enables metrics generator
+            overrides:
+              defaults:
+                compaction:
+                  block_retention: 12h                # overall Tempo trace retention.
+                metrics_generator:
+                  processors: [service-graphs, span-metrics] # enables metrics generator
           '';
         }];
       };

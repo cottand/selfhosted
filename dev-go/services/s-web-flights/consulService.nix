@@ -25,6 +25,8 @@ in
       "traefik.consulcatalog.connect=true"
       "traefik.http.routers.${name}.tls=true"
       "traefik.http.routers.${name}.entrypoints=web, websecure"
+
+      "traefik.http.middlewares.${name}-header.headers.customresponseheaders.X-dcotta-com-svc=${name}"
     ];
   };
 }

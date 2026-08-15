@@ -25,8 +25,11 @@ in
       "traefik.consulcatalog.connect=true"
       "traefik.http.routers.${name}.tls=true"
       "traefik.http.routers.${name}.entrypoints=web, websecure, cloudflared"
-      "traefik.http.routers.${name}.middlewares=${name}-stripprefix"
+      "traefik.http.routers.${name}.middlewares=${name}-stripprefix, ${name}-header"
+
       "traefik.http.middlewares.${name}-stripprefix.stripprefix.prefixes=/${name}"
+      "traefik.http.middlewares.${name}-header.headers.customresponseheaders.X-dcotta-svc=${name}"
+
       "traefik.http.routers.${name}.rule=Host(`web.dcotta.com`) && PathPrefix(`/${name}`)"
       "traefik.http.routers.${name}.tls=true"
 
