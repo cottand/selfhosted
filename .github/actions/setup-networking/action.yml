@@ -34,8 +34,3 @@ runs:
         github_access_token: '${{ github.token }}'
         extra_nix_config: |
           ${{ inputs.aarch64LinuxSupport && 'extra-platforms = aarch64-linux' || '' }}
-
-    - name: Install grpcurl
-      shell: bash
-      run: |
-        nix profile add nixpkgs#grpcurl

@@ -36,7 +36,6 @@
     pkgs.nixVersions.latest
 
 
-    scripts.shipper
     scripts.bws-get
     scripts.keychain-get
     scripts.gen-protos

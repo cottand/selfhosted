@@ -10,6 +10,7 @@ let
     http = 8080;
     grpc = 8081;
     upDb = 5432;
+    upProm = 9991;
   };
   resources = {
     cpu = cpu;
@@ -56,6 +57,7 @@ in
               { destinationName = "tempo-otlp-grpc-mesh"; localBindPort = otlpPort; }
               { destinationName = "roach-db"; localBindPort = ports.upDb; }
               { destinationName = "mosquitto-mqtt"; localBindPort = 1883; }
+              { destinationName = "prometheus"; localBindPort = ports.upProm; }
             ];
 
             config = util.mkEnvoyProxyConfig {

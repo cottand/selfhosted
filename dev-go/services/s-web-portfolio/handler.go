@@ -3,7 +3,14 @@ package module
 import (
 	"context"
 	"encoding/json"
+	"strconv"
+	"sync"
+	"time"
+
 	s_rpc_portfolio_stats "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-portfolio-stats"
+	s_rpc_prometheus "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-prometheus"
+	"go.opentelemetry.io/otel/trace"
+
 	"net/http"
 )
 
@@ -14,6 +21,7 @@ type scaffold struct {
 func (s *scaffold) MakeHandler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/browse", s.handleHttpBrowse)
+	mux.HandleFunc("/api/aquarium_temp", s.handleAquariumTemp)
 	return mux
 }
 
@@ -37,4 +45,69 @@ func (s *scaffold) handleHttpBrowse(rw http.ResponseWriter, req *http.Request) {
 			})
 		}
 	}()
+}
+
+type aquariumTempResponse struct {
+	TempC float64 `json:"tempC"`
+}
+
+var (
+	cachedValue float64
+	cachedAt    time.Time
+	cachedMutex sync.RWMutex
+)
+
+func (s *scaffold) handleAquariumTemp(rw http.ResponseWriter, req *http.Request) {
+	rw.Header().Set("Access-Control-Allow-Origin", "https://nico.dcotta.com")
+	rw.Header().Set("Content-Type", "application/json")
+
+	span := trace.SpanFromContext(req.Context())
+
+	cachedMutex.RLock()
+	defer cachedMutex.RUnlock()
+	if time.Since(cachedAt) < 20*time.Second {
+		rw.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(rw).Encode(aquariumTempResponse{TempC: cachedValue})
+		return
+	}
+
+	tempC, err := s_rpc_prometheus.QueryInstant(req.Context(), &s_rpc_prometheus.QueryInstantRequest{
+		PromQLQuery: "avg(s_rpc_mqtt_pill107_temp)",
+	})
+
+	if err != nil {
+		span.RecordError(err)
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	parsed, err := strconv.ParseFloat(tempC.String(), 64)
+	if err != nil {
+		span.RecordError(err)
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	cachedMutex.Lock()
+	defer cachedMutex.Unlock()
+
+	go refreshCache(parsed, time.Now())
+
+	resp := aquariumTempResponse{TempC: parsed}
+	err = json.NewEncoder(rw).Encode(resp)
+	if err != nil {
+		span.RecordError(err)
+		rw.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+func refreshCache(value float64, timestamp time.Time) {
+	cachedMutex.Lock()
+	defer cachedMutex.Unlock()
+	if timestamp.Before(cachedAt) {
+		// the cached value is actually newer
+		return
+	}
+	cachedAt = timestamp
+	cachedValue = value
 }

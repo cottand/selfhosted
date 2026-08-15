@@ -1,0 +1,21 @@
+syntax = "proto3";
+package s_rpc_prometheus;
+
+option go_package = "github.com/Cottand/selfosted/dev-go/lib/proto/s-rpc-prometheus";
+
+import "google/protobuf/empty.proto";
+
+
+service Prometheus {
+  rpc QueryInstant(QueryInstantRequest) returns (QueryInstantResponse);
+}
+
+message QueryInstantRequest {
+  string promQLQuery = 1;
+}
+
+
+message QueryInstantResponse {
+  string result = 1;
+  string type = 2;
+}
