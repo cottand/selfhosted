@@ -61,21 +61,6 @@ moved {
   to   = cloudflare_dns_record.ente-api-cname-web-com
 }
 
-resource "cloudflare_dns_record" "fish-cname-web-com" {
-  zone_id = local.zoneIds["com"]
-  name    = "fish"
-  type    = "CNAME"
-  ttl     = 1
-  comment = "tf managed"
-  proxied = true
-  content = "web.dcotta.com"
-}
-
-moved {
-  from = cloudflare_record.fish-cname-web-com
-  to   = cloudflare_dns_record.fish-cname-web-com
-}
-
 resource "cloudflare_dns_record" "wildcard-sh-com-1" {
   zone_id = local.zoneIds["com"]
   name    = "*.sh"

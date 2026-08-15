@@ -10,6 +10,7 @@ locals {
     "immich",
     "files",
     "fish",
+    "web",
   ])
 }
 
