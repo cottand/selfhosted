@@ -17,6 +17,7 @@ in
     ./monitoring/vector.nix
     ./monitoring/tempo.nix
     ./monitoring/loki.nix
+    ./monitoring/mimir.nix
     ./seaweed/master.nix
     ./seaweed/filer.nix
     ./seaweed/volume.nix

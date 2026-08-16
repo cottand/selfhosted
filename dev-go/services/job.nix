@@ -57,7 +57,7 @@ in
               { destinationName = "tempo-otlp-grpc-mesh"; localBindPort = otlpPort; }
               { destinationName = "roach-db"; localBindPort = ports.upDb; }
               { destinationName = "mosquitto-mqtt"; localBindPort = 1883; }
-              { destinationName = "prometheus"; localBindPort = ports.upProm; }
+              { destinationName = "mimir-http"; localBindPort = ports.upProm; }
             ];
 
             config = util.mkEnvoyProxyConfig {
