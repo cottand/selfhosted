@@ -85,7 +85,7 @@ func (s *scaffold) handleAquariumTemp(rw http.ResponseWriter, req *http.Request)
 		return
 	}
 
-	parsed, err := strconv.ParseFloat(tempC.String(), 64)
+	parsed, err := strconv.ParseFloat(tempC.Result, 64)
 	if err != nil {
 		span.RecordError(err)
 		rw.WriteHeader(http.StatusInternalServerError)

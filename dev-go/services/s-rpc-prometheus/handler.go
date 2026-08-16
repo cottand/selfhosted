@@ -9,6 +9,7 @@ import (
 	pb "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-prometheus"
 	"github.com/monzo/terrors"
 	prom "github.com/prometheus/client_golang/api/prometheus/v1"
+	"github.com/prometheus/common/model"
 )
 
 type ProtoHandler struct {
@@ -30,8 +31,16 @@ func (h *ProtoHandler) QueryInstant(ctx context.Context, req *pb.QueryInstantReq
 		slog.Warn("prometheus query warning", "warning", warning, "query", req.PromQLQuery)
 	}
 
-	return &pb.QueryInstantResponse{
-		Result: v.String(),
-		Type:   v.Type().String(),
-	}, nil
+	switch v := v.(type) {
+	case model.Vector:
+		return &pb.QueryInstantResponse{
+			// we don't have a need for queries that return more than a single value yet!
+			Result: fmt.Sprint(v[0].Value),
+			Type:   "float64",
+		}, nil
+	default:
+		return nil, terrors.New("unexpected_err_type", "unexpected result type", map[string]string{
+			"type": v.Type().String(),
+		})
+	}
 }
