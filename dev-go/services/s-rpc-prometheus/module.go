@@ -16,7 +16,7 @@ const Name = "s-rpc-prometheus"
 
 func InitService() (*bedrock.Service, string, error) {
 	c, err := promapi.NewClient(promapi.Config{
-		Address:      os.Getenv("NOMAD_UPSTREAM_ADDR_prometheus"),
+		Address:      "http://" + os.Getenv("NOMAD_UPSTREAM_ADDR_prometheus"),
 		RoundTripper: otelhttp.NewTransport(http.DefaultTransport),
 	})
 	if err != nil {
