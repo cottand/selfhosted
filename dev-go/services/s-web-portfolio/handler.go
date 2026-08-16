@@ -3,6 +3,7 @@ package module
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"sync"
 	"time"
@@ -49,11 +50,11 @@ func (s *scaffold) handleHttpBrowse(rw http.ResponseWriter, req *http.Request) {
 }
 
 type aquariumTempResponse struct {
-	TempC float64 `json:"tempC"`
+	TempC string `json:"tempC"`
 }
 
 var (
-	cachedValue float64
+	cachedValue string
 	cachedAt    time.Time
 	cachedMutex sync.RWMutex
 )
@@ -93,9 +94,10 @@ func (s *scaffold) handleAquariumTemp(rw http.ResponseWriter, req *http.Request)
 		return
 	}
 
-	go refreshCache(parsed, time.Now())
+	formatted := fmt.Sprintf("%.1f", parsed)
+	go refreshCache(formatted, time.Now())
 
-	resp := aquariumTempResponse{TempC: parsed}
+	resp := aquariumTempResponse{TempC: formatted}
 	err = json.NewEncoder(rw).Encode(resp)
 	if err != nil {
 		span.RecordError(err)
@@ -103,7 +105,7 @@ func (s *scaffold) handleAquariumTemp(rw http.ResponseWriter, req *http.Request)
 	}
 }
 
-func refreshCache(value float64, timestamp time.Time) {
+func refreshCache(value string, timestamp time.Time) {
 	cachedMutex.Lock()
 	defer cachedMutex.Unlock()
 	if timestamp.Before(cachedAt) {
