@@ -44,12 +44,12 @@ jobs:
             -f ${{ matrix.package }}
 
   resolve-nodes:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     outputs:
       nodes: ${{ steps.list.outputs.nodes }}
     steps:
       - uses: actions/checkout@v4
-      - uses: cachix/install-nix-action@v22
+      - uses: cachix/install-nix-action@v31
         with:
           github_access_token: '${{ github.token }}'
       - name: List nodes
