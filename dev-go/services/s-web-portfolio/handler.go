@@ -61,6 +61,7 @@ var (
 func (s *scaffold) handleAquariumTemp(rw http.ResponseWriter, req *http.Request) {
 	rw.Header().Set("Access-Control-Allow-Origin", "https://nico.dcotta.com")
 	rw.Header().Set("Content-Type", "application/json")
+	rw.Header().Set("Cache-Control", "max-age=30")
 
 	span := trace.SpanFromContext(req.Context())
 
