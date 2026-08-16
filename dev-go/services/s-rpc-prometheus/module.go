@@ -16,7 +16,8 @@ const Name = "s-rpc-prometheus"
 
 func InitService() (*bedrock.Service, string, error) {
 	c, err := promapi.NewClient(promapi.Config{
-		Address:      "http://" + os.Getenv("NOMAD_UPSTREAM_ADDR_prometheus"),
+		// See https://grafana.com/docs/mimir/latest/references/http-api/
+		Address:      "http://" + os.Getenv("NOMAD_UPSTREAM_ADDR_mimir_http") + "/prometheus",
 		RoundTripper: otelhttp.NewTransport(http.DefaultTransport),
 	})
 	if err != nil {
