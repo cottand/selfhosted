@@ -24,6 +24,10 @@ terraform {
       source  = "Backblaze/b2"
       version = "~> 0.13"
     }
+    aws = {
+      source  = "hashicorp/aws"
+      version = "6.17.0"
+    }
   }
 }
 
@@ -71,6 +75,21 @@ provider "aws" {
   region     = "eu-west-1"
   access_key = jsondecode(data.bitwarden-secrets_secret.awsTfUser.value)["access_key"]
   secret_key = jsondecode(data.bitwarden-secrets_secret.awsTfUser.value)["secret_key"]
+}
+
+provider "aws" {
+  access_key    = jsondecode(data.bitwarden-secrets_secret.b2-access.value)["applicationKey"]
+  secret_key = jsondecode(data.bitwarden-secrets_secret.b2-access.value)["keyID"]
+  region = "us-east-005"
+  skip_metadata_api_check = true
+  skip_credentials_validation = true
+  skip_region_validation = true
+  skip_requesting_account_id = true
+  endpoints {
+    s3 = "https://s3.us-east-005.backblazeb2.com"
+  }
+
+  alias = "awsb2"
 }
 
 // expires often (90d) renew at

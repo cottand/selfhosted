@@ -186,3 +186,23 @@ resource "vault_kv_secret_v2" "cockroachdb-client-safebucket" {
     ca    = vault_pki_secret_backend_root_cert.root_2024.certificate
   })
 }
+
+resource "vault_pki_secret_backend_cert" "cockroachdb-client-cloudreve" {
+  issuer_ref  = vault_pki_secret_backend_issuer.workloads-intermediate_2.issuer_ref
+  backend     = vault_mount.pki_workload_int.path
+  name        = vault_pki_secret_backend_role.intermediate_role-roach-client.name
+  common_name = "cloudreve"
+  ttl         = 20200000
+  revoke      = true
+  auto_renew  = true
+}
+
+resource "vault_kv_secret_v2" "cockroachdb-client-cloudreve" {
+  mount     = vault_mount.kv-secret.path
+  name      = "/nomad/job/roach/users/cloudreve"
+  data_json = jsonencode({
+    key   = vault_pki_secret_backend_cert.cockroachdb-client-cloudreve.private_key
+    chain = "${vault_pki_secret_backend_cert.cockroachdb-client-cloudreve.certificate}\n${vault_pki_secret_backend_cert.cockroachdb-client-cloudreve.ca_chain}"
+    ca    = vault_pki_secret_backend_root_cert.root_2024.certificate
+  })
+}
