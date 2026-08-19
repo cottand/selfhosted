@@ -36,5 +36,6 @@ in
     ./mosquitto.nix
     ./papra.nix
     ./safebucket.nix
+    ./cloudreve.nix
   ];
 }

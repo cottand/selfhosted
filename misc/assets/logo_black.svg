@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-222 -222 444 444" width="444" height="444" role="img" color="#111111">
+    <circle r="212" fill="#C2610F"/>
+    <g fill="none" stroke="currentColor" stroke-linejoin="miter" stroke-linecap="butt">
+        <circle r="196" stroke-width="14"/>
+        <g transform="translate(-8,8)">
+            <path d="M 0 -8 L 16 -8 L 16 8 L -16 8 L -16 -24 L 32 -24 L 32 24 L -32 24 L -32 -40 L 48 -40 L 48 40 L -48 40 L -48 -56 L 64 -56" stroke-width="10"/>
+        </g>
+        <g stroke-width="16">
+            <path d="M -22 -84 L -22 -132 L 22 -132 L 22 -96 L -6 -96"/>
+            <path d="M -22 -84 L -22 -132 L 22 -132 L 22 -96 L -6 -96" transform="rotate(90)"/>
+            <path d="M -22 -84 L -22 -132 L 22 -132 L 22 -96 L -6 -96" transform="rotate(180)"/>
+            <path d="M -22 -84 L -22 -132 L 22 -132 L 22 -96 L -6 -96" transform="rotate(270)"/>
+        </g>
+        <g transform="rotate(45)">
+            <circle cy="-140" r="28" stroke-width="8"/>
+            <circle cy="-140" r="15" stroke-width="6"/>
+            <circle cy="-140" r="5" fill="currentColor" stroke="none"/>
+        </g>
+        <g transform="rotate(135)">
+            <circle cy="-140" r="28" stroke-width="8"/>
+            <circle cy="-140" r="15" stroke-width="6"/>
+            <circle cy="-140" r="5" fill="currentColor" stroke="none"/>
+        </g>
+        <g transform="rotate(225)">
+            <circle cy="-140" r="28" stroke-width="8"/>
+            <circle cy="-140" r="15" stroke-width="6"/>
+            <circle cy="-140" r="5" fill="currentColor" stroke="none"/>
+        </g>
+        <g transform="rotate(315)">
+            <circle cy="-140" r="28" stroke-width="8"/>
+            <circle cy="-140" r="15" stroke-width="6"/>
+            <circle cy="-140" r="5" fill="currentColor" stroke="none"/>
+        </g>
+    </g>
+</svg>

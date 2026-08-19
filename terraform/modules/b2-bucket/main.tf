@@ -18,6 +18,11 @@ variable "b2_bucket_name" {
   type = string
 }
 
+variable "cors_any" {
+  type    = bool
+  default = false
+}
+
 resource "b2_bucket" "bucket" {
   bucket_name = var.b2_bucket_name
   bucket_type = "allPrivate"
@@ -27,6 +32,23 @@ resource "b2_bucket" "bucket" {
     days_from_hiding_to_deleting = 10
   }
 
+  dynamic "cors_rules" {
+    for_each = var.cors_any ? ["some"] : []
+    content {
+      allowed_headers = ["*"]
+      allowed_operations = [
+        "s3_head",
+        "s3_put",
+        "s3_delete",
+        "s3_post",
+        "s3_get",
+      ]
+      allowed_origins = ["*"]
+      cors_rule_name  = "cors-any"
+      expose_headers = ["etag"]
+      max_age_seconds = 3000
+    }
+  }
 }
 
 resource "b2_application_key" "app_key" {
@@ -52,3 +74,4 @@ resource "vault_kv_secret_v2" "secret" {
     }
   }
 }
+

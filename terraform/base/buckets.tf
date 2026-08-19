@@ -3,8 +3,8 @@ module "bucket-papra" {
 
   b2_bucket_name                 = "cottand-papra"
   vault_secret_path_for_b2_creds = "nomad/job/papra/b2"
+  cors_any = true
 }
-
 
 module "bucket-papra-db" {
   source = "../modules/b2-bucket"
@@ -18,6 +18,7 @@ module "bucket-safebucket" {
 
   b2_bucket_name                 = "cottand-safebucket"
   vault_secret_path_for_b2_creds = "nomad/job/safebucket/b2"
+  cors_any = true
 }
 
 module "bucket-attic" {
@@ -25,4 +26,12 @@ module "bucket-attic" {
 
   b2_bucket_name                 = "cottand-attic"
   vault_secret_path_for_b2_creds = "nomad/job/attic/b2"
+}
+
+module "bucket-cloudreve" {
+  source = "../modules/b2-bucket"
+
+  b2_bucket_name                 = "cottand-cloudreve"
+  vault_secret_path_for_b2_creds = "nomad/job/cloudreve/b2"
+  cors_any = true
 }
