@@ -15,6 +15,7 @@
     pkgs.postgresql
     pkgs.mqttui
     pkgs.nix-diff
+    pkgs.awscli
 
     # gcloud + components
     # see https://nixos.wiki/wiki/Google_Cloud_SDK

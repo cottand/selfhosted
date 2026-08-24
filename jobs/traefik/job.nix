@@ -135,7 +135,7 @@ in
       #          memoryMax = 500;
       #        };
       #      };
-      task."cloudflared" = {
+      task."cloudflared-traefik" = {
         lifecycle = {
           hook = "poststart";
           sidecar = true;

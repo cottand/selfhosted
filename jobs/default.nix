@@ -37,5 +37,6 @@ in
     ./papra.nix
     ./safebucket.nix
     ./cloudreve.nix
+    ./gose.nix
   ];
 }

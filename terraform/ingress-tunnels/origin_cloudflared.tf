@@ -23,3 +23,11 @@ resource "vault_kv_secret_v2" "cloudflared_secret" {
   }
   depends_on = [cloudflare_zero_trust_tunnel_cloudflared.traefik]
 }
+
+module "tunnel-files" {
+  source = "../modules/cloudflared-tunnel-origin"
+
+  vault_secret_path      = "/nomad/job/cloudreve/cloudflared"
+  cloudflare_tunnel_name = "files"
+  cloudflare_account_id  = local.cloudflare.account_id
+}

@@ -23,9 +23,23 @@ variable "cors_any" {
   default = false
 }
 
+variable "bucket_encryption" {
+  type    = bool
+  default = false
+}
+
 resource "b2_bucket" "bucket" {
   bucket_name = var.b2_bucket_name
   bucket_type = "allPrivate"
+
+
+  dynamic "default_server_side_encryption" {
+    for_each = var.bucket_encryption ? ["some"] : []
+    content {
+      algorithm = "AES256"
+      mode = "SSE-B2"
+    }
+  }
 
   lifecycle_rules {
     file_name_prefix             = ""
@@ -45,7 +59,7 @@ resource "b2_bucket" "bucket" {
       ]
       allowed_origins = ["*"]
       cors_rule_name  = "cors-any"
-      expose_headers = ["etag"]
+      expose_headers  = ["etag"]
       max_age_seconds = 3000
     }
   }
