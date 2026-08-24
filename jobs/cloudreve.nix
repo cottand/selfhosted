@@ -1,7 +1,7 @@
 { util, time, defaults, ... }:
 let
-  cpu = 100;
-  mem = 256;
+  cpu = 200;
+  mem = 512;
   ports = {
     http = 5212;
     https = 8888;

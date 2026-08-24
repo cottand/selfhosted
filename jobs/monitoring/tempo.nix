@@ -7,6 +7,7 @@ let
   ports = {
     http = 8080;
     otlp-grpc = 12348;
+    otlp-http = 12349;
     grpc = 8092;
   };
   sidecarResources = with builtins; mapAttrs (_: ceil) {
@@ -95,6 +96,10 @@ in
         port = toString ports.otlp-grpc;
         connect.sidecarService.proxy = { };
       };
+      service."tempo-otlp-http" = {
+        port = toString ports.otlp-http;
+        connect.sidecarService.proxy = { };
+      };
       task."tempo" = {
         driver = "docker";
         #      vault = { };
@@ -128,6 +133,8 @@ in
                   protocols:
                       grpc:
                         endpoint: 0.0.0.0:${toString ports.otlp-grpc}
+                      http:
+                        endpoint: 0.0.0.0:${toString ports.otlp-http}
 
 
             metrics_generator:

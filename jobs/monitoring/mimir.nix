@@ -1,7 +1,6 @@
 { util, time, defaults, ... }:
 let
-  lib = (import ../lib) { };
-  version = "2.12.0";
+  version = "2.17.0";
   cpu = 256;
   mem = 1024;
   ports = {
@@ -66,7 +65,13 @@ in
           proxy = {
             upstreams = [
               { destinationName = "tempo-otlp-grpc-mesh"; localBindPort = otlpPort; }
+              { destinationName = "tempo-otlp-http"; localBindPort = 9002; }
             ];
+            config = util.mkEnvoyProxyConfig {
+              otlpService = "proxy-mimir-http";
+              otlpUpstreamPort = otlpPort;
+              protocol = "http";
+            };
           };
         };
         connect.sidecarTask.resources = sidecarResources;
@@ -123,10 +128,17 @@ in
             "/local/config.yaml"
             "-target=all,alertmanager"
             "-auth.multitenancy-enabled=false"
+            "-distributor.ingestion-rate-limit=10000000"
             "-server.grpc.keepalive.min-time-between-pings=10s"
           ];
           ports = [ "http" "memberlist" ];
         };
+        env.OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = "http://localhost:9002/v1/traces";
+#        env.OTEL_EXPORTER_OTLP_ENDPOINT = "http://localhost:9002";
+        env.OTEL_TRACES_SAMPLER = "always_on";
+        env.OTEL_SERVICE_NAME= "mimir";
+        env.OTEL_TRACES_EXPORTER = "otlp";
+
         resources = {
           cpu = cpu;
           memory = mem;

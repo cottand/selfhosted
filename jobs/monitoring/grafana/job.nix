@@ -119,6 +119,7 @@ in
           "GF_SECURITY_ALLOW_EMBEDDING" = true;
           "GF_FEATURE_TOGGLES_ENABLE" = "traceToMetrics logsExploreTableVisualisation";
           GF_INSTALL_PLUGINS = "https://storage.googleapis.com/integration-artifacts/grafana-lokiexplore-app/grafana-lokiexplore-app-latest.zip;grafana-lokiexplore-app, oci-metrics-datasource";
+          #OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = "http://localhost:${toString otlpPort}";
         };
 
         templates = [
@@ -139,6 +140,8 @@ in
                 ca_cert_path = "/secrets/ca.crt"
                 client_key_path = "/secrets/client.grafana.key"
                 client_cert_path = "/secrets/client.grafana.crt"
+              [tracing.opentelemetry.otlp]
+                address = "localhost:${toString otlpPort}"
             '';
           }
           {

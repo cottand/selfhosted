@@ -64,5 +64,8 @@
   AWS_REQUEST_CHECKSUM_CALCULATION = "when_required";
   AWS_RESPONSE_CHECKSUM_VALIDATION = "when_required";
 
+  # ensure you specify the endpoints in terraform if dealing with actual AWS as opposed to B2
+  AWS_ENDPOINT_URL_S3 = "https://s3.us-east-005.backblazeb2.com";
+
   NIX_SSHOPTS = "-o ControlMaster=no";
 }
