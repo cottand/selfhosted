@@ -32,13 +32,11 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.44.0
 	go.opentelemetry.io/otel/sdk v1.44.0
 	go.opentelemetry.io/otel/trace v1.44.0
-	golang.org/x/net v0.57.0
+	golang.org/x/net v0.58.0
 	golang.org/x/oauth2 v0.36.0
 	google.golang.org/api v0.287.0
-	google.golang.org/grpc v1.82.0
-	google.golang.org/protobuf v1.36.11
-//google.golang.org/grpc/status v1.64.1
-//google.golang.org/grpc/health/grpc_health_v1
+	google.golang.org/grpc v1.83.1
+	google.golang.org/protobuf v1.36.12
 )
 
 require (
@@ -46,6 +44,7 @@ require (
 	github.com/golang/geo v0.0.0-20260625163123-7c0e84413537
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/paulmach/go.geojson v1.5.0
+	github.com/prometheus/common v0.70.1
 	golang.org/x/sync v0.22.0
 )
 
@@ -120,7 +119,6 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.27 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
-	github.com/prometheus/common v0.70.1 // indirect
 	github.com/prometheus/procfs v0.21.1 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
@@ -129,17 +127,17 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.44.0 // indirect
 	go.opentelemetry.io/otel/metric v1.44.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.10.0 // indirect
-	golang.org/x/crypto v0.54.0 // indirect
+	golang.org/x/crypto v0.55.0 // indirect
 	golang.org/x/exp v0.0.0-20260611194520-c48552f49976 // indirect
-	golang.org/x/mod v0.37.0 // indirect
+	golang.org/x/mod v0.38.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
-	golang.org/x/telemetry v0.0.0-20260626140120-b709645a9e92 // indirect
-	golang.org/x/text v0.40.0 // indirect
+	golang.org/x/telemetry v0.0.0-20260708182218-49f421fb7959 // indirect
+	golang.org/x/text v0.41.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
-	golang.org/x/tools v0.47.0 // indirect
+	golang.org/x/tools v0.48.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	google.golang.org/genproto v0.0.0-20260630182238-925bb5da69e7 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260630182238-925bb5da69e7 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260630182238-925bb5da69e7 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260819154853-08b0e4226688 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

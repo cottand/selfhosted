@@ -3,8 +3,10 @@ cloud.google.com/go/bigquery
 context
 crypto
 crypto/hmac
+crypto/rsa
 crypto/sha256
 crypto/tls
+crypto/x509
 database/sql
 embed
 encoding/csv
@@ -35,6 +37,7 @@ github.com/prometheus/client_golang/api/prometheus/v1
 github.com/prometheus/client_golang/prometheus
 github.com/prometheus/client_golang/prometheus/promauto
 github.com/prometheus/client_golang/prometheus/promhttp
+github.com/prometheus/common/model
 github.com/remychantenay/slog-otel
 github.com/spf13/cobra
 github.com/stretchr/testify/assert
