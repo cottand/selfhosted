@@ -31,6 +31,7 @@
     # for development
     pkgs.go
     pkgs.pkg-config
+    self.inputs.go-overlay.packages.${pkgs.stdenv.hostPlatform.system}.govendor
     # Nix pinned in order to be able to compile Nixmad
     #    pkgs.nixVersions.nix_2_19
     # until https://nixpkgs-tracker.ocfox.me/?pr=356133 lands

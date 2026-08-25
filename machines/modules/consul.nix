@@ -92,6 +92,11 @@ in
         client_addr = ''{{ GetInterfaceIP "ts0" }} {{ GetAllInterfaces | include "flags" "loopback" | join "address" " " }}'';
         bind_addr = ''{{ GetInterfaceIP "ts0" }}'';
 
+        dns_config = {
+          # Where to look for consul to solve DNS queries not in its namespace
+          recursors = [ "100.100.100.100" "1.1.1.1" ];
+        };
+
         connect.enabled = true;
         # ports.http = -1; TODO https-only
         ports.https = 8501;

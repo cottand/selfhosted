@@ -134,7 +134,14 @@ in
         client = {
           network_interface = config.services.tailscale.interfaceName;
 
-          cni_path = "${pkgs.cni-plugins}/bin";
+          cni_path =
+            let
+              cni-binaries = pkgs.buildEnv {
+                name = "cni-plugins-with-consul";
+                paths = [ pkgs.cni-plugins consul-cni ];
+              };
+            in
+            "${pkgs.cni-binaries}/bin";
 
           host_volume =
             (builtins.mapAttrs (_: attrs: { path = attrs.hostPath; read_only = attrs.readOnly; }) cfg.hostVolumes)

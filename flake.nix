@@ -14,6 +14,8 @@
     utils.url = "github:numtide/flake-utils";
     filters.url = "github:numtide/nix-filter";
 
+    go-overlay.url = "github:purpleclay/go-overlay";
+
     cottand = {
       url = "github:cottand/home-nix";
       inputs.nixpkgs.follows = "nixpkgs-master";
@@ -50,6 +52,7 @@
         overrides
         filters.overlays.default
         colmena.overlays.default
+        inputs.go-overlay.overlays.default
       ];
       overrides = final: prev:
         let
@@ -68,6 +71,8 @@
           # nixpkgs nomad is usually a version behind, so we pin it here when we want to get ahead
           nomad = prev.nomad_1_11;
           vault-bin = (import inputs.nixpkgs-master { system = prev.system; config.allowUnfree = true; }).vault-bin;
+
+          govendor = inputs.go-overlay.packages.${prev.system}.govendor;
 
           seaweedfs = prev.seaweedfs.overrideAttrs {
             version = "4.28";
@@ -119,6 +124,7 @@
             imports = [ ./jobs ./dev-go/services/job.nix ];
           };
         }).nomad.build.apiJob;
+        legacyPackages.consul-cni = pkgs.callPackage ./packages/consul-cni.nix { };
 
 
         packages = legacyPackages.scripts;
