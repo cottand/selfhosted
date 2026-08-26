@@ -15,7 +15,7 @@ let
   # - deploy again, done!
   #  version = "7a19204df10d606c5070e6bb72615c3461900c05"; # newer
   #version = "717cc95983cdc357bc347d70be20ced21f935843"; # older
-  image = "ghcr.io/cottand/selfhosted/attic:0763e91";
+  image = "ghcr.io/cottand/selfhosted/attic:f00d3c6";
   updateMode = true;
   cpu = 120;
   mem = 500;

@@ -27,7 +27,7 @@
     };
     attic = {
       # as of 26aug'26, latest version failed to connect to DB
-      url = "github:zhaofengli/attic/b7c905657cb81b8ec9c26b0d9f53aa2e4f231810";
+      url = "github:zhaofengli/attic/1b91437455ea76058ad50d45b4face799d98471d";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     colmena = {
