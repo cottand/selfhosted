@@ -63,6 +63,8 @@
           inherit (goCachePkgs) buildGoCache get-external-imports;
           inherit (selfPkgs) scripts util;
 
+          consul-cni = prev.callPackage ./packages/consul-cni.nix { };
+
           nixVersions = prev.nixVersions // {
             # .. which was removed in unstable, but compiles with gonix
             nix_2_23 = inputs.nix.packages.${prev.system}.nix;
@@ -124,8 +126,6 @@
             imports = [ ./jobs ./dev-go/services/job.nix ];
           };
         }).nomad.build.apiJob;
-        legacyPackages.consul-cni = pkgs.callPackage ./packages/consul-cni.nix { };
-
 
         packages = legacyPackages.scripts;
 

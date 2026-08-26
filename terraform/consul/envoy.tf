@@ -2,24 +2,35 @@ resource "consul_config_entry" "service_defaults_grpc" {
   kind = "service-defaults"
   name = "grpc"
   config_json = jsonencode({
-    LocalRequestTimeoutMs = 60 * 1000 # default 15s
-    Expose = {}
-    MeshGateway = {}
-    TransparentProxy = {}
+    LocalRequestTimeoutMs = 120 * 1000 # default 15s
+    Expose                = {}
+    MeshGateway           = {}
+    TransparentProxy      = {}
+    MutualTLSMode         = "strict",
   })
 }
 resource "consul_config_entry" "proxy_defaults" {
   kind = "proxy-defaults"
   name = "global"
   config_json = jsonencode({
-    #     local_request_timeout_ms = 60 * 1000 # default 15s
-    LocalRequestTimeoutMs = 60 * 1000 # default 15s
-    AccessLogs = {}
-    Expose = {}
-    MeshGateway = {}
-    TransparentProxy = {}
+    LocalRequestTimeoutMs = 120 * 1000 # default 15s
+    AccessLogs            = {}
+    Expose                = {}
+    MeshGateway           = {}
+    TransparentProxy      = {}
+    MutualTLSMode         = "",
   })
 }
+
+# resource "consul_config_entry" "mesh" {
+#   kind = "mesh"
+#   name = "mesh-config"
+#   config_json = jsonencode({
+#     TransparentProxy = {
+#       MeshDestinationsOnly = false
+#     }
+#   })
+# }
 
 #   config_json = jsonencode({
 #     AccessLogs       = {}

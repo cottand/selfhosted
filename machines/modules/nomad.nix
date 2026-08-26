@@ -138,10 +138,10 @@ in
             let
               cni-binaries = pkgs.buildEnv {
                 name = "cni-plugins-with-consul";
-                paths = [ pkgs.cni-plugins consul-cni ];
+                paths = [ pkgs.cni-plugins pkgs.consul-cni ];
               };
             in
-            "${pkgs.cni-binaries}/bin";
+            "${cni-binaries}/bin";
 
           host_volume =
             (builtins.mapAttrs (_: attrs: { path = attrs.hostPath; read_only = attrs.readOnly; }) cfg.hostVolumes)
