@@ -21,4 +21,6 @@
     };
     config.Cmd = [ "/bin/start-gh-runner" ];
   };
+
+  attic = self.inputs.attic.packages.${pkgs.stdenv.hostPlatform.system}.attic-server-image;
 }

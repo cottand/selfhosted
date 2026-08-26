@@ -1,9 +1,22 @@
 { util, time, ... }:
 let
-  # before changing this, ame sure you implement running
-  # db migrations
+  # before changing this, make sure you run DB migrations
+  # Here, you run API and GC modes and neither of those run DB migrations.
   # https://github.com/zhaofengli/attic/blob/47752427561f1c34debb16728a210d378f0ece36/server/src/main.rs#L74
-  version = "717cc95983cdc357bc347d70be20ced21f935843";
+  #
+  # You can run the migrations by starting Attic in monolithic mode once, in the new version.
+  # You can do that by
+  # - stop the job entirely via nomad (otherwise there's a canary rollout)
+  # - enabling update mode below
+  # - update version
+  # - deploy
+  # - check DB migrations have run oK (eg, by looking into the attic.seaql_migrations table)
+  # - disable update updateMode
+  # - deploy again, done!
+  #  version = "7a19204df10d606c5070e6bb72615c3461900c05"; # newer
+  #version = "717cc95983cdc357bc347d70be20ced21f935843"; # older
+  image = "ghcr.io/cottand/selfhosted/attic:0763e91";
+  updateMode = true;
   cpu = 120;
   mem = 500;
   ports = {
@@ -78,7 +91,7 @@ let
       vault = { };
 
       config = {
-        image = "ghcr.io/zhaofengli/attic:${version}";
+        image = image;
         args = [
           "--config"
           "/local/config.toml"
@@ -125,10 +138,6 @@ let
             # have their names reused as long as the original database records
             # are there.
             soft-delete-caches = false
-
-            # JWT signing token
-            # Set this to the Base64 encoding of some random data
-            token-hs256-secret-base64 = "{{with secret "secret/data/nomad/job/attic/jwt_signer"}}{{.Data.data.value}}{{end}}"
 
             # Database connection
             [database]
@@ -191,6 +200,9 @@ let
             # disabled by default. You can enable it on a per-cache basis.
             default-retention-period = "3 months"
             #default-retention-period = "1 minute"
+
+            [jwt.signing]
+            token-hs256-secret-base64 = "{{with secret "secret/data/nomad/job/attic/jwt_signer"}}{{.Data.data.value}}{{end}}"
           '';
         }
       ];
@@ -201,7 +213,7 @@ in
   job."attic" = {
     group."attic-api" = mkGroup rec {
       mode = "api-server";
-      count = 2;
+      count = if updateMode then 0 else 2;
       resources = {
         cpu = 150;
         memory = 500;
@@ -250,9 +262,19 @@ in
         ];
       };
     };
+    group."attic-db-migrations" = mkGroup rec {
+      mode = "db-migrations";
+      count = if updateMode then 1 else 0;
+      resources = {
+        cpu = 60;
+        memory = 150;
+        memoryMax = 1000;
+      };
+      service = { };
+    };
     group."attic-gc" = mkGroup rec {
       mode = "garbage-collector";
-      count = 1;
+      count = if updateMode then 0 else 1;
       resources = {
         cpu = 60;
         memory = 150;

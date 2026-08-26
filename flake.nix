@@ -26,7 +26,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     attic = {
-      url = "github:zhaofengli/attic";
+      # as of 26aug'26, latest version failed to connect to DB
+      url = "github:zhaofengli/attic/b7c905657cb81b8ec9c26b0d9f53aa2e4f231810";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     colmena = {
@@ -71,7 +72,8 @@
           };
 
           # nixpkgs nomad is usually a version behind, so we pin it here when we want to get ahead
-          nomad = prev.nomad_1_11;
+          #          nomad = prev.nomad_1_11;
+
           vault-bin = (import inputs.nixpkgs-master { system = prev.system; config.allowUnfree = true; }).vault-bin;
 
           govendor = inputs.go-overlay.packages.${prev.system}.govendor;

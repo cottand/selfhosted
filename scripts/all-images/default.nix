@@ -13,6 +13,9 @@ let
   system = stdenv.hostPlatform.system;
   services = self.legacyPackages.${system}.services;
   servicesWithImage = lib.attrsets.filterAttrs (_: svc: svc ? "image") services;
-  images = with builtins; toJSON (mapAttrs (_: svc: toString svc.image.out) servicesWithImage);
+  serviceImages = with builtins; (mapAttrs (_: svc: toString svc.image.out) servicesWithImage);
+  images = serviceImages // {
+    "attic" = toString self.legacyPackages.${system}.images.attic.out;
+  };
 in
-writeText "all-images" images
+writeText "all-images" (builtins.toJSON images)

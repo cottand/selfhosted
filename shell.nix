@@ -26,6 +26,7 @@
     #pkgs.seaweedfs
     pkgs.wander
     pkgs.attic-client
+    pkgs.attic-server # has atticadm CLI
     pkgs.grpcurl
 
     # for development
