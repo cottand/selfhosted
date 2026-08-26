@@ -6,14 +6,20 @@
 
   nix = {
     settings.experimental-features = [ "nix-command" "flakes" ];
+
     gc.automatic = true;
     gc.options = "--delete-older-than 15d";
     gc.dates = "daily";
+
     optimise.automatic = true;
+
     settings = {
       auto-optimise-store = true;
       allowed-users = [ "@wheel" ];
       trusted-users = [ "root" "@wheel" "colmena" ];
+
+      substituters = [ "https://attic.tfk.nd/default?priority=60" ];
+      trusted-public-keys = [ "default:3p2Cnf8PPu95pV5IUq64gTK0nKA8MjEYTvTGWWyNQRI=" ];
     };
   };
 
