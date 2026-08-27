@@ -162,6 +162,13 @@ in
               };
             } else { };
 
+            # this subnet overlaps across clients for now, so tasks wont' be able to merge their subnets
+            # and address each other outside of NAT/consul mesh
+            #
+            # The reason I have this is that in summer '26, outbound TCP (not DNS) within bridge networks started failing
+            # I suspect it's still broken somehow, but giving the bridge network ipv6 seemed to solve it
+            bridge_network_subnet_ipv6 = "fd6b:1f3a:9c2e:64::/64";
+
           # TODO untested
           #          plugin."nomad-driver-podman" = {
           #            config = {
