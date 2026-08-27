@@ -13,6 +13,7 @@
 
   nomadNode = {
     enable = true;
+    enablePodman = true;
     extraSettingsText = ''
       datacenter = "nuremberg-hetzner"
       client {

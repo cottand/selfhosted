@@ -143,7 +143,7 @@ in
         driver = "docker";
         vault = { };
         config = {
-          image = "cloudflare/cloudflared:latest";
+          image = "cloudflare/cloudflared:2026.8.2";
           args = [
             "tunnel"
             "--no-autoupdate"

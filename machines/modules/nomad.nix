@@ -43,6 +43,10 @@ in
         default = { };
         type = types.attrsOf (types.submodule volumeOptsType);
       };
+      enablePodman = mkOption {
+        type = types.bool;
+        default = false;
+      };
 
       extraSettingsText = mkOption {
         type = types.str;
@@ -64,6 +68,11 @@ in
   };
   ## implementation
   config = mkIf cfg.enable {
+    virtualisation.podman = {
+      enable = cfg.enablePodman;
+      #dockerCompat = true; # Creates a symlink from docker to podman
+    };
+
     services.tailscale.serve.services."nomad".endpoints."tcp:443" = "tcp://localhost:4646";
 
     systemd.services.nomad.serviceConfig.Restart = lib.mkForce "always";
@@ -123,7 +132,7 @@ in
       package = pkgs.nomad;
       enableDocker = true;
       dropPrivileges = false;
-      extraPackages = with pkgs; [ cni-plugins getent wget curl consul ];
+      extraPackages = with pkgs; [ cni-plugins getent wget curl consul podman ];
       extraSettingsPlugins = [ pkgs.nomad-driver-podman ];
       extraSettingsPaths = [
         "/etc/nomad/config/server.hcl"
@@ -169,18 +178,6 @@ in
           # I suspect it's still broken somehow, but giving the bridge network ipv6 seemed to solve it
           bridge_network_subnet_ipv6 = "fd6b:1f3a:9c2e:64::/64";
 
-          plugin."nomad-driver-podman" = {
-            config = {
-              # necessary for seaweed
-              allow_privileged = true;
-              # extra Docker labels to be set by Nomad on each Docker container with the appropriate value
-              extra_labels = [ "job_name" "task_group_name" "task_name" "node_name" ];
-              volumes.  enabled = true;
-
-              pull_activity_timeout = "5m";
-              logging.driver = "journald";
-            };
-          };
 
           meta = {
             box = name;
@@ -188,6 +185,25 @@ in
             seaweedfs_volume = cfg.enableSeaweedFsVolume;
           };
         };
+
+        # TODO the config keys are wrong
+
+        plugin =
+          if cfg.enablePodman then {
+            "nomad-driver-podman".config = {
+              # necessary for seaweed
+              #allow_privileged = true;
+              #labels = {
+              # extra Docker labels to be set by Nomad on each Docker container with the appropriate value
+              #            extra_labels = [ "job_name" "task_group_name" "task_name" "node_name" ];
+              #    "job_name" = "job_name";
+              # };
+              #            volumes.enabled = true;
+
+              #pull_activity_timeout = "5m";
+              #            logging.driver = "journald";
+            };
+          } else { };
 
         # Require TLS
         tls = {

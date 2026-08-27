@@ -7,7 +7,6 @@ in
     ./debug.nix
     ./modules
     ./whoami.nix
-    ./filestash.nix
     ./web-portfolio.nix
     ./attic.nix
     ./traefik/job.nix
@@ -29,10 +28,7 @@ in
     ./ente/backup-ente-db.nix
     ./digitemp.nix
     ./shelly-exporter.nix
-    ./motioneye.nix
-    ./mediamtx.nix
     ./go2rtc.nix
-    ./comet.nix
     ./minecraft.nix
     ./mosquitto.nix
     ./papra.nix
