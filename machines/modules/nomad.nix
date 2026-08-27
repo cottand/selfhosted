@@ -138,10 +138,14 @@ in
             let
               cni-binaries = pkgs.buildEnv {
                 name = "cni-plugins-with-consul";
-                paths = [ pkgs.cni-plugins pkgs.consul-cni ];
+                paths = [
+                  pkgs.cni-plugins
+                  #                  pkgs.consul-cni
+                ];
               };
             in
-            "${cni-binaries}/bin";
+            "${pkgs.cni-plugins}/bin";
+          #"${cni-binaries}/bin";
 
           host_volume =
             (builtins.mapAttrs (_: attrs: { path = attrs.hostPath; read_only = attrs.readOnly; }) cfg.hostVolumes)
@@ -157,6 +161,20 @@ in
                 reserved_ports = "${ toString config.services.tailscale.port },22";
               };
             } else { };
+
+          # TODO untested
+          #          plugin."nomad-driver-podman" = {
+          #            config = {
+          #              # necessary for seaweed
+          #              allow_privileged = true;
+          #              # extra Docker labels to be set by Nomad on each Docker container with the appropriate value
+          #              extra_labels = [ "job_name" "task_group_name" "task_name" "node_name" ];
+          #              volumes.  enabled = true;
+          #
+          #              pull_activity_timeout = "5m";
+          #              logging.driver = "journald";
+          #            };
+          #          };
 
           meta = {
             box = name;

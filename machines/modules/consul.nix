@@ -84,9 +84,9 @@ in
         # TODO FIX DNS!
         ui_config = {
           enabled = true;
-          # metrics_provider = "prometheus";
-          # metrics_proxy.base_url = "https://mimir-http.traefik/prometheus";
-          # metrics_proxy.path_allowlist = ["/prometheus/api/v1/query_range" "/prometheus/api/v1/query"];
+          metrics_provider = "prometheus";
+          metrics_proxy.base_url = "https://mimir-http.tfk.nd/prometheus";
+          metrics_proxy.path_allowlist = ["/prometheus/api/v1/query_range" "/prometheus/api/v1/query"];
         };
 
         client_addr = ''{{ GetInterfaceIP "ts0" }} {{ GetAllInterfaces | include "flags" "loopback" | join "address" " " }}'';
@@ -94,7 +94,7 @@ in
 
 #        dns_config = {
           # Where to look for consul to solve DNS queries not in its namespace
-          recursors = [ "100.100.100.100" "1.1.1.1" ];
+          #recursors = [ "100.100.100.100" "1.1.1.1" ];
 #        };
 
         connect.enabled = true;

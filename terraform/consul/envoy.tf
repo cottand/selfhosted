@@ -6,7 +6,7 @@ resource "consul_config_entry" "service_defaults_grpc" {
     Expose                = {}
     MeshGateway           = {}
     TransparentProxy      = {}
-    MutualTLSMode         = "strict",
+    # MutualTLSMode         = "strict",
   })
 }
 resource "consul_config_entry" "proxy_defaults" {
@@ -18,18 +18,18 @@ resource "consul_config_entry" "proxy_defaults" {
     Expose                = {}
     MeshGateway           = {}
     TransparentProxy      = {}
-    MutualTLSMode         = "",
+    # MutualTLSMode         = "",
   })
 }
 
 # resource "consul_config_entry" "mesh" {
 #   kind = "mesh"
-#   name = "mesh-config"
+#   name = "mesh"
 #   config_json = jsonencode({
-#     TransparentProxy = {
-#       MeshDestinationsOnly = false
-#     }
-#   })
+    # TransparentProxy = {
+    #   MeshDestinationsOnly = false
+    # }
+  # })
 # }
 
 #   config_json = jsonencode({

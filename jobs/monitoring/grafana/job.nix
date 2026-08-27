@@ -52,7 +52,6 @@ in
         port = "3000";
         connect = {
           sidecarService.proxy = {
-            transparent_proxy = { };
             upstreams = [
               { destinationName = "roach-db"; localBindPort = ports.upDb; }
               { destinationName = "mimir-http"; localBindPort = 8000; }

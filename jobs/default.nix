@@ -4,6 +4,7 @@ let
 in
 {
   imports = [
+    ./debug.nix
     ./modules
     ./whoami.nix
     ./filestash.nix
@@ -22,8 +23,8 @@ in
     ./seaweed/filer.nix
     ./seaweed/volume.nix
     ./seaweed/backup.nix
-#    ./seaweed/admin.nix
-#    ./seaweed/worker.nix
+    #    ./seaweed/admin.nix
+    #    ./seaweed/worker.nix
     ./ente/ente.nix
     ./ente/backup-ente-db.nix
     ./digitemp.nix
