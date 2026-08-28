@@ -16,7 +16,7 @@ let
   bind = lib.localhost;
 in
 {
-  job."loki" = {
+  jobs."loki" = {
     group."loki" = {
       affinities = [{
         attribute = "\${meta.controlPlane}";

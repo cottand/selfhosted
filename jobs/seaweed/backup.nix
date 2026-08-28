@@ -10,7 +10,7 @@ let
   };
 in
 {
-  job."seaweedfs-backup" = {
+  jobs."seaweedfs-backup" = {
     group."backup" = {
       count = 1;
       network = {

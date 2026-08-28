@@ -22,7 +22,7 @@ let
 in
 {
   #  imports = [ ./filer-sftp.nix ];
-  job."${name}" = {
+  jobs."${name}" = {
     update = {
       maxParallel = 1;
       stagger = 20 * time.second;

@@ -16,7 +16,7 @@ let
   vaultSecret = "secret/data/nomad/job/mosquitto/auth";
 in
 {
-  job."${name}" = {
+  jobs."${name}" = {
     group."${name}" = {
       count = 1;
 

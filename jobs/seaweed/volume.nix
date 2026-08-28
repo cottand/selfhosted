@@ -19,7 +19,7 @@ let
   };
 in
 {
-  job."${name}" = {
+  jobs."${name}" = {
     type = "system";
 
     update = {

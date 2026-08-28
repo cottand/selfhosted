@@ -18,7 +18,7 @@ let
 
 in
 {
-  job."vector" = {
+  jobs."vector" = {
 
     type = "system";
     nodePool = "all";

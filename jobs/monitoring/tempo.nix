@@ -19,7 +19,7 @@ let
   bind = lib.localhost;
 in
 {
-  job."tempo" = {
+  jobs."tempo" = {
     group."tempo" = {
       ephemeralDisk = {
         migrate = true;

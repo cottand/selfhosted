@@ -1,5 +1,5 @@
 { util, ... }: {
-  job."whoami" = {
+  jobs."whoami" = {
     group."whoami" = {
       network = {
         mode = "bridge";

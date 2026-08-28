@@ -1,6 +1,6 @@
 { util, time, ... }:
 {
-  job."immich-db-backup" = {
+  jobs."immich-db-backup" = {
     type = "batch";
     periodic = {
       cron = "@daily";

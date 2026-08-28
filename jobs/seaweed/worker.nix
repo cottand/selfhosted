@@ -11,7 +11,7 @@ let
   ports.metrics = 12345;
 in
 {
-  job."seaweed-master".group."seaweed-worker" = {
+  jobs."seaweed-master".group."seaweed-worker" = {
     count = 3;
     network = {
       mode = "bridge";

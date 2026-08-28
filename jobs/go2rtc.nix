@@ -18,7 +18,7 @@ let
   otlpPort = 9001;
 in
 {
-  job."${name}" = {
+  jobs."${name}" = {
     group."${name}" = {
       count = 1;
       network = {

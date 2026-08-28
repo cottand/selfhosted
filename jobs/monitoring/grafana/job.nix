@@ -16,7 +16,7 @@ let
   bind = "127.0.0.1";
 in
 {
-  job."grafana" = {
+  jobs."grafana" = {
     type = "service";
     affinities = [{
       attribute = "\${meta.controlPlane}";

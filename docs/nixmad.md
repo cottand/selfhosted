@@ -7,16 +7,16 @@ This project uses two related but distinct systems for Nomad job management:
 
 ## Job Definition Format
 
-All Nomad jobs in this repository use the **nix-nomad options format** with `job."name"` syntax.
+All Nomad jobs in this repository use the **nix-nomad options format** with `jobs."name"` syntax.
 
 ### Standard nix-nomad Format
-All jobs use the standard nix-nomad module system with `job."name"` syntax.
+All jobs use the standard nix-nomad module system with `jobs."name"` syntax.
 
 **Examples:** All job files including `immich.nix`, `traefik.nix`, `grafana.nix`, `vector.nix`, `tempo.nix`, `loki.nix`
 
 ```nix
 { util, time, defaults, ... }: {
-  job."whoami" = {
+  jobs."whoami" = {
     group."whoami" = {
       network = {
         mode = "bridge";

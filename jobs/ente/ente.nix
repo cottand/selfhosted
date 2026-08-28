@@ -101,7 +101,7 @@ let
     webApps);
 in
 {
-  job."ente" = {
+  jobs."ente" = {
     type = "service";
 
     ui = {

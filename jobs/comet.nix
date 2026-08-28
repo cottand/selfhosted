@@ -15,7 +15,7 @@ let
   bind = "127.0.0.1";
 in
 {
-  job."comet" = {
+  jobs."comet" = {
     type = "service";
     group."comet" = {
       count = 1;

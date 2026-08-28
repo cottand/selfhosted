@@ -32,7 +32,7 @@ let
   };
 in
 {
-  job."immich" = {
+  jobs."immich" = {
     affinities = [{
       attribute = "distinct_hosts";
       operator = "is";

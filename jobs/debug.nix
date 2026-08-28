@@ -1,5 +1,5 @@
 {
-  job."debug" = {
+  jobs."debug" = {
     group."debug" = {
       constraints = [{
         attribute = "\${meta.box}";

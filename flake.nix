@@ -164,7 +164,7 @@
       nomadConfigurations.default = inputs.nixnomad.lib.nomadConfiguration {
         modules = [ ./jobs ];
         # uses same nomad options as current nomad version
-        nomad = system: (pkgsFor system).nomad;
+#        nomad = system: (pkgsFor system).nomad;
 
         extraSpecialArgs.self = self;
         extraSpecialArgs.time = inputs.nixnomad.lib.time;

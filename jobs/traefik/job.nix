@@ -22,7 +22,7 @@ let
   sidecarResources = util.mkResourcesWithFactor 0.10 resources;
 in
 {
-  job."traefik" = {
+  jobs."traefik" = {
     group."traefik" = {
       count = 3;
       constraints = [

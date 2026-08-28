@@ -26,7 +26,7 @@ let
   };
 in
 {
-  job."papra" = {
+  jobs."papra" = {
 
     group."papra" = {
       inherit restart;

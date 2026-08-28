@@ -16,7 +16,7 @@ let
   otlpPort = 9001;
 in
 {
-  job."shelly-exporter" = {
+  jobs."shelly-exporter" = {
     datacenters = [ "london-home" ];
 
     group."${name}" = {

@@ -17,7 +17,7 @@ let
   bind = "127.0.0.1";
 in
 {
-  job."cloudreve" = {
+  jobs."cloudreve" = {
     group."cloudreve" = {
       count = 1;
       network = {

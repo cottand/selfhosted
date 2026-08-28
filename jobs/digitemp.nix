@@ -15,7 +15,7 @@ let
   otlpPort = 9001;
 in
 {
-  job."digitemp" = {
+  jobs."digitemp" = {
 
     group."${name}" = {
       count = 1;

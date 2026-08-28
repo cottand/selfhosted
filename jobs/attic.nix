@@ -210,7 +210,7 @@ let
   };
 in
 {
-  job."attic" = {
+  jobs."attic" = {
     group."attic-api" = mkGroup rec {
       mode = "api-server";
       count = if updateMode then 0 else 2;

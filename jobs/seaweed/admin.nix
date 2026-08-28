@@ -14,7 +14,7 @@ let
   };
 in
 {
-  job."seaweed-master".group."seaweed-admin" = {
+  jobs."seaweed-master".group."seaweed-admin" = {
     count = 1;
     network = {
       mode = "bridge";

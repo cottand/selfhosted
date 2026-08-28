@@ -227,7 +227,7 @@ let
   };
 in
 {
-  job."roach" = {
+  jobs."roach" = {
     ui = {
       description = "Distributed HA pSQL-like DB";
       links = [

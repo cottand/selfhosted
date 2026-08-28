@@ -7,7 +7,7 @@ let
   };
 in
 { util, ... }: {
-  job."services-go".group."services-go".service.${name} = {
+  jobs."services-go".group."services-go".service.${name} = {
     inherit name;
     connect = {
       sidecarService.proxy = {

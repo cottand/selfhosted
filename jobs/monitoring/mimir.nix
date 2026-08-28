@@ -16,7 +16,7 @@ let
   otlpPort = 9001;
 in
 {
-  job."mimir" = {
+  jobs."mimir" = {
     update = {
       maxParallel = 1;
       healthCheck = "checks";

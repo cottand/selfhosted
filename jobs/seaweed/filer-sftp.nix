@@ -9,7 +9,7 @@ let
 in
 {
 
-  job."seaweed-filer".group."seaweed-filer" = {
+  jobs."seaweed-filer".group."seaweed-filer" = {
     service."seaweed-sftp" = {
       connect.sidecarService = {
         proxy = {

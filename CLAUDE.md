@@ -34,7 +34,7 @@ This repository contains the configuration-as-code for a personal self-hosted cl
 
 ## Development Workflows
 
-- **Nomad jobs**: All jobs use the nix-nomad options format with `job."name"` syntax. See [docs/nixmad.md](docs/nixmad.md) for details
+- **Nomad jobs**: All jobs use the nix-nomad options format with `jobs."name"` syntax. See [docs/nixmad.md](docs/nixmad.md) for details
 - **Go services**: See [docs/go-services.md](docs/go-services.md) for service development
 - **Terraform**: See [docs/terraform.md](docs/terraform.md) for infrastructure management
 - **Machine configuration**: See [docs/machines.md](docs/machines.md) for NixOS node management
@@ -82,7 +82,7 @@ Check service builds with `nix build .#services`.
 1. Create a job definition under `jobs/` using the nix-nomad options format:
    ```nix
    { util, time, defaults, ... }: {
-     job."my-service" = {
+     jobs."my-service" = {
        group."my-service" = {
          # job configuration using nix-nomad options
        };

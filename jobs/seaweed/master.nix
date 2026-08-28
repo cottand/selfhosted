@@ -227,7 +227,7 @@ let
   };
 in
 {
-  job."seaweed-master" = {
+  jobs."seaweed-master" = {
     datacenters = [ "*" ];
     update = {
       maxParallel = 1;

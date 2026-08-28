@@ -1,6 +1,6 @@
 { util, time, ... }:
 {
-  job."ente-db-backup" = {
+  jobs."ente-db-backup" = {
     type = "batch";
     periodic = {
       enabled = true;

@@ -26,15 +26,15 @@ let
     });
   };
 
-  setConsulUpstreamsAsUpstream = { config, options, ... }: {
-    _module.types.ConsulProxy = types.submodule ({ name, config, ... }: {
-      options.upstream = lib.mkOption {
-        type = types.attrsOf (nomadTypes.ConsulUpstream);
-        default = { };
-      };
-      config.upstreams = (attrsToList (name: body: (body // { destinationName = name; })) config.upstream);
-    });
-  };
+#  setConsulUpstreamsAsUpstream = { config, options, ... }: {
+#    _module.types.ConsulProxy = types.submodule ({ name, config, ... }: {
+#      options.upstream = lib.mkOption {
+#        type = types.attrsOf (nomadTypes.ConsulUpstream);
+#        default = { };
+#      };
+#      config.upstreams = (attrsToList (name: body: (body // { destinationName = name; })) config.upstream);
+#    });
+#  };
 
   # adds links to Grafana and Consul to every job
   # jobs can define their own links too, which will get merged to this list
