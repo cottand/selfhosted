@@ -4,22 +4,31 @@
   };
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
-#    nixpkgs.url = "github:nixos/nixpkgs/34268251cf5547d39063f2c5ea9a196246f7f3a6";
-    nixpkgs-master.url = "github:nixos/nixpkgs";
+    #    nixpkgs.url = "github:nixos/nixpkgs/34268251cf5547d39063f2c5ea9a196246f7f3a6";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    flake-compat.url = "github:edolstra/flake-compat";
 
     srvos.url = "github:nix-community/srvos";
     srvos.inputs.nixpkgs.follows = "nixpkgs";
 
     nix.url = "github:nixos/nix/2.23.4";
+    nix.inputs.nixpkgs.follows = "nixpkgs";
 
     utils.url = "github:numtide/flake-utils";
     filters.url = "github:numtide/nix-filter";
 
     go-overlay.url = "github:purpleclay/go-overlay";
 
+    gomod2nix = {
+      # I don't really use this but want to keep it pinned in dependencies
+      url = "github:tweag/gomod2nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-utils.follows = "utils";
+    };
+
     cottand = {
       url = "github:cottand/home-nix";
-      inputs.nixpkgs.follows = "nixpkgs-master";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
       inputs.home-manager.follows = "home-manager";
     };
     home-manager = {
@@ -34,16 +43,17 @@
     colmena = {
       url = "github:zhaofengli/colmena";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-utils.follows = "utils";
     };
     go-cache = {
       url = "github:numtide/build-go-cache";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.gomod2nix.follows = "gomod2nix";
     };
 
     nixnomad = {
       url = "github:cottand/nix-nomad";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.flake-utils.follows = "utils";
     };
   };
 
@@ -75,7 +85,7 @@
           # nixpkgs nomad is usually a version behind, so we pin it here when we want to get ahead
           #          nomad = prev.nomad_1_11;
 
-          vault-bin = (import inputs.nixpkgs-master { system = prev.system; config.allowUnfree = true; }).vault-bin;
+          vault-bin = (import inputs.nixpkgs-unstable { system = prev.system; config.allowUnfree = true; }).vault-bin;
 
           govendor = inputs.go-overlay.packages.${prev.system}.govendor;
 
@@ -97,13 +107,14 @@
             vendorHash = "sha256-6/0d7rmZZahRJ9tlrOR84/B+u1311bWjvPKz/sZ86Dc=";
           };
         };
+      pkgsFor = system: import nixpkgs {
+        inherit system overlays;
+        config.allowUnfree = true;
+      };
     in
     (utils.lib.eachDefaultSystem (system:
       let
-        pkgs = import nixpkgs {
-          inherit system overlays;
-          config.allowUnfree = true;
-        };
+        pkgs = pkgsFor system;
         pkgsWithSelf = pkgs // { inherit self; };
       in
       rec {
@@ -115,6 +126,7 @@
         legacyPackages.scripts = (import ./scripts) pkgsWithSelf;
         legacyPackages.util = (import ./util.nix) pkgsWithSelf;
         legacyPackages.images = (import ./images.nix) pkgsWithSelf;
+
         legacyPackages.nomadJobsDebug = (inputs.nixnomad.lib.evalNomadJobs {
           inherit system pkgs;
           extraArgs.self = self;
