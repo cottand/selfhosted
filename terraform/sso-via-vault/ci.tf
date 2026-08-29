@@ -21,7 +21,7 @@ resource "vault_nomad_secret_role" "github-actions" {
 data "vault_policy_document" "be-nomad-github-actions" {
   rule {
     capabilities = ["read"]
-    path = "${local.vault_nomad_backend_name}/creds/${vault_nomad_secret_role.github-actions.id}"
+    path = "${local.vault_nomad_backend_name}/creds/${vault_nomad_secret_role.github-actions.role}"
   }
 }
 resource "vault_policy" "be-nomad-github-actions" {
@@ -29,4 +29,15 @@ resource "vault_policy" "be-nomad-github-actions" {
   policy = data.vault_policy_document.be-nomad-github-actions.hcl
 }
 
+# resource "nomad_acl_role" "github-actions" {
+#   name = "github-actions"
+#   policy {
+#     name = nomad_acl_policy.job-planner.name
+#   }
+# }
 
+# resource "vault_identity_entity" "github_actions" {
+#   name = "github-actions"
+#
+#   policies = [vault_policy.be-nomad-github-actions.id]
+# }

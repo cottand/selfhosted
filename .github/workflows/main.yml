@@ -41,7 +41,6 @@ jobs:
         run: |
           nix profile add .#pkgs.nomad .#pkgs.nix-nomad
 
-
       - name: Get Nomad token
         id: vault-get-nomad-token
         uses: hashicorp/vault-action@v4
@@ -58,9 +57,7 @@ jobs:
       - name: Nomad Plan
         run: |
           export NOMAD_TOKEN=${{ steps.vault-get-nomad-token.outputs.NOMAD_TOKEN }}
-          
           echo '## Nomad plan diff 🚀' >> $GITHUB_STEP_SUMMARY
-          
           nix-nomad plan --all >> $GITHUB_STEP_SUMMARY
 
   populate-cache:
