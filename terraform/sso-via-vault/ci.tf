@@ -19,7 +19,7 @@ resource "vault_nomad_secret_role" "github-actions" {
   backend = local.vault_nomad_backend_name
   role    = "github-actions"
   type = "client"
-  policies = [vault_policy.be-nomad-github-actions.name]
+  policies = [nomad_acl_policy.job-planner.name]
 }
 
 data "vault_policy_document" "be-nomad-github-actions" {

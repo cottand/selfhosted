@@ -25,24 +25,44 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Read CA
+        id: read_ca
+        shell: bash
+        run: |
+          echo 'CA_BASE_64<<EOF' >> $GITHUB_OUTPUT
+          cat certs/root_2024_ca.crt | base64 >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
       - uses: ./.github/actions/setup-build-env
         name: Set up build env
         with:
           tailscale_oauth_clientsecret: ${{ secrets.TAILSCALE_OAUTH_CLIENTSECRET }}
       - name: Install Nomad
         id: install-nomad
+        background: true
         run: |
-          nix profile add .#pkgs.nomad .#pkgs.vault-bin
-      - name: Check nomad jobs
+          nix profile add .#pkgs.nomad
+
+      - name: Render Nomad jobs
         run: |
           nix build .#nomadJobsDebug.nomad.build.apiJobFarm
       - wait: install-nomad
-      - name: Plan
+
+      - name: Get Nomad token
+        id: vault-get-nomad-token
+        uses: hashicorp/vault-action@v4
+        with:
+          url: ${{ env.VAULT_ADDR }}
+          role: actions-ro
+          path: jwt-github
+          method: jwt
+          jwtGithubAudience: sigstore
+          caCertificate: ${{ steps.read_ca.outputs.CA_BASE_64 }}
+          secrets: |
+            /nomad/creds/github-actions secret_id | NOMAD_TOKEN ;
+
+      - name: Nomad Plan
         run: |
-          nomad_token_data=$(vault read nomad/creds/github-actions --format=json | jq '.data')
-          echo "Accessing Nomad with accessor ID $(echo $nomad_token_data | jq '.accessor_id')"
-          
-          NOMAD_TOKEN=$(echo $nomad_token_data | jq '.secret_id')
+          export NOMAD_TOKEN=${{ steps.vault-get-nomad-token.outputs.NOMAD_TOKEN }}
           
           nomad job plan jobs/monitoring/node-exporter.hcl
 
@@ -55,6 +75,7 @@ jobs:
           - .#packages.x86_64-linux.bws-get
           - "github:zhaofengli/colmena#defaultPackage.x86_64-linux"
           - "github:Mic92/nix-fast-build/1.2.0#packages.x86_64-linux.default"
+          - .#pkgs.vault-bin
           - .#pkgs.vault-bin
         host:
           - ubuntu-latest

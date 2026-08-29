@@ -15,7 +15,8 @@ resource "vault_jwt_auth_backend_role" "github_actions" {
   }
   bound_audiences = ["https://github.com/cottand", "sigstore"]
   token_policies = [
-    vault_policy.github_actions_ro.name
+    vault_policy.github_actions_ro.name,
+    "issue-nomad-job-planner-token"
   ]
   token_max_ttl = 10 * 60
   token_ttl     = 10 * 60
