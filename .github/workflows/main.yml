@@ -38,14 +38,9 @@ jobs:
           tailscale_oauth_clientsecret: ${{ secrets.TAILSCALE_OAUTH_CLIENTSECRET }}
       - name: Install Nomad
         id: install-nomad
-        background: true
         run: |
-          nix profile add .#pkgs.nomad
+          nix profile add .#pkgs.nomad .#pkgs.nix-nomad
 
-      - name: Render Nomad jobs
-        run: |
-          nix build .#nomadJobsDebug.nomad.build.apiJobFarm
-      - wait: install-nomad
 
       - name: Get Nomad token
         id: vault-get-nomad-token
@@ -65,8 +60,8 @@ jobs:
           export NOMAD_TOKEN=${{ steps.vault-get-nomad-token.outputs.NOMAD_TOKEN }}
           
           echo '## Nomad plan diff 🚀' >> $GITHUB_STEP_SUMMARY
-          nomad job plan jobs/monitoring/node-exporter.hcl >> $GITHUB_STEP_SUMMARY
-
+          
+          nix-nomad plan --all >> $GITHUB_STEP_SUMMARY
 
   populate-cache:
     strategy:
@@ -77,7 +72,7 @@ jobs:
           - "github:zhaofengli/colmena#defaultPackage.x86_64-linux"
           - "github:Mic92/nix-fast-build/1.2.0#packages.x86_64-linux.default"
           - .#pkgs.vault-bin
-          - .#pkgs.vault-bin
+          - .#pkgs.nix-nomad
         host:
           - ubuntu-latest
     #          - macos-latest

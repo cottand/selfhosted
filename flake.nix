@@ -52,7 +52,7 @@
     };
 
     nixnomad = {
-      url = "github:cottand/nix-nomad";
+      url = "github:tristanpemble/nix-nomad";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -68,26 +68,28 @@
       ];
       overrides = final: prev:
         let
-          goCachePkgs = go-cache.legacyPackages.${prev.system};
-          selfPkgs = self.legacyPackages.${prev.system};
+          system = prev.stdenv.hostPlatform.system;
+          goCachePkgs = go-cache.legacyPackages.${system};
+          selfPkgs = self.legacyPackages.${system};
         in
         {
           inherit (goCachePkgs) buildGoCache get-external-imports;
           inherit (selfPkgs) scripts util;
+          inherit (inputs.nixnomad.packages.${system}) nix-nomad;
 
           consul-cni = prev.callPackage ./packages/consul-cni.nix { };
 
           nixVersions = prev.nixVersions // {
             # .. which was removed in unstable, but compiles with gonix
-            nix_2_23 = inputs.nix.packages.${prev.system}.nix;
+            nix_2_23 = inputs.nix.packages.${system}.nix;
           };
 
           # nixpkgs nomad is usually a version behind, so we pin it here when we want to get ahead
           #          nomad = prev.nomad_1_11;
 
-          vault-bin = (import inputs.nixpkgs-unstable { system = prev.system; config.allowUnfree = true; }).vault-bin;
+          vault-bin = (import inputs.nixpkgs-unstable { system = system; config.allowUnfree = true; }).vault-bin;
 
-          govendor = inputs.go-overlay.packages.${prev.system}.govendor;
+          govendor = inputs.go-overlay.packages.${system}.govendor;
 
           seaweedfs = prev.seaweedfs.overrideAttrs {
             version = "4.28";
@@ -162,6 +164,15 @@
           filter (name: elem tag colmenaHive.nodes.${name}.config.deployment.tags) (attrNames colmenaHive.nodes);
       };
       colmena = (import ./hive.nix) (inputs // { inherit overlays; });
+
+      nomadConfigurations.default = inputs.nixnomad.lib.nomadConfiguration {
+        modules = [ ./jobs ];
+        # uses same nomad options as current nomad version
+        nomad = system: (pkgsFor system).nomad;
+
+        extraSpecialArgs.self = self;
+        extraSpecialArgs.time = inputs.nixnomad.lib.time;
+      };
 
       rootCa = ./certs/root_2024_ca.crt;
     }
