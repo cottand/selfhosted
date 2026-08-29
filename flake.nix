@@ -118,6 +118,8 @@
         pkgsWithSelf = pkgs // { inherit self; };
       in
       rec {
+        # for accessing the overlayed nixpkgs from the CLIs
+        legacyPackages.pkgs = pkgs;
 
         # many of these are not technically packages but
         # we use legacyPackages anyway, so that we can

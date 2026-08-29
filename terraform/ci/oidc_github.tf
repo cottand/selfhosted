@@ -14,13 +14,15 @@ resource "vault_jwt_auth_backend_role" "github_actions" {
     repository = "cottand/selfhosted"
   }
   bound_audiences = ["https://github.com/cottand", "sigstore"]
-  token_policies = [vault_policy.github_actions_ro.name]
+  token_policies = [
+    vault_policy.github_actions_ro.name
+  ]
   token_max_ttl = 10 * 60
   token_ttl     = 10 * 60
 }
 
 resource "vault_policy" "github_actions_ro" {
-  name   = "github-actions-ro"
+  name   = "read-github-actions-secrets"
   policy = data.vault_policy_document.github_actions_ro.hcl
 }
 

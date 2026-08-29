@@ -1,32 +1,9 @@
-terraform {
-  required_providers {
-    vault = {
-      source  = "hashicorp/vault"
-      version = "3.23.0"
-    }
-    cloudflare = {
-      source  = "cloudflare/cloudflare"
-      version = "~> 4.0"
-    }
-    bitwarden-secrets = {
-      source  = "sebastiaan-dev/bitwarden-secrets"
-      version = "0.1.2"
-    }
-    github = {
-      source  = "integrations/github"
-      version = "6.2.3"
-    }
-    tailscale = {
-      source  = "tailscale/tailscale"
-      version = "0.16.2"
-    }
-  }
-}
 
 data "external" "keychain-bw-token" {
   program = ["keychain-get", "bitwarden/secret/m3-cli"]
 }
 
+# export to GITHUB_TOKEN via https://github.com/settings/tokens/new
 provider "github" {}
 
 provider "bitwarden-secrets" {

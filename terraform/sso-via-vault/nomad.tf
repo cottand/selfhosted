@@ -12,6 +12,18 @@ resource "nomad_acl_role" "admin" {
   }
 }
 
+resource "nomad_acl_policy" "job-planner" {
+  name = "job-planner"
+  rules_hcl = file("policies/job-planner.hcl")
+}
+resource "nomad_acl_role" "github-actions" {
+  name = "github-actions"
+  policy {
+    name = nomad_acl_policy.job-planner.name
+  }
+}
+
+
 #  nomad acl auth-method create \
 #     -default=true \
 #     -name=vault \

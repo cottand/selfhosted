@@ -15,10 +15,38 @@ on:
 env:
   # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
-  ATTIC_SERVER: "https://attic.tfk.nd/"
   ATTIC_CACHE: "default"
+  ATTIC_SERVER: "https://attic.tfk.nd/"
+  NOMAD_ADDR: "https://nomad.dcotta.com"
+  VAULT_ADDR: "https://vault.dcotta.com:8200/"
 
 jobs:
+  check-nomad-jobs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-build-env
+        name: Set up build env
+        with:
+          tailscale_oauth_clientsecret: ${{ secrets.TAILSCALE_OAUTH_CLIENTSECRET }}
+      - name: Install Nomad
+        id: install-nomad
+        run: |
+          nix profile add .#pkgs.nomad .#pkgs.vault-bin
+      - name: Check nomad jobs
+        run: |
+          nix build .#nomadJobsDebug.nomad.build.apiJobFarm
+      - wait: install-nomad
+      - name: Plan
+        run: |
+          nomad_token_data=$(vault read nomad/creds/github-actions --format=json | jq '.data')
+          echo "Accessing Nomad with accessor ID $(echo $nomad_token_data | jq '.accessor_id')"
+          
+          NOMAD_TOKEN=$(echo $nomad_token_data | jq '.secret_id')
+          
+          nomad job plan jobs/monitoring/node-exporter.hcl
+
+
   populate-cache:
     strategy:
       matrix:
@@ -27,8 +55,9 @@ jobs:
           - .#packages.x86_64-linux.bws-get
           - "github:zhaofengli/colmena#defaultPackage.x86_64-linux"
           - "github:Mic92/nix-fast-build/1.2.0#packages.x86_64-linux.default"
+          - .#pkgs.vault-bin
         host:
-          - ubuntu-22.04
+          - ubuntu-latest
     #          - macos-latest
     runs-on: ${{ matrix.host }}
     steps:

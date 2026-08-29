@@ -18,4 +18,9 @@ locals {
     account_id = "a0668acd2601331c666d054c71470a40"
     zone_id_com = ""
   }
+
+  time_minutes = 60
+    time_hours = 60 * local.time_minutes
+    time_days = 24 * local.time_hours
+    time_months = 30 * local.time_days
 }

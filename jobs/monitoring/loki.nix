@@ -1,6 +1,5 @@
 { util, time, defaults, ... }:
 let
-  lib = (import ../lib) {};
   version = "3.5.1";
   cpu = 200;
   mem = 1024;
@@ -13,7 +12,6 @@ let
     memoryMax = 0.25 * mem + 100;
   };
   otlpPort = 9001;
-  bind = lib.localhost;
 in
 {
   job."loki" = {
@@ -50,7 +48,7 @@ in
               { destinationName = "tempo-otlp-grpc-mesh"; localBindPort = otlpPort; }
             ];
 
-            config = lib.mkEnvoyProxyConfig {
+            config = util.mkEnvoyProxyConfig {
               otlpUpstreamPort = otlpPort;
               otlpService = "proxy-loki";
               protocol = "http";
@@ -112,7 +110,7 @@ in
           auth_enabled: false
           server:
             http_listen_port: ${toString ports.http}
-            http_listen_address: ${bind}
+            http_listen_address: localhost
 
           ingester:
             wal:

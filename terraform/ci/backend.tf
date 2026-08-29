@@ -22,5 +22,21 @@ terraform {
       source  = "hashicorp/nomad"
       version = "2.5.1"
     }
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "~> 4.0"
+    }
+    bitwarden-secrets = {
+      source  = "sebastiaan-dev/bitwarden-secrets"
+      version = "0.1.2"
+    }
+    github = {
+      source  = "integrations/github"
+      version = "6.2.3"
+    }
+    tailscale = {
+      source  = "tailscale/tailscale"
+      version = "0.16.2"
+    }
   }
 }
