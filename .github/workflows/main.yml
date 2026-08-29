@@ -64,7 +64,8 @@ jobs:
         run: |
           export NOMAD_TOKEN=${{ steps.vault-get-nomad-token.outputs.NOMAD_TOKEN }}
           
-          nomad job plan jobs/monitoring/node-exporter.hcl
+          echo '## Nomad plan diff 🚀' >> $GITHUB_STEP_SUMMARY
+          nomad job plan jobs/monitoring/node-exporter.hcl >> $GITHUB_STEP_SUMMARY
 
 
   populate-cache:
