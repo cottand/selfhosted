@@ -36,31 +36,61 @@ jobs:
         name: Set up build env
         with:
           tailscale_oauth_clientsecret: ${{ secrets.TAILSCALE_OAUTH_CLIENTSECRET }}
-      - name: Install Nomad
-        id: install-nomad
-        run: |
-          nix profile add .#pkgs.nomad .#pkgs.nix-nomad
+      - parallel:
+        - name: Install Nomad
+          id: install-nomad
+          run: |
+            nix profile add .#pkgs.nomad .#pkgs.nix-nomad
 
-      - name: Get Nomad token
-        id: vault-get-nomad-token
-        uses: hashicorp/vault-action@v4
-        with:
-          url: ${{ env.VAULT_ADDR }}
-          role: actions-ro
-          path: jwt-github
-          method: jwt
-          jwtGithubAudience: sigstore
-          caCertificate: ${{ steps.read_ca.outputs.CA_BASE_64 }}
-          secrets: |
-            /nomad/creds/github-actions secret_id | NOMAD_TOKEN ;
+        - name: Get Nomad token
+          id: vault-get-nomad-token
+          uses: hashicorp/vault-action@v4
+          with:
+            url: ${{ env.VAULT_ADDR }}
+            role: actions-ro
+            path: jwt-github
+            method: jwt
+            jwtGithubAudience: sigstore
+            caCertificate: ${{ steps.read_ca.outputs.CA_BASE_64 }}
+            secrets: |
+              /nomad/creds/github-actions secret_id | NOMAD_TOKEN ;
+              
+        - name: Pre-build configs
+          run: |
+            # This makes things slightly faster as it ensures everything is on the store by the time we hit the
+            # per-job evaluation
+            
+            nix-fast-build --eval-workers 1 --no-nom --attic-cache=default --option build-fallback true \
+            -f .#nomadConfigurations.default.x86_64-linux.jobsPackage
 
       - name: Nomad Plan
+        env:
+          NOMAD_TOKEN: ${{ steps.vault-get-nomad-token.outputs.NOMAD_TOKEN }}
+        shell: python
         run: |
-          export NOMAD_TOKEN=${{ steps.vault-get-nomad-token.outputs.NOMAD_TOKEN }}
-          echo '## Nomad plan diff 🚀' >> $GITHUB_STEP_SUMMARY
+          import os
+          import json
           
-          nix-nomad plan roach
-          # >> $GITHUB_STEP_SUMMARY
+          attr_names = os.popen('nix eval .#nomadConfigurations.default.x86_64-linux.jobs --apply "builtins.attrNames" --json').read()
+          
+          plans_diffed = {}
+          
+          for job_name in json.loads(attr_names):
+            p = os.popen(f"nix-nomad plan {job_name}")
+            text = p.read()
+            if p.close() is not None:
+              plans_diffed[job_name] = text
+          
+          with open(os.environ.get("GITHUB_STEP_SUMMARY"), "a") as s:
+            s.write("## Nomad plan diff 🚀 \n\n")
+            s.write("Jobs with diff:\n")
+            for job in plans_diffed.keys():
+              s.write("<details>\n")
+              s.write(f"<summary>**{job}**</summary>\n\n")
+              s.write("```\n")
+              s.write(plans_diffed[job])
+              s.write("\n```\n")
+              s.write("</details>\n\n")
 
   populate-cache:
     strategy:
@@ -72,6 +102,8 @@ jobs:
           - .#packages.x86_64-linux.bws-get
           - .#legacyPackages.x86_64-linux.pkgs.vault-bin
           - .#legacyPackages.x86_64-linux.pkgs.nix-nomad
+          - .#legacyPackages.x86_64-linux.pkgs.nomad
+          - .#nomadConfigurations.default.x86_64-linux.jobsPackage
         host:
           - ubuntu-latest
     #          - macos-latest
