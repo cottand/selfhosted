@@ -3,11 +3,13 @@ package module
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	s_rpc_flights "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-flights"
 	"github.com/monzo/terrors"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type Airport struct {
@@ -23,7 +25,7 @@ const airportsCsvUrl = "https://raw.githubusercontent.com/datasets/airport-codes
 var _ s_rpc_flights.FlightsServer = &ProtoHandler{}
 
 func (h *ProtoHandler) ListAll(_ *emptypb.Empty, stream grpc.ServerStreamingServer[s_rpc_flights.Flight]) error {
-	rows, err := h.db.QueryContext(stream.Context(), `select src_airport, dst_airport from "s-rpc-flights".flight`)
+	rows, err := h.db.QueryContext(stream.Context(), `select src_airport, dst_airport, departure_date from "s-rpc-flights".flight`)
 	if err != nil {
 		return terrors.Augment(err, "failed to query flights", nil)
 	}
@@ -31,7 +33,8 @@ func (h *ProtoHandler) ListAll(_ *emptypb.Empty, stream grpc.ServerStreamingServ
 
 	for rows.Next() {
 		var srcAirport, dstAirport string
-		err = rows.Scan(&srcAirport, &dstAirport)
+		var departureDate time.Time
+		err = rows.Scan(&srcAirport, &dstAirport, &departureDate)
 		if err != nil {
 			return terrors.Augment(err, "failed to scan flight query result", nil)
 		}
@@ -49,6 +52,7 @@ func (h *ProtoHandler) ListAll(_ *emptypb.Empty, stream grpc.ServerStreamingServ
 		flight := &s_rpc_flights.Flight{
 			Src: srcAirportObj,
 			Dst: dstAirportObj,
+			DepartureDate: timestamppb.New(departureDate),
 		}
 		err = stream.Send(flight)
 		if err != nil {

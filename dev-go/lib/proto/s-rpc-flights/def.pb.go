@@ -10,6 +10,7 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -26,6 +27,7 @@ type Flight struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Src           *Airport               `protobuf:"bytes,1,opt,name=src,proto3" json:"src,omitempty"`
 	Dst           *Airport               `protobuf:"bytes,2,opt,name=dst,proto3" json:"dst,omitempty"`
+	DepartureDate *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=departure_date,json=departureDate,proto3" json:"departure_date,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -70,6 +72,13 @@ func (x *Flight) GetSrc() *Airport {
 func (x *Flight) GetDst() *Airport {
 	if x != nil {
 		return x.Dst
+	}
+	return nil
+}
+
+func (x *Flight) GetDepartureDate() *timestamppb.Timestamp {
+	if x != nil {
+		return x.DepartureDate
 	}
 	return nil
 }
@@ -242,10 +251,11 @@ var File_s_rpc_flights_def_proto protoreflect.FileDescriptor
 
 const file_s_rpc_flights_def_proto_rawDesc = "" +
 	"\n" +
-	"\x17s-rpc-flights/def.proto\x12\rs_rpc_flights\x1a\x1bgoogle/protobuf/empty.proto\"\\\n" +
+	"\x17s-rpc-flights/def.proto\x12\rs_rpc_flights\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x9f\x01\n" +
 	"\x06Flight\x12(\n" +
 	"\x03src\x18\x01 \x01(\v2\x16.s_rpc_flights.AirportR\x03src\x12(\n" +
-	"\x03dst\x18\x02 \x01(\v2\x16.s_rpc_flights.AirportR\x03dst\"A\n" +
+	"\x03dst\x18\x02 \x01(\v2\x16.s_rpc_flights.AirportR\x03dst\x12A\n" +
+	"\x0edeparture_date\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\rdepartureDate\"A\n" +
 	"\aAirport\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\tR\x04code\x12\x10\n" +
 	"\x03lat\x18\x02 \x01(\x01R\x03lat\x12\x10\n" +
@@ -279,20 +289,22 @@ var file_s_rpc_flights_def_proto_goTypes = []any{
 	(*Airport)(nil),                     // 1: s_rpc_flights.Airport
 	(*Journey)(nil),                     // 2: s_rpc_flights.Journey
 	(*EmissionsForJourneyResponse)(nil), // 3: s_rpc_flights.EmissionsForJourneyResponse
-	(*emptypb.Empty)(nil),               // 4: google.protobuf.Empty
+	(*timestamppb.Timestamp)(nil),       // 4: google.protobuf.Timestamp
+	(*emptypb.Empty)(nil),               // 5: google.protobuf.Empty
 }
 var file_s_rpc_flights_def_proto_depIdxs = []int32{
 	1, // 0: s_rpc_flights.Flight.src:type_name -> s_rpc_flights.Airport
 	1, // 1: s_rpc_flights.Flight.dst:type_name -> s_rpc_flights.Airport
-	4, // 2: s_rpc_flights.Flights.ListAll:input_type -> google.protobuf.Empty
-	2, // 3: s_rpc_flights.Flights.EmissionsForJourney:input_type -> s_rpc_flights.Journey
-	0, // 4: s_rpc_flights.Flights.ListAll:output_type -> s_rpc_flights.Flight
-	3, // 5: s_rpc_flights.Flights.EmissionsForJourney:output_type -> s_rpc_flights.EmissionsForJourneyResponse
-	4, // [4:6] is the sub-list for method output_type
-	2, // [2:4] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	4, // 2: s_rpc_flights.Flight.departure_date:type_name -> google.protobuf.Timestamp
+	5, // 3: s_rpc_flights.Flights.ListAll:input_type -> google.protobuf.Empty
+	2, // 4: s_rpc_flights.Flights.EmissionsForJourney:input_type -> s_rpc_flights.Journey
+	0, // 5: s_rpc_flights.Flights.ListAll:output_type -> s_rpc_flights.Flight
+	3, // 6: s_rpc_flights.Flights.EmissionsForJourney:output_type -> s_rpc_flights.EmissionsForJourneyResponse
+	5, // [5:7] is the sub-list for method output_type
+	3, // [3:5] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_s_rpc_flights_def_proto_init() }

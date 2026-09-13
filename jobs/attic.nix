@@ -15,8 +15,9 @@ let
   # - deploy again, done!
   #  version = "7a19204df10d606c5070e6bb72615c3461900c05"; # newer
   #version = "717cc95983cdc357bc347d70be20ced21f935843"; # older
-  image = "ghcr.io/cottand/selfhosted/attic:f00d3c6";
-  updateMode = true;
+#  image = "ghcr.io/cottand/selfhosted/attic:f00d3c6";
+  image = "ghcr.io/zhaofengli/attic:717cc95983cdc357bc347d70be20ced21f935843";
+  updateMode = false;
   cpu = 120;
   mem = 500;
   ports = {
@@ -114,6 +115,7 @@ let
           changeMode = "restart";
           data = ''
             listen = "${bind}:${toString ports.http}"
+            token-hs256-secret-base64 = "{{with secret "secret/data/nomad/job/attic/jwt_signer"}}{{.Data.data.value}}{{end}}"
 
             # Allowed `Host` headers
             #
@@ -201,8 +203,8 @@ let
             default-retention-period = "3 months"
             #default-retention-period = "1 minute"
 
-            [jwt.signing]
-            token-hs256-secret-base64 = "{{with secret "secret/data/nomad/job/attic/jwt_signer"}}{{.Data.data.value}}{{end}}"
+            #[jwt.signing]
+            #token-hs256-secret-base64 = "{{with secret "secret/data/nomad/job/attic/jwt_signer"}}{{.Data.data.value}}{{end}}"
           '';
         }
       ];

@@ -6,8 +6,8 @@ in
   imports = [
     ./debug.nix
     ./modules
-    ./whoami.nix
-    ./web-portfolio.nix
+    #    ./whoami.nix
+    #    ./web-portfolio.nix
     ./attic.nix
     ./traefik/job.nix
     ./roach.nix
@@ -24,8 +24,8 @@ in
     ./seaweed/backup.nix
     #    ./seaweed/admin.nix
     #    ./seaweed/worker.nix
-    ./ente/ente.nix
-    ./ente/backup-ente-db.nix
+    #    ./ente/ente.nix
+    #    ./ente/backup-ente-db.nix
     ./digitemp.nix
     ./shelly-exporter.nix
     ./go2rtc.nix

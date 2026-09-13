@@ -54,7 +54,7 @@ jobs:
             caCertificate: ${{ steps.read_ca.outputs.CA_BASE_64 }}
             secrets: |
               /nomad/creds/github-actions secret_id | NOMAD_TOKEN ;
-              
+
         - name: Pre-build configs
           run: |
             # This makes things slightly faster as it ensures everything is on the store by the time we hit the
@@ -86,7 +86,7 @@ jobs:
             s.write("Jobs with diff:\n")
             for job in plans_diffed.keys():
               s.write("<details>\n")
-              s.write(f"<summary>**{job}**</summary>\n\n")
+              s.write(f"<summary>{job}</summary>\n\n")
               s.write("```\n")
               s.write(plans_diffed[job])
               s.write("\n```\n")

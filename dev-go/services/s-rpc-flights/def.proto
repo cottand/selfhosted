@@ -4,6 +4,8 @@ package s_rpc_flights;
 option go_package = "github.com/Cottand/selfosted/dev-go/lib/proto/s-rpc-flights";
 
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
 
 
 service Flights {
@@ -14,6 +16,7 @@ service Flights {
 message Flight {
   Airport src = 1;
   Airport dst = 2;
+  google.protobuf.Timestamp departure_date = 3;
 }
 
 message Airport {

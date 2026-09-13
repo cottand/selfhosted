@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"time"
 
 	s_rpc_flights "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-flights"
 	"github.com/monzo/terrors"
@@ -15,6 +16,9 @@ import (
 )
 
 const geojsonContentType = "application/geo+json"
+
+const strokeHex = "#ba018622"
+const secondaryStrokeHex = "#F44336"
 
 func (s *scaffold) MakeHTTPHandler() http.Handler {
 	mux := http.NewServeMux()
@@ -68,7 +72,14 @@ func (s *scaffold) constructGeoMap(ctx context.Context, doArcs bool) ([]byte, er
 			return nil, terrors.Augment(err, "failed to receive flight", nil)
 		}
 
-		j.AddFeature(line(next, doArcs))
+		featureLine := line(next, doArcs)
+		featureLine.Properties["stroke-width"] = 2
+		featureLine.Properties["stroke"] = strokeHex
+
+		if next.DepartureDate.AsTime().After(time.Now()) {
+			featureLine.Properties["stroke"] = secondaryStrokeHex
+		}
+		j.AddFeature(featureLine)
 	}
 
 	str, err := j.MarshalJSON()

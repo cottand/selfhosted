@@ -53,6 +53,7 @@
     fish \
         --init-command 'abbr -a weeds "nomad alloc exec -i -t -task seaweed-filer -job seaweed-filer weed shell -master seaweed-master-http.nomad:9333" ' \
         --init-command 'abbr -a ship --set-cursor  "nix eval .#nomadJobs.% --json | nomad run -json -" ' \
+        --init-command 'alias nn nix-nomad' \
         && exit
   '';
 
