@@ -22,11 +22,6 @@ Custom deployment tool for Nomad jobs defined in Nix.
 - Supports versioned deployments
 - Integrates with `nomad run` command
 
-### shipper
-Infrastructure deployment tool.
-- Handles service deployments
-- Coordinates with Nomad cluster
-
 ## Services
 
 Services follow a consistent structure:

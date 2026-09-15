@@ -6,7 +6,7 @@ This repository contains the configuration-as-code for a personal self-hosted cl
 
 - `jobs/` - Nix-based Nomad job definitions using the nix-nomad options format
 - `machines/` - NixOS configurations for cluster nodes managed via Colmena
-- `dev-go/` - Go services and CLI tools (nixmad, shipper, custom services)
+- `dev-go/` - Go services and CLI tools (custom services)
 - `terraform/` - Infrastructure as code for cloud resources and service configuration
 - `csi-volumes/` - CSI volume definitions for persistent storage
 - `secret/` - Encrypted secrets and PKI certificates

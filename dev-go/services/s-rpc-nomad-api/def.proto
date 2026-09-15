@@ -8,19 +8,10 @@ import "google/protobuf/empty.proto";
 
 service NomadApi {
   // Deploy deploys a job from a Nix definition
-  rpc Deploy(Job) returns (DeployResponse) {}
   rpc ListJobDefinitions(google.protobuf.Empty) returns (stream ListJobsResponse) {}
   rpc ReadJobDefinition(ReadJobDefinitionRequest) returns (ReadJobDefinitionResponse) {}
 }
 
-
-message Job {
-  oneof Version {
-    string commit = 1;
-    bool latest = 2;
-  }
-  string name = 3;
-}
 
 message DeployResponse {
   string message = 1;

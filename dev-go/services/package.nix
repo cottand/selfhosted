@@ -20,10 +20,6 @@ let
     importPackagesFile = ../go-cache.imported-packages;
     vendorHash = null;
     vendorEnv = ../vendor;
-
-    # for farcaller/gonix (CGO)
-    nativeBuildInputs = [ pkg-config ];
-    buildInputs = [ nixVersions.nix_2_23 ];
   };
 
   bin = buildGoModule {
@@ -31,7 +27,7 @@ let
     vendorHash = null;
     env.CGO_ENABLED = 1;
     nativeBuildInputs = [ pkg-config ];
-    buildInputs = [ goCache nixVersions.nix_2_23 ];
+    buildInputs = [ goCache ];
     subPackages = [ "services" ];
     postInstall = ''
       mv $out/bin/services $out/bin/${name}
@@ -46,9 +42,7 @@ let
     inherit name;
     copyToRoot = binaryEnv;
     config.Cmd = [ "/bin/${name}" ];
-    config.Env = [
-      "SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt"
-    ];
+    config.Env = [ "SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt" ];
   };
 in
 binaryEnv // { inherit image bin; }
