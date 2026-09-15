@@ -194,9 +194,6 @@ github.com/eclipse/paho.golang/paho/log
 github.com/eclipse/paho.golang/paho/session
 github.com/eclipse/paho.golang/paho/session/state
 github.com/eclipse/paho.golang/paho/store/memory
-# github.com/farcaller/gonix v0.3.2
-## explicit; go 1.19
-github.com/farcaller/gonix
 # github.com/fatih/color v1.18.0
 ## explicit; go 1.17
 github.com/fatih/color
@@ -364,9 +361,6 @@ github.com/hashicorp/serf/coordinate
 # github.com/hashicorp/vault/api v1.23.0
 ## explicit; go 1.24.0
 github.com/hashicorp/vault/api
-# github.com/inconshreveable/mousetrap v1.1.0
-## explicit; go 1.18
-github.com/inconshreveable/mousetrap
 # github.com/jackc/pgpassfile v1.0.0
 ## explicit; go 1.12
 github.com/jackc/pgpassfile
@@ -483,12 +477,6 @@ github.com/remychantenay/slog-otel
 # github.com/ryanuber/go-glob v1.0.0
 ## explicit
 github.com/ryanuber/go-glob
-# github.com/spf13/cobra v1.10.2
-## explicit; go 1.15
-github.com/spf13/cobra
-# github.com/spf13/pflag v1.0.10
-## explicit; go 1.12
-github.com/spf13/pflag
 # github.com/stretchr/testify v1.11.1
 ## explicit; go 1.17
 github.com/stretchr/testify/assert

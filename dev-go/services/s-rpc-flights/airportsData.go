@@ -13,7 +13,6 @@ import (
 	s_rpc_flights "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-flights"
 	"github.com/monzo/terrors"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	"go.opentelemetry.io/otel/trace"
 )
 
 var closedAirports = map[string]Airport{

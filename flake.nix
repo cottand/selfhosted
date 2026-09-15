@@ -155,7 +155,7 @@
       colmena = (import ./hive.nix) (inputs // { inherit overlays; });
 
       nomadConfigurations.default = inputs.nixnomad.lib.nomadConfiguration {
-        modules = [ ./jobs ];
+        modules = [ ./jobs ./dev-go/services/job.nix ];
         # uses same nomad options as current nomad version
         #nomad = system: (pkgsFor system).nomad;
 

@@ -20,7 +20,6 @@ github.com/aws/aws-sdk-go-v2/aws
 github.com/aws/aws-sdk-go-v2/service/s3
 github.com/eclipse/paho.golang/autopaho
 github.com/eclipse/paho.golang/paho
-github.com/farcaller/gonix
 github.com/golang-migrate/migrate/v4
 github.com/golang-migrate/migrate/v4/database/cockroachdb
 github.com/golang-migrate/migrate/v4/source/iofs
@@ -39,7 +38,6 @@ github.com/prometheus/client_golang/prometheus/promauto
 github.com/prometheus/client_golang/prometheus/promhttp
 github.com/prometheus/common/model
 github.com/remychantenay/slog-otel
-github.com/spf13/cobra
 github.com/stretchr/testify/assert
 go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc
 go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp
@@ -75,8 +73,6 @@ net
 net/http
 net/url
 os
-os/exec
-path
 reflect
 strconv
 strings
