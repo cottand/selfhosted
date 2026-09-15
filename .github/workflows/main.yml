@@ -52,8 +52,9 @@ jobs:
             method: jwt
             jwtGithubAudience: sigstore
             caCertificate: ${{ steps.read_ca.outputs.CA_BASE_64 }}
+            # must match TF config for path
             secrets: |
-              /nomad/creds/github-actions secret_id | NOMAD_TOKEN ;
+              /nomad/creds/actions-job-planner secret_id | NOMAD_TOKEN ;
 
         - name: Pre-build configs
           run: |
@@ -203,16 +204,42 @@ jobs:
           command: pages deploy ./result/srv --project-name=nico-dcotta-com
 
 
-
   build-images:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
+      - name: Read CA
+        id: read_ca
+        shell: bash
+        run: |
+          echo 'CA_BASE_64<<EOF' >> $GITHUB_OUTPUT
+          cat certs/root_2024_ca.crt | base64 >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
       - uses: ./.github/actions/setup-build-env
         name: Set up build env
         with:
           tailscale_oauth_clientsecret: ${{ secrets.TAILSCALE_OAUTH_CLIENTSECRET }}
+
+      - name: Install Nomad
+        background: true
+        id: install-nomad
+        run: |
+          nix profile add .#pkgs.nomad .#pkgs.nix-nomad
+
+      - name: Get Nomad token
+        background: true
+        id: vault-get-nomad-token
+        uses: hashicorp/vault-action@v4
+        with:
+          url: ${{ env.VAULT_ADDR }}
+          role: actions-ro
+          path: jwt-github
+          method: jwt
+          jwtGithubAudience: sigstore
+          caCertificate: ${{ steps.read_ca.outputs.CA_BASE_64 }}
+          # must match TF config for path
+          secrets: |
+            /nomad/creds/actions-job-deployer secret_id | NOMAD_TOKEN ;
 
       - name: Install Skopeo
         id: install-skopeo
@@ -221,13 +248,6 @@ jobs:
           # versions too new of Skopeo mess us up, see https://github.com/NixOS/nixpkgs/issues/541378
           # nix profile add nixpkgs#skopeo
           sudo apt install -y skopeo
-
-      - name: Install grpcurl
-        id: install-grpcurl
-        background: true
-        shell: bash
-        run: |
-          nix profile add nixpkgs#grpcurl
 
       - name: Build services image
         run: |
@@ -258,9 +278,11 @@ jobs:
         run: |
           attic push "$ATTIC_CACHE" result*
 
-      - wait: install-grpcurl
-      - name: Deploy dev-go
+      - wait:
+          - vault-get-nomad-token
+          - install-nomad
+
+      - name: Deploy services-go
         run: |
-          short_sha=$(git rev-parse --short "$GITHUB_SHA")
-          payload=$(printf '{"name":"services-go", "commit": "%s"}' $short_sha)
-          grpcurl -v -d "$payload" services-go-grpc.tfk.nd:443 s_rpc_nomad_api.NomadApi/Deploy
+          nix-nomad run services-go
+          

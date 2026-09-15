@@ -11,33 +11,50 @@ data "vault_auth_backend" "jwt-github" {
 //
 // This looks like a Nomad role (groups Nomad policies for a principal), but it is defined in Vault's domain,
 // so it is not a nomad_acl_role
-resource "vault_nomad_secret_role" "github-actions" {
+resource "vault_nomad_secret_role" "actions-job-planner" {
   backend = local.vault_nomad_backend_name
-  role    = "github-actions"
+  role    = "actions-job-planner"
   type = "client"
   policies = [nomad_acl_policy.job-planner.name]
 }
 
-data "vault_policy_document" "be-nomad-github-actions" {
+data "vault_policy_document" "be-nomad-actions-job-planner" {
   rule {
     capabilities = ["read"]
-    path = "${local.vault_nomad_backend_name}/creds/${vault_nomad_secret_role.github-actions.role}"
+    path = "${local.vault_nomad_backend_name}/creds/${vault_nomad_secret_role.actions-job-planner.role}"
   }
 }
-resource "vault_policy" "be-nomad-github-actions" {
-  name   = "issue-nomad-job-planner-token"
-  policy = data.vault_policy_document.be-nomad-github-actions.hcl
+
+resource "vault_policy" "be-nomad-actions-job-planner" {
+  # this is used in the actions JWT
+  name   = "issue-nomad-actions-job-planner-token"
+  policy = data.vault_policy_document.be-nomad-actions-job-planner.hcl
 }
 
-# resource "nomad_acl_role" "github-actions" {
-#   name = "github-actions"
-#   policy {
-#     name = nomad_acl_policy.job-planner.name
-#   }
-# }
 
-# resource "vault_identity_entity" "github_actions" {
-#   name = "github-actions"
-#
-#   policies = [vault_policy.be-nomad-github-actions.id]
-# }
+
+# -----
+
+// -- a role in the /nomad mount that has a policy that allows it to acquire a nomad role called github actions
+//
+// This looks like a Nomad role (groups Nomad policies for a principal), but it is defined in Vault's domain,
+// so it is not a nomad_acl_role
+resource "vault_nomad_secret_role" "actions-job-deployer" {
+  backend = local.vault_nomad_backend_name
+  role    = "actions-job-deployer"
+  type = "client"
+  policies = [nomad_acl_policy.job-deployer.name]
+}
+
+data "vault_policy_document" "be-nomad-actions-job-deployer" {
+  rule {
+    capabilities = ["read"]
+    path = "${local.vault_nomad_backend_name}/creds/${vault_nomad_secret_role.actions-job-deployer.role}"
+  }
+}
+
+resource "vault_policy" "be-nomad-actions-job-deployer" {
+  # this is used in the actions JWT
+  name   = "issue-nomad-actions-job-deployer-token"
+  policy = data.vault_policy_document.be-nomad-actions-job-deployer.hcl
+}

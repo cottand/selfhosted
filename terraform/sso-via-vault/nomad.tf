@@ -16,6 +16,10 @@ resource "nomad_acl_policy" "job-planner" {
   name = "job-planner"
   rules_hcl = file("policies/job-planner.hcl")
 }
+resource "nomad_acl_policy" "job-deployer" {
+  name = "job-planner"
+  rules_hcl = file("policies/job-planner.hcl")
+}
 
 
 #  nomad acl auth-method create \
