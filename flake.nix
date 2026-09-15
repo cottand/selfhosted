@@ -11,9 +11,6 @@
     srvos.url = "github:nix-community/srvos";
     srvos.inputs.nixpkgs.follows = "nixpkgs";
 
-    nix.url = "github:nixos/nix/2.23.4";
-    #nix.inputs.nixpkgs.follows = "nixpkgs";
-
     utils.url = "github:numtide/flake-utils";
     filters.url = "github:numtide/nix-filter";
 
@@ -78,14 +75,6 @@
           inherit (inputs.nixnomad.packages.${system}) nix-nomad;
 
           consul-cni = prev.callPackage ./packages/consul-cni.nix { };
-
-          nixVersions = prev.nixVersions // {
-            # .. which was removed in unstable, but compiles with gonix
-            nix_2_23 = inputs.nix.packages.${system}.nix;
-          };
-
-          # nixpkgs nomad is usually a version behind, so we pin it here when we want to get ahead
-          #          nomad = prev.nomad_1_11;
 
           vault-bin = (import inputs.nixpkgs { system = system; config.allowUnfree = true; }).vault-bin;
 

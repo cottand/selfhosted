@@ -50,14 +50,17 @@ func (h *ProtoHandler) ListAll(_ *emptypb.Empty, stream grpc.ServerStreamingServ
 		}
 
 		flight := &s_rpc_flights.Flight{
-			Src: srcAirportObj,
-			Dst: dstAirportObj,
+			Src:           srcAirportObj,
+			Dst:           dstAirportObj,
 			DepartureDate: timestamppb.New(departureDate),
 		}
 		err = stream.Send(flight)
 		if err != nil {
 			return terrors.Augment(err, "failed to send flight", nil)
 		}
+	}
+	if rows.Err() != nil {
+		return terrors.Augment(err, "failed to fetch flights", nil)
 	}
 
 	return nil

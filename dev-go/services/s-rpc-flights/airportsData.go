@@ -13,6 +13,7 @@ import (
 	s_rpc_flights "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-flights"
 	"github.com/monzo/terrors"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var closedAirports = map[string]Airport{
@@ -51,6 +52,7 @@ var (
 )
 
 func loadAirports(ctx context.Context) (map[string]Airport, error) {
+	// we use sync.Once instead of sync.Values so that we can pass the ctx
 	airportsOnce.Do(func() {
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, airportsCsvUrl, nil)
 		if err != nil {
@@ -69,7 +71,6 @@ func loadAirports(ctx context.Context) (map[string]Airport, error) {
 	})
 	return airports, airportsErr
 }
-
 
 func parseAirportsCSV(r io.Reader) (map[string]Airport, error) {
 	records, err := csv.NewReader(r).ReadAll()

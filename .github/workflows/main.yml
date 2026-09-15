@@ -204,7 +204,7 @@ jobs:
           command: pages deploy ./result/srv --project-name=nico-dcotta-com
 
 
-  build-images:
+  deploy-services:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -232,7 +232,7 @@ jobs:
         uses: hashicorp/vault-action@v4
         with:
           url: ${{ env.VAULT_ADDR }}
-          role: actions-ro
+          role: actions-deployer
           path: jwt-github
           method: jwt
           jwtGithubAudience: sigstore
@@ -251,7 +251,6 @@ jobs:
 
       - name: Build services image
         run: |
-          #nix-fast-build --eval-workers 1 --no-nom --option build-fallback true -f .#legacyPackages.x86_64-linux.scripts.all-images
           nix-fast-build --eval-workers 1 --no-nom --attic-cache=default --option build-fallback true -f .#legacyPackages.x86_64-linux.scripts.all-images
 
       - wait: install-skopeo
