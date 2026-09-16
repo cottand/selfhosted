@@ -17,8 +17,8 @@ resource "nomad_acl_policy" "job-planner" {
   rules_hcl = file("policies/job-planner.hcl")
 }
 resource "nomad_acl_policy" "job-deployer" {
-  name = "job-planner"
-  rules_hcl = file("policies/job-planner.hcl")
+  name = "job-deployer"
+  rules_hcl = file("policies/job-deployer.hcl")
 }
 
 
