@@ -4,11 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"io"
 	"log/slog"
 	"strconv"
 	"time"
 
 	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
+	s_rpc_flights "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-flights"
 	"github.com/cottand/selfhosted/dev-go/lib/util"
 	"github.com/monzo/terrors"
 	"github.com/prometheus/client_golang/prometheus"
@@ -62,7 +64,7 @@ func RefreshPromStats(ctx context.Context, db *sql.DB) {
 			refreshAirlines(ctx, db),
 			refreshFlights(ctx, db),
 			totalAirports(ctx, db),
-			refreshYearlyCo2(ctx, db),
+			refreshYearlyCo2(ctx),
 		)
 		accumulated := errors.Join(errs...)
 		if accumulated != nil {
@@ -83,42 +85,37 @@ func RefreshPromStats(ctx context.Context, db *sql.DB) {
 	}
 }
 
-func refreshYearlyCo2(ctx context.Context, db *sql.DB) error {
-	query := `select src_airport, dst_airport, departure_date from "s-rpc-flights".flight;`
-	rows, err := db.QueryContext(ctx, query)
+func refreshYearlyCo2(ctx context.Context) error {
+	flights, err := s_rpc_flights.ListAll(ctx, nil)
 	if err != nil {
-		return terrors.Augment(err, "failed to query visits", nil)
+		return terrors.Augment(err, "failed to list flights", nil)
 	}
-	defer rows.Close()
+	defer flights.CloseSend()
 
-	years := map[int]struct {
-		totalKg, greatestKg float64
-	}{}
+	years := map[int]float64{}
 
-	for rows.Next() {
-		var srcAirport, dstAirport string
-		var departureDate time.Time
-		if err := rows.Scan(&srcAirport, &dstAirport, &departureDate); err != nil {
-			return terrors.Augment(err, "failed to scan query result", nil)
+	for {
+		rec, err := flights.Recv()
+		ctx := flights.Context()
+		if errors.Is(err, io.EOF) {
+			break
 		}
-
-		prog := years[departureDate.Year()]
-
-		distance, err := distanceBetweenAirportsKm(ctx, srcAirport, dstAirport)
 		if err != nil {
-			return terrors.Augment(err, "failed to calculate distance", nil)
+			return terrors.Augment(err, "failed to receive flight", nil)
+		}
+		resp, err := s_rpc_flights.EmissionsForJourney(ctx, &s_rpc_flights.Journey{
+			SrcAirportCode: rec.Src.Code,
+			DstAirportCode: rec.Dst.Code,
+		})
+
+		if err != nil {
+			return terrors.Augment(err, "failed to get emissions", nil)
 		}
 
-		co2eKg := flightKmToCO2e(distance)
-		prog.totalKg += co2eKg
-		if co2eKg > prog.greatestKg {
-			prog.greatestKg = co2eKg
-		}
-		years[departureDate.Year()] = prog
+		years[rec.DepartureDate.AsTime().Year()] += resp.CO2EKg
 	}
-
 	for year, data := range years {
-		flightFootprint.With(prometheus.Labels{"year": strconv.Itoa(year)}).Set(data.totalKg)
+		flightFootprint.With(prometheus.Labels{"year": strconv.Itoa(year)}).Set(data)
 	}
 
 	return nil

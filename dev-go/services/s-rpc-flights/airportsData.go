@@ -67,6 +67,13 @@ func loadAirports(ctx context.Context) (map[string]Airport, error) {
 		defer resp.Body.Close()
 
 		airports, airportsErr = parseAirportsCSV(resp.Body)
+		if airportsErr != nil {
+			return
+		}
+
+		for code, airport := range closedAirports {
+			airports[code] = airport
+		}
 	})
 	return airports, airportsErr
 }
