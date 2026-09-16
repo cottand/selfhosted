@@ -62,9 +62,7 @@ func RefreshPromStats(ctx context.Context, db *sql.DB) {
 			refreshAirlines(ctx, db),
 			refreshFlights(ctx, db),
 			totalAirports(ctx, db),
-			refreshYearlyCo2(ctx, db, 2024),
-			refreshYearlyCo2(ctx, db, 2025),
-			refreshYearlyCo2(ctx, db, 2026),
+			refreshYearlyCo2(ctx, db),
 		)
 		accumulated := errors.Join(errs...)
 		if accumulated != nil {
@@ -85,7 +83,7 @@ func RefreshPromStats(ctx context.Context, db *sql.DB) {
 	}
 }
 
-func refreshYearlyCo2(ctx context.Context, db *sql.DB, year int) error {
+func refreshYearlyCo2(ctx context.Context, db *sql.DB) error {
 	query := `select src_airport, dst_airport, departure_date from "s-rpc-flights".flight;`
 	rows, err := db.QueryContext(ctx, query)
 	if err != nil {
@@ -93,10 +91,8 @@ func refreshYearlyCo2(ctx context.Context, db *sql.DB, year int) error {
 	}
 	defer rows.Close()
 
-	totalKg := 0.0
-	greatestKg := 0.0
-	greatestFlight := struct {
-		src, dst, date string
+	years := map[int]struct {
+		totalKg, greatestKg float64
 	}{}
 
 	for rows.Next() {
@@ -106,9 +102,7 @@ func refreshYearlyCo2(ctx context.Context, db *sql.DB, year int) error {
 			return terrors.Augment(err, "failed to scan query result", nil)
 		}
 
-		if departureDate.Year() != year {
-			continue
-		}
+		prog := years[departureDate.Year()]
 
 		distance, err := distanceBetweenAirportsKm(ctx, srcAirport, dstAirport)
 		if err != nil {
@@ -116,20 +110,16 @@ func refreshYearlyCo2(ctx context.Context, db *sql.DB, year int) error {
 		}
 
 		co2eKg := flightKmToCO2e(distance)
-		totalKg += co2eKg
-		if co2eKg > greatestKg {
-			greatestKg = co2eKg
-			greatestFlight = struct{ src, dst, date string }{
-				src:  srcAirport,
-				dst:  dstAirport,
-				date: departureDate.Format(time.DateOnly),
-			}
+		prog.totalKg += co2eKg
+		if co2eKg > prog.greatestKg {
+			prog.greatestKg = co2eKg
 		}
+		years[departureDate.Year()] = prog
 	}
 
-	flightFootprint.With(prometheus.Labels{"year": strconv.Itoa(year)}).Set(totalKg)
-	// TODO extra metric
-	slog.DebugContext(ctx, "greatest flight", "flight", greatestFlight)
+	for year, data := range years {
+		flightFootprint.With(prometheus.Labels{"year": strconv.Itoa(year)}).Set(data.totalKg)
+	}
 
 	return nil
 }

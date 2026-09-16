@@ -93,8 +93,6 @@ jobs:
               s.write("\n```\n")
               s.write("</details>\n\n")
 
-# TODO deploy services-go via nix-nomad rather than via some weird rpc
-
   populate-cache:
     strategy:
       matrix:
