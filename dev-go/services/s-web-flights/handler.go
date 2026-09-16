@@ -17,7 +17,7 @@ import (
 
 const geojsonContentType = "application/geo+json"
 
-const strokeHex = "#2701FE"
+const strokeHex = "#9C8AFE"
 const secondaryStrokeHex = "#F44336"
 
 func (s *scaffold) MakeHTTPHandler() http.Handler {
