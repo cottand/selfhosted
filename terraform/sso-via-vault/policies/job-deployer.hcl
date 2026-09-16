@@ -12,3 +12,8 @@ namespace "*" {
     "dispatch-job",
   ]
 }
+
+# allows mounting read-write
+host_volume "*" {
+  policy = "write"
+}

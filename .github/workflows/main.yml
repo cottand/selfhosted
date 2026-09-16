@@ -220,6 +220,12 @@ jobs:
         with:
           tailscale_oauth_clientsecret: ${{ secrets.TAILSCALE_OAUTH_CLIENTSECRET }}
 
+      - name: Enable attic caching
+        background: true
+        id: attic-watch
+        run: |
+          attic watch-store "$ATTIC_CACHE"
+
       - name: Install Nomad
         background: true
         id: install-nomad
@@ -284,4 +290,6 @@ jobs:
       - name: Deploy services-go
         run: |
           nix-nomad run services-go
+
+      - cancel: attic-watch
           
