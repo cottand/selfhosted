@@ -50,6 +50,12 @@ var (
 		Name:      "flights_per_airline",
 		Help:      "flights broken down per airline",
 	}, []string{"airline_code"})
+
+	totalKm = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: util.KebabToSnakeCase(name),
+		Name:      "flights_total_distance_km",
+		Help:      "total distance flown by flights",
+	}, []string{"year"})
 )
 
 // RefreshPromStats returns when ctx is cancelled or done
@@ -92,7 +98,8 @@ func refreshYearlyCo2(ctx context.Context) error {
 	}
 	defer flights.CloseSend()
 
-	years := map[int]float64{}
+	yearsCo2 := map[int]float64{}
+	yearsDistance := map[int]float64{}
 
 	for {
 		rec, err := flights.Recv()
@@ -112,10 +119,12 @@ func refreshYearlyCo2(ctx context.Context) error {
 			return terrors.Augment(err, "failed to get emissions", nil)
 		}
 
-		years[rec.DepartureDate.AsTime().Year()] += resp.CO2EKg
+		yearsCo2[rec.DepartureDate.AsTime().Year()] += resp.CO2EKg
+		yearsDistance[rec.DepartureDate.AsTime().Year()] += resp.DistanceKm
 	}
-	for year, data := range years {
+	for year, data := range yearsCo2 {
 		flightFootprint.With(prometheus.Labels{"year": strconv.Itoa(year)}).Set(data)
+		totalKm.With(prometheus.Labels{"year": strconv.Itoa(year)}).Set(yearsDistance[year])
 	}
 
 	return nil

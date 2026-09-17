@@ -32,10 +32,7 @@ func airportFromCode(ctx context.Context, airportCode string) (*s_rpc_flights.Ai
 	}
 	a, ok := byIata[airportCode]
 	if !ok {
-		a, ok = closedAirports[airportCode]
-		if !ok {
-			return nil, terrors.NotFound("airport", "unknown airport code", map[string]string{"code": airportCode})
-		}
+		return nil, terrors.NotFound("airport", "unknown airport code", map[string]string{"code": airportCode})
 	}
 	return &s_rpc_flights.Airport{
 		Code: a.Iata,
