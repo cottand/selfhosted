@@ -36,3 +36,10 @@ module "bucket-gose" {
   cors_any = true
   bucket_encryption = true
 }
+
+module "bucket-mealie" {
+  source = "../modules/b2-bucket"
+
+  b2_bucket_name                 = "cottand-mealie"
+  vault_secret_path_for_b2_creds = "nomad/job/mealie/b2"
+}

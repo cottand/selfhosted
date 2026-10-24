@@ -25,18 +25,21 @@ var File_s_rpc_mqtt_def_proto protoreflect.FileDescriptor
 
 const file_s_rpc_mqtt_def_proto_rawDesc = "" +
 	"\n" +
-	"\x14s-rpc-mqtt/def.proto\x12\vs_rpc_vault\x1a\x1bgoogle/protobuf/empty.proto2A\n" +
+	"\x14s-rpc-mqtt/def.proto\x12\vs_rpc_vault\x1a\x1bgoogle/protobuf/empty.proto2\x8a\x01\n" +
 	"\x04Mqtt\x129\n" +
-	"\x05Dummy\x12\x16.google.protobuf.Empty\x1a\x16.google.protobuf.Empty\"\x00B;Z9github.com/Cottand/selfosted/dev-go/lib/proto/s-rpc-vaultb\x06proto3"
+	"\x05Dummy\x12\x16.google.protobuf.Empty\x1a\x16.google.protobuf.Empty\"\x00\x12G\n" +
+	"\x13SetAquariumSchedule\x12\x16.google.protobuf.Empty\x1a\x16.google.protobuf.Empty\"\x00B;Z9github.com/Cottand/selfosted/dev-go/lib/proto/s-rpc-vaultb\x06proto3"
 
 var file_s_rpc_mqtt_def_proto_goTypes = []any{
 	(*emptypb.Empty)(nil), // 0: google.protobuf.Empty
 }
 var file_s_rpc_mqtt_def_proto_depIdxs = []int32{
 	0, // 0: s_rpc_vault.Mqtt.Dummy:input_type -> google.protobuf.Empty
-	0, // 1: s_rpc_vault.Mqtt.Dummy:output_type -> google.protobuf.Empty
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
+	0, // 1: s_rpc_vault.Mqtt.SetAquariumSchedule:input_type -> google.protobuf.Empty
+	0, // 2: s_rpc_vault.Mqtt.Dummy:output_type -> google.protobuf.Empty
+	0, // 3: s_rpc_vault.Mqtt.SetAquariumSchedule:output_type -> google.protobuf.Empty
+	2, // [2:4] is the sub-list for method output_type
+	0, // [0:2] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name

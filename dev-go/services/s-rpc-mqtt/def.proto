@@ -7,4 +7,5 @@ import "google/protobuf/empty.proto";
 
 service Mqtt {
   rpc Dummy(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc SetAquariumSchedule(google.protobuf.Empty) returns (google.protobuf.Empty) {}
 }

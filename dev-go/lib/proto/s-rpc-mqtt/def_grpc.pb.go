@@ -20,7 +20,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Mqtt_Dummy_FullMethodName = "/s_rpc_vault.Mqtt/Dummy"
+	Mqtt_Dummy_FullMethodName               = "/s_rpc_vault.Mqtt/Dummy"
+	Mqtt_SetAquariumSchedule_FullMethodName = "/s_rpc_vault.Mqtt/SetAquariumSchedule"
 )
 
 // MqttClient is the client API for Mqtt service.
@@ -28,6 +29,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MqttClient interface {
 	Dummy(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	SetAquariumSchedule(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type mqttClient struct {
@@ -48,11 +50,22 @@ func (c *mqttClient) Dummy(ctx context.Context, in *emptypb.Empty, opts ...grpc.
 	return out, nil
 }
 
+func (c *mqttClient) SetAquariumSchedule(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, Mqtt_SetAquariumSchedule_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MqttServer is the server API for Mqtt service.
 // All implementations must embed UnimplementedMqttServer
 // for forward compatibility.
 type MqttServer interface {
 	Dummy(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
+	SetAquariumSchedule(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 	mustEmbedUnimplementedMqttServer()
 }
 
@@ -65,6 +78,9 @@ type UnimplementedMqttServer struct{}
 
 func (UnimplementedMqttServer) Dummy(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method Dummy not implemented")
+}
+func (UnimplementedMqttServer) SetAquariumSchedule(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetAquariumSchedule not implemented")
 }
 func (UnimplementedMqttServer) mustEmbedUnimplementedMqttServer() {}
 func (UnimplementedMqttServer) testEmbeddedByValue()              {}
@@ -105,6 +121,24 @@ func _Mqtt_Dummy_Handler(srv interface{}, ctx context.Context, dec func(interfac
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Mqtt_SetAquariumSchedule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MqttServer).SetAquariumSchedule(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Mqtt_SetAquariumSchedule_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MqttServer).SetAquariumSchedule(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Mqtt_ServiceDesc is the grpc.ServiceDesc for Mqtt service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -115,6 +149,10 @@ var Mqtt_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Dummy",
 			Handler:    _Mqtt_Dummy_Handler,
+		},
+		{
+			MethodName: "SetAquariumSchedule",
+			Handler:    _Mqtt_SetAquariumSchedule_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

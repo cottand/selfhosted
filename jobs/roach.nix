@@ -70,11 +70,8 @@ let
       mode = "bridge";
       port."metrics" = { to = webPort; hostNetwork = "ts"; };
       port."health".hostNetwork = "ts";
-
-      reservedPorts = {
-        "rpc" = { static = binds.${node}; hostNetwork = "ts"; };
-        "rpc-local" = { static = binds.${node}; hostNetwork = "local-hetzner"; };
-      };
+      port. "rpc" = { static = binds.${node}; hostNetwork = "ts"; };
+      port."rpc-local" = { static = binds.${node}; hostNetwork = "local-hetzner"; };
     };
     service."roach-db" = {
       port = toString sqlPort;
@@ -222,7 +219,13 @@ let
           '';
           perms = "0600";
         }
-      ] ++ builtins.concatLists (map certsForUser [ "root" "grafana" "ente" "safebucket" "cloudreve" ]);
+      ] ++ builtins.concatLists (map certsForUser [
+      "root"
+      "grafana"
+      "ente"
+      "safebucket"
+      "cloudreve"
+      ]);
     };
   };
 in

@@ -33,5 +33,7 @@ in
     ./mosquitto.nix
     ./papra.nix
     ./cloudreve.nix
+    ./mealie.nix
+    ./mqttui.nix
   ];
 }

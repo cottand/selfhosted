@@ -25,3 +25,11 @@ func Dummy(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*em
 	}
 	return client.Dummy(ctx, in, opts...)
 }
+
+func SetAquariumSchedule(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	client, err := loadClient()
+	if err != nil {
+		return nil, err
+	}
+	return client.SetAquariumSchedule(ctx, in, opts...)
+}

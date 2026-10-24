@@ -14,7 +14,6 @@ const Name = "s-rpc-mqtt"
 
 func InitService() (*bedrock.Service, string, error) {
 	ctx := bedrock.ContextForModule(Name, context.Background())
-	protoHandler := &ProtoHandler{}
 	baseConfig, err := bedrock.GetBaseConfig()
 	if err != nil {
 		return nil, Name, err
@@ -26,11 +25,15 @@ func InitService() (*bedrock.Service, string, error) {
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
-	router, err := newMqtt(ctx, brokerAddr, Name+"_"+baseConfig.AllocID)
+	mqttRouter, err := newMqtt(ctx, brokerAddr, Name+"_"+baseConfig.AllocID)
 	if err != nil {
 		cancel()
 		slog.ErrorContext(ctx, "failed to create mqtt router", "brokerAddr", brokerAddr, "err", err)
 		return nil, Name, err
+	}
+
+	protoHandler := &ProtoHandler{
+		mqtt: mqttRouter,
 	}
 
 	return &bedrock.Service{
@@ -40,7 +43,7 @@ func InitService() (*bedrock.Service, string, error) {
 		},
 		OnShutdown: func() error {
 			cancel()
-			<-router.cm.Done()
+			<-mqttRouter.cm.Done()
 			return nil
 		},
 	}, Name, nil

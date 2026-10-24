@@ -9,6 +9,7 @@ locals {
     (cloudflare_zero_trust_tunnel_cloudflared.traefik.id) = {
       domains = [
         "papra",
+        "mealie",
         "immich",
         "fish",
         "web",

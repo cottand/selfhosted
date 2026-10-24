@@ -91,5 +91,5 @@ Check service builds with `nix build .#services`.
    ```
 2. Add the job definition to `jobs/default.nix` imports
 3. Add the job definition to git
-4. Validate with `nix eval .#nomadJobs.{name} --json`
+4. Validate with `nix-nomad plan {name}`
 5. Report as done

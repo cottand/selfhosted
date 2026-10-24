@@ -148,8 +148,18 @@ func newMqtt(ctx context.Context, brokerAddr string, clientID string) (*mqttScaf
 
 var tracer = otel.Tracer(Name)
 
-func (r *mqttScaffold) shellyRPCResp(ctx context.Context, topic string, rpcMethod string, paramsJson map[string]any) (_ *paho.Publish, err error) {
-	ctx, span := tracer.Start(ctx, "mqtt_call.shellyRPC", trace.WithAttributes(attribute.String("topic", topic), attribute.String("rpcMethod", rpcMethod), attribute.String("paramsJson", fmt.Sprint(paramsJson))))
+func (r *mqttScaffold) shellyRPCResp(ctx context.Context, topic string, rpcMethod string, paramsJson map[string]any) (*paho.Publish, error) {
+	return r.shellyRPCRespAny(ctx, topic, rpcMethod, paramsJson)
+}
+
+// shellyRPCRespAny is like shellyRPCResp but params can be anything that marshals to a JSON object
+func (r *mqttScaffold) shellyRPCRespAny(ctx context.Context, topic string, rpcMethod string, params any) (_ *paho.Publish, err error) {
+	paramsJson, err := json.Marshal(params)
+	if err != nil {
+		return nil, terrors.Augment(err, "could not marshal params", map[string]string{"rpcMethod": rpcMethod})
+	}
+
+	ctx, span := tracer.Start(ctx, "mqtt_call.shellyRPC", trace.WithAttributes(attribute.String("topic", topic), attribute.String("rpcMethod", rpcMethod), attribute.String("paramsJson", string(paramsJson))))
 	ctx, _ = context.WithDeadline(ctx, time.Now().Add(10*time.Second))
 	defer span.End()
 	defer func() {
@@ -158,7 +168,7 @@ func (r *mqttScaffold) shellyRPCResp(ctx context.Context, topic string, rpcMetho
 		}
 	}()
 
-	errParams := map[string]string{"rpcMethod": rpcMethod, "paramsJson": fmt.Sprint(paramsJson)}
+	errParams := map[string]string{"rpcMethod": rpcMethod, "paramsJson": string(paramsJson)}
 
 	recv := make(chan *paho.Publish, 1)
 	replyTopic := fmt.Sprintf("%s/%s", topic, r.clientId)
@@ -196,7 +206,7 @@ func (r *mqttScaffold) shellyRPCResp(ctx context.Context, topic string, rpcMetho
 		"id":     uniqueId,
 		"src":    replyTopic,
 		"method": rpcMethod,
-		"params": paramsJson,
+		"params": json.RawMessage(paramsJson),
 	})
 	if err != nil {
 		return nil, terrors.Augment(err, "could not marshal payload", errParams)

@@ -66,6 +66,18 @@ resource "vault_pki_secret_backend_cert" "client-mtls-cert-hugo-v1" {
   auto_renew = true
   revoke     = true
 }
+resource "vault_pki_secret_backend_cert" "client-mtls-cert-marti-v1" {
+  issuer_ref  = vault_pki_secret_backend_issuer.root_2024.issuer_ref
+  backend     = vault_pki_secret_backend_issuer.root_2024.backend
+  name        = vault_pki_secret_backend_role.role_mtls.name
+  common_name = "mtls-m1-marti.mtls.dcotta.com"
+
+  alt_names = []
+
+  ttl        = 60 * 60 * 24 * 365 * 2 # 2 yrs
+  auto_renew = true
+  revoke     = true
+}
 /*
 terraform output --json | jq ".cert.value.cert" -r > cert.pem
 terraform output --json | jq '.cert.value.key' -r > key.rsa
@@ -76,7 +88,7 @@ rm cert.pem && rm key.rsa
 
  */
 locals {
-  cert_to_export = vault_pki_secret_backend_cert.client-mtls-cert-hugo-v1
+  cert_to_export = vault_pki_secret_backend_cert.client-mtls-cert-marti-v1
 }
 output "cert" {
   value = {

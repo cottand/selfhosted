@@ -13,6 +13,7 @@ locals {
   # and have a traefik host rule for `_.dcotta.com`.
   subdomains_requiring_client_mtls = toset([
     "papra",
+    "mealie",
     "immich",
   ])
 
