@@ -125,9 +125,8 @@ func (r *mqttScaffold) handleButtonEvent(packet *paho.Publish) {
 	// single press of the 4th button
 	if button[3] == 1 {
 		// simply toggle the light
-		if _, err := r.shellyRPCResp(ctx, "shelly/rgb105/rpc", "Light.Toggle", map[string]any{"id": 0}); err != nil {
-			slog.ErrorContext(ctx, "could not toggle light", "err", err)
-		}
+		go r.shellyRPCResp(ctx, "shelly/rgb105/rpc", "Light.Toggle", map[string]any{"id": 0})
+		go r.shellyRPCResp(ctx, "shelly/rgb108/rpc", "Light.Toggle", map[string]any{"id": 0})
 	}
 
 	// double press of the 4th button
@@ -139,7 +138,13 @@ func (r *mqttScaffold) handleButtonEvent(packet *paho.Publish) {
 }
 
 func (r *mqttScaffold) handleButton4DoublePress(ctx context.Context) error {
-	lightStatus, err := r.shellyRPCResp(ctx, "shelly/rgb105/rpc", "Light.GetStatus", map[string]any{"id": 0})
+	go r.aquariumLightsDoublePress(ctx, "shelly/rgb105/rpc")
+	go r.aquariumLightsDoublePress(ctx, "shelly/rgb108/rpc")
+
+	return nil
+}
+func (r *mqttScaffold) aquariumLightsDoublePress(ctx context.Context, aquariumLightTopic string) error {
+	lightStatus, err := r.shellyRPCResp(ctx, aquariumLightTopic, "Light.GetStatus", map[string]any{"id": 0})
 	if err != nil {
 		return terrors.Augment(err, "could not get light status", nil)
 	}
@@ -154,7 +159,7 @@ func (r *mqttScaffold) handleButton4DoublePress(ctx context.Context) error {
 
 	if parsed.Result.Output && parsed.Result.Brightness < highBrightness {
 		// if the light is on but dim, make it bright
-		_, err = r.shellyRPCResp(ctx, "shelly/rgb105/rpc", "Light.Set", map[string]any{"id": 0, "brightness": highBrightness, "on": true})
+		_, err = r.shellyRPCResp(ctx, aquariumLightTopic, "Light.Set", map[string]any{"id": 0, "brightness": highBrightness, "on": true})
 		if err != nil {
 			return terrors.Augment(err, "could not set light", nil)
 		}
@@ -164,7 +169,7 @@ func (r *mqttScaffold) handleButton4DoublePress(ctx context.Context) error {
 			slog.WarnContext(ctx, "could not get aquarium low brightness config", "err", err)
 		}
 		// otherwise it's off (so make it on + dim) or it's bright (do the same)
-		_, err = r.shellyRPCResp(ctx, "shelly/rgb105/rpc", "Light.Set", map[string]any{"id": 0, "brightness": lowBrightness, "on": true})
+		_, err = r.shellyRPCResp(ctx, aquariumLightTopic, "Light.Set", map[string]any{"id": 0, "brightness": lowBrightness, "on": true})
 		if err != nil {
 			return terrors.Augment(err, "could not set light", nil)
 		}

@@ -4,7 +4,7 @@
 // - protoc             v7.34.1
 // source: s-rpc-mqtt/def.proto
 
-package s_rpc_vault
+package s_rpc_mqtt
 
 import (
 	context "context"
@@ -20,8 +20,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Mqtt_Dummy_FullMethodName               = "/s_rpc_vault.Mqtt/Dummy"
-	Mqtt_SetAquariumSchedule_FullMethodName = "/s_rpc_vault.Mqtt/SetAquariumSchedule"
+	Mqtt_Dummy_FullMethodName               = "/s_rpc_mqtt.Mqtt/Dummy"
+	Mqtt_SetAquariumSchedule_FullMethodName = "/s_rpc_mqtt.Mqtt/SetAquariumSchedule"
 )
 
 // MqttClient is the client API for Mqtt service.
@@ -143,7 +143,7 @@ func _Mqtt_SetAquariumSchedule_Handler(srv interface{}, ctx context.Context, dec
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Mqtt_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "s_rpc_vault.Mqtt",
+	ServiceName: "s_rpc_mqtt.Mqtt",
 	HandlerType: (*MqttServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
