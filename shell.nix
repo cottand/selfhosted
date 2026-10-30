@@ -40,6 +40,7 @@
     scripts.gen-protos
 
     pkgs.oapi-codegen
+    pkgs.gsx
 
     pkgs.protoc-gen-go
   ];

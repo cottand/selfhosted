@@ -9,6 +9,7 @@
 , nixVersions
 , cacert
 , buildGoCache
+, gsx
 , ...
 }:
 let
@@ -26,9 +27,13 @@ let
     inherit name src;
     vendorHash = null;
     env.CGO_ENABLED = 1;
-    nativeBuildInputs = [ pkg-config ];
+    nativeBuildInputs = [ pkg-config gsx ];
     buildInputs = [ goCache ];
     subPackages = [ "services" ];
+    env.GSXCACHE = "off";
+    preBuild = ''
+      go generate ./...
+    '';
     postInstall = ''
       mv $out/bin/services $out/bin/${name}
     '';

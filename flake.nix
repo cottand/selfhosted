@@ -76,6 +76,8 @@
 
           consul-cni = prev.callPackage ./packages/consul-cni.nix { };
 
+          gsx = prev.callPackage ./packages/gsx.nix { };
+
           vault-bin = (import inputs.nixpkgs { system = system; config.allowUnfree = true; }).vault-bin;
 
           govendor = inputs.go-overlay.packages.${system}.govendor;

@@ -1,0 +1,656 @@
+package gsx
+
+import (
+	"context"
+	"fmt"
+	"slices"
+	"sort"
+	"strings"
+
+	"github.com/gsxhq/gsx/internal/htmlattr"
+)
+
+// Attr is one ordered attribute pair. Value is rendered like any attribute value:
+// a bool toggles a bare boolean attribute; anything else is stringified (toStr) and
+// attribute-escaped.
+type Attr struct {
+	Key   string
+	Value any
+}
+
+// Attrs is gsx's attribute bag: an insertion-ordered, duplicate-tolerant slice of
+// pairs. It is the type of the implicit fallthrough bag, every declared bag prop, the
+// {{ "k": v }} literal, and conditional-attr bags. Spread renders it in SLICE
+// ORDER (no sort) so callers control attribute order (e.g. Datastar data-* directives);
+// duplicate scalar keys are last-wins, matching JSX-style override order.
+//
+// Keys are HTML attribute names, and every accessor and the renderer match them
+// the way the browser does: ASCII-case-insensitively (htmlattr.SameName), so
+// "HREF" and "href" are one attribute. Has, Get, Bool, Without, Take, Merge,
+// Class, Style and Spread all agree on that; where two pairs name the same
+// attribute the last one wins (class and style aggregate) and renders under its
+// own spelling.
+//
+// Security contract: keys are HTML attribute NAMES emitted (after a validity check,
+// see Spread) without entity-encoding — they must come from generated code or
+// trusted developer input, never from untrusted strings. Values are HTML-attribute-
+// escaped.
+//
+// URL sanitization happens at EVERY element spread `{ x... }` — top-level, derived (e.g.
+// a.Without(...)), or nested inside a conditional-attr group — regardless of the bag's
+// provenance (the implicit fallthrough bag, a byo component's declared Attrs field, a
+// generated component's own named Attrs param, a local variable, a function call's
+// result, or any other gsx.Attrs value). Generated code lowers every such spread to one
+// Spread call that, in a single ordered walk, routes each URL-classified
+// attribute name (built-in urlAttrs table + gsx.toml rules + gen.WithURLAttrs, resolved
+// at generate time) through the same tag-aware sink a static attribute of that name would
+// use (URLVal for navigational, URLImageVal for image resources) and writes everything
+// else as a plain attribute-escaped value — see Spread for the full algorithm.
+// A gsx.RawURL value is the author's per-value vouch and is passed through the sink
+// verbatim; there is no other opt-out and no unsanitizing spread primitive — every spread
+// goes through Spread. See composition.md §Precedence for the full
+// forwarding-element rule.
+type Attrs []Attr
+
+// AttrMap is a map-form attribute bag for ergonomic Go literals; convert it to Attrs
+// explicitly with ToAttrs before passing/spreading in templates. A map has no order, so
+// ToAttrs sorts keys ascending to keep output deterministic.
+type AttrMap map[string]any
+
+// ToAttrs converts m to an ordered Attrs slice with keys sorted ascending.
+func (m AttrMap) ToAttrs() Attrs {
+	if len(m) == 0 {
+		return nil
+	}
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	out := make(Attrs, 0, len(keys))
+	for _, k := range keys {
+		out = append(out, Attr{Key: k, Value: m[k]})
+	}
+	return out
+}
+
+// Class returns the bag's class string, as it renders. DUPLICATE-KEY RULE: it
+// AGGREGATES — the values of ALL class pairs are joined (space-separated, each
+// trimmed), so no class is silently dropped. A key is a class pair when it names
+// the class attribute in any ASCII case ("class", "CLASS"), as in HTML. It does
+// NOT merge/dedupe tokens; the single outer codegen-emitted class site applies
+// the configured merger exactly once over this plus the root's parts.
+func (a Attrs) Class() string {
+	return a.aggregate("class", toStr)
+}
+
+// Style returns the bag's style declaration, as it renders. DUPLICATE-KEY RULE:
+// AGGREGATES — the values of ALL style pairs (any ASCII case) are joined
+// ("; "-separated). Each value is sanitized for the style attribute exactly like
+// a style={expr} value (StyleValue): a gsx.RawCSS value is the author's vouch
+// and passes verbatim; any other value goes through the CSS value filter, so a
+// value that could inject a declaration or a url(…) renders as ZgotmplZ.
+// Generated code carries the style of a static style="…", a composed
+// style={…} or a css`…` literal into a bag as RawCSS, sanitized part by part.
+func (a Attrs) Style() string {
+	return a.aggregate("style", StyleValue)
+}
+
+// aggregate joins the values of every pair naming the attribute name ("class"
+// or "style", htmlattr.SameName), each rendered by value, with that
+// attribute's separator.
+func (a Attrs) aggregate(name string, value func(any) string) string {
+	var out string
+	for _, kv := range a {
+		if !htmlattr.SameName(kv.Key, name) {
+			continue
+		}
+		v := value(kv.Value)
+		if name == "class" {
+			v = strings.TrimSpace(v)
+		}
+		out = joinAttrStrings(name, out, v)
+	}
+	return out
+}
+
+// Get returns the value of the attribute key and whether it was present. key is
+// an HTML attribute name, matched ASCII-case-insensitively like the browser:
+// Get("href") sees an "HREF" pair.
+//
+// DUPLICATE-KEY RULE: LAST occurrence wins for scalar keys, matching JSX-style
+// override order — EXCEPT class and style, which COLLAPSE. A bag has one class
+// and one style, so Get returns the aggregate of every pair naming that
+// attribute, agreeing with what renders: the class as Class() returns it (a
+// string), the style as Style() returns it but typed gsx.RawCSS — it is
+// already CSS-filtered, so putting it back into a bag renders it as is rather
+// than filtering it again. Last-wins there would report only the final
+// contribution and read as though the earlier ones had been dropped, even
+// though every one of them renders.
+func (a Attrs) Get(key string) (any, bool) {
+	switch {
+	case htmlattr.SameName(key, "class"):
+		if !a.Has(key) {
+			return nil, false
+		}
+		return a.Class(), true
+	case htmlattr.SameName(key, "style"):
+		if !a.Has(key) {
+			return nil, false
+		}
+		return RawCSS(a.Style()), true
+	}
+	for i := len(a) - 1; i >= 0; i-- {
+		if htmlattr.SameName(a[i].Key, key) {
+			return a[i].Value, true
+		}
+	}
+	return nil, false
+}
+
+// Has reports whether the attribute key is present, matched
+// ASCII-case-insensitively like the browser: Has("href") is true for a bag
+// holding "HREF". It scans directly rather than delegating to Get: Get
+// collapses class/style through Has, and routing Has through it would recurse.
+//
+// Presence is not state: a name={expr} attribute is present even when expr is
+// false, because the pair must stay in the bag for last-wins overrides. For a
+// boolean attribute like disabled, use Bool.
+func (a Attrs) Has(key string) bool {
+	for i := len(a) - 1; i >= 0; i-- {
+		if htmlattr.SameName(a[i].Key, key) {
+			return true
+		}
+	}
+	return false
+}
+
+// Bool reports the boolean state key resolves to in this bag: the state the
+// leaf spread would render, computed the way Spread computes it. The last pair
+// for the attribute key decides (key matched ASCII-case-insensitively like
+// Get, so "DISABLED" counts for "disabled"). A Toggle or bool-kinded value
+// yields itself; any other renderable value yields
+// true — "", "false", a RawJS, a number — because the
+// platform treats disabled="" and disabled="false" alike. Whatever Spread never
+// writes yields false: an absent key, a nil value, a structurally invalid name,
+// or a value Spread cannot render (a struct, a typed nil pointer — a render
+// error there).
+//
+// It answers state, not output: aria-pressed={false} is false here even though
+// the attribute renders as aria-pressed="false". It sees only the bag: a forced
+// root attribute that owns the name at the leaf is not consulted. class and
+// style are string aggregates, not booleans; Bool reads their last pair like
+// any other key. For "did the caller supply this key at all", use Has.
+func (a Attrs) Bool(key string) bool {
+	if !validAttrName(key) {
+		return false
+	}
+	// The raw last pair, not Get: Get collapses class/style into their string
+	// aggregate, but Spread decides a Toggle's presence BEFORE aggregating, so
+	// the last pair is what the leaf actually consults.
+	for i := len(a) - 1; i >= 0; i-- {
+		if !htmlattr.SameName(a[i].Key, key) {
+			continue
+		}
+		v := a[i].Value
+		if v == nil {
+			return false
+		}
+		// Toggle is a named bool, so anyRenderVal classifies it as kindBool with
+		// its own value — the same classifier Spread applies after its Toggle
+		// short-circuit.
+		s, k, ok := anyRenderVal(v)
+		if !ok {
+			return false
+		}
+		return k != kindBool || s == "true"
+	}
+	return false
+}
+
+// GetFold is Get with Unicode simple-fold key matching through strings.EqualFold
+// (last occurrence wins). key must already be lowercase. Exported for any caller — hand-written
+// bag manipulation, tests — that needs to look up a bag key the same
+// case-insensitive way a sanitizing sink does (a case-variant key like HREF
+// must not smuggle an unsanitized value past it). Get already matches HTML
+// names ASCII-case-insensitively; GetFold also folds non-ASCII letters, which
+// HTML does not, and does not aggregate class/style.
+func (a Attrs) GetFold(key string) (any, bool) {
+	for i := len(a) - 1; i >= 0; i-- {
+		if strings.EqualFold(a[i].Key, key) {
+			return a[i].Value, true
+		}
+	}
+	return nil, false
+}
+
+// Without returns a copy of a without ANY pair whose key is in keys (a is not mutated);
+// the order of the rest is preserved. An empty result (or empty input) yields nil.
+// keys are HTML attribute names, matched ASCII-case-insensitively like the
+// browser: Without("href") drops an "HREF" pair too.
+func (a Attrs) Without(keys ...string) Attrs {
+	if len(a) == 0 {
+		return nil
+	}
+	out := make(Attrs, 0, len(a))
+	for _, kv := range a {
+		if !slices.ContainsFunc(keys, func(k string) bool { return htmlattr.SameName(kv.Key, k) }) {
+			out = append(out, kv)
+		}
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
+}
+
+// WithoutFold is Without with Unicode simple-fold matching: it drops any
+// pair whose key case-folds to one of keys (which must already be lowercase),
+// preserving the order of the rest. No generated code calls it — a forwarding
+// element's URL-classified keys render in place via Spread rather
+// than being extracted and dropped from the bag first — but it remains public
+// API for hand-written bag manipulation that needs the same fold semantics.
+// Without already matches HTML names ASCII-case-insensitively; WithoutFold also
+// folds non-ASCII letters, which HTML does not.
+func (a Attrs) WithoutFold(keys ...string) Attrs {
+	return a.WithoutFunc(func(k string) bool {
+		return slices.ContainsFunc(keys, func(want string) bool {
+			return strings.EqualFold(k, want)
+		})
+	})
+}
+
+// WithoutFunc returns a copy of a dropping every pair whose key satisfies drop
+// (a is not mutated); the order of the rest is preserved. An empty result (or
+// empty input) yields nil.
+func (a Attrs) WithoutFunc(drop func(key string) bool) Attrs {
+	if len(a) == 0 {
+		return nil
+	}
+	out := make(Attrs, 0, len(a))
+	for _, kv := range a {
+		if !drop(kv.Key) {
+			out = append(out, kv)
+		}
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
+}
+
+// URLSuffixMatch reports whether key (Unicode-lowercased) ends with any of the
+// suffixes, which must already be lowercase. It serves the `*-url` naming
+// convention, which a prefix rule cannot express.
+func URLSuffixMatch(key string, suffixes []string) bool {
+	lk := strings.ToLower(key)
+	for _, sfx := range suffixes {
+		if strings.HasSuffix(lk, sfx) {
+			return true
+		}
+	}
+	return false
+}
+
+// URLPrefixMatch reports whether key (Unicode-lowercased) begins with any of the
+// prefixes, which must already be lowercase. See URLSuffixMatch for the
+// end-anchored form; both route a matched bag key through the strict
+// navigational URL sink.
+func URLPrefixMatch(key string, prefixes []string) bool {
+	lk := strings.ToLower(key)
+	for _, p := range prefixes {
+		if strings.HasPrefix(lk, p) {
+			return true
+		}
+	}
+	return false
+}
+
+// Take returns Get(key)'s last value and a copy of a without ALL occurrences of key.
+// Like Get and Without it matches key ASCII-case-insensitively, so case-variant
+// pairs go too. For style the value is Get's: the filtered style, typed
+// gsx.RawCSS.
+func (a Attrs) Take(key string) (any, Attrs) {
+	v, _ := a.Get(key)
+	return v, a.Without(key)
+}
+
+// Merge returns a new bag combining a and other, preserving order. Keys are
+// compared the way rendering compares them — names that differ only in ASCII
+// case are one attribute (see Attrs) — so Merge resolves exactly what the leaf
+// would. For each pair in other: a class or style value (any ASCII spelling) is
+// CONCATENATED onto the first such pair already in the result, which takes the
+// incoming spelling (or appended if none). Any other key OVERWRITES the last
+// existing occurrence in place — taking the incoming spelling — and drops
+// earlier duplicates, so the incoming bag wins under the last-wins scalar rule;
+// absent keys append. Style pieces are sanitized as they join, each exactly as
+// Attrs.Style renders it (RawCSS verbatim, anything else through the CSS value
+// filter), and the joined declaration is carried as RawCSS.
+//
+// Merge is for userland eager composition, where you want duplicates resolved
+// immediately rather than at render time. Generated call sites use ConcatAttrs instead
+// (one allocation, no eager scan) because Spread resolves duplicates at render
+// time anyway; see ConcatAttrs for why the two render the same.
+func (a Attrs) Merge(other Attrs) Attrs {
+	out := make(Attrs, len(a))
+	copy(out, a)
+	for _, kv := range other {
+		switch {
+		case htmlattr.SameName(kv.Key, "class"):
+			out = mergeAggregateAttr(out, kv, "class", toStr)
+		case htmlattr.SameName(kv.Key, "style"):
+			out = mergeAggregateAttr(out, kv, "style", StyleValue)
+		default:
+			out = mergeScalarAttr(out, kv)
+		}
+	}
+	return out
+}
+
+// ConcatAttrs concatenates bags in order into one new bag, preserving every
+// pair (duplicates included). It does NOT dedupe or class-merge: rendering
+// resolves duplicates at the leaf (Spread is last-wins on scalar keys and
+// aggregates class/style, matching names case-insensitively in ASCII), and
+// eager Merge resolves them by the same rule — so a concatenated and a merged
+// bag render the same attributes, values and spellings. Two things differ: a
+// merged class/style sits at its first pair's position where the leaf writes
+// it at the last (forwarding roots write class/style at their own merge site,
+// so only a standalone spread shows this), and the key-exact lookups Get/Has
+// see Merge's collapsed spelling. Generated call sites use it instead of
+// .Merge() chains (one allocation instead of one per link). nil segments are
+// skipped; a zero-entry result is nil.
+func ConcatAttrs(bags ...Attrs) Attrs {
+	n := 0
+	for _, b := range bags {
+		n += len(b)
+	}
+	if n == 0 {
+		return nil
+	}
+	out := make(Attrs, 0, n)
+	for _, b := range bags {
+		out = append(out, b...)
+	}
+	return out
+}
+
+// AttrsCond selects one of two attribute-bag thunks for a conditional component
+// attribute: it calls and returns then() when cond is true, otherwise els(). The
+// branches are THUNKS so the untaken branch is never evaluated — mirroring a real
+// Go if/else, where the untaken block's expressions (e.g. u.Name when u == nil)
+// never run. The thunks return (Attrs, error) so a branch body may hoist
+// (T, error) values (e.g. a pipeline stage that can fail) and propagate the
+// error; the generated call site unwraps it like any other (T, error) value.
+// els may be nil (no else branch); an untaken or nil branch yields (nil, nil).
+func AttrsCond(cond bool, then, els func() (Attrs, error)) (Attrs, error) {
+	if cond {
+		if then != nil {
+			return then()
+		}
+	} else if els != nil {
+		return els()
+	}
+	return nil, nil
+}
+
+// Spread is gsx's sole spread primitive: the single-pass writer for
+// EVERY element spread `{ x... }`, in one ordered walk it renders the plain
+// attributes AND routes every URL-classified key through its sanitizing sink.
+// There is no separate unsanitizing spread — a bag's provenance (forwarding
+// field, local variable, function result, derived via Without, nested in a
+// conditional-attr group, …) never changes this. It replaces the older
+// unrolled per-name GetFold extraction + prefix-matched URL pass + residual
+// spread write that only covered the forwarding bag. Generated code emits
+// exactly one call per element spread, after the class/style merge site.
+//
+// It walks a in slice order, honoring lastValidAttrIndexes (scalar last-wins, keys
+// that differ only in ASCII case being one attribute whose last pair wins and
+// renders under its own spelling) and validAttrName (structurally unsafe names
+// dropped). excluded carries the names a
+// FORCED root attr owns at this element (class/style — merged separately; static
+// forced names — always; a post-spread conditional's names — only when its branch
+// was taken, which is why codegen passes the runtime drop slice); such a key is
+// SKIPPED so the owning site is the sole value.
+//
+// Each surviving key is routed by AttrSinks.sinkFor(tag, key), matching
+// case-insensitively (HTML attribute names fold, so a smuggled HREF/SRC cannot
+// slip an unsanitized value past the sink). The built-in floor is applied from
+// the table in urlattrs.go and is NOT caller-supplied: it is the safety default,
+// so it holds even for a hand-written caller passing the zero AttrSinks, and no
+// project rule can downgrade it. sinks carries only that project's own url_attrs
+// delta. A key with no sink gets the plain attribute write (a non-excluded
+// class/style key aggregates via a.Class()/a.Style(); bool → BoolAttr; else
+// key="value", attribute-escaped).
+//
+// tag is the element the bag is being written onto — needed because a sink can
+// be tag-scoped (`content` is a refresh directive on <meta> and an ordinary
+// attribute everywhere else) and because `src` splits between the image and
+// strict sinks by element. An empty tag applies only the element-independent
+// floor.
+//
+// The names in sinks must already be lowercase. A RawURL value is the author's
+// vouch and is emitted verbatim (still attribute-escaped) by the URL sinks. URL
+// keys render IN their bag position — not hoisted ahead of the residual as the
+// old unrolled extraction did — so the bag's authored attribute order is
+// preserved. ctx is reserved for forward-compatibility.
+func (gw *Writer) Spread(ctx context.Context, tag string, a Attrs, sinks AttrSinks, excluded []string) {
+	if gw.err != nil || len(a) == 0 {
+		return
+	}
+	last := lastValidAttrIndexes(a)
+	for i, kv := range a {
+		if !validAttrName(kv.Key) || last[htmlattr.FoldName(kv.Key)] != i {
+			continue
+		}
+		if attrNameExcluded(kv.Key, excluded) {
+			continue // class/style/forced/dropVar owns this name
+		}
+		// gsx.Toggle forces presence regardless of name, and BEFORE the URL sinks:
+		// it declares the attribute has no value, so a URL sink is inapplicable, not
+		// merely skipped. Checking it later would route Toggle(true) on href through
+		// URLVal → href="true", fabricating a value the author declared absent.
+		if tg, ok := kv.Value.(Toggle); ok {
+			gw.BoolAttr(kv.Key, bool(tg))
+			continue
+		}
+		// class/style are whole-bag aggregates (a.Class()/a.Style()), not this
+		// entry's fragment. Resolve them before anything reads the value. The
+		// forwarding-residual caller excludes both — the merge site owns them —
+		// so this only fires for a standalone spread that carries them (e.g. a
+		// nested cond-attr spread).
+		switch {
+		case htmlattr.SameName(kv.Key, "class"):
+			kv.Value = a.Class()
+		case htmlattr.SameName(kv.Key, "style"):
+			kv.Value = a.Style()
+		}
+		// Classify ONCE: anyRenderVal is reflect-based (and copies for []byte),
+		// so the sinks below and the plain arm share this single call.
+		var vs string
+		var vk valKind
+		var vok bool
+		if kv.Value != nil {
+			vs, vk, vok = anyRenderVal(kv.Value)
+			// A bool that renders bare declares the attribute has NO value, so —
+			// exactly like Toggle above — a URL sink is inapplicable rather than
+			// skipped. This must run BEFORE the sinks for the leaf to agree with
+			// codegen, which decides presence before its own URL branch: href={b}
+			// writes a bare href on both paths, where routing through URLVal
+			// would fabricate href="true" here and nowhere else.
+			if vok && vk == kindBool && htmlattr.RendersBare(kv.Key) {
+				gw.BoolAttr(kv.Key, vs == "true")
+				continue
+			}
+		}
+		// An event-handler value is JavaScript the browser runs, so it leaves
+		// through the JS value sink — JSON-encoded, a gsx.RawJS verbatim — as
+		// html/template does and as codegen does for a static onclick={expr}.
+		// A bool has already taken presence above, as on any name.
+		if htmlattr.IsEventHandler(kv.Key) {
+			if kv.Value == nil {
+				continue
+			}
+			gw.writeStr(" ")
+			gw.writeStr(kv.Key)
+			gw.writeStr(`="`)
+			gw.JSValAttr(kv.Value)
+			gw.writeStr(`"`)
+			continue
+		}
+		sink := sinks.sinkFor(tag, kv.Key)
+		if sink != htmlattr.SinkNone {
+			gw.writeStr(" ")
+			gw.writeStr(kv.Key)
+			gw.writeStr(`="`)
+			switch sink {
+			case htmlattr.SinkImage:
+				gw.URLImageVal(kv.Value)
+			case htmlattr.SinkSrcset:
+				gw.SrcsetVal(kv.Value)
+			case htmlattr.SinkRefresh:
+				gw.RefreshContentVal(kv.Value)
+			default:
+				gw.URLVal(kv.Value)
+			}
+			gw.writeStr(`"`)
+			continue
+		}
+		if kv.Value == nil {
+			continue
+		}
+		if !vok {
+			if gw.err == nil {
+				gw.err = fmt.Errorf("gsx: attribute %q: unsupported dynamic type %T", kv.Key, kv.Value)
+			}
+			return
+		}
+		// A bool that reaches here renders its string: the name's own HTML
+		// vocabulary IS "true"/"false" (aria-*, contenteditable), so absence
+		// would mean something else. See BoolRendersBare — the same rule
+		// codegen applies to a static name={boolExpr}.
+		gw.writeStr(" ")
+		gw.writeStr(kv.Key)
+		gw.writeStr(`="`)
+		gw.AttrValue(vs)
+		gw.writeStr(`"`)
+	}
+}
+
+// attrNameExcluded reports whether key names the same attribute as any name in
+// excluded (htmlattr.SameName), so a force-owned name suppresses a case-variant
+// bag key.
+func attrNameExcluded(key string, excluded []string) bool {
+	for _, e := range excluded {
+		if htmlattr.SameName(key, e) {
+			return true
+		}
+	}
+	return false
+}
+
+// mergeScalarAttr overwrites the last pair naming kv's attribute (SameName)
+// with kv, spelling included, and drops the earlier ones; kv appends when the
+// attribute is absent.
+func mergeScalarAttr(out Attrs, kv Attr) Attrs {
+	idx := -1
+	for i := len(out) - 1; i >= 0; i-- {
+		if htmlattr.SameName(out[i].Key, kv.Key) {
+			idx = i
+			break
+		}
+	}
+	if idx < 0 {
+		return append(out, kv)
+	}
+	out[idx] = kv
+	return removeNamedAttrs(out, kv.Key, func(i int) bool { return i < idx })
+}
+
+// mergeAggregateAttr folds kv, a pair of the aggregating attribute name
+// ("class" or "style"), into the first pair of that attribute: that pair takes
+// kv's spelling and the join of its own, every later pair's and kv's values,
+// each rendered by piece, and the later pairs are dropped. A style join is
+// carried as RawCSS, its pieces having been sanitized by piece (StyleValue).
+func mergeAggregateAttr(out Attrs, kv Attr, name string, piece func(any) string) Attrs {
+	idx := -1
+	for i := range out {
+		if htmlattr.SameName(out[i].Key, name) {
+			idx = i
+			break
+		}
+	}
+	if idx < 0 {
+		return append(out, kv)
+	}
+	joined := piece(out[idx].Value)
+	for i := idx + 1; i < len(out); i++ {
+		if htmlattr.SameName(out[i].Key, name) {
+			joined = joinAttrStrings(name, joined, piece(out[i].Value))
+		}
+	}
+	joined = joinAttrStrings(name, joined, piece(kv.Value))
+	out[idx].Key = kv.Key // the last contributor's spelling renders, as at the leaf
+	if name == "style" {
+		out[idx].Value = RawCSS(joined)
+	} else {
+		out[idx].Value = joined
+	}
+	return removeNamedAttrs(out, name, func(i int) bool { return i > idx })
+}
+
+// removeNamedAttrs drops, in place, every pair naming name's attribute
+// (SameName) at an index drop selects.
+func removeNamedAttrs(attrs Attrs, name string, drop func(i int) bool) Attrs {
+	out := attrs[:0]
+	for i, kv := range attrs {
+		if drop(i) && htmlattr.SameName(kv.Key, name) {
+			continue
+		}
+		out = append(out, kv)
+	}
+	return out
+}
+
+// lastValidAttrIndexes maps each valid name, folded (htmlattr.FoldName), to the
+// index of its last pair.
+func lastValidAttrIndexes(attrs Attrs) map[string]int {
+	last := make(map[string]int, len(attrs))
+	for i, kv := range attrs {
+		if validAttrName(kv.Key) {
+			last[htmlattr.FoldName(kv.Key)] = i
+		}
+	}
+	return last
+}
+
+// validAttrName reports whether k is a well-formed HTML attribute name — the
+// same rule the parser scans names with (htmlattr.NameRune), so a bag key the
+// compiler would accept in source is a key the leaf emits, and any other key
+// is dropped (including `{`, `}`, a backtick, and invalid UTF-8). Names like "hx-on::click", ":class", "@click.away", ".prop",
+// "?disabled", "[prop]", "(event)", "data-x", and "_" pass.
+func validAttrName(k string) bool {
+	return htmlattr.ValidName(k)
+}
+
+// toStr renders an attribute/class value to a string.
+func toStr(v any) string {
+	if s, _, ok := anyRenderVal(v); ok {
+		return s
+	}
+	return fmt.Sprint(v)
+}
+
+// joinAttrStrings concatenates two non-empty class/style values with the right
+// separator (space for class, "; " for style).
+func joinAttrStrings(key, a, b string) string {
+	switch {
+	case a == "":
+		return b
+	case b == "":
+		return a
+	}
+	if key == "style" {
+		return a + "; " + b
+	}
+	return a + " " + b
+}

@@ -1,0 +1,239 @@
+# Changelog
+
+Tagged releases of `github.com/gsxhq/gsx`. Before 1.0, a minor bump may change
+syntax or APIs; a patch bump does not. See
+[Releases and versioning](docs/guide/status.md#releases-and-versioning).
+
+## v0.4.1 — 2026-10-24
+
+- **New `child-element-spacing` warning.** A line break between text and
+  inline content is dropped, so `Report template:` followed by `<a>` on the
+  next line rendered `Report template:<a>`. gsx now warns there, and the
+  editor offers `{" "}` or joining the lines. See
+  [Lints](docs/guide/config.md#child-element-spacing).
+- **`[lint]` in `gsx.toml`** sets each lint to `"off"`, `"warning"` or
+  `"error"`. An error-level lint fails `gsx generate` like any other error.
+  An unknown code or level is a configuration error (exit 2).
+- **Table keys written as plain values are rejected.** `filters = "x"`,
+  `renderers = "x"` or `lint = "x"` was silently ignored; it is now a
+  configuration error.
+- **Warnings repeat on cached runs.** `gsx generate` printed a package's
+  warnings only when it regenerated it; a package served from the cache
+  reported none.
+- **`gsx info` lists each lint's effective level.**
+- **`gsx generate --json` writes only the JSON array to stdout.** A
+  successful run appended `gsx: wrote N file(s)` after it.
+
+## v0.4.0 — 2026-10-15
+
+- **Positions from generated code point at the right `.gsx` line.** Go
+  expressions in attributes, component props, `f`/`js`/`css` literal holes
+  and `<script>`/`<style>` holes reported the element's line plus drift in
+  `go build`, `go vet`, linters such as structpages-lint, and panic traces.
+  Every authored Go token in a `.x.go` is now anchored to its source line.
+  Columns stay approximate.
+- **Upgrading: regenerate your `.x.go` files.** Most files with dynamic
+  attributes gain `/*line …*/` comments. Rendering is unchanged, but
+  committed generated code fails drift checks until regenerated.
+
+## v0.3.3 — 2026-10-09
+
+- **`gsx dev` no longer leaves a fixed `.env` error on the overlay.** After a
+  bad `.env` edit was corrected, the reloaded page showed the old error again.
+  A codegen error that is still current now stays on the overlay through a
+  `.env` edit. Most stale overlays came from the Vite plugin; upgrade
+  `@gsxhq/vite-plugin-gsx` to v0.11.3 as well.
+- **Generation no longer walks hidden directories.** git worktrees kept in
+  the project (such as `.claude/worktrees/`) were scanned as part of the
+  module, and one being deleted mid-run failed generation with `discover
+  owned GSX sources: … no such file or directory`. Module analysis now skips
+  hidden directories, `gsx dev` no longer watches them, and a path deleted
+  while a walk runs is skipped instead of failing it. `gsx generate`,
+  `gsx fmt` and `gsx dev` also skip directories listed in a `go.mod` `ignore`
+  directive.
+
+## v0.3.2 — 2026-10-09
+
+- **Cold `gsx generate` no longer reports `cannot use b.T{…} (value of struct
+  type b.T) as b.T value`.** A package that a sibling imported before it was
+  generated itself was type-checked twice, and packages checked against the
+  first copy rejected values of the second. Incremental runs were unaffected.
+  ([#242](https://github.com/gsxhq/gsx/issues/242))
+- **`gsx generate` and `gsx dev` type-check each package once.** Packages are
+  generated before the packages that import them; before, a package imported
+  by an earlier directory was checked twice. On a 131-package module, a
+  `gsx dev` save touching a widely imported package regenerates about 10%
+  faster.
+
+## v0.3.1 — 2026-10-06
+
+- **`gsx dev` no longer exits when a watched file disappears mid-scan**, as
+  when a build tool empties its output directory (`lstat …: no such file or
+  directory` on macOS).
+
+## v0.3.0 — 2026-10-02
+
+**Upgrading.** Regenerate your `.x.go` after upgrading (`gsx generate`). One
+change can break templates: a Go value on an event-handler attribute
+(`onclick={…}`, and any `on…` name) is now encoded as a JavaScript value, so
+handler *code* held in a Go string renders as an inert string literal. Write
+it as quoted text, ``js`…` `` or `gsx.RawJS`; an `f` or `css` literal on an
+event handler is now a generate-time error. Datastar `data-on-*` directives
+need `js` too. See the security entry below.
+
+- **CSP nonce on `<link>`.** With `gsx.WithNonce`, every `<link>` now gets the
+  nonce like `<script>` and `<style>`, so nonced stylesheets, preloads and
+  modulepreloads load under a nonce-only `style-src`/`script-src`. An authored
+  `nonce` still wins. Regenerate to pick it up; output without a context nonce
+  is unchanged.
+- **Fix:** character references in a quoted static attribute value (`&amp;`,
+  `&quot;`, `&#34;`, …) are decoded as HTML decodes them, then escaped once on
+  output — pasted `href="/s?a=1&amp;b=2"` no longer renders `&amp;amp;` (#227).
+  The attribute-value rule applies (`?x=1&copy=2` stays as written), component
+  string props receive the decoded text, and `gsx fmt` keeps the authored
+  spelling. Processing-instruction names are not decoded.
+- **Security:** a Go value on an event-handler attribute (`onclick={expr}`,
+  …) is encoded as a JavaScript value, as `html/template` does, instead of only
+  attribute-escaped — an untrusted string could run as code (#230). As in
+  `html/template`, any attribute name starting with `on` (after a `data-` or
+  `ns:` prefix) is an event handler. A string, including a bare `` `…` `` raw
+  string, now renders as a quoted JS string literal: write handler code as
+  quoted text, ``onclick=js`…` `` or `gsx.RawJS`. A spread `gsx.Attrs` key is
+  encoded the same way, and an `f` or `css` literal on an event handler is a
+  generate-time error. A non-handler attribute named `on…` (say
+  `onlyinteger={…}`) is now JS-encoded too; rename it (`only-integer`).
+  Datastar's `data-on-*` directives match the rule: pass them as `js`, e.g.
+  ``{{ "data-on-click": js`$count++` }}``.
+  A `bool` still renders as presence on these names. Authored static text
+  stays verbatim and reaches a component's `attrs` as `gsx.RawJS`, as a
+  static `style` arrives as `gsx.RawCSS`.
+- **Fix:** a caller style that fails the CSS filter now renders as `ZgotmplZ`
+  on a forwarding component root, as it does through `style={expr}` and a plain
+  spread, instead of silently vanishing (#229). The style merge keeps any
+  fragment without a property in place: `style="margin:0"` plus a hostile
+  caller style renders `style="margin:0; ZgotmplZ"`.
+- **Fix:** `<script>` types that browsers run as JavaScript — legacy spellings
+  like `application/x-javascript` and `text/jscript`, and any type with
+  `;parameters` — are JavaScript, not data islands (#231). Their holes are
+  escaped per JS position, and `gsx fmt` formats their bodies.
+- **Fix:** a `float32` renders at its own precision — `0.1`, not
+  `0.10000000149011612` — in text, attributes, `f`/`css` literals, `<style>`,
+  `gsx.Val` and spread bags (#226). Regenerate to pick it up in generated code;
+  `float64` output and generated code are unchanged.
+- **Fix:** style merging no longer folds the case of custom property names, so
+  a component's `--Brand` survives a caller's `--brand` (#228). Standard
+  property names still merge case-insensitively.
+- **Docs:** CSP nonce pattern page, and what a strict CSP blocks (#223);
+  the `go tool cover` pitfall with gsx `//line` directives (#225).
+
+## v0.2.0 — 2026-10-01
+
+**Upgrading.** Regenerate your `.x.go` after upgrading (`gsx generate`);
+libraries that ship pre-generated `.x.go` must regenerate too. Code generated by
+v0.1.x still compiles against this runtime, with one exception. A static style
+that it passes through a component's attrs bag renders `ZgotmplZ` until you
+regenerate, if the style contains characters the CSS filter rejects (`;`,
+parentheses, `/`, quotes). For example, a multi-declaration `style="a:b; c:d"`.
+Style values you put in a `gsx.Attrs` bag yourself are now CSS-filtered; pass
+trusted CSS as `gsx.RawCSS`.
+
+- **Language: nested literals everywhere** (#213, #214).
+  - `f`/`js`/`css` literals and element literals now work inside any Go
+    expression. That covers attribute values, spreads, `attrs={{…}}` values,
+    class/style parts, value-form arms, conditional-attribute headers,
+    `if`/`for`/`switch`/`case` headers, and element literals in `{{ }}`
+    blocks. They evaluate in place, in Go's order.
+  - An error-returning `@{ }` hole is rejected in case lists, `for` clauses,
+    `{{ }}` blocks, on the right of `&&`/`||`, and in func literals. Compute the
+    value first instead.
+  - Element literals nested in Go expressions are now whitespace-normalized
+    like top-level ones.
+  - `gsx fmt` formats gsx nested in Go fields.
+- **Language: derive a context in a component body** (#215).
+  `{{ ctx, span := tracer.Start(ctx, "x"); defer span.End() }}` (or
+  `ctx, err := …`) applies to what renders after it. A nested `ctx` shadow now
+  works when a child component is its only use.
+- **Security: bag `style` values are CSS-filtered** (#221). This applies under
+  any spelling of `style`, the same way as `style={expr}`. Codegen trusts only
+  author-written style: static text, `css` literals, and an untransformed
+  constant in `attrs={{…}}`. `STYLE=f`…`` no longer skips the CSS filter.
+  `Attrs.Get`/`Take("style")` return the filtered style as `gsx.RawCSS`.
+- **Runtime: attribute names match case-insensitively, like the browser**
+  (#221).
+  - `Attrs.Has/Get/Bool/Without`, `Merge` and rendering treat `href` and
+    `HREF` as one attribute.
+  - A bag's `HREF` overrides a static `href` instead of rendering a duplicate.
+  - Bag `CLASS`/`STYLE` keys merge instead of being dropped.
+  - An authored `CLASS=`/`Style=` behaves like `class`/`style`.
+- **Codegen fixes.**
+  - Method-component tags on a local receiver (`<m.Meth/>`) (#217).
+  - `if`/`switch` attribute header init statements are in scope in the
+    branches (#218).
+  - A multi-line raw string in a component-tag branch value is no longer
+    altered (#218).
+  - Go's left-to-right evaluation order around a hoisted error hole (#219).
+  - Source order across class/style parts and attrs-literal pairs (#220).
+  - Braced whole-literal pipelines are applied on component tags (#220).
+  - `switch` attributes follow spread position and work on multi-spread
+    elements, with no duplicate `class` or double `nonce` (#220).
+- **Diagnostics.**
+  - A `duplicate-attribute` warning when two authored attributes with the same
+    name can both render (#221).
+  - Positioned errors replace raw go/parser errors for nested-literal positions
+    (#213).
+- **Tooling.**
+  - The repo is a Claude Code plugin with a `gsx` authoring skill
+    (`/plugin marketplace add gsxhq/gsx`) (#212).
+  - LSP definition, hover, rename and completion work inside nested literals
+    (#214).
+
+## v0.1.1 — 2026-09-15
+
+- **Language** — attribute names follow the HTML rule (any characters except
+  controls, space, `"`, `'`, `>`, `/`, `=`, noncharacters, plus gsx's `<`,
+  `{`, `}`, `` ` ``); there is no distinct first character, so `.prop`,
+  `?disabled`, `#ref`, `[prop]`, `(event)` and `on:click|mod` parse. The
+  runtime spread keeps bag keys by the same rule: it now accepts `&`, and drops
+  C1 controls, noncharacters, `{`, `}`, backticks and invalid UTF-8 that it
+  previously emitted.
+- **Escaping** — the `htmx` URL preset covers htmx 4: `hx-query` and
+  `hx-action` join the five method attributes, and every name is also
+  sanitized in its `:inherited`, `:append` and `:inherited:append` spellings,
+  which htmx 4 reads through the same lookup. One preset serves htmx 2 and 4.
+- **Runtime** — a url preset is now a predicate compiled into the runtime:
+  `gsx.AttrSinks` gains `Presets gsx.URLPreset`, and generated spread sites
+  carry `Presets: _gsxrt.PresetHTMX` instead of a name list, so a preset's
+  coverage can change without touching generated code.
+- **Editor** — `hx-*` completion is the union of the htmx 2 and htmx 4
+  attribute tables; an attribute only one version has says so in its hover
+  text, and `hx-disable` documents both meanings. (#199)
+- **Toolchain** — `gsx.toml` resolves per module: `generate`, `dev` and `fmt`
+  still walk into nested Go modules, but each module is configured from the
+  `gsx.toml` found walking up from ITS root, so a nested module's own file is
+  honoured instead of ignored. A nested module without one inherits the
+  ancestor file as before; when that file names a package the nested module
+  cannot import (a `class_merger`, filter or renderer of the outer module),
+  the error now names the inherited file, the module, and the per-module
+  `gsx.toml` that fixes it. (#200)
+
+## v0.1.0 — 2026-09-03
+
+First tagged release. Everything the [Status](docs/guide/status.md) page lists as
+shipped is in this tag:
+
+- **Language** — verbatim component signatures with declared `children` and
+  `attrs` roles, control flow, `|>` pipelines with `(T, error)` auto-unwrap,
+  attribute forwarding and ordered `{{ }}` bags, named slots, element literals,
+  `js`/`css`/`f` tagged literals, bare `//` comments, processing instructions.
+- **Rendering** — standard-library-only runtime; contextual HTML, URL, CSS and
+  JavaScript escaping ported from `html/template`; name-driven boolean
+  attributes with `gsx.Toggle`; `Attrs.Bool`; CSP nonce injection; renderers
+  registry.
+- **Toolchain** — `gsx init`, `generate` (with `--watch`), `fmt`, `info`,
+  `clean`, `version`; the `gsx dev` loop with the Vite plugin
+  (`@gsxhq/vite-plugin-gsx` 0.11) and `github.com/gsxhq/vite` (v0.3).
+- **Editor** — `gsx lsp`: diagnostics, definition, references, hover, symbols,
+  formatting, code actions, completion with auto-import; VS Code extension and
+  tree-sitter grammar in sibling repos.
+
+Requires Go 1.26.

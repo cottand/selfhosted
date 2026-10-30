@@ -40,6 +40,7 @@ require (
 require (
 	github.com/eclipse/paho.golang v0.23.0
 	github.com/golang/geo v0.0.0-20260625163123-7c0e84413537
+	github.com/gsxhq/gsx v0.4.1
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/paulmach/go.geojson v1.5.0
 	github.com/prometheus/common v0.70.1

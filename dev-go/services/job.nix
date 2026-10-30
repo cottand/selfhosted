@@ -28,6 +28,7 @@ in
     ./s-web-portfolio/consulService.nix
     ./s-web-github-webhook/consulService.nix
     ./s-web-flights/consulService.nix
+    ./s-web-home/consulService.nix
   ];
   job.${name} = {
     update = {

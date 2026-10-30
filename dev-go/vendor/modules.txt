@@ -297,6 +297,11 @@ github.com/gorilla/websocket
 github.com/grpc-ecosystem/grpc-gateway/v2/internal/httprule
 github.com/grpc-ecosystem/grpc-gateway/v2/runtime
 github.com/grpc-ecosystem/grpc-gateway/v2/utilities
+# github.com/gsxhq/gsx v0.4.1
+## explicit; go 1.26
+github.com/gsxhq/gsx
+github.com/gsxhq/gsx/internal/htmlattr
+github.com/gsxhq/gsx/std
 # github.com/hashicorp/consul/api v1.34.3
 ## explicit; go 1.26
 github.com/hashicorp/consul/api

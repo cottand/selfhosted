@@ -25,3 +25,7 @@ certs/mesh**
 result
 
 #services/lib/proto/**/**.pb.go.gcroots/
+
+
+# gsx codegen
+*.x.go

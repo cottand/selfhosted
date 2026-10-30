@@ -1,0 +1,10 @@
+/.remember/
+*.x.go
+/tmp/
+.DS_Store
+/gsx
+/.claude/
+cover.out
+.superpowers/
+/.worktrees/
+.codex/
