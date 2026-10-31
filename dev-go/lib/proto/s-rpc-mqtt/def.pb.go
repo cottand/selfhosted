@@ -22,18 +22,117 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type SetLightRequest struct {
+type Light struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// e.g. plug103
 	Id            string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	On            bool   `protobuf:"varint,2,opt,name=on,proto3" json:"on,omitempty"`
+	Dimmable      bool   `protobuf:"varint,2,opt,name=dimmable,proto3" json:"dimmable,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Light) Reset() {
+	*x = Light{}
+	mi := &file_s_rpc_mqtt_def_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Light) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Light) ProtoMessage() {}
+
+func (x *Light) ProtoReflect() protoreflect.Message {
+	mi := &file_s_rpc_mqtt_def_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Light.ProtoReflect.Descriptor instead.
+func (*Light) Descriptor() ([]byte, []int) {
+	return file_s_rpc_mqtt_def_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *Light) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Light) GetDimmable() bool {
+	if x != nil {
+		return x.Dimmable
+	}
+	return false
+}
+
+type ListLightsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Lights        []*Light               `protobuf:"bytes,1,rep,name=lights,proto3" json:"lights,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListLightsResponse) Reset() {
+	*x = ListLightsResponse{}
+	mi := &file_s_rpc_mqtt_def_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListLightsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListLightsResponse) ProtoMessage() {}
+
+func (x *ListLightsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_s_rpc_mqtt_def_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListLightsResponse.ProtoReflect.Descriptor instead.
+func (*ListLightsResponse) Descriptor() ([]byte, []int) {
+	return file_s_rpc_mqtt_def_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *ListLightsResponse) GetLights() []*Light {
+	if x != nil {
+		return x.Lights
+	}
+	return nil
+}
+
+type SetLightRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// e.g. plug103
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	On *bool  `protobuf:"varint,2,opt,name=on,proto3,oneof" json:"on,omitempty"`
+	// 0-100, only for dimmable lights. Setting it also turns the light on, unless on is false
+	Brightness    *int32 `protobuf:"varint,3,opt,name=brightness,proto3,oneof" json:"brightness,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SetLightRequest) Reset() {
 	*x = SetLightRequest{}
-	mi := &file_s_rpc_mqtt_def_proto_msgTypes[0]
+	mi := &file_s_rpc_mqtt_def_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -45,7 +144,7 @@ func (x *SetLightRequest) String() string {
 func (*SetLightRequest) ProtoMessage() {}
 
 func (x *SetLightRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_s_rpc_mqtt_def_proto_msgTypes[0]
+	mi := &file_s_rpc_mqtt_def_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -58,7 +157,7 @@ func (x *SetLightRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetLightRequest.ProtoReflect.Descriptor instead.
 func (*SetLightRequest) Descriptor() ([]byte, []int) {
-	return file_s_rpc_mqtt_def_proto_rawDescGZIP(), []int{0}
+	return file_s_rpc_mqtt_def_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *SetLightRequest) GetId() string {
@@ -69,10 +168,17 @@ func (x *SetLightRequest) GetId() string {
 }
 
 func (x *SetLightRequest) GetOn() bool {
-	if x != nil {
-		return x.On
+	if x != nil && x.On != nil {
+		return *x.On
 	}
 	return false
+}
+
+func (x *SetLightRequest) GetBrightness() int32 {
+	if x != nil && x.Brightness != nil {
+		return *x.Brightness
+	}
+	return 0
 }
 
 type GetLightRequest struct {
@@ -85,7 +191,7 @@ type GetLightRequest struct {
 
 func (x *GetLightRequest) Reset() {
 	*x = GetLightRequest{}
-	mi := &file_s_rpc_mqtt_def_proto_msgTypes[1]
+	mi := &file_s_rpc_mqtt_def_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -97,7 +203,7 @@ func (x *GetLightRequest) String() string {
 func (*GetLightRequest) ProtoMessage() {}
 
 func (x *GetLightRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_s_rpc_mqtt_def_proto_msgTypes[1]
+	mi := &file_s_rpc_mqtt_def_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -110,7 +216,7 @@ func (x *GetLightRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetLightRequest.ProtoReflect.Descriptor instead.
 func (*GetLightRequest) Descriptor() ([]byte, []int) {
-	return file_s_rpc_mqtt_def_proto_rawDescGZIP(), []int{1}
+	return file_s_rpc_mqtt_def_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *GetLightRequest) GetId() string {
@@ -121,16 +227,19 @@ func (x *GetLightRequest) GetId() string {
 }
 
 type LightStatus struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	On            bool                   `protobuf:"varint,2,opt,name=on,proto3" json:"on,omitempty"`
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Id       string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	On       bool                   `protobuf:"varint,2,opt,name=on,proto3" json:"on,omitempty"`
+	Dimmable bool                   `protobuf:"varint,3,opt,name=dimmable,proto3" json:"dimmable,omitempty"`
+	// 0-100, only set for dimmable lights
+	Brightness    *int32 `protobuf:"varint,4,opt,name=brightness,proto3,oneof" json:"brightness,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *LightStatus) Reset() {
 	*x = LightStatus{}
-	mi := &file_s_rpc_mqtt_def_proto_msgTypes[2]
+	mi := &file_s_rpc_mqtt_def_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -142,7 +251,7 @@ func (x *LightStatus) String() string {
 func (*LightStatus) ProtoMessage() {}
 
 func (x *LightStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_s_rpc_mqtt_def_proto_msgTypes[2]
+	mi := &file_s_rpc_mqtt_def_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -155,7 +264,7 @@ func (x *LightStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LightStatus.ProtoReflect.Descriptor instead.
 func (*LightStatus) Descriptor() ([]byte, []int) {
-	return file_s_rpc_mqtt_def_proto_rawDescGZIP(), []int{2}
+	return file_s_rpc_mqtt_def_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *LightStatus) GetId() string {
@@ -172,23 +281,54 @@ func (x *LightStatus) GetOn() bool {
 	return false
 }
 
+func (x *LightStatus) GetDimmable() bool {
+	if x != nil {
+		return x.Dimmable
+	}
+	return false
+}
+
+func (x *LightStatus) GetBrightness() int32 {
+	if x != nil && x.Brightness != nil {
+		return *x.Brightness
+	}
+	return 0
+}
+
 var File_s_rpc_mqtt_def_proto protoreflect.FileDescriptor
 
 const file_s_rpc_mqtt_def_proto_rawDesc = "" +
 	"\n" +
 	"\x14s-rpc-mqtt/def.proto\x12\n" +
-	"s_rpc_mqtt\x1a\x1bgoogle/protobuf/empty.proto\"1\n" +
+	"s_rpc_mqtt\x1a\x1bgoogle/protobuf/empty.proto\"3\n" +
+	"\x05Light\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
+	"\bdimmable\x18\x02 \x01(\bR\bdimmable\"?\n" +
+	"\x12ListLightsResponse\x12)\n" +
+	"\x06lights\x18\x01 \x03(\v2\x11.s_rpc_mqtt.LightR\x06lights\"q\n" +
 	"\x0fSetLightRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x0e\n" +
-	"\x02on\x18\x02 \x01(\bR\x02on\"!\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x13\n" +
+	"\x02on\x18\x02 \x01(\bH\x00R\x02on\x88\x01\x01\x12#\n" +
+	"\n" +
+	"brightness\x18\x03 \x01(\x05H\x01R\n" +
+	"brightness\x88\x01\x01B\x05\n" +
+	"\x03_onB\r\n" +
+	"\v_brightness\"!\n" +
 	"\x0fGetLightRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"-\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"}\n" +
 	"\vLightStatus\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x0e\n" +
-	"\x02on\x18\x02 \x01(\bR\x02on2\x92\x02\n" +
+	"\x02on\x18\x02 \x01(\bR\x02on\x12\x1a\n" +
+	"\bdimmable\x18\x03 \x01(\bR\bdimmable\x12#\n" +
+	"\n" +
+	"brightness\x18\x04 \x01(\x05H\x00R\n" +
+	"brightness\x88\x01\x01B\r\n" +
+	"\v_brightness2\xda\x02\n" +
 	"\x04Mqtt\x129\n" +
 	"\x05Dummy\x12\x16.google.protobuf.Empty\x1a\x16.google.protobuf.Empty\"\x00\x12G\n" +
-	"\x13SetAquariumSchedule\x12\x16.google.protobuf.Empty\x1a\x16.google.protobuf.Empty\"\x00\x12B\n" +
+	"\x13SetAquariumSchedule\x12\x16.google.protobuf.Empty\x1a\x16.google.protobuf.Empty\"\x00\x12F\n" +
+	"\n" +
+	"ListLights\x12\x16.google.protobuf.Empty\x1a\x1e.s_rpc_mqtt.ListLightsResponse\"\x00\x12B\n" +
 	"\bSetLight\x12\x1b.s_rpc_mqtt.SetLightRequest\x1a\x17.s_rpc_mqtt.LightStatus\"\x00\x12B\n" +
 	"\bGetLight\x12\x1b.s_rpc_mqtt.GetLightRequest\x1a\x17.s_rpc_mqtt.LightStatus\"\x00B:Z8github.com/Cottand/selfosted/dev-go/lib/proto/s-rpc-mqttb\x06proto3"
 
@@ -204,27 +344,32 @@ func file_s_rpc_mqtt_def_proto_rawDescGZIP() []byte {
 	return file_s_rpc_mqtt_def_proto_rawDescData
 }
 
-var file_s_rpc_mqtt_def_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_s_rpc_mqtt_def_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_s_rpc_mqtt_def_proto_goTypes = []any{
-	(*SetLightRequest)(nil), // 0: s_rpc_mqtt.SetLightRequest
-	(*GetLightRequest)(nil), // 1: s_rpc_mqtt.GetLightRequest
-	(*LightStatus)(nil),     // 2: s_rpc_mqtt.LightStatus
-	(*emptypb.Empty)(nil),   // 3: google.protobuf.Empty
+	(*Light)(nil),              // 0: s_rpc_mqtt.Light
+	(*ListLightsResponse)(nil), // 1: s_rpc_mqtt.ListLightsResponse
+	(*SetLightRequest)(nil),    // 2: s_rpc_mqtt.SetLightRequest
+	(*GetLightRequest)(nil),    // 3: s_rpc_mqtt.GetLightRequest
+	(*LightStatus)(nil),        // 4: s_rpc_mqtt.LightStatus
+	(*emptypb.Empty)(nil),      // 5: google.protobuf.Empty
 }
 var file_s_rpc_mqtt_def_proto_depIdxs = []int32{
-	3, // 0: s_rpc_mqtt.Mqtt.Dummy:input_type -> google.protobuf.Empty
-	3, // 1: s_rpc_mqtt.Mqtt.SetAquariumSchedule:input_type -> google.protobuf.Empty
-	0, // 2: s_rpc_mqtt.Mqtt.SetLight:input_type -> s_rpc_mqtt.SetLightRequest
-	1, // 3: s_rpc_mqtt.Mqtt.GetLight:input_type -> s_rpc_mqtt.GetLightRequest
-	3, // 4: s_rpc_mqtt.Mqtt.Dummy:output_type -> google.protobuf.Empty
-	3, // 5: s_rpc_mqtt.Mqtt.SetAquariumSchedule:output_type -> google.protobuf.Empty
-	2, // 6: s_rpc_mqtt.Mqtt.SetLight:output_type -> s_rpc_mqtt.LightStatus
-	2, // 7: s_rpc_mqtt.Mqtt.GetLight:output_type -> s_rpc_mqtt.LightStatus
-	4, // [4:8] is the sub-list for method output_type
-	0, // [0:4] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	0, // 0: s_rpc_mqtt.ListLightsResponse.lights:type_name -> s_rpc_mqtt.Light
+	5, // 1: s_rpc_mqtt.Mqtt.Dummy:input_type -> google.protobuf.Empty
+	5, // 2: s_rpc_mqtt.Mqtt.SetAquariumSchedule:input_type -> google.protobuf.Empty
+	5, // 3: s_rpc_mqtt.Mqtt.ListLights:input_type -> google.protobuf.Empty
+	2, // 4: s_rpc_mqtt.Mqtt.SetLight:input_type -> s_rpc_mqtt.SetLightRequest
+	3, // 5: s_rpc_mqtt.Mqtt.GetLight:input_type -> s_rpc_mqtt.GetLightRequest
+	5, // 6: s_rpc_mqtt.Mqtt.Dummy:output_type -> google.protobuf.Empty
+	5, // 7: s_rpc_mqtt.Mqtt.SetAquariumSchedule:output_type -> google.protobuf.Empty
+	1, // 8: s_rpc_mqtt.Mqtt.ListLights:output_type -> s_rpc_mqtt.ListLightsResponse
+	4, // 9: s_rpc_mqtt.Mqtt.SetLight:output_type -> s_rpc_mqtt.LightStatus
+	4, // 10: s_rpc_mqtt.Mqtt.GetLight:output_type -> s_rpc_mqtt.LightStatus
+	6, // [6:11] is the sub-list for method output_type
+	1, // [1:6] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_s_rpc_mqtt_def_proto_init() }
@@ -232,13 +377,15 @@ func file_s_rpc_mqtt_def_proto_init() {
 	if File_s_rpc_mqtt_def_proto != nil {
 		return
 	}
+	file_s_rpc_mqtt_def_proto_msgTypes[2].OneofWrappers = []any{}
+	file_s_rpc_mqtt_def_proto_msgTypes[4].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_s_rpc_mqtt_def_proto_rawDesc), len(file_s_rpc_mqtt_def_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

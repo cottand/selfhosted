@@ -8,14 +8,27 @@ import "google/protobuf/empty.proto";
 service Mqtt {
   rpc Dummy(google.protobuf.Empty) returns (google.protobuf.Empty) {}
   rpc SetAquariumSchedule(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc ListLights(google.protobuf.Empty) returns (ListLightsResponse) {}
   rpc SetLight(SetLightRequest) returns (LightStatus) {}
   rpc GetLight(GetLightRequest) returns (LightStatus) {}
+}
+
+message Light {
+  // e.g. plug103
+  string id = 1;
+  bool dimmable = 2;
+}
+
+message ListLightsResponse {
+  repeated Light lights = 1;
 }
 
 message SetLightRequest {
   // e.g. plug103
   string id = 1;
-  bool on = 2;
+  optional bool on = 2;
+  // 0-100, only for dimmable lights. Setting it also turns the light on, unless on is false
+  optional int32 brightness = 3;
 }
 
 message GetLightRequest {
@@ -26,4 +39,7 @@ message GetLightRequest {
 message LightStatus {
   string id = 1;
   bool on = 2;
+  bool dimmable = 3;
+  // 0-100, only set for dimmable lights
+  optional int32 brightness = 4;
 }

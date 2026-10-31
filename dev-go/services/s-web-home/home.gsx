@@ -1,6 +1,6 @@
 package module
 
-component Home(lights []light) {
+component Home(lights []light, listFailed bool) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
@@ -15,9 +15,6 @@ component Home(lights []light) {
 					padding: 0 1rem;
 				}
 				.light {
-					display: flex;
-					align-items: center;
-					justify-content: space-between;
 					padding: 0.75rem 1rem;
 					margin-bottom: 0.5rem;
 					border-radius: 0.5rem;
@@ -26,18 +23,61 @@ component Home(lights []light) {
 				.light.on {
 					background: #ffe9a8;
 				}
-				.light form {
+				.row {
 					display: flex;
-					gap: 0.5rem;
+					align-items: center;
+					justify-content: space-between;
 				}
-				button {
-					font-size: 1rem;
-					padding: 0.4rem 0.9rem;
+				.toggle {
+					width: 3.5rem;
+					height: 2rem;
+					border: none;
+					border-radius: 1rem;
+					background: #bbb;
+					position: relative;
+					cursor: pointer;
+				}
+				.toggle::after {
+					content: "";
+					position: absolute;
+					top: 0.25rem;
+					left: 0.25rem;
+					width: 1.5rem;
+					height: 1.5rem;
+					border-radius: 50%;
+					background: white;
+					transition: left 0.15s;
+				}
+				.toggle.on {
+					background: #e0a800;
+				}
+				.toggle.on::after {
+					left: 1.75rem;
+				}
+				.toggle:disabled {
+					opacity: 0.4;
+					cursor: not-allowed;
+				}
+				.brightness {
+					display: flex;
+					align-items: center;
+					gap: 0.75rem;
+					margin-top: 0.5rem;
+				}
+				.brightness input {
+					flex: 1;
+				}
+				.brightness output {
+					min-width: 3rem;
+					text-align: right;
 				}
 			</style>
 		</head>
 		<body>
 			<h1>Lights</h1>
+			{ if listFailed {
+				<p>Could not load lights.</p>
+			} }
 			{ for _, l := range lights {
 				<LightRow l={l}/>
 			} }
@@ -47,21 +87,47 @@ component Home(lights []light) {
 
 component LightRow(l light) {
 	<div class={ "light", "on": l.Known && l.On }>
-		<div>
-			<strong>{l.ID}</strong>
+		<div class="row">
 			<div>
-				{ if !l.Known {
-					unknown
-				} else if l.On {
-					on
-				} else {
-					off
-				} }
+				<strong>{l.ID}</strong>
+				<div>
+					{ if !l.Known {
+						unknown
+					} else if !l.On {
+						off
+					} else if l.Dimmable {
+						on · {l.Brightness}%
+					} else {
+						on
+					} }
+				</div>
 			</div>
+			<form method="post" action={ "/lights/" + l.ID }>
+				<button
+					type="submit"
+					name="on"
+					value={l.NextOn()}
+					class={ "toggle", "on": l.Known && l.On }
+					aria-pressed={l.Pressed()}
+					aria-label={ "Toggle " + l.ID }
+					disabled={!l.Known}
+				></button>
+			</form>
 		</div>
-		<form method="post" action={ "/lights/" + l.ID }>
-			<button type="submit" name="on" value="true">On</button>
-			<button type="submit" name="on" value="false">Off</button>
-		</form>
+		{ if l.Dimmable && l.Known {
+			<form class="brightness" method="post" action={ "/lights/" + l.ID }>
+				<input
+					type="range"
+					name="brightness"
+					min="1"
+					max="100"
+					value={l.Brightness}
+					aria-label={ "Brightness of " + l.ID }
+					oninput=js`this.nextElementSibling.value = this.value + '%'`
+					onchange=js`this.form.requestSubmit()`
+				/>
+				<output>{l.Brightness}%</output>
+			</form>
+		} }
 	</div>
 }

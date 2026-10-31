@@ -4,10 +4,13 @@ import (
 	"fmt"
 
 	"google.golang.org/protobuf/compiler/protogen"
+	"google.golang.org/protobuf/types/pluginpb"
 )
 
 func main() {
 	protogen.Options{}.Run(func(gen *protogen.Plugin) error {
+		// only client wrappers are generated, so message field presence does not matter
+		gen.SupportedFeatures = uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
 		for _, file := range gen.Files {
 			if !file.Generate {
 				continue

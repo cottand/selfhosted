@@ -43,17 +43,17 @@ func (h *ProtoHandler) SetAquariumSchedule(ctx context.Context, _ *emptypb.Empty
 
 }
 
+func (h *ProtoHandler) ListLights(_ context.Context, _ *emptypb.Empty) (*pb.ListLightsResponse, error) {
+	return &pb.ListLightsResponse{Lights: listLights()}, nil
+}
+
 func (h *ProtoHandler) SetLight(ctx context.Context, req *pb.SetLightRequest) (*pb.LightStatus, error) {
-	if err := h.mqtt.setPlug(ctx, req.Id, req.On); err != nil {
+	if err := h.mqtt.setLight(ctx, req); err != nil {
 		return nil, err
 	}
-	return &pb.LightStatus{Id: req.Id, On: req.On}, nil
+	return h.mqtt.getLight(ctx, req.Id)
 }
 
 func (h *ProtoHandler) GetLight(ctx context.Context, req *pb.GetLightRequest) (*pb.LightStatus, error) {
-	on, err := h.mqtt.getPlug(ctx, req.Id)
-	if err != nil {
-		return nil, err
-	}
-	return &pb.LightStatus{Id: req.Id, On: on}, nil
+	return h.mqtt.getLight(ctx, req.Id)
 }

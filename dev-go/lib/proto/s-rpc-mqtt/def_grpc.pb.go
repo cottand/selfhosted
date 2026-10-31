@@ -22,6 +22,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	Mqtt_Dummy_FullMethodName               = "/s_rpc_mqtt.Mqtt/Dummy"
 	Mqtt_SetAquariumSchedule_FullMethodName = "/s_rpc_mqtt.Mqtt/SetAquariumSchedule"
+	Mqtt_ListLights_FullMethodName          = "/s_rpc_mqtt.Mqtt/ListLights"
 	Mqtt_SetLight_FullMethodName            = "/s_rpc_mqtt.Mqtt/SetLight"
 	Mqtt_GetLight_FullMethodName            = "/s_rpc_mqtt.Mqtt/GetLight"
 )
@@ -32,6 +33,7 @@ const (
 type MqttClient interface {
 	Dummy(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	SetAquariumSchedule(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	ListLights(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListLightsResponse, error)
 	SetLight(ctx context.Context, in *SetLightRequest, opts ...grpc.CallOption) (*LightStatus, error)
 	GetLight(ctx context.Context, in *GetLightRequest, opts ...grpc.CallOption) (*LightStatus, error)
 }
@@ -64,6 +66,16 @@ func (c *mqttClient) SetAquariumSchedule(ctx context.Context, in *emptypb.Empty,
 	return out, nil
 }
 
+func (c *mqttClient) ListLights(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListLightsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListLightsResponse)
+	err := c.cc.Invoke(ctx, Mqtt_ListLights_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *mqttClient) SetLight(ctx context.Context, in *SetLightRequest, opts ...grpc.CallOption) (*LightStatus, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(LightStatus)
@@ -90,6 +102,7 @@ func (c *mqttClient) GetLight(ctx context.Context, in *GetLightRequest, opts ...
 type MqttServer interface {
 	Dummy(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 	SetAquariumSchedule(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
+	ListLights(context.Context, *emptypb.Empty) (*ListLightsResponse, error)
 	SetLight(context.Context, *SetLightRequest) (*LightStatus, error)
 	GetLight(context.Context, *GetLightRequest) (*LightStatus, error)
 	mustEmbedUnimplementedMqttServer()
@@ -107,6 +120,9 @@ func (UnimplementedMqttServer) Dummy(context.Context, *emptypb.Empty) (*emptypb.
 }
 func (UnimplementedMqttServer) SetAquariumSchedule(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetAquariumSchedule not implemented")
+}
+func (UnimplementedMqttServer) ListLights(context.Context, *emptypb.Empty) (*ListLightsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListLights not implemented")
 }
 func (UnimplementedMqttServer) SetLight(context.Context, *SetLightRequest) (*LightStatus, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetLight not implemented")
@@ -171,6 +187,24 @@ func _Mqtt_SetAquariumSchedule_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Mqtt_ListLights_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MqttServer).ListLights(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Mqtt_ListLights_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MqttServer).ListLights(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Mqtt_SetLight_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SetLightRequest)
 	if err := dec(in); err != nil {
@@ -221,6 +255,10 @@ var Mqtt_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetAquariumSchedule",
 			Handler:    _Mqtt_SetAquariumSchedule_Handler,
+		},
+		{
+			MethodName: "ListLights",
+			Handler:    _Mqtt_ListLights_Handler,
 		},
 		{
 			MethodName: "SetLight",

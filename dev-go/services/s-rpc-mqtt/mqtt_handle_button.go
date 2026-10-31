@@ -11,6 +11,7 @@ import (
 
 	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
 	"github.com/cottand/selfhosted/dev-go/lib/config"
+	pb "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-mqtt"
 	"github.com/eclipse/paho.golang/paho"
 	"github.com/monzo/terrors"
 	cache "github.com/patrickmn/go-cache"
@@ -18,30 +19,6 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
-
-type shellyLightStatusResponse struct {
-	Id     int64  `json:"id"`
-	Src    string `json:"src"`
-	Dst    string `json:"dst"`
-	Result struct {
-		Id          int    `json:"id"`
-		Source      string `json:"source"`
-		Output      bool   `json:"output"`
-		Brightness  int    `json:"brightness"`
-		Temperature struct {
-			TC float64 `json:"tC"`
-			TF float64 `json:"tF"`
-		} `json:"temperature"`
-		Aenergy struct {
-			Total    float64   `json:"total"`
-			ByMinute []float64 `json:"by_minute"`
-			MinuteTs int       `json:"minute_ts"`
-		} `json:"aenergy"`
-		Apower  float64 `json:"apower"`
-		Current float64 `json:"current"`
-		Voltage float64 `json:"voltage"`
-	} `json:"result"`
-}
 
 // seenPIDs is a cache so that we can reuse PIDs
 var seenPIDs = cache.New(10*time.Second, 10*time.Second)
@@ -58,6 +35,8 @@ func pidSeen(pid int) bool {
 
 	return ok
 }
+
+var aquariumLights = []string{"rgb105", "rgb108"}
 
 func (r *mqttScaffold) handleButtonEvent(packet *paho.Publish) {
 	ctx := bedrock.ContextForModule(Name, context.Background())
@@ -80,99 +59,73 @@ func (r *mqttScaffold) handleButtonEvent(packet *paho.Publish) {
 	slog.InfoContext(ctx, "BLE event", "button", button)
 	buttonEvent.With(prometheus.Labels{"button": fmt.Sprintf("[%d, %d, %d, %d]", button[0], button[1], button[2], button[3])}).Inc()
 
+	toggle := func(ids ...string) {
+		for _, id := range ids {
+			go func() {
+				if err := r.toggleLight(ctx, id); err != nil {
+					slog.ErrorContext(ctx, "could not toggle light", "id", id, "err", err)
+				}
+			}()
+		}
+	}
+
 	// double press of the 1st button
 	if button[0] == 2 {
-		for _, id := range []string{"shelly/plug103/rpc", "shelly/plug104/rpc", "shelly/plug106/rpc"} {
-			go func(id string) {
-				_, err = r.shellyRPCResp(ctx, id, "Switch.Toggle", map[string]any{"id": 0})
-				if err != nil {
-					slog.ErrorContext(ctx, "could not toggle plug", "err", err)
-				}
-			}(id)
-		}
+		toggle("plug103", "plug104", "plug106")
 	}
 
 	// single press of the 1st button
 	if button[0] == 1 {
-		go func() {
-			_, err = r.shellyRPCResp(ctx, "shelly/plug103/rpc", "Switch.Toggle", map[string]any{"id": 0})
-			if err != nil {
-				slog.ErrorContext(ctx, "could not toggle plug", "err", err)
-			}
-		}()
+		toggle("plug103")
 	}
 
 	// short press of the 2nd button
 	if button[1] == 254 {
-		go func() {
-			_, err = r.shellyRPCResp(ctx, "shelly/plug104/rpc", "Switch.Toggle", map[string]any{"id": 0})
-			if err != nil {
-				slog.ErrorContext(ctx, "could not toggle plug", "err", err)
-			}
-		}()
+		toggle("plug104")
 	}
 
 	// short press of the 3rd button
 	if button[2] == 254 {
-		go func() {
-			_, err = r.shellyRPCResp(ctx, "shelly/plug106/rpc", "Switch.Toggle", map[string]any{"id": 0})
-			if err != nil {
-				slog.ErrorContext(ctx, "could not toggle plug", "err", err)
-			}
-		}()
+		toggle("plug106")
 	}
 
 	// single press of the 4th button
 	if button[3] == 1 {
-		// simply toggle the light
-		go r.shellyRPCResp(ctx, "shelly/rgb105/rpc", "Light.Toggle", map[string]any{"id": 0})
-		go r.shellyRPCResp(ctx, "shelly/rgb108/rpc", "Light.Toggle", map[string]any{"id": 0})
+		toggle(aquariumLights...)
 	}
 
 	// double press of the 4th button
 	if button[3] == 2 {
-		if err := r.handleButton4DoublePress(ctx); err != nil {
-			slog.ErrorContext(ctx, "could not handle double press", "err", err)
+		for _, id := range aquariumLights {
+			go func() {
+				if err := r.aquariumLightsDoublePress(ctx, id); err != nil {
+					slog.ErrorContext(ctx, "could not handle double press", "id", id, "err", err)
+				}
+			}()
 		}
 	}
 }
 
-func (r *mqttScaffold) handleButton4DoublePress(ctx context.Context) error {
-	go r.aquariumLightsDoublePress(ctx, "shelly/rgb105/rpc")
-	go r.aquariumLightsDoublePress(ctx, "shelly/rgb108/rpc")
-
-	return nil
-}
-func (r *mqttScaffold) aquariumLightsDoublePress(ctx context.Context, aquariumLightTopic string) error {
-	lightStatus, err := r.shellyRPCResp(ctx, aquariumLightTopic, "Light.GetStatus", map[string]any{"id": 0})
+func (r *mqttScaffold) aquariumLightsDoublePress(ctx context.Context, id string) error {
+	status, err := r.getLight(ctx, id)
 	if err != nil {
 		return terrors.Augment(err, "could not get light status", nil)
 	}
-	var parsed shellyLightStatusResponse
-	if err := json.Unmarshal(lightStatus.Payload, &parsed); err != nil {
-		return terrors.Augment(err, "could not parse light status", nil)
-	}
 	highBrightness, err := config.Get(ctx, "mqtt/lights/aquariumHigh").Int(70)
 	if err != nil {
-		slog.WarnContext(ctx, "could not get aquarium low brightness config", "err", err)
+		slog.WarnContext(ctx, "could not get aquarium high brightness config", "err", err)
 	}
 
-	if parsed.Result.Output && parsed.Result.Brightness < highBrightness {
-		// if the light is on but dim, make it bright
-		_, err = r.shellyRPCResp(ctx, aquariumLightTopic, "Light.Set", map[string]any{"id": 0, "brightness": highBrightness, "on": true})
-		if err != nil {
-			return terrors.Augment(err, "could not set light", nil)
-		}
-	} else {
-		lowBrightness, err := config.Get(ctx, "mqtt/lights/aquariumLow").Int(4)
+	// if the light is on but dim, make it bright.
+	// Otherwise it's off (so make it on + dim) or it's bright (do the same)
+	brightness := highBrightness
+	if !status.On || status.GetBrightness() >= int32(highBrightness) {
+		brightness, err = config.Get(ctx, "mqtt/lights/aquariumLow").Int(4)
 		if err != nil {
 			slog.WarnContext(ctx, "could not get aquarium low brightness config", "err", err)
 		}
-		// otherwise it's off (so make it on + dim) or it's bright (do the same)
-		_, err = r.shellyRPCResp(ctx, aquariumLightTopic, "Light.Set", map[string]any{"id": 0, "brightness": lowBrightness, "on": true})
-		if err != nil {
-			return terrors.Augment(err, "could not set light", nil)
-		}
 	}
-	return nil
+
+	err = r.setLight(ctx, &pb.SetLightRequest{Id: id, On: new(true), Brightness: new(int32(brightness))})
+	return terrors.Augment(err, "could not set light", nil)
 }

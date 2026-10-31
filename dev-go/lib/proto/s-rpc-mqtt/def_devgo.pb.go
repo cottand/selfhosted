@@ -34,6 +34,14 @@ func SetAquariumSchedule(ctx context.Context, in *emptypb.Empty, opts ...grpc.Ca
 	return client.SetAquariumSchedule(ctx, in, opts...)
 }
 
+func ListLights(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListLightsResponse, error) {
+	client, err := loadClient()
+	if err != nil {
+		return nil, err
+	}
+	return client.ListLights(ctx, in, opts...)
+}
+
 func SetLight(ctx context.Context, in *SetLightRequest, opts ...grpc.CallOption) (*LightStatus, error) {
 	client, err := loadClient()
 	if err != nil {
