@@ -8,6 +8,10 @@ inputs:
     description: 'Enable aarch64-linux support via QEMU'
     default: 'false'
     required: false
+  vault_addr:
+    description: 'Vault address URL'
+    required: false
+    default: "https://vault.dcotta.com:8200"
 runs:
   using: "composite"
   steps:
@@ -29,7 +33,7 @@ runs:
       id: secrets
       uses: hashicorp/vault-action@v2
       with:
-        url: ${{ env.VAULT_ADDR }}
+        url: ${{ inputs.vault_addr }}
         role: actions-ro
         path: jwt-github
         method: jwt
