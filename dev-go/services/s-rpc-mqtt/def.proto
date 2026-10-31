@@ -8,4 +8,22 @@ import "google/protobuf/empty.proto";
 service Mqtt {
   rpc Dummy(google.protobuf.Empty) returns (google.protobuf.Empty) {}
   rpc SetAquariumSchedule(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc SetLight(SetLightRequest) returns (LightStatus) {}
+  rpc GetLight(GetLightRequest) returns (LightStatus) {}
+}
+
+message SetLightRequest {
+  // e.g. plug103
+  string id = 1;
+  bool on = 2;
+}
+
+message GetLightRequest {
+  // e.g. plug103
+  string id = 1;
+}
+
+message LightStatus {
+  string id = 1;
+  bool on = 2;
 }

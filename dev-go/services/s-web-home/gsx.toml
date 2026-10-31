@@ -1,0 +1,6 @@
+[dev]
+no_web = true
+build = ["go", "build", "-o", "tmp/dev", "./dev"]
+run = ["tmp/dev"]
+upstream = "http://localhost:7004"
+health = "/"

@@ -22,6 +22,8 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	Mqtt_Dummy_FullMethodName               = "/s_rpc_mqtt.Mqtt/Dummy"
 	Mqtt_SetAquariumSchedule_FullMethodName = "/s_rpc_mqtt.Mqtt/SetAquariumSchedule"
+	Mqtt_SetLight_FullMethodName            = "/s_rpc_mqtt.Mqtt/SetLight"
+	Mqtt_GetLight_FullMethodName            = "/s_rpc_mqtt.Mqtt/GetLight"
 )
 
 // MqttClient is the client API for Mqtt service.
@@ -30,6 +32,8 @@ const (
 type MqttClient interface {
 	Dummy(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	SetAquariumSchedule(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	SetLight(ctx context.Context, in *SetLightRequest, opts ...grpc.CallOption) (*LightStatus, error)
+	GetLight(ctx context.Context, in *GetLightRequest, opts ...grpc.CallOption) (*LightStatus, error)
 }
 
 type mqttClient struct {
@@ -60,12 +64,34 @@ func (c *mqttClient) SetAquariumSchedule(ctx context.Context, in *emptypb.Empty,
 	return out, nil
 }
 
+func (c *mqttClient) SetLight(ctx context.Context, in *SetLightRequest, opts ...grpc.CallOption) (*LightStatus, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LightStatus)
+	err := c.cc.Invoke(ctx, Mqtt_SetLight_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *mqttClient) GetLight(ctx context.Context, in *GetLightRequest, opts ...grpc.CallOption) (*LightStatus, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LightStatus)
+	err := c.cc.Invoke(ctx, Mqtt_GetLight_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MqttServer is the server API for Mqtt service.
 // All implementations must embed UnimplementedMqttServer
 // for forward compatibility.
 type MqttServer interface {
 	Dummy(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 	SetAquariumSchedule(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
+	SetLight(context.Context, *SetLightRequest) (*LightStatus, error)
+	GetLight(context.Context, *GetLightRequest) (*LightStatus, error)
 	mustEmbedUnimplementedMqttServer()
 }
 
@@ -81,6 +107,12 @@ func (UnimplementedMqttServer) Dummy(context.Context, *emptypb.Empty) (*emptypb.
 }
 func (UnimplementedMqttServer) SetAquariumSchedule(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetAquariumSchedule not implemented")
+}
+func (UnimplementedMqttServer) SetLight(context.Context, *SetLightRequest) (*LightStatus, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetLight not implemented")
+}
+func (UnimplementedMqttServer) GetLight(context.Context, *GetLightRequest) (*LightStatus, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetLight not implemented")
 }
 func (UnimplementedMqttServer) mustEmbedUnimplementedMqttServer() {}
 func (UnimplementedMqttServer) testEmbeddedByValue()              {}
@@ -139,6 +171,42 @@ func _Mqtt_SetAquariumSchedule_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Mqtt_SetLight_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetLightRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MqttServer).SetLight(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Mqtt_SetLight_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MqttServer).SetLight(ctx, req.(*SetLightRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Mqtt_GetLight_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetLightRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MqttServer).GetLight(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Mqtt_GetLight_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MqttServer).GetLight(ctx, req.(*GetLightRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Mqtt_ServiceDesc is the grpc.ServiceDesc for Mqtt service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -153,6 +221,14 @@ var Mqtt_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetAquariumSchedule",
 			Handler:    _Mqtt_SetAquariumSchedule_Handler,
+		},
+		{
+			MethodName: "SetLight",
+			Handler:    _Mqtt_SetLight_Handler,
+		},
+		{
+			MethodName: "GetLight",
+			Handler:    _Mqtt_GetLight_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

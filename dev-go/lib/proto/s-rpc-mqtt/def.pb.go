@@ -11,6 +11,7 @@ import (
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	reflect "reflect"
+	sync "sync"
 	unsafe "unsafe"
 )
 
@@ -21,26 +22,206 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type SetLightRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// e.g. plug103
+	Id            string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	On            bool   `protobuf:"varint,2,opt,name=on,proto3" json:"on,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetLightRequest) Reset() {
+	*x = SetLightRequest{}
+	mi := &file_s_rpc_mqtt_def_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetLightRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetLightRequest) ProtoMessage() {}
+
+func (x *SetLightRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_s_rpc_mqtt_def_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetLightRequest.ProtoReflect.Descriptor instead.
+func (*SetLightRequest) Descriptor() ([]byte, []int) {
+	return file_s_rpc_mqtt_def_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *SetLightRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *SetLightRequest) GetOn() bool {
+	if x != nil {
+		return x.On
+	}
+	return false
+}
+
+type GetLightRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// e.g. plug103
+	Id            string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetLightRequest) Reset() {
+	*x = GetLightRequest{}
+	mi := &file_s_rpc_mqtt_def_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetLightRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetLightRequest) ProtoMessage() {}
+
+func (x *GetLightRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_s_rpc_mqtt_def_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetLightRequest.ProtoReflect.Descriptor instead.
+func (*GetLightRequest) Descriptor() ([]byte, []int) {
+	return file_s_rpc_mqtt_def_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *GetLightRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type LightStatus struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	On            bool                   `protobuf:"varint,2,opt,name=on,proto3" json:"on,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LightStatus) Reset() {
+	*x = LightStatus{}
+	mi := &file_s_rpc_mqtt_def_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LightStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LightStatus) ProtoMessage() {}
+
+func (x *LightStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_s_rpc_mqtt_def_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LightStatus.ProtoReflect.Descriptor instead.
+func (*LightStatus) Descriptor() ([]byte, []int) {
+	return file_s_rpc_mqtt_def_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *LightStatus) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *LightStatus) GetOn() bool {
+	if x != nil {
+		return x.On
+	}
+	return false
+}
+
 var File_s_rpc_mqtt_def_proto protoreflect.FileDescriptor
 
 const file_s_rpc_mqtt_def_proto_rawDesc = "" +
 	"\n" +
 	"\x14s-rpc-mqtt/def.proto\x12\n" +
-	"s_rpc_mqtt\x1a\x1bgoogle/protobuf/empty.proto2\x8a\x01\n" +
+	"s_rpc_mqtt\x1a\x1bgoogle/protobuf/empty.proto\"1\n" +
+	"\x0fSetLightRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x0e\n" +
+	"\x02on\x18\x02 \x01(\bR\x02on\"!\n" +
+	"\x0fGetLightRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"-\n" +
+	"\vLightStatus\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x0e\n" +
+	"\x02on\x18\x02 \x01(\bR\x02on2\x92\x02\n" +
 	"\x04Mqtt\x129\n" +
 	"\x05Dummy\x12\x16.google.protobuf.Empty\x1a\x16.google.protobuf.Empty\"\x00\x12G\n" +
-	"\x13SetAquariumSchedule\x12\x16.google.protobuf.Empty\x1a\x16.google.protobuf.Empty\"\x00B:Z8github.com/Cottand/selfosted/dev-go/lib/proto/s-rpc-mqttb\x06proto3"
+	"\x13SetAquariumSchedule\x12\x16.google.protobuf.Empty\x1a\x16.google.protobuf.Empty\"\x00\x12B\n" +
+	"\bSetLight\x12\x1b.s_rpc_mqtt.SetLightRequest\x1a\x17.s_rpc_mqtt.LightStatus\"\x00\x12B\n" +
+	"\bGetLight\x12\x1b.s_rpc_mqtt.GetLightRequest\x1a\x17.s_rpc_mqtt.LightStatus\"\x00B:Z8github.com/Cottand/selfosted/dev-go/lib/proto/s-rpc-mqttb\x06proto3"
 
+var (
+	file_s_rpc_mqtt_def_proto_rawDescOnce sync.Once
+	file_s_rpc_mqtt_def_proto_rawDescData []byte
+)
+
+func file_s_rpc_mqtt_def_proto_rawDescGZIP() []byte {
+	file_s_rpc_mqtt_def_proto_rawDescOnce.Do(func() {
+		file_s_rpc_mqtt_def_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_s_rpc_mqtt_def_proto_rawDesc), len(file_s_rpc_mqtt_def_proto_rawDesc)))
+	})
+	return file_s_rpc_mqtt_def_proto_rawDescData
+}
+
+var file_s_rpc_mqtt_def_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_s_rpc_mqtt_def_proto_goTypes = []any{
-	(*emptypb.Empty)(nil), // 0: google.protobuf.Empty
+	(*SetLightRequest)(nil), // 0: s_rpc_mqtt.SetLightRequest
+	(*GetLightRequest)(nil), // 1: s_rpc_mqtt.GetLightRequest
+	(*LightStatus)(nil),     // 2: s_rpc_mqtt.LightStatus
+	(*emptypb.Empty)(nil),   // 3: google.protobuf.Empty
 }
 var file_s_rpc_mqtt_def_proto_depIdxs = []int32{
-	0, // 0: s_rpc_mqtt.Mqtt.Dummy:input_type -> google.protobuf.Empty
-	0, // 1: s_rpc_mqtt.Mqtt.SetAquariumSchedule:input_type -> google.protobuf.Empty
-	0, // 2: s_rpc_mqtt.Mqtt.Dummy:output_type -> google.protobuf.Empty
-	0, // 3: s_rpc_mqtt.Mqtt.SetAquariumSchedule:output_type -> google.protobuf.Empty
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
+	3, // 0: s_rpc_mqtt.Mqtt.Dummy:input_type -> google.protobuf.Empty
+	3, // 1: s_rpc_mqtt.Mqtt.SetAquariumSchedule:input_type -> google.protobuf.Empty
+	0, // 2: s_rpc_mqtt.Mqtt.SetLight:input_type -> s_rpc_mqtt.SetLightRequest
+	1, // 3: s_rpc_mqtt.Mqtt.GetLight:input_type -> s_rpc_mqtt.GetLightRequest
+	3, // 4: s_rpc_mqtt.Mqtt.Dummy:output_type -> google.protobuf.Empty
+	3, // 5: s_rpc_mqtt.Mqtt.SetAquariumSchedule:output_type -> google.protobuf.Empty
+	2, // 6: s_rpc_mqtt.Mqtt.SetLight:output_type -> s_rpc_mqtt.LightStatus
+	2, // 7: s_rpc_mqtt.Mqtt.GetLight:output_type -> s_rpc_mqtt.LightStatus
+	4, // [4:8] is the sub-list for method output_type
+	0, // [0:4] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -57,12 +238,13 @@ func file_s_rpc_mqtt_def_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_s_rpc_mqtt_def_proto_rawDesc), len(file_s_rpc_mqtt_def_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   0,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_s_rpc_mqtt_def_proto_goTypes,
 		DependencyIndexes: file_s_rpc_mqtt_def_proto_depIdxs,
+		MessageInfos:      file_s_rpc_mqtt_def_proto_msgTypes,
 	}.Build()
 	File_s_rpc_mqtt_def_proto = out.File
 	file_s_rpc_mqtt_def_proto_goTypes = nil

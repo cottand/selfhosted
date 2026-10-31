@@ -29,3 +29,4 @@ result
 
 # gsx codegen
 *.x.go
+dev-go/services/*/tmp/
