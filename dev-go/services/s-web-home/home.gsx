@@ -71,6 +71,53 @@ component Home(lights []light, listFailed bool) {
 					min-width: 3rem;
 					text-align: right;
 				}
+				@media (min-width: 50rem) {
+					body {
+						max-width: 46rem;
+					}
+					.plan {
+						position: relative;
+						aspect-ratio: 800 / 1094;
+						background: url("/floorplan.svg") center / contain no-repeat;
+					}
+					.light {
+						position: absolute;
+						box-sizing: border-box;
+						width: 9rem;
+						margin: 0;
+						padding: 0.5rem 0.6rem;
+						transform: translate(-50%, -50%);
+						box-shadow: 0 1px 4px rgb(0 0 0 / 30%);
+					}
+					.brightness output {
+						min-width: 2.5rem;
+					}
+					.brightness input {
+						min-width: 0;
+					}
+					#light-plug103 {
+						left: 10%;
+						top: 34.7%;
+					}
+					#light-rgb105 {
+						width: 11rem;
+						left: 65%;
+						top: 63.1%;
+					}
+					#light-plug104 {
+						left: 89.6%;
+						top: 63.3%;
+					}
+					#light-rgb108 {
+						width: 11rem;
+						left: 12.5%;
+						top: 81.8%;
+					}
+					#light-plug106 {
+						left: 30%;
+						top: 89.6%;
+					}
+				}
 			</style>
 		</head>
 		<body>
@@ -78,9 +125,11 @@ component Home(lights []light, listFailed bool) {
 			{ if listFailed {
 				<p>Could not load lights.</p>
 			} }
-			{ for _, l := range lights {
-				<LightRow l={l}/>
-			} }
+			<div class="plan">
+				{ for _, l := range lights {
+					<LightRow l={l}/>
+				} }
+			</div>
 			<script>
 				let draggedRow = null;
 				let pendingRow = null;

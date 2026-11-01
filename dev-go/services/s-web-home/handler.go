@@ -3,6 +3,7 @@ package module
 import (
 	"bytes"
 	"context"
+	_ "embed"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -20,6 +21,9 @@ const (
 	ssePingPeriod   = 15 * time.Second
 	sseWriteTimeout = 10 * time.Second
 )
+
+//go:embed floorplan.svg
+var floorplanSVG []byte
 
 type light struct {
 	ID       string
@@ -47,6 +51,7 @@ func (l light) Pressed() string { return strconv.FormatBool(l.On) }
 func (s *scaffold) MakeHTTPHandler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /{$}", s.home)
+	mux.HandleFunc("GET /floorplan.svg", floorplan)
 	mux.HandleFunc("POST /lights/{id}", s.setLight)
 	mux.HandleFunc("GET /lights/events", s.lightEvents)
 	return mux
@@ -58,6 +63,11 @@ func (s *scaffold) home(writer http.ResponseWriter, request *http.Request) {
 		slog.ErrorContext(request.Context(), "failed to list lights", "err", terrors.Propagate(err))
 	}
 	render(writer, request, Home(lights, err != nil))
+}
+
+func floorplan(writer http.ResponseWriter, _ *http.Request) {
+	writer.Header().Set("Content-Type", "image/svg+xml")
+	_, _ = writer.Write(floorplanSVG)
 }
 
 func fetchLights(ctx context.Context) ([]light, error) {

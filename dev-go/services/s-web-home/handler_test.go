@@ -5,6 +5,7 @@ import (
 	"context"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"strings"
 	"sync"
@@ -164,4 +165,13 @@ func TestRenderLightEvent(t *testing.T) {
 	for _, line := range lines[1:] {
 		assert.True(t, strings.HasPrefix(line, "data: "), line)
 	}
+}
+
+func TestFloorplan(t *testing.T) {
+	recorder := httptest.NewRecorder()
+	(&scaffold{}).MakeHTTPHandler().ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/floorplan.svg", nil))
+
+	assert.Equal(t, http.StatusOK, recorder.Code)
+	assert.Equal(t, "image/svg+xml", recorder.Header().Get("Content-Type"))
+	assert.Contains(t, recorder.Body.String(), "<svg")
 }
