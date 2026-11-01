@@ -7,7 +7,6 @@
 , system
 , protobuf
 , protoc-gen-go
-, nixVersions
 , pkg-config
 , ...
 }:

@@ -81,12 +81,50 @@ component Home(lights []light, listFailed bool) {
 			{ for _, l := range lights {
 				<LightRow l={l}/>
 			} }
+			<script>
+				let draggedRow = null;
+				let pendingRow = null;
+
+				function applyRow(row) {
+					document.getElementById(row.id)?.replaceWith(row);
+				}
+
+				document.addEventListener("pointerdown", (event) => {
+					if (event.target.matches("input[type=range]")) {
+						draggedRow = event.target.closest(".light").id;
+					}
+				});
+
+				function endDrag() {
+					// runs after the slider's change event, which needs the slider to still be there
+					setTimeout(() => {
+						draggedRow = null;
+						if (pendingRow) {
+							applyRow(pendingRow);
+							pendingRow = null;
+						}
+					});
+				}
+				document.addEventListener("pointerup", endDrag);
+				document.addEventListener("pointercancel", endDrag);
+
+				new EventSource("/lights/events").addEventListener("light", (event) => {
+					const template = document.createElement("template");
+					template.innerHTML = event.data;
+					const row = template.content.firstElementChild;
+					if (row.id === draggedRow) {
+						pendingRow = row;
+					} else {
+						applyRow(row);
+					}
+				});
+			</script>
 		</body>
 	</html>
 }
 
 component LightRow(l light) {
-	<div class={ "light", "on": l.Known && l.On }>
+	<div id={ "light-" + l.ID } class={ "light", "on": l.Known && l.On }>
 		<div class="row">
 			<div>
 				<strong>{l.ID}</strong>

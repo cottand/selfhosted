@@ -14,7 +14,10 @@ in
         config = util.mkEnvoyProxyConfig {
           otlpService = "proxy-${name}-http";
           otlpUpstreamPort = 9001;
-          protocol = "http";
+          # /lights/events streams for as long as a page is open
+          extra.local_request_timeout_ms = 0;
+          extra.local_idle_timeout_ms = 0;
+          extra.protocol = "http";
         };
       };
       sidecarTask.resources = sidecarResources;

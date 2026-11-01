@@ -36,9 +36,11 @@ type ServiceData struct {
 }
 
 type mqttScaffold struct {
-	cm       *autopaho.ConnectionManager
-	clientId string
-	leader   *leaderState
+	cm           *autopaho.ConnectionManager
+	clientId     string
+	leader       *leaderState
+	lightChanged chan string
+	lightUpdates *lightBroadcaster
 }
 
 type leaderState struct {
@@ -89,8 +91,10 @@ func newMqtt(ctx context.Context, brokerAddr string, clientID string) (*mqttScaf
 	}
 
 	scaffold := &mqttScaffold{
-		clientId: clientID,
-		leader:   newLeaderState(ctx),
+		clientId:     clientID,
+		leader:       newLeaderState(ctx),
+		lightChanged: make(chan string, lightChangedBuffer),
+		lightUpdates: newLightBroadcaster(),
 	}
 	ctx = util.CtxWithLog(ctx,
 		slog.String("mqtt-broker", brokerAddr),
@@ -106,11 +110,12 @@ func newMqtt(ctx context.Context, brokerAddr string, clientID string) (*mqttScaf
 			if _, err := cm.Subscribe(ctx, &paho.Subscribe{
 				Subscriptions: []paho.SubscribeOptions{
 					{Topic: buttonTopic, QoS: 1},
+					{Topic: lightEventsTopic, QoS: 1},
 				},
 			}); err != nil {
-				slog.ErrorContext(ctx, "failed to subscribe to BLE events", "err", err)
+				slog.ErrorContext(ctx, "failed to subscribe to BLE and light events", "err", err)
 			}
-			slog.InfoContext(ctx, "mqtt connection up, subscribed to BLE events")
+			slog.InfoContext(ctx, "mqtt connection up, subscribed to BLE and light events")
 
 			go scaffold.aquariumTempPollingForever(ctx)
 		},
@@ -125,6 +130,10 @@ func newMqtt(ctx context.Context, brokerAddr string, clientID string) (*mqttScaf
 						if scaffold.leader.isLeader.Load() {
 							go scaffold.handleButtonEvent(pr.Packet)
 						}
+						return true, nil
+					}
+					if id, ok := changedLight(pr.Packet.Topic, pr.Packet.Payload); ok {
+						scaffold.notifyLightChanged(ctx, id)
 						return true, nil
 					}
 					return false, nil
@@ -142,6 +151,7 @@ func newMqtt(ctx context.Context, brokerAddr string, clientID string) (*mqttScaf
 		return nil, terrors.Augment(err, "could not await mqtt connection", nil)
 	}
 	scaffold.cm = cm
+	go scaffold.broadcastLightChanges(ctx)
 
 	return scaffold, nil
 }
@@ -171,7 +181,9 @@ func (r *mqttScaffold) shellyRPCRespAny(ctx context.Context, topic string, rpcMe
 	errParams := map[string]string{"rpcMethod": rpcMethod, "paramsJson": string(paramsJson)}
 
 	recv := make(chan *paho.Publish, 1)
-	replyTopic := fmt.Sprintf("%s/%s", topic, r.clientId)
+	uniqueId := strconv.FormatInt(time.Now().UnixNano(), 10)
+	// every call gets its own reply topic because concurrent calls can target the same device
+	replyTopic := fmt.Sprintf("%s/%s/%s", topic, r.clientId, uniqueId)
 	// shelly replies on dst/rpc, see https://shelly-api-docs.shelly.cloud/gen2/ComponentsAndServices/Mqtt#step-6-receive-notifications-over-mqtt
 	replySubTopic := replyTopic + "/rpc"
 	errParams["replyTopic"] = replyTopic
@@ -184,8 +196,11 @@ func (r *mqttScaffold) shellyRPCRespAny(ctx context.Context, topic string, rpcMe
 			attribute.String("topic", pr.Packet.Topic),
 			attribute.String("payload", string(pr.Packet.Payload)),
 		))
-		recv <- pr.Packet
-		close(recv)
+		select {
+		case recv <- pr.Packet:
+		default:
+			// QoS 1 can redeliver a reply we already have
+		}
 		return true, nil
 	})
 	defer removeHandler()
@@ -201,7 +216,6 @@ func (r *mqttScaffold) shellyRPCRespAny(ctx context.Context, topic string, rpcMe
 		_, _ = r.cm.Unsubscribe(ctx, &paho.Unsubscribe{Topics: []string{replySubTopic}})
 	}()
 
-	uniqueId := strconv.FormatInt(time.Now().UnixNano(), 10)
 	payload, err := json.Marshal(map[string]any{
 		"id":     uniqueId,
 		"src":    replyTopic,

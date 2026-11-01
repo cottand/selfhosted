@@ -11,6 +11,8 @@ service Mqtt {
   rpc ListLights(google.protobuf.Empty) returns (ListLightsResponse) {}
   rpc SetLight(SetLightRequest) returns (LightStatus) {}
   rpc GetLight(GetLightRequest) returns (LightStatus) {}
+  // Streams the status of every light whose state changes, starting from when the call is made
+  rpc WatchLights(google.protobuf.Empty) returns (stream LightStatus) {}
 }
 
 message Light {

@@ -323,14 +323,15 @@ const file_s_rpc_mqtt_def_proto_rawDesc = "" +
 	"\n" +
 	"brightness\x18\x04 \x01(\x05H\x00R\n" +
 	"brightness\x88\x01\x01B\r\n" +
-	"\v_brightness2\xda\x02\n" +
+	"\v_brightness2\x9e\x03\n" +
 	"\x04Mqtt\x129\n" +
 	"\x05Dummy\x12\x16.google.protobuf.Empty\x1a\x16.google.protobuf.Empty\"\x00\x12G\n" +
 	"\x13SetAquariumSchedule\x12\x16.google.protobuf.Empty\x1a\x16.google.protobuf.Empty\"\x00\x12F\n" +
 	"\n" +
 	"ListLights\x12\x16.google.protobuf.Empty\x1a\x1e.s_rpc_mqtt.ListLightsResponse\"\x00\x12B\n" +
 	"\bSetLight\x12\x1b.s_rpc_mqtt.SetLightRequest\x1a\x17.s_rpc_mqtt.LightStatus\"\x00\x12B\n" +
-	"\bGetLight\x12\x1b.s_rpc_mqtt.GetLightRequest\x1a\x17.s_rpc_mqtt.LightStatus\"\x00B:Z8github.com/Cottand/selfosted/dev-go/lib/proto/s-rpc-mqttb\x06proto3"
+	"\bGetLight\x12\x1b.s_rpc_mqtt.GetLightRequest\x1a\x17.s_rpc_mqtt.LightStatus\"\x00\x12B\n" +
+	"\vWatchLights\x12\x16.google.protobuf.Empty\x1a\x17.s_rpc_mqtt.LightStatus\"\x000\x01B:Z8github.com/Cottand/selfosted/dev-go/lib/proto/s-rpc-mqttb\x06proto3"
 
 var (
 	file_s_rpc_mqtt_def_proto_rawDescOnce sync.Once
@@ -360,13 +361,15 @@ var file_s_rpc_mqtt_def_proto_depIdxs = []int32{
 	5, // 3: s_rpc_mqtt.Mqtt.ListLights:input_type -> google.protobuf.Empty
 	2, // 4: s_rpc_mqtt.Mqtt.SetLight:input_type -> s_rpc_mqtt.SetLightRequest
 	3, // 5: s_rpc_mqtt.Mqtt.GetLight:input_type -> s_rpc_mqtt.GetLightRequest
-	5, // 6: s_rpc_mqtt.Mqtt.Dummy:output_type -> google.protobuf.Empty
-	5, // 7: s_rpc_mqtt.Mqtt.SetAquariumSchedule:output_type -> google.protobuf.Empty
-	1, // 8: s_rpc_mqtt.Mqtt.ListLights:output_type -> s_rpc_mqtt.ListLightsResponse
-	4, // 9: s_rpc_mqtt.Mqtt.SetLight:output_type -> s_rpc_mqtt.LightStatus
-	4, // 10: s_rpc_mqtt.Mqtt.GetLight:output_type -> s_rpc_mqtt.LightStatus
-	6, // [6:11] is the sub-list for method output_type
-	1, // [1:6] is the sub-list for method input_type
+	5, // 6: s_rpc_mqtt.Mqtt.WatchLights:input_type -> google.protobuf.Empty
+	5, // 7: s_rpc_mqtt.Mqtt.Dummy:output_type -> google.protobuf.Empty
+	5, // 8: s_rpc_mqtt.Mqtt.SetAquariumSchedule:output_type -> google.protobuf.Empty
+	1, // 9: s_rpc_mqtt.Mqtt.ListLights:output_type -> s_rpc_mqtt.ListLightsResponse
+	4, // 10: s_rpc_mqtt.Mqtt.SetLight:output_type -> s_rpc_mqtt.LightStatus
+	4, // 11: s_rpc_mqtt.Mqtt.GetLight:output_type -> s_rpc_mqtt.LightStatus
+	4, // 12: s_rpc_mqtt.Mqtt.WatchLights:output_type -> s_rpc_mqtt.LightStatus
+	7, // [7:13] is the sub-list for method output_type
+	1, // [1:7] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
 	1, // [1:1] is the sub-list for extension extendee
 	0, // [0:1] is the sub-list for field type_name

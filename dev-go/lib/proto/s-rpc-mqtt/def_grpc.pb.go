@@ -25,6 +25,7 @@ const (
 	Mqtt_ListLights_FullMethodName          = "/s_rpc_mqtt.Mqtt/ListLights"
 	Mqtt_SetLight_FullMethodName            = "/s_rpc_mqtt.Mqtt/SetLight"
 	Mqtt_GetLight_FullMethodName            = "/s_rpc_mqtt.Mqtt/GetLight"
+	Mqtt_WatchLights_FullMethodName         = "/s_rpc_mqtt.Mqtt/WatchLights"
 )
 
 // MqttClient is the client API for Mqtt service.
@@ -36,6 +37,8 @@ type MqttClient interface {
 	ListLights(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListLightsResponse, error)
 	SetLight(ctx context.Context, in *SetLightRequest, opts ...grpc.CallOption) (*LightStatus, error)
 	GetLight(ctx context.Context, in *GetLightRequest, opts ...grpc.CallOption) (*LightStatus, error)
+	// Streams the status of every light whose state changes, starting from when the call is made
+	WatchLights(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[LightStatus], error)
 }
 
 type mqttClient struct {
@@ -96,6 +99,25 @@ func (c *mqttClient) GetLight(ctx context.Context, in *GetLightRequest, opts ...
 	return out, nil
 }
 
+func (c *mqttClient) WatchLights(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[LightStatus], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Mqtt_ServiceDesc.Streams[0], Mqtt_WatchLights_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[emptypb.Empty, LightStatus]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Mqtt_WatchLightsClient = grpc.ServerStreamingClient[LightStatus]
+
 // MqttServer is the server API for Mqtt service.
 // All implementations must embed UnimplementedMqttServer
 // for forward compatibility.
@@ -105,6 +127,8 @@ type MqttServer interface {
 	ListLights(context.Context, *emptypb.Empty) (*ListLightsResponse, error)
 	SetLight(context.Context, *SetLightRequest) (*LightStatus, error)
 	GetLight(context.Context, *GetLightRequest) (*LightStatus, error)
+	// Streams the status of every light whose state changes, starting from when the call is made
+	WatchLights(*emptypb.Empty, grpc.ServerStreamingServer[LightStatus]) error
 	mustEmbedUnimplementedMqttServer()
 }
 
@@ -129,6 +153,9 @@ func (UnimplementedMqttServer) SetLight(context.Context, *SetLightRequest) (*Lig
 }
 func (UnimplementedMqttServer) GetLight(context.Context, *GetLightRequest) (*LightStatus, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetLight not implemented")
+}
+func (UnimplementedMqttServer) WatchLights(*emptypb.Empty, grpc.ServerStreamingServer[LightStatus]) error {
+	return status.Error(codes.Unimplemented, "method WatchLights not implemented")
 }
 func (UnimplementedMqttServer) mustEmbedUnimplementedMqttServer() {}
 func (UnimplementedMqttServer) testEmbeddedByValue()              {}
@@ -241,6 +268,17 @@ func _Mqtt_GetLight_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Mqtt_WatchLights_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(emptypb.Empty)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(MqttServer).WatchLights(m, &grpc.GenericServerStream[emptypb.Empty, LightStatus]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Mqtt_WatchLightsServer = grpc.ServerStreamingServer[LightStatus]
+
 // Mqtt_ServiceDesc is the grpc.ServiceDesc for Mqtt service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -269,6 +307,12 @@ var Mqtt_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Mqtt_GetLight_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "WatchLights",
+			Handler:       _Mqtt_WatchLights_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "s-rpc-mqtt/def.proto",
 }

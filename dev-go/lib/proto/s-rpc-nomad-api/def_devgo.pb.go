@@ -18,15 +18,6 @@ var loadClient = sync.OnceValues(func() (NomadApiClient, error) {
 	return NewNomadApiClient(conn), nil
 })
 
-// Deploy deploys a job from a Nix definition
-func Deploy(ctx context.Context, in *Job, opts ...grpc.CallOption) (*DeployResponse, error) {
-	client, err := loadClient()
-	if err != nil {
-		return nil, err
-	}
-	return client.Deploy(ctx, in, opts...)
-}
-
 func ListJobDefinitions(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ListJobsResponse], error) {
 	client, err := loadClient()
 	if err != nil {

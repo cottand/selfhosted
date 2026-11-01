@@ -52,8 +52,8 @@ Services follow a consistent structure:
 ### Building Services
 
 ```bash
-# Build all services
-nix build .#services
+# Build the services monolith
+nix build .#services.services-go
 
 # Build specific service  
 nix build .#services.s-web-portfolio

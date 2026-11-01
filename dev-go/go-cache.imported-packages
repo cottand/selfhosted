@@ -1,3 +1,4 @@
+bufio
 bytes
 cloud.google.com/go/bigquery
 context

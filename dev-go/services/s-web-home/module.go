@@ -15,18 +15,22 @@ import (
 
 type scaffold struct{}
 
-func InitService() (*bedrock.Service, string, error) {
-	var name = "s-web-home"
-	ctx := bedrock.ContextForModule(name, context.Background())
-	s := &scaffold{}
-
-	srv := &http.Server{
+func (s *scaffold) newServer(ctx context.Context, name string) *http.Server {
+	return &http.Server{
 		Addr:         "localhost:7004",
 		BaseContext:  func(_ net.Listener) context.Context { return ctx },
 		ReadTimeout:  time.Second,
 		WriteTimeout: 10 * time.Second,
 		Handler:      otelhttp.NewHandler(s.MakeHTTPHandler(), name+"-http"),
 	}
+}
+
+func InitService() (*bedrock.Service, string, error) {
+	var name = "s-web-home"
+	ctx := bedrock.ContextForModule(name, context.Background())
+	s := &scaffold{}
+
+	srv := s.newServer(ctx, name)
 
 	var serverErr error
 	go func() {

@@ -1,17 +1,18 @@
 package module
 
 import (
-	"cloud.google.com/go/bigquery"
 	"context"
 	"errors"
-	"github.com/cottand/selfhosted/dev-go/lib/bigq"
-	"github.com/monzo/terrors"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"log"
 	"log/slog"
 	"net"
 	"net/http"
 	"time"
+
+	"cloud.google.com/go/bigquery"
+	"github.com/cottand/selfhosted/dev-go/lib/bigq"
+	"github.com/monzo/terrors"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 import "github.com/cottand/selfhosted/dev-go/lib/bedrock"
 
@@ -24,7 +25,7 @@ func InitService() (*bedrock.Service, string, error) {
 	ctx := bedrock.ContextForModule(name, context.Background())
 	bqClient, err := bigq.NewClient(ctx, "bigquery-querier-editor")
 	if err != nil {
-		log.Fatalf(terrors.Propagate(err).Error())
+		log.Fatal(terrors.Propagate(err).Error())
 	}
 
 	s := &scaffold{

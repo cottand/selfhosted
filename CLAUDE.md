@@ -28,7 +28,7 @@ This repository contains the configuration-as-code for a personal self-hosted cl
 
 - **Deploy jobs**: `nix run .#nixmad -- path/to/job.nix`
 - **Deploy infrastructure**: `nix run .#shipper`
-- **Build all services**: `nix build .#services`
+- **Build the services monolith**: `nix build .#services.services-go`
 - **Deploy machines**: `colmena deploy`
 - **Format code**: `nix fmt`
 
@@ -50,7 +50,7 @@ The cluster consists of multiple nodes connected via Tailscale:
 ## Testing & Linting
 
 Run `nix fmt` to format Nomad and Terraform files.
-Check service builds with `nix build .#services`.
+Check service builds with `nix build .#services.services-go`.
 
 
 # Workflows

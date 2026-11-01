@@ -4,6 +4,8 @@ import (
 	"context"
 
 	pb "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-mqtt"
+	"github.com/monzo/terrors"
+	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -56,4 +58,28 @@ func (h *ProtoHandler) SetLight(ctx context.Context, req *pb.SetLightRequest) (*
 
 func (h *ProtoHandler) GetLight(ctx context.Context, req *pb.GetLightRequest) (*pb.LightStatus, error) {
 	return h.mqtt.getLight(ctx, req.Id)
+}
+
+func (h *ProtoHandler) WatchLights(_ *emptypb.Empty, stream grpc.ServerStreamingServer[pb.LightStatus]) error {
+	updates, unsubscribe := h.mqtt.lightUpdates.subscribe()
+	defer unsubscribe()
+
+	// tells the client we are subscribed, so whatever it reads next cannot miss a change
+	if err := stream.SendHeader(nil); err != nil {
+		return terrors.Augment(err, "failed to send headers", nil)
+	}
+
+	for {
+		select {
+		case <-stream.Context().Done():
+			return nil
+		case status, ok := <-updates:
+			if !ok {
+				return terrors.New("watch_ended", "subscriber fell behind or service is shutting down", nil)
+			}
+			if err := stream.Send(status); err != nil {
+				return terrors.Augment(err, "failed to send light status", nil)
+			}
+		}
+	}
 }

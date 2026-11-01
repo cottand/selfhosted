@@ -9,12 +9,9 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
-	"time"
 
 	"cloud.google.com/go/bigquery"
-	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
 	"github.com/cottand/selfhosted/dev-go/lib/config"
-	s_rpc_nomad_api "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-nomad-api"
 	"github.com/cottand/selfhosted/dev-go/lib/secretstore"
 	"github.com/monzo/terrors"
 )
@@ -31,9 +28,6 @@ type WorkflowJobEvent struct {
 	Action      string             `json:"action"`
 	WorkflowJob *WorkflowJobEntity `json:"workflow_job,omitempty"`
 }
-
-var lastApplied = time.Unix(0, 0)
-var stagger = 20 * time.Second
 
 func (s *scaffold) MakeHTTPHandler() http.Handler {
 	mux := http.NewServeMux()
@@ -76,30 +70,6 @@ func (s *scaffold) handlePush(writer http.ResponseWriter, request *http.Request)
 			}
 		}
 	}()
-	if lastApplied.Add(stagger).After(time.Now()) {
-		return
-	}
-	defer func() {
-		lastApplied = time.Now()
-	}()
-
-	if !shouldAcceptEvent(&event) {
-		slog.DebugContext(ctx, "ignoring non-success push event")
-		return
-	}
-	go s.deploy(context.WithoutCancel(ctx), event.WorkflowJob.HeadSha)
-}
-
-func shouldAcceptEvent(event *WorkflowJobEvent) bool {
-	if event.Action != "completed" ||
-		event.WorkflowJob == nil ||
-		event.WorkflowJob.HeadBranch != "master" ||
-		event.WorkflowJob.Name != "build-images" ||
-		event.WorkflowJob.Status != "completed" ||
-		event.WorkflowJob.Conclusion != "success" {
-		return false
-	}
-	return true
 }
 
 func ghWebhookSecret(ctx context.Context) (string, error) {
@@ -132,21 +102,6 @@ func validateWebhookHmac(ctx context.Context, payloadBody []byte, secret, digest
 	}
 	slog.DebugContext(ctx, "event validation OK ✅")
 	return nil
-}
-
-func (s *scaffold) deploy(ctx context.Context, commit string) {
-	tracer := bedrock.GetTracer(ctx)
-	ctx, span := tracer.Start(ctx, "deployOnPush")
-	defer span.End()
-
-	_, err := s_rpc_nomad_api.Deploy(ctx, &s_rpc_nomad_api.Job{
-		Version: &s_rpc_nomad_api.Job_Commit{Commit: commit},
-		Name:    "dev-go",
-	})
-	if err != nil {
-		slog.WarnContext(ctx, "failed to deploy job", "err", err.Error())
-		span.RecordError(err)
-	}
 }
 
 func (s *scaffold) reportEvent(ctx context.Context, event *WorkflowJobEvent) error {

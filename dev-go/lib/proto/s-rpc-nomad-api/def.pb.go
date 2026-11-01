@@ -22,148 +22,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type Job struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Types that are valid to be assigned to Version:
-	//
-	//	*Job_Commit
-	//	*Job_Latest
-	Version       isJob_Version `protobuf_oneof:"Version"`
-	Name          string        `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *Job) Reset() {
-	*x = Job{}
-	mi := &file_s_rpc_nomad_api_def_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Job) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Job) ProtoMessage() {}
-
-func (x *Job) ProtoReflect() protoreflect.Message {
-	mi := &file_s_rpc_nomad_api_def_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Job.ProtoReflect.Descriptor instead.
-func (*Job) Descriptor() ([]byte, []int) {
-	return file_s_rpc_nomad_api_def_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *Job) GetVersion() isJob_Version {
-	if x != nil {
-		return x.Version
-	}
-	return nil
-}
-
-func (x *Job) GetCommit() string {
-	if x != nil {
-		if x, ok := x.Version.(*Job_Commit); ok {
-			return x.Commit
-		}
-	}
-	return ""
-}
-
-func (x *Job) GetLatest() bool {
-	if x != nil {
-		if x, ok := x.Version.(*Job_Latest); ok {
-			return x.Latest
-		}
-	}
-	return false
-}
-
-func (x *Job) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-type isJob_Version interface {
-	isJob_Version()
-}
-
-type Job_Commit struct {
-	Commit string `protobuf:"bytes,1,opt,name=commit,proto3,oneof"`
-}
-
-type Job_Latest struct {
-	Latest bool `protobuf:"varint,2,opt,name=latest,proto3,oneof"`
-}
-
-func (*Job_Commit) isJob_Version() {}
-
-func (*Job_Latest) isJob_Version() {}
-
-type DeployResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
-	Commit        string                 `protobuf:"bytes,2,opt,name=commit,proto3" json:"commit,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *DeployResponse) Reset() {
-	*x = DeployResponse{}
-	mi := &file_s_rpc_nomad_api_def_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *DeployResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*DeployResponse) ProtoMessage() {}
-
-func (x *DeployResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_s_rpc_nomad_api_def_proto_msgTypes[1]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use DeployResponse.ProtoReflect.Descriptor instead.
-func (*DeployResponse) Descriptor() ([]byte, []int) {
-	return file_s_rpc_nomad_api_def_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *DeployResponse) GetMessage() string {
-	if x != nil {
-		return x.Message
-	}
-	return ""
-}
-
-func (x *DeployResponse) GetCommit() string {
-	if x != nil {
-		return x.Commit
-	}
-	return ""
-}
-
 type ListJobsResponse struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	JobId             string                 `protobuf:"bytes,1,opt,name=jobId,proto3" json:"jobId,omitempty"`
@@ -175,7 +33,7 @@ type ListJobsResponse struct {
 
 func (x *ListJobsResponse) Reset() {
 	*x = ListJobsResponse{}
-	mi := &file_s_rpc_nomad_api_def_proto_msgTypes[2]
+	mi := &file_s_rpc_nomad_api_def_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -187,7 +45,7 @@ func (x *ListJobsResponse) String() string {
 func (*ListJobsResponse) ProtoMessage() {}
 
 func (x *ListJobsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_s_rpc_nomad_api_def_proto_msgTypes[2]
+	mi := &file_s_rpc_nomad_api_def_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -200,7 +58,7 @@ func (x *ListJobsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListJobsResponse.ProtoReflect.Descriptor instead.
 func (*ListJobsResponse) Descriptor() ([]byte, []int) {
-	return file_s_rpc_nomad_api_def_proto_rawDescGZIP(), []int{2}
+	return file_s_rpc_nomad_api_def_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *ListJobsResponse) GetJobId() string {
@@ -233,7 +91,7 @@ type ReadJobDefinitionRequest struct {
 
 func (x *ReadJobDefinitionRequest) Reset() {
 	*x = ReadJobDefinitionRequest{}
-	mi := &file_s_rpc_nomad_api_def_proto_msgTypes[3]
+	mi := &file_s_rpc_nomad_api_def_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -245,7 +103,7 @@ func (x *ReadJobDefinitionRequest) String() string {
 func (*ReadJobDefinitionRequest) ProtoMessage() {}
 
 func (x *ReadJobDefinitionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_s_rpc_nomad_api_def_proto_msgTypes[3]
+	mi := &file_s_rpc_nomad_api_def_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -258,7 +116,7 @@ func (x *ReadJobDefinitionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadJobDefinitionRequest.ProtoReflect.Descriptor instead.
 func (*ReadJobDefinitionRequest) Descriptor() ([]byte, []int) {
-	return file_s_rpc_nomad_api_def_proto_rawDescGZIP(), []int{3}
+	return file_s_rpc_nomad_api_def_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *ReadJobDefinitionRequest) GetJobId() string {
@@ -279,7 +137,7 @@ type ReadJobDefinitionResponse struct {
 
 func (x *ReadJobDefinitionResponse) Reset() {
 	*x = ReadJobDefinitionResponse{}
-	mi := &file_s_rpc_nomad_api_def_proto_msgTypes[4]
+	mi := &file_s_rpc_nomad_api_def_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -291,7 +149,7 @@ func (x *ReadJobDefinitionResponse) String() string {
 func (*ReadJobDefinitionResponse) ProtoMessage() {}
 
 func (x *ReadJobDefinitionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_s_rpc_nomad_api_def_proto_msgTypes[4]
+	mi := &file_s_rpc_nomad_api_def_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -304,7 +162,7 @@ func (x *ReadJobDefinitionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadJobDefinitionResponse.ProtoReflect.Descriptor instead.
 func (*ReadJobDefinitionResponse) Descriptor() ([]byte, []int) {
-	return file_s_rpc_nomad_api_def_proto_rawDescGZIP(), []int{4}
+	return file_s_rpc_nomad_api_def_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *ReadJobDefinitionResponse) GetJobId() string {
@@ -332,15 +190,7 @@ var File_s_rpc_nomad_api_def_proto protoreflect.FileDescriptor
 
 const file_s_rpc_nomad_api_def_proto_rawDesc = "" +
 	"\n" +
-	"\x19s-rpc-nomad-api/def.proto\x12\x0fs_rpc_nomad_api\x1a\x1bgoogle/protobuf/empty.proto\"X\n" +
-	"\x03Job\x12\x18\n" +
-	"\x06commit\x18\x01 \x01(\tH\x00R\x06commit\x12\x18\n" +
-	"\x06latest\x18\x02 \x01(\bH\x00R\x06latest\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04nameB\t\n" +
-	"\aVersion\"B\n" +
-	"\x0eDeployResponse\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage\x12\x16\n" +
-	"\x06commit\x18\x02 \x01(\tR\x06commit\"p\n" +
+	"\x19s-rpc-nomad-api/def.proto\x12\x0fs_rpc_nomad_api\x1a\x1bgoogle/protobuf/empty.proto\"p\n" +
 	"\x10ListJobsResponse\x12\x14\n" +
 	"\x05jobId\x18\x01 \x01(\tR\x05jobId\x12,\n" +
 	"\x11jobDefinitionJson\x18\x02 \x01(\fR\x11jobDefinitionJson\x12\x18\n" +
@@ -350,9 +200,8 @@ const file_s_rpc_nomad_api_def_proto_rawDesc = "" +
 	"\x19ReadJobDefinitionResponse\x12\x14\n" +
 	"\x05jobId\x18\x01 \x01(\tR\x05jobId\x12,\n" +
 	"\x11jobDefinitionJson\x18\x02 \x01(\fR\x11jobDefinitionJson\x12\x18\n" +
-	"\astopped\x18\x03 \x01(\bR\astopped2\x90\x02\n" +
-	"\bNomadApi\x12A\n" +
-	"\x06Deploy\x12\x14.s_rpc_nomad_api.Job\x1a\x1f.s_rpc_nomad_api.DeployResponse\"\x00\x12S\n" +
+	"\astopped\x18\x03 \x01(\bR\astopped2\xcd\x01\n" +
+	"\bNomadApi\x12S\n" +
 	"\x12ListJobDefinitions\x12\x16.google.protobuf.Empty\x1a!.s_rpc_nomad_api.ListJobsResponse\"\x000\x01\x12l\n" +
 	"\x11ReadJobDefinition\x12).s_rpc_nomad_api.ReadJobDefinitionRequest\x1a*.s_rpc_nomad_api.ReadJobDefinitionResponse\"\x00B?Z=github.com/Cottand/selfosted/dev-go/lib/proto/s-rpc-nomad-apib\x06proto3"
 
@@ -368,24 +217,20 @@ func file_s_rpc_nomad_api_def_proto_rawDescGZIP() []byte {
 	return file_s_rpc_nomad_api_def_proto_rawDescData
 }
 
-var file_s_rpc_nomad_api_def_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_s_rpc_nomad_api_def_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_s_rpc_nomad_api_def_proto_goTypes = []any{
-	(*Job)(nil),                       // 0: s_rpc_nomad_api.Job
-	(*DeployResponse)(nil),            // 1: s_rpc_nomad_api.DeployResponse
-	(*ListJobsResponse)(nil),          // 2: s_rpc_nomad_api.ListJobsResponse
-	(*ReadJobDefinitionRequest)(nil),  // 3: s_rpc_nomad_api.ReadJobDefinitionRequest
-	(*ReadJobDefinitionResponse)(nil), // 4: s_rpc_nomad_api.ReadJobDefinitionResponse
-	(*emptypb.Empty)(nil),             // 5: google.protobuf.Empty
+	(*ListJobsResponse)(nil),          // 0: s_rpc_nomad_api.ListJobsResponse
+	(*ReadJobDefinitionRequest)(nil),  // 1: s_rpc_nomad_api.ReadJobDefinitionRequest
+	(*ReadJobDefinitionResponse)(nil), // 2: s_rpc_nomad_api.ReadJobDefinitionResponse
+	(*emptypb.Empty)(nil),             // 3: google.protobuf.Empty
 }
 var file_s_rpc_nomad_api_def_proto_depIdxs = []int32{
-	0, // 0: s_rpc_nomad_api.NomadApi.Deploy:input_type -> s_rpc_nomad_api.Job
-	5, // 1: s_rpc_nomad_api.NomadApi.ListJobDefinitions:input_type -> google.protobuf.Empty
-	3, // 2: s_rpc_nomad_api.NomadApi.ReadJobDefinition:input_type -> s_rpc_nomad_api.ReadJobDefinitionRequest
-	1, // 3: s_rpc_nomad_api.NomadApi.Deploy:output_type -> s_rpc_nomad_api.DeployResponse
-	2, // 4: s_rpc_nomad_api.NomadApi.ListJobDefinitions:output_type -> s_rpc_nomad_api.ListJobsResponse
-	4, // 5: s_rpc_nomad_api.NomadApi.ReadJobDefinition:output_type -> s_rpc_nomad_api.ReadJobDefinitionResponse
-	3, // [3:6] is the sub-list for method output_type
-	0, // [0:3] is the sub-list for method input_type
+	3, // 0: s_rpc_nomad_api.NomadApi.ListJobDefinitions:input_type -> google.protobuf.Empty
+	1, // 1: s_rpc_nomad_api.NomadApi.ReadJobDefinition:input_type -> s_rpc_nomad_api.ReadJobDefinitionRequest
+	0, // 2: s_rpc_nomad_api.NomadApi.ListJobDefinitions:output_type -> s_rpc_nomad_api.ListJobsResponse
+	2, // 3: s_rpc_nomad_api.NomadApi.ReadJobDefinition:output_type -> s_rpc_nomad_api.ReadJobDefinitionResponse
+	2, // [2:4] is the sub-list for method output_type
+	0, // [0:2] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -396,17 +241,13 @@ func file_s_rpc_nomad_api_def_proto_init() {
 	if File_s_rpc_nomad_api_def_proto != nil {
 		return
 	}
-	file_s_rpc_nomad_api_def_proto_msgTypes[0].OneofWrappers = []any{
-		(*Job_Commit)(nil),
-		(*Job_Latest)(nil),
-	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_s_rpc_nomad_api_def_proto_rawDesc), len(file_s_rpc_nomad_api_def_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

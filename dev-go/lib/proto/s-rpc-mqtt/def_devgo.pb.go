@@ -57,3 +57,12 @@ func GetLight(ctx context.Context, in *GetLightRequest, opts ...grpc.CallOption)
 	}
 	return client.GetLight(ctx, in, opts...)
 }
+
+// Streams the status of every light whose state changes, starting from when the call is made
+func WatchLights(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[LightStatus], error) {
+	client, err := loadClient()
+	if err != nil {
+		return nil, err
+	}
+	return client.WatchLights(ctx, in, opts...)
+}

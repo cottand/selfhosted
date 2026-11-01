@@ -20,7 +20,6 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	NomadApi_Deploy_FullMethodName             = "/s_rpc_nomad_api.NomadApi/Deploy"
 	NomadApi_ListJobDefinitions_FullMethodName = "/s_rpc_nomad_api.NomadApi/ListJobDefinitions"
 	NomadApi_ReadJobDefinition_FullMethodName  = "/s_rpc_nomad_api.NomadApi/ReadJobDefinition"
 )
@@ -29,8 +28,6 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type NomadApiClient interface {
-	// Deploy deploys a job from a Nix definition
-	Deploy(ctx context.Context, in *Job, opts ...grpc.CallOption) (*DeployResponse, error)
 	ListJobDefinitions(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ListJobsResponse], error)
 	ReadJobDefinition(ctx context.Context, in *ReadJobDefinitionRequest, opts ...grpc.CallOption) (*ReadJobDefinitionResponse, error)
 }
@@ -41,16 +38,6 @@ type nomadApiClient struct {
 
 func NewNomadApiClient(cc grpc.ClientConnInterface) NomadApiClient {
 	return &nomadApiClient{cc}
-}
-
-func (c *nomadApiClient) Deploy(ctx context.Context, in *Job, opts ...grpc.CallOption) (*DeployResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DeployResponse)
-	err := c.cc.Invoke(ctx, NomadApi_Deploy_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *nomadApiClient) ListJobDefinitions(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ListJobsResponse], error) {
@@ -86,8 +73,6 @@ func (c *nomadApiClient) ReadJobDefinition(ctx context.Context, in *ReadJobDefin
 // All implementations must embed UnimplementedNomadApiServer
 // for forward compatibility.
 type NomadApiServer interface {
-	// Deploy deploys a job from a Nix definition
-	Deploy(context.Context, *Job) (*DeployResponse, error)
 	ListJobDefinitions(*emptypb.Empty, grpc.ServerStreamingServer[ListJobsResponse]) error
 	ReadJobDefinition(context.Context, *ReadJobDefinitionRequest) (*ReadJobDefinitionResponse, error)
 	mustEmbedUnimplementedNomadApiServer()
@@ -100,9 +85,6 @@ type NomadApiServer interface {
 // pointer dereference when methods are called.
 type UnimplementedNomadApiServer struct{}
 
-func (UnimplementedNomadApiServer) Deploy(context.Context, *Job) (*DeployResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method Deploy not implemented")
-}
 func (UnimplementedNomadApiServer) ListJobDefinitions(*emptypb.Empty, grpc.ServerStreamingServer[ListJobsResponse]) error {
 	return status.Error(codes.Unimplemented, "method ListJobDefinitions not implemented")
 }
@@ -128,24 +110,6 @@ func RegisterNomadApiServer(s grpc.ServiceRegistrar, srv NomadApiServer) {
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&NomadApi_ServiceDesc, srv)
-}
-
-func _NomadApi_Deploy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Job)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(NomadApiServer).Deploy(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: NomadApi_Deploy_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NomadApiServer).Deploy(ctx, req.(*Job))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _NomadApi_ListJobDefinitions_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -184,10 +148,6 @@ var NomadApi_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "s_rpc_nomad_api.NomadApi",
 	HandlerType: (*NomadApiServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "Deploy",
-			Handler:    _NomadApi_Deploy_Handler,
-		},
 		{
 			MethodName: "ReadJobDefinition",
 			Handler:    _NomadApi_ReadJobDefinition_Handler,

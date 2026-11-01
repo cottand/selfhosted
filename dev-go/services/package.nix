@@ -6,7 +6,6 @@
 , util
 , curlMinimal
 , pkg-config
-, nixVersions
 , cacert
 , buildGoCache
 , gsx
