@@ -89,17 +89,3 @@ moved {
   to   = cloudflare_dns_record.nico-cname-web
 }
 
-resource "cloudflare_dns_record" "lemmy-cname-web" {
-  zone_id = local.zoneIds["eu"]
-  name    = "r"
-  type    = "CNAME"
-  ttl     = 1
-  comment = "tf managed"
-  proxied = true
-  content = "web.dcotta.eu"
-}
-
-moved {
-  from = cloudflare_record.lemmy-cname-web
-  to   = cloudflare_dns_record.lemmy-cname-web
-}

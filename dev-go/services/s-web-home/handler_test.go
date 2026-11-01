@@ -3,6 +3,8 @@ package module
 import (
 	"bufio"
 	"context"
+	"errors"
+	"io"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -33,6 +35,13 @@ func (f *fakeMqtt) ListLights(context.Context, *emptypb.Empty) (*pb.ListLightsRe
 
 func (f *fakeMqtt) GetLight(_ context.Context, req *pb.GetLightRequest) (*pb.LightStatus, error) {
 	return &pb.LightStatus{Id: req.Id}, nil
+}
+
+func (f *fakeMqtt) SetLight(_ context.Context, req *pb.SetLightRequest) (*pb.LightStatus, error) {
+	if req.Id == "broken" {
+		return nil, errors.New("unreachable")
+	}
+	return &pb.LightStatus{Id: req.Id, On: req.GetOn()}, nil
 }
 
 func (f *fakeMqtt) WatchLights(_ *emptypb.Empty, stream grpc.ServerStreamingServer[pb.LightStatus]) error {
@@ -174,4 +183,41 @@ func TestFloorplan(t *testing.T) {
 	assert.Equal(t, http.StatusOK, recorder.Code)
 	assert.Equal(t, "image/svg+xml", recorder.Header().Get("Content-Type"))
 	assert.Contains(t, recorder.Body.String(), "<svg")
+}
+
+func postLight(t *testing.T, id string, rowOnly bool) (*http.Response, string) {
+	t.Helper()
+	startFakeMqtt(t)
+	request := httptest.NewRequest(http.MethodPost, "/lights/"+id, strings.NewReader("on=true"))
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	if rowOnly {
+		request.Header.Set("X-Row-Only", "true")
+	}
+	recorder := httptest.NewRecorder()
+	(&scaffold{}).MakeHTTPHandler().ServeHTTP(recorder, request)
+	response := recorder.Result()
+	body, err := io.ReadAll(response.Body)
+	failOnError(t, err)
+	return response, string(body)
+}
+
+func TestSetLightReturnsRow(t *testing.T) {
+	response, body := postLight(t, "plug103", true)
+
+	assert.Equal(t, http.StatusOK, response.StatusCode)
+	assert.Contains(t, body, `id="light-plug103"`)
+	assert.NotContains(t, body, "<html")
+}
+
+func TestSetLightRedirectsPlainForms(t *testing.T) {
+	response, _ := postLight(t, "plug103", false)
+
+	assert.Equal(t, http.StatusSeeOther, response.StatusCode)
+	assert.Equal(t, "/", response.Header.Get("Location"))
+}
+
+func TestSetLightFailure(t *testing.T) {
+	response, _ := postLight(t, "broken", true)
+
+	assert.Equal(t, http.StatusBadGateway, response.StatusCode)
 }

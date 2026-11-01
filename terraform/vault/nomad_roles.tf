@@ -40,14 +40,6 @@ locals {
       ttl = 10 * 24 * 60 * 60 # 10d
     }
 
-    "ente-backup-maker" = {
-      policies = [
-        vault_policy.nomad-workloads-base.name,
-        vault_policy.ente-backup-maker.name,
-      ]
-      ttl = 10 * 24 * 60 * 60 # 10d
-    }
-
     ###
     # below is for microservices mode only!
     ######

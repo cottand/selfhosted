@@ -260,7 +260,7 @@ in
           "traefik.enable=true"
           "traefik.consulcatalog.connect=true"
           "traefik.http.routers.\${NOMAD_GROUP_NAME}-http.entrypoints=web,websecure"
-          "traefik.http.routers.\${NOMAD_GROUP_NAME} -http.tls=true"
+          "traefik.http.routers.\${NOMAD_GROUP_NAME}-http.tls=true"
         ];
       };
     };

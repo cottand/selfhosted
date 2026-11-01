@@ -71,6 +71,9 @@ component Home(lights []light, listFailed bool) {
 					min-width: 3rem;
 					text-align: right;
 				}
+				#light-error {
+					color: #a8502a;
+				}
 				@media (min-width: 50rem) {
 					body {
 						max-width: 46rem;
@@ -125,6 +128,7 @@ component Home(lights []light, listFailed bool) {
 			{ if listFailed {
 				<p>Could not load lights.</p>
 			} }
+			<p id="light-error" role="alert" hidden></p>
 			<div class="plan">
 				{ for _, l := range lights {
 					<LightRow l={l}/>
@@ -136,6 +140,17 @@ component Home(lights []light, listFailed bool) {
 
 				function applyRow(row) {
 					document.getElementById(row.id)?.replaceWith(row);
+				}
+
+				function showRow(html) {
+					const template = document.createElement("template");
+					template.innerHTML = html;
+					const row = template.content.firstElementChild;
+					if (row.id === draggedRow) {
+						pendingRow = row;
+					} else {
+						applyRow(row);
+					}
 				}
 
 				document.addEventListener("pointerdown", (event) => {
@@ -157,16 +172,27 @@ component Home(lights []light, listFailed bool) {
 				document.addEventListener("pointerup", endDrag);
 				document.addEventListener("pointercancel", endDrag);
 
-				new EventSource("/lights/events").addEventListener("light", (event) => {
-					const template = document.createElement("template");
-					template.innerHTML = event.data;
-					const row = template.content.firstElementChild;
-					if (row.id === draggedRow) {
-						pendingRow = row;
-					} else {
-						applyRow(row);
+				document.addEventListener("submit", async (event) => {
+					event.preventDefault();
+					const error = document.getElementById("light-error");
+					try {
+						const response = await fetch(event.target.action, {
+							method: "POST",
+							headers: { "X-Row-Only": "true" },
+							body: new URLSearchParams(new FormData(event.target, event.submitter)),
+						});
+						if (!response.ok) {
+							throw new Error(await response.text());
+						}
+						error.hidden = true;
+						showRow(await response.text());
+					} catch (err) {
+						error.textContent = err.message;
+						error.hidden = false;
 					}
 				});
+
+				new EventSource("/lights/events").addEventListener("light", (event) => showRow(event.data));
 			</script>
 		</body>
 	</html>

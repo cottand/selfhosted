@@ -222,7 +222,6 @@ let
       ] ++ builtins.concatLists (map certsForUser [
       "root"
       "grafana"
-      "ente"
       "safebucket"
       "cloudreve"
       ]);

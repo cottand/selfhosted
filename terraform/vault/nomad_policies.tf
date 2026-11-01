@@ -77,18 +77,3 @@ data "vault_policy_document" "vault-backup-maker" {
 }
 
 
-resource "vault_policy" "ente-backup-maker" {
-  name   = "ente-backup-maker"
-  policy = data.vault_policy_document.ente-backup-maker.hcl
-}
-data "vault_policy_document" "ente-backup-maker" {
-  rule {
-    path = "secret/data/nomad/job/ente/b2"
-    capabilities = ["read"]
-  }
-  rule {
-    path = "secret/data/nomad/job/roach/users/ente"
-    capabilities = ["read"]
-  }
-}
-

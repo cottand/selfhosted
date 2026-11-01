@@ -67,6 +67,7 @@ func (s *scaffold) home(writer http.ResponseWriter, request *http.Request) {
 
 func floorplan(writer http.ResponseWriter, _ *http.Request) {
 	writer.Header().Set("Content-Type", "image/svg+xml")
+	writer.Header().Set("Cache-Control", "public, max-age=3600")
 	_, _ = writer.Write(floorplanSVG)
 }
 
@@ -113,10 +114,14 @@ func (s *scaffold) setLight(writer http.ResponseWriter, request *http.Request) {
 	ctx, cancel := context.WithTimeout(request.Context(), 5*time.Second)
 	defer cancel()
 
-	_, err := s_rpc_mqtt.SetLight(ctx, req)
+	status, err := s_rpc_mqtt.SetLight(ctx, req)
 	if err != nil {
 		slog.ErrorContext(ctx, "failed to set light", "id", req.Id, "err", terrors.Propagate(err))
 		http.Error(writer, "failed to set "+req.Id, http.StatusBadGateway)
+		return
+	}
+	if request.Header.Get("X-Row-Only") != "" {
+		render(writer, request, LightRow(lightFromStatus(status)))
 		return
 	}
 	http.Redirect(writer, request, "/", http.StatusSeeOther)

@@ -28,14 +28,6 @@ resource "nomad_acl_policy" "seaweedfs-backup-read-buckets" {
   }
 }
 
-resource "nomad_acl_policy" "lemmy-backup-read-buckets" {
-  name      = "lemmy-backup-read-buckets"
-  rules_hcl = file("policies/read-buckets.hcl")
-  job_acl {
-    job_id = "lemmy-backup"
-  }
-}
-
 resource "nomad_acl_policy" "immich-backup-read-buckets" {
   name      = "immich-backup-read-buckets"
   rules_hcl = file("policies/read-buckets.hcl")

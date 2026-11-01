@@ -67,13 +67,6 @@ resource "hcloud_firewall" "ssh-wireguard" {
   rule {
     direction  = "in"
     protocol   = "udp"
-    port       = "55820"
-    source_ips = ["0.0.0.0/0", "::/0"]
-  }
-
-  rule {
-    direction  = "in"
-    protocol   = "udp"
     port       = "46461"
     source_ips = ["0.0.0.0/0", "::/0"]
   }
