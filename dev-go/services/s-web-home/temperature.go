@@ -15,8 +15,7 @@ const (
 	aquariumLight      = "rgb105"
 	aquariumTempPeriod = 5 * time.Second
 	tempUnknown        = "--°C"
-	// max and not avg: a replica reports 0 until its first poll
-	aquariumTempQuery = "max(s_rpc_mqtt_pill107_temp)"
+	aquariumTempQuery  = `max(s_rpc_mqtt_pill107_temp{shelly_id="pill107"})`
 )
 
 func (s *scaffold) withTemp(ctx context.Context, l light) light {

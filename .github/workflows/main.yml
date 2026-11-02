@@ -98,7 +98,7 @@ jobs:
       matrix:
         package:
           # these have to be fully qualified nix flake paths
-          - github:zhaofengli/colmena#defaultPackage.x86_64-linux
+          - github:nix-community/colmena#packages.x86_64-linux.colmena
           - github:Mic92/nix-fast-build/1.2.0#packages.x86_64-linux.default
           - .#packages.x86_64-linux.bws-get
           - .#legacyPackages.x86_64-linux.pkgs.vault-bin

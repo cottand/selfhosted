@@ -13,11 +13,13 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
-var tempStat = promauto.NewGauge(prometheus.GaugeOpts{
+const aquariumPill = "pill107"
+
+var tempStat = promauto.NewGaugeVec(prometheus.GaugeOpts{
 	Namespace: util.KebabToSnakeCase(Name),
 	Name:      "pill107_temp",
 	Help:      "Temperature as reported by pill107 (likely aquarium temp)",
-})
+}, []string{"shelly_id"})
 
 func (r *mqttScaffold) aquariumTempPollingForever(ctx context.Context) error {
 	pollPeriod, _ := config.Get(ctx, "mqtt/aquariumTemp/polling_s").Int(30)
@@ -40,7 +42,7 @@ func (r *mqttScaffold) aquariumTempPoll(ctx context.Context) error {
 	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(10*time.Second))
 	defer cancel()
 
-	rsp, err := r.shellyRPCResp(ctx, "shelly/pill107/rpc", "Temperature.GetStatus", map[string]any{"id": 200})
+	rsp, err := r.shellyRPCResp(ctx, "shelly/"+aquariumPill+"/rpc", "Temperature.GetStatus", map[string]any{"id": 200})
 	if err != nil {
 		return terrors.Augment(err, "could not get temp status", nil)
 	}
@@ -50,7 +52,7 @@ func (r *mqttScaffold) aquariumTempPoll(ctx context.Context) error {
 	}
 
 	if parsed.Result != nil {
-		tempStat.Set(parsed.Result.TC)
+		tempStat.WithLabelValues(aquariumPill).Set(parsed.Result.TC)
 	}
 
 	return nil

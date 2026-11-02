@@ -78,7 +78,7 @@ func (s *scaffold) handleAquariumTemp(rw http.ResponseWriter, req *http.Request)
 	span.SetAttributes(attribute.Bool("cached", false))
 
 	tempC, err := s_rpc_prometheus.QueryInstant(req.Context(), &s_rpc_prometheus.QueryInstantRequest{
-		PromQLQuery: "avg(s_rpc_mqtt_pill107_temp)",
+		PromQLQuery: `avg(s_rpc_mqtt_pill107_temp{shelly_id="pill107"})`,
 	})
 
 	if err != nil {
