@@ -74,6 +74,8 @@
           inherit (selfPkgs) scripts util;
           inherit (inputs.nixnomad.packages.${system}) nix-nomad;
 
+          go = prev.go_latest;
+
           consul-cni = prev.callPackage ./packages/consul-cni.nix { };
 
           gsx = prev.callPackage ./packages/gsx.nix { };

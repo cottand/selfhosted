@@ -91,7 +91,7 @@ let
         "traefik.enable=true"
         "traefik.consulcatalog.connect=true"
         "traefik.tcp.routers.roach-db.tls.passthrough=true"
-        "traefik.tcp.routers.roach-db.rule=HostSNI(`roach-db.traefik`) || HostSNI(`roach-db.tfk.nd`)"
+        "traefik.tcp.routers.roach-db.rule=HostSNI(`roach-db.traefik`) || HostSNI(`roach-db.tfk.nd`) || HostSNI(`roach-db.i.dcotta.com`)"
         "traefik.tcp.routers.roach-db.entrypoints=sql"
       ];
       checks = [
@@ -130,7 +130,7 @@ let
         "traefik.enable=true"
         "traefik.consulcatalog.connect=true"
         "traefik.tcp.routers.roach-web.tls.passthrough=true"
-        "traefik.tcp.routers.roach-web.rule=HostSNI(`roach-web.traefik`) || HostSNI(`roach-web.tfk.nd`)"
+        "traefik.tcp.routers.roach-web.rule=HostSNI(`roach-web.traefik`) || HostSNI(`roach-web.tfk.nd`) || HostSNI(`roach-web.i.dcotta.com`)"
         "traefik.tcp.routers.roach-web.entrypoints=web,websecure"
 
       ];

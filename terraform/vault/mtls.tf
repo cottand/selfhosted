@@ -90,10 +90,10 @@ rm cert.pem && rm key.rsa
 locals {
   cert_to_export = vault_pki_secret_backend_cert.client-mtls-cert-marti-v1
 }
-output "cert" {
-  value = {
-    cert = "${local.cert_to_export.certificate}\n${local.cert_to_export.ca_chain}"
-    key  = local.cert_to_export.private_key
-  }
-  sensitive = true
-}
+# output "cert" {
+#   value = {
+#     cert = "${local.cert_to_export.certificate}\n${local.cert_to_export.ca_chain}"
+#     key  = local.cert_to_export.private_key
+#   }
+#   sensitive = true
+# }
