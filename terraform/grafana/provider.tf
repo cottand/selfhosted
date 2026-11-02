@@ -31,7 +31,7 @@ provider "bitwarden-secrets" {
   access_token = data.external.keychain-bw-token.result.value
 }
 provider "grafana" {
-  url = "https://grafana.tfk.nd/"
+  url = "https://grafana.i.dcotta.com/"
   #   auth = var.grafana_auth
 }
 

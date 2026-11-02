@@ -105,7 +105,7 @@ in
           "traefik.enable=true"
           "traefik.consulcatalog.connect=true"
           "traefik.http.routers.mealie.entrypoints=web,websecure,cloudflared"
-          "traefik.http.routers.mealie.rule=Host(`mealie.tfk.nd`) || Host(`mealie.dcotta.com`)"
+          "traefik.http.routers.mealie.rule=Host(`mealie.dcotta.com`)"
           "traefik.http.routers.mealie.tls=true"
         ];
       };

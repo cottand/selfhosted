@@ -41,7 +41,7 @@ in
         mode = "bridge";
         port."dns_ts".hostNetwork = "ts";
         port."http_ui".hostNetwork = "ts";
-        reservedPorts = {
+        port = {
           "http_ts" = { static = 80; to = ports.http-ts; hostNetwork = "ts"; };
           "https_ts" = { static = 443; to = ports.https-ts; hostNetwork = "ts"; };
           "http_public" = { static = 80; to = ports.http-public; hostNetwork = "public"; };
@@ -114,27 +114,48 @@ in
         task = "traefik";
         connect.native = true;
       };
-      #      task."traefik-ts-service" = {
-      #        vault = { };
-      #        driver = "docker";
-      #        config = {
-      #          image = "tailscale/tailscale:stable";
-      #          volumes = [
-      #          ];
-      #          args = [
-      #            "serve"
-      #            "--bg=false"
-      #            "--service=svc:traefik"
-      #            "--yes"
-      #            "--https=443 127.0.0.1:${toString ports.https-ts}"
-      #          ];
-      #        };
-      #        resources = {
-      #          cpu = 100;
-      #          memory = 100;
-      #          memoryMax = 500;
-      #        };
-      #      };
+      task."tailscale-service-traefik" = {
+        lifecycle = {
+          hook = "poststart";
+          sidecar = true;
+        };
+        vault = { };
+        driver = "docker";
+        config = {
+          image = "tailscale/tailscale:stable";
+          entrypoint = [ "/bin/sh" "-c" ];
+          # serve fails until the node has logged in, and containerboot must stay PID 1 to unadvertise on SIGTERM
+          args = [
+            ''
+              until tailscale --socket="$TS_SOCKET" serve --service=svc:traefik --tcp=443 --yes tcp://127.0.0.1:${toString ports.https-ts}; do
+                sleep 2
+              done &
+              exec /usr/local/bin/containerboot
+            ''
+          ];
+        };
+        env = {
+          TS_HOSTNAME = "traefik-\${NOMAD_ALLOC_INDEX}";
+          TS_STATE_DIR = "/secrets/tailscale";
+          TS_AUTH_ONCE = "true";
+          TS_SOCKET = "/tmp/tailscaled.sock";
+        };
+        templates = [{
+          destination = "secrets/tailscale.env";
+          changeMode = "restart";
+          env = true;
+          data = ''
+            {{ with secret "secret/data/nomad/job/traefik/tailscale" }}
+            TS_AUTHKEY={{ .Data.data.authkey }}
+            {{ end }}
+          '';
+        }];
+        resources = {
+          cpu = 100;
+          memory = 100;
+          memoryMax = 500;
+        };
+      };
       task."cloudflared-traefik" = {
         lifecycle = {
           hook = "poststart";

@@ -76,11 +76,11 @@ component Home(lights []light, listFailed bool) {
 				}
 				@media (min-width: 50rem) {
 					body {
-						max-width: 46rem;
+						max-width: 62rem;
 					}
 					.plan {
 						position: relative;
-						aspect-ratio: 800 / 1094;
+						aspect-ratio: 1094 / 800;
 						background: url("/floorplan.svg") center / contain no-repeat;
 					}
 					.light {
@@ -99,26 +99,26 @@ component Home(lights []light, listFailed bool) {
 						min-width: 0;
 					}
 					#light-plug103 {
-						left: 10%;
-						top: 34.7%;
+						left: 34.7%;
+						top: 90%;
 					}
 					#light-rgb105 {
 						width: 11rem;
-						left: 65%;
-						top: 63.1%;
+						left: 63.1%;
+						top: 35%;
 					}
 					#light-plug104 {
-						left: 89.6%;
-						top: 63.3%;
+						left: 63.3%;
+						top: 10.4%;
 					}
 					#light-rgb108 {
 						width: 11rem;
-						left: 12.5%;
-						top: 81.8%;
+						left: 81.8%;
+						top: 87.5%;
 					}
 					#light-plug106 {
-						left: 30%;
-						top: 89.6%;
+						left: 89.6%;
+						top: 70%;
 					}
 				}
 			</style>

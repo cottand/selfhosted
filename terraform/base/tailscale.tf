@@ -22,6 +22,28 @@ output "tailscale_authtoken_default_bw_secret_id" {
   value = bitwarden-secrets_secret.ts_authkey_default.id
 }
 
+// sidecar nodes of the traefik job, which do not outlive their allocation
+resource "tailscale_tailnet_key" "traefik" {
+  reusable            = true
+  ephemeral           = true
+  tags                = ["tag:workercontainer"]
+  preauthorized       = true
+  recreate_if_invalid = "always"
+}
+
+resource "vault_kv_secret_v2" "traefik_ts_authkey" {
+  mount = "secret"
+  name  = "/nomad/job/traefik/tailscale"
+  data_json = jsonencode({
+    authkey = tailscale_tailnet_key.traefik.key
+  })
+  custom_metadata {
+    data = {
+      "tf_managed" = "true"
+    }
+  }
+}
+
 resource "tailscale_dns_split_nameservers" "leng_seach_paths" {
   for_each = toset([
     "traefik",
@@ -36,6 +58,11 @@ resource "tailscale_dns_split_nameservers" "leng_seach_paths" {
     "100.98.28.95",
   ]
   domain = each.value
+}
+
+resource "tailscale_dns_split_nameservers" "consul_search_path" {
+  nameservers = [ for oci-machine in local.oci-control-machines : data.tailscale_device.oci-control[oci-machine].addresses[0]]
+  domain = "consul"
 }
 
 # Tailscale looks at port 53 but consul uses 8600

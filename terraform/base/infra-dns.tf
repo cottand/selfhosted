@@ -42,11 +42,25 @@ moved {
 
 resource "cloudflare_dns_record" "tailscale_cnames" {
   // we want vault to remain manual
-  for_each = toset(["consul", "nomad"])
+  for_each = toset([
+    "consul",
+    "nomad",
+  ])
   zone_id  = local.zoneIds["com"]
   name     = each.value
   type     = "CNAME"
   content  = "${each.value}.golden-dace.ts.net"
+  ttl      = 60
+  comment  = "tf managed"
+  proxied  = false
+}
+
+resource "cloudflare_dns_record" "tailscale_traefik_cname" {
+  // we want vault to remain manual
+  zone_id  = local.zoneIds["com"]
+  name     = "*.i"
+  type     = "CNAME"
+  content  = "traefik.golden-dace.ts.net"
   ttl      = 60
   comment  = "tf managed"
   proxied  = false

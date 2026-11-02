@@ -61,7 +61,7 @@ insecure = true
 # The service name below should match the nomad/consul service above
 # and is used for intentions in consul
 servicename = "traefik-ingress"
-refreshInterval = "5s"
+refreshInterval = "3s"
 watch = true
 exposedByDefault = false
 connectAware = true
@@ -70,7 +70,7 @@ connectByDefault = true
 endpoint.tls.insecureSkipVerify = true # TODO add SAN for this IP!
 endpoint.datacenter = "dc1"
 
-defaultRule = 'Host(`{{"{{ .Name }}"}}.traefik`) || Host(`{{"{{ .Name }}"}}.tfk.nd`)'
+defaultRule = 'Host(`{{"{{ .Name }}"}}.traefik`) || Host(`{{"{{ .Name }}"}}.tfk.nd`) || Host(`{{"{{ .Name }}"}}.i.dcotta.com`)'
 
 
 
@@ -81,7 +81,7 @@ exposedByDefault = false
 defaultRule = 'Host(`{{"{{ .Name }}"}}.traefik`)'
 
 [providers.nomad.endpoint]
-address = "https://hez3.golden-dace.ts.net:4646"
+address = "https://nomad.dcotta.com"
 # TODO make vault with secret work
 tls.insecureSkipVerify = false
 token = '{{ env "NOMAD_TOKEN" }}'

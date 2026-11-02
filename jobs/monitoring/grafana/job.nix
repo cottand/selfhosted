@@ -89,7 +89,6 @@ in
         tags = [
           "traefik.enable=true"
           "traefik.consulcatalog.connect=true"
-          "traefik.http.routers.\${NOMAD_GROUP_NAME}.middlewares=vpn-whitelist@file"
           "traefik.http.routers.\${NOMAD_GROUP_NAME}.entrypoints=web, websecure"
           "traefik.http.routers.\${NOMAD_GROUP_NAME}.tls=true"
         ];
@@ -118,7 +117,7 @@ in
           "GF_SERVER_SERVE_FROM_SUB_PATH" = true;
           "GF_SECURITY_ALLOW_EMBEDDING" = true;
           "GF_FEATURE_TOGGLES_ENABLE" = "traceToMetrics logsExploreTableVisualisation";
-          GF_INSTALL_PLUGINS = "https://storage.googleapis.com/integration-artifacts/grafana-lokiexplore-app/grafana-lokiexplore-app-latest.zip;grafana-lokiexplore-app, oci-metrics-datasource";
+          GF_PLUGINS_PREINSTALL_SYNC = "oci-metrics-datasource";
           #OTEL_EXPORTER_OTLP_TRACES_ENDPOINT = "http://localhost:${toString otlpPort}";
         };
 

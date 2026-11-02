@@ -47,7 +47,7 @@ let
       config.ui.links = lib.mkIf config.addDefaultLinks [
         {
           label = "Grafana for Job";
-          url = "https://grafana.tfk.nd/d/de0ri7g2kukn4a/nomad-job?var-client=All&var-job=${config.name}&var-group=All&var-task=All&var-alloc_id=All";
+          url = "https://grafana.i.dcotta.com/d/de0ri7g2kukn4a/nomad-job?var-client=All&var-job=${config.name}&var-group=All&var-task=All&var-alloc_id=All";
         }
         {
           label = "Consul services";

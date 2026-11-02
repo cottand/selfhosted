@@ -59,7 +59,7 @@ resource "vault_pki_secret_backend_cert" "traefik-internal-wildcard-cert" {
   name        = vault_pki_secret_backend_role.intermediate_role-workloads.name
   common_name = "wildcard-cert-dec-2024.traefik"
 
-  alt_names = [ "*.tfk.nd", "*.dcotta.com", "*.dcotta.eu"]
+  alt_names = [ "*.tfk.nd", "*.i.dcotta.com", "*.dcotta.com", "*.dcotta.eu"]
 
   ttl    = 6 * 1292000 # 6 months ish
   auto_renew = true

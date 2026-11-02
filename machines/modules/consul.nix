@@ -59,8 +59,7 @@ in
       webUi = true;
       forceAddrFamily = "ipv4";
 
-      extraConfig = {
-
+      extraConfig = lib.mkMerge [ cfg.extraConfig {
         retry_join = [
           "inst-ad2ir-control"
           "inst-hqswv-control"
@@ -121,8 +120,8 @@ in
           default_policy = "allow";
           enable_token_persistence = true;
         };
-      };
-    } // cfg.extraConfig;
+      }];
+    };
   };
 
 }

@@ -55,6 +55,9 @@
   networking.timeServers = [ "169.254.169.254" ];
 
   consulNode.server = true;
+  consulNode.extraConfig = {
+    ports.dns = 53;
+  };
 
   vaultNode.enable = true;
 

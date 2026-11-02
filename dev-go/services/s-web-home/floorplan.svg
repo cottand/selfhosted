@@ -1,13 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1094" role="img" aria-label="Floor plan of the house">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1094 800" role="img" aria-label="Floor plan of the house">
 	<style>
 		.wall { fill: var(--plan-wall, #a8502a); }
 		.floor { fill: var(--plan-floor, #f4f1ea); stroke: var(--plan-floor, #f4f1ea); stroke-width: 8; stroke-linejoin: round; }
 		.tread { stroke: var(--plan-wall, #a8502a); stroke-opacity: 0.18; stroke-width: 3; stroke-linecap: round; }
 		.glass { fill: var(--plan-glass, #bcd9e8); }
 	</style>
-	<rect class="wall" width="800" height="1094" rx="28"/>
-	<path class="floor" d="M44 1051V766H82V603H44V280H169V252H44V88H280V252H258V280H356V252H326V44H754V252H474V280H556V294H583V280H754V619H583V381H556V647H754V1051Z"/>
-	<path class="tread" d="M590 398H746M590 430H746M590 462H746M590 494H746M590 526H746M590 558H746M590 590H746"/>
-	<rect class="glass" x="52" y="1063" width="289" height="16" rx="4"/>
-	<rect class="glass" x="457" y="1063" width="289" height="16" rx="4"/>
+	<g transform="translate(0 800) rotate(-90)">
+		<rect class="wall" width="800" height="1094" rx="28"/>
+		<path class="floor" d="M44 1051V766H82V603H44V280H169V252H44V88H280V252H258V280H356V252H326V44H754V252H474V280H556V294H583V280H754V619H583V381H556V647H754V1051Z"/>
+		<path class="tread" d="M590 398H746M590 430H746M590 462H746M590 494H746M590 526H746M590 558H746M590 590H746"/>
+		<rect class="glass" x="52" y="1063" width="289" height="16" rx="4"/>
+		<rect class="glass" x="457" y="1063" width="289" height="16" rx="4"/>
+	</g>
 </svg>
