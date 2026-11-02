@@ -192,7 +192,14 @@ component Home(lights []light, listFailed bool) {
 					}
 				});
 
-				new EventSource("/lights/events").addEventListener("light", (event) => showRow(event.data));
+				const events = new EventSource("/lights/events");
+				events.addEventListener("light", (event) => showRow(event.data));
+				events.addEventListener("temp", (event) => {
+					const temp = document.getElementById("aquarium-temp");
+					if (temp) {
+						temp.textContent = event.data;
+					}
+				});
 			</script>
 		</body>
 	</html>
@@ -214,6 +221,9 @@ component LightRow(l light) {
 						on
 					} }
 				</div>
+				{ if l.ID == aquariumLight {
+					<div>tank <span id="aquarium-temp">{l.Temp}</span></div>
+				} }
 			</div>
 			<form method="post" action={ "/lights/" + l.ID }>
 				<button

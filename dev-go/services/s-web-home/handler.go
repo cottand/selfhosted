@@ -32,6 +32,8 @@ type light struct {
 	Known      bool
 	On         bool
 	Brightness int
+	// Temp is only set for aquariumLight
+	Temp string
 }
 
 func lightFromStatus(status *s_rpc_mqtt.LightStatus) light {
@@ -58,7 +60,7 @@ func (s *scaffold) MakeHTTPHandler() http.Handler {
 }
 
 func (s *scaffold) home(writer http.ResponseWriter, request *http.Request) {
-	lights, err := fetchLights(request.Context())
+	lights, err := s.fetchLights(request.Context())
 	if err != nil {
 		slog.ErrorContext(request.Context(), "failed to list lights", "err", terrors.Propagate(err))
 	}
@@ -71,7 +73,7 @@ func floorplan(writer http.ResponseWriter, _ *http.Request) {
 	_, _ = writer.Write(floorplanSVG)
 }
 
-func fetchLights(ctx context.Context) ([]light, error) {
+func (s *scaffold) fetchLights(ctx context.Context) ([]light, error) {
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
@@ -94,6 +96,9 @@ func fetchLights(ctx context.Context) ([]light, error) {
 		})
 	}
 	wg.Wait()
+	for i, l := range lights {
+		lights[i] = s.withTemp(ctx, l)
+	}
 	return lights, nil
 }
 
@@ -121,7 +126,7 @@ func (s *scaffold) setLight(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 	if request.Header.Get("X-Row-Only") != "" {
-		render(writer, request, LightRow(lightFromStatus(status)))
+		render(writer, request, LightRow(s.withTemp(ctx, lightFromStatus(status))))
 		return
 	}
 	http.Redirect(writer, request, "/", http.StatusSeeOther)
@@ -186,7 +191,7 @@ func (s *scaffold) lightEvents(writer http.ResponseWriter, request *http.Request
 		return
 	}
 
-	lights, err := fetchLights(ctx)
+	lights, err := s.fetchLights(ctx)
 	if err != nil {
 		slog.WarnContext(ctx, "failed to send light snapshot", "err", terrors.Propagate(err))
 		return
@@ -197,8 +202,15 @@ func (s *scaffold) lightEvents(writer http.ResponseWriter, request *http.Request
 		}
 	}
 
+	lastTemp := s.aquariumTemp(ctx)
+	if err := send(tempEvent(lastTemp)); err != nil {
+		return
+	}
+
 	ping := time.NewTicker(ssePingPeriod)
 	defer ping.Stop()
+	tempTicker := time.NewTicker(s.tempPeriod)
+	defer tempTicker.Stop()
 	for {
 		select {
 		case <-ctx.Done():
@@ -207,11 +219,20 @@ func (s *scaffold) lightEvents(writer http.ResponseWriter, request *http.Request
 			if err := send([]byte(": ping\n\n")); err != nil {
 				return
 			}
+		case <-tempTicker.C:
+			temp := s.aquariumTemp(ctx)
+			if temp == lastTemp {
+				continue
+			}
+			lastTemp = temp
+			if err := send(tempEvent(temp)); err != nil {
+				return
+			}
 		case status, ok := <-updates:
 			if !ok {
 				return
 			}
-			if err := sendLight(lightFromStatus(status)); err != nil {
+			if err := sendLight(s.withTemp(ctx, lightFromStatus(status))); err != nil {
 				return
 			}
 		}

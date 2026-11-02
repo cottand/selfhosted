@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
@@ -13,7 +14,13 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
-type scaffold struct{}
+type scaffold struct {
+	tempPeriod time.Duration
+
+	tempMutex sync.Mutex
+	temp      string
+	tempAt    time.Time
+}
 
 func (s *scaffold) newServer(ctx context.Context, name string) *http.Server {
 	return &http.Server{
@@ -28,7 +35,7 @@ func (s *scaffold) newServer(ctx context.Context, name string) *http.Server {
 func InitService() (*bedrock.Service, string, error) {
 	var name = "s-web-home"
 	ctx := bedrock.ContextForModule(name, context.Background())
-	s := &scaffold{}
+	s := &scaffold{tempPeriod: aquariumTempPeriod}
 
 	srv := s.newServer(ctx, name)
 

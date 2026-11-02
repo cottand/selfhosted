@@ -11,26 +11,49 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
 	pb "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-mqtt"
+	prompb "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-prometheus"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-const testWriteTimeout = 200 * time.Millisecond
+const (
+	testWriteTimeout = 200 * time.Millisecond
+	testTempPeriod   = 20 * time.Millisecond
+)
 
 type fakeMqtt struct {
 	pb.UnimplementedMqttServer
 	updates chan *pb.LightStatus
+	lights  []*pb.Light
 
 	ended chan struct{}
 }
 
+type fakePrometheus struct {
+	prompb.UnimplementedPrometheusServer
+	result atomic.Pointer[string]
+	query  atomic.Pointer[string]
+	calls  atomic.Int32
+}
+
+func (f *fakePrometheus) QueryInstant(_ context.Context, req *prompb.QueryInstantRequest) (*prompb.QueryInstantResponse, error) {
+	f.calls.Add(1)
+	f.query.Store(&req.PromQLQuery)
+	result := f.result.Load()
+	if result == nil {
+		return nil, errors.New("no result")
+	}
+	return &prompb.QueryInstantResponse{Result: *result}, nil
+}
+
 func (f *fakeMqtt) ListLights(context.Context, *emptypb.Empty) (*pb.ListLightsResponse, error) {
-	return &pb.ListLightsResponse{Lights: []*pb.Light{{Id: "plug103"}}}, nil
+	return &pb.ListLightsResponse{Lights: f.lights}, nil
 }
 
 func (f *fakeMqtt) GetLight(_ context.Context, req *pb.GetLightRequest) (*pb.LightStatus, error) {
@@ -69,14 +92,21 @@ func failOnError(t *testing.T, err error) {
 }
 
 // the generated client keeps its first connection, so all tests share one server
+var testPrometheus = &fakePrometheus{}
+
 var sharedFakeMqtt = sync.OnceValues(func() (*fakeMqtt, error) {
 	listener, err := net.Listen("tcp", "localhost:0")
 	if err != nil {
 		return nil, err
 	}
-	fake := &fakeMqtt{updates: make(chan *pb.LightStatus), ended: make(chan struct{}, 1)}
+	fake := &fakeMqtt{
+		updates: make(chan *pb.LightStatus),
+		lights:  []*pb.Light{{Id: "plug103"}},
+		ended:   make(chan struct{}, 1),
+	}
 	server := grpc.NewServer()
 	pb.RegisterMqttServer(server, fake)
+	prompb.RegisterPrometheusServer(server, testPrometheus)
 	go func() { _ = server.Serve(listener) }()
 
 	_, port, err := net.SplitHostPort(listener.Addr().String())
@@ -95,14 +125,14 @@ func startFakeMqtt(t *testing.T) *fakeMqtt {
 func startServer(t *testing.T) string {
 	listener, err := net.Listen("tcp", "localhost:0")
 	failOnError(t, err)
-	server := (&scaffold{}).newServer(context.Background(), "test")
+	server := (&scaffold{tempPeriod: testTempPeriod}).newServer(context.Background(), "test")
 	server.WriteTimeout = testWriteTimeout
 	go func() { _ = server.Serve(listener) }()
 	t.Cleanup(func() { _ = server.Close() })
 	return "http://" + listener.Addr().String()
 }
 
-func nextEvent(t *testing.T, events *bufio.Scanner) string {
+func nextEvent(t *testing.T, events *bufio.Scanner, kind string) string {
 	type result struct {
 		event string
 		ok    bool
@@ -112,9 +142,13 @@ func nextEvent(t *testing.T, events *bufio.Scanner) string {
 		var event strings.Builder
 		for events.Scan() {
 			line := events.Text()
-			if line == "" && strings.Contains(event.String(), "event: light") {
-				got <- result{event.String(), true}
-				return
+			if line == "" {
+				if strings.Contains(event.String(), "event: "+kind) {
+					got <- result{event.String(), true}
+					return
+				}
+				event.Reset()
+				continue
 			}
 			event.WriteString(line + "\n")
 		}
@@ -146,14 +180,14 @@ func TestLightEvents(t *testing.T) {
 	assert.Equal(t, "text/event-stream", response.Header.Get("Content-Type"))
 	events := bufio.NewScanner(response.Body)
 
-	snapshot := nextEvent(t, events)
+	snapshot := nextEvent(t, events, "light")
 	assert.Contains(t, snapshot, `id="light-plug103"`)
 	assert.Contains(t, snapshot, ">off<")
 
 	time.Sleep(2 * testWriteTimeout)
 
 	fake.updates <- &pb.LightStatus{Id: "plug103", On: true}
-	update := nextEvent(t, events)
+	update := nextEvent(t, events, "light")
 	assert.Contains(t, update, `id="light-plug103"`)
 	assert.Contains(t, update, ">on<")
 
@@ -220,4 +254,64 @@ func TestSetLightFailure(t *testing.T) {
 	response, _ := postLight(t, "broken", true)
 
 	assert.Equal(t, http.StatusBadGateway, response.StatusCode)
+}
+
+func TestAquariumTemp(t *testing.T) {
+	startFakeMqtt(t)
+
+	testPrometheus.result.Store(new("24.36"))
+	s := &scaffold{tempPeriod: time.Hour}
+	assert.Equal(t, "24.4°C", s.aquariumTemp(context.Background()))
+	assert.Contains(t, *testPrometheus.query.Load(), "s_rpc_mqtt_pill107_temp")
+
+	calls := testPrometheus.calls.Load()
+	testPrometheus.result.Store(new("30"))
+	assert.Equal(t, "24.4°C", s.aquariumTemp(context.Background()))
+	assert.Equal(t, calls, testPrometheus.calls.Load())
+
+	testPrometheus.result.Store(nil)
+	s = &scaffold{tempPeriod: time.Hour}
+	assert.Equal(t, tempUnknown, s.aquariumTemp(context.Background()))
+
+	testPrometheus.result.Store(new("not a number"))
+	s = &scaffold{tempPeriod: time.Hour}
+	assert.Equal(t, tempUnknown, s.aquariumTemp(context.Background()))
+}
+
+func TestOnlyAquariumLightShowsTemp(t *testing.T) {
+	startFakeMqtt(t)
+	testPrometheus.result.Store(new("24"))
+	s := &scaffold{tempPeriod: time.Hour}
+
+	tank, err := renderLightEvent(context.Background(), s.withTemp(context.Background(), light{ID: aquariumLight, Known: true}))
+	failOnError(t, err)
+	assert.Contains(t, string(tank), `id="aquarium-temp"`)
+	assert.Contains(t, string(tank), "24.0°C")
+
+	plug, err := renderLightEvent(context.Background(), s.withTemp(context.Background(), light{ID: "plug103", Known: true}))
+	failOnError(t, err)
+	assert.NotContains(t, string(plug), "aquarium-temp")
+}
+
+func TestTempEvents(t *testing.T) {
+	startFakeMqtt(t)
+	testPrometheus.result.Store(new("24"))
+	url := startServer(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, url+"/lights/events", nil)
+	failOnError(t, err)
+	response, err := http.DefaultClient.Do(request)
+	failOnError(t, err)
+	defer response.Body.Close()
+	events := bufio.NewScanner(response.Body)
+
+	assert.Contains(t, nextEvent(t, events, "temp"), "data: 24.0°C")
+
+	testPrometheus.result.Store(new("25"))
+	assert.Contains(t, nextEvent(t, events, "temp"), "data: 25.0°C")
+
+	testPrometheus.result.Store(nil)
+	assert.Contains(t, nextEvent(t, events, "temp"), "data: "+tempUnknown)
 }

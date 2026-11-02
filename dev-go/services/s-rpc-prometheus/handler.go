@@ -33,6 +33,11 @@ func (h *ProtoHandler) QueryInstant(ctx context.Context, req *pb.QueryInstantReq
 
 	switch v := v.(type) {
 	case model.Vector:
+		if len(v) == 0 {
+			return nil, terrors.NotFound("no_result", "query returned no results", map[string]string{
+				"query": req.PromQLQuery,
+			})
+		}
 		return &pb.QueryInstantResponse{
 			// we don't have a need for queries that return more than a single value yet!
 			Result: fmt.Sprint(v[0].Value),
