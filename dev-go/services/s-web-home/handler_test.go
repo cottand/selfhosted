@@ -37,19 +37,32 @@ type fakeMqtt struct {
 
 type fakePrometheus struct {
 	prompb.UnimplementedPrometheusServer
-	result atomic.Pointer[string]
-	query  atomic.Pointer[string]
-	calls  atomic.Int32
+	mutex   sync.Mutex
+	results map[string]string
+	calls   atomic.Int32
 }
 
 func (f *fakePrometheus) QueryInstant(_ context.Context, req *prompb.QueryInstantRequest) (*prompb.QueryInstantResponse, error) {
 	f.calls.Add(1)
-	f.query.Store(&req.PromQLQuery)
-	result := f.result.Load()
-	if result == nil {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+	result, ok := f.results[req.PromQLQuery]
+	if !ok {
 		return nil, errors.New("no result")
 	}
-	return &prompb.QueryInstantResponse{Result: *result}, nil
+	return &prompb.QueryInstantResponse{Result: result}, nil
+}
+
+func (f *fakePrometheus) set(query, result string) {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+	f.results[query] = result
+}
+
+func (f *fakePrometheus) clear(query string) {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+	delete(f.results, query)
 }
 
 func (f *fakeMqtt) ListLights(context.Context, *emptypb.Empty) (*pb.ListLightsResponse, error) {
@@ -92,7 +105,7 @@ func failOnError(t *testing.T, err error) {
 }
 
 // the generated client keeps its first connection, so all tests share one server
-var testPrometheus = &fakePrometheus{}
+var testPrometheus = &fakePrometheus{results: map[string]string{}}
 
 var sharedFakeMqtt = sync.OnceValues(func() (*fakeMqtt, error) {
 	listener, err := net.Listen("tcp", "localhost:0")
@@ -259,28 +272,37 @@ func TestSetLightFailure(t *testing.T) {
 func TestAquariumTemp(t *testing.T) {
 	startFakeMqtt(t)
 
-	testPrometheus.result.Store(new("24.36"))
+	testPrometheus.set(aquariumTempQuery, "24.36")
 	s := &scaffold{tempPeriod: time.Hour}
 	assert.Equal(t, "24.4°C", s.aquariumTemp(context.Background()))
-	assert.Contains(t, *testPrometheus.query.Load(), "s_rpc_mqtt_pill107_temp")
 
 	calls := testPrometheus.calls.Load()
-	testPrometheus.result.Store(new("30"))
+	testPrometheus.set(aquariumTempQuery, "30")
 	assert.Equal(t, "24.4°C", s.aquariumTemp(context.Background()))
 	assert.Equal(t, calls, testPrometheus.calls.Load())
 
-	testPrometheus.result.Store(nil)
+	testPrometheus.clear(aquariumTempQuery)
 	s = &scaffold{tempPeriod: time.Hour}
 	assert.Equal(t, tempUnknown, s.aquariumTemp(context.Background()))
 
-	testPrometheus.result.Store(new("not a number"))
+	testPrometheus.set(aquariumTempQuery, "not a number")
 	s = &scaffold{tempPeriod: time.Hour}
 	assert.Equal(t, tempUnknown, s.aquariumTemp(context.Background()))
 }
 
+func TestRoomTempIsCachedSeparately(t *testing.T) {
+	startFakeMqtt(t)
+	testPrometheus.set(aquariumTempQuery, "24")
+	testPrometheus.set(roomTempQuery, "19.25")
+	s := &scaffold{tempPeriod: time.Hour}
+
+	assert.Equal(t, "24.0°C", s.aquariumTemp(context.Background()))
+	assert.Equal(t, "19.2°C", s.roomTemp(context.Background()))
+}
+
 func TestOnlyAquariumLightShowsTemp(t *testing.T) {
 	startFakeMqtt(t)
-	testPrometheus.result.Store(new("24"))
+	testPrometheus.set(aquariumTempQuery, "24")
 	s := &scaffold{tempPeriod: time.Hour}
 
 	tank, err := renderLightEvent(context.Background(), s.withTemp(context.Background(), light{ID: aquariumLight, Known: true}))
@@ -295,7 +317,8 @@ func TestOnlyAquariumLightShowsTemp(t *testing.T) {
 
 func TestTempEvents(t *testing.T) {
 	startFakeMqtt(t)
-	testPrometheus.result.Store(new("24"))
+	testPrometheus.set(aquariumTempQuery, "24")
+	testPrometheus.set(roomTempQuery, "19")
 	url := startServer(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -307,11 +330,21 @@ func TestTempEvents(t *testing.T) {
 	defer response.Body.Close()
 	events := bufio.NewScanner(response.Body)
 
-	assert.Contains(t, nextEvent(t, events, "temp"), "data: 24.0°C")
+	waitForEvent(t, events, "room-temp", "19.0°C")
 
-	testPrometheus.result.Store(new("25"))
-	assert.Contains(t, nextEvent(t, events, "temp"), "data: 25.0°C")
+	testPrometheus.set(aquariumTempQuery, "25")
+	waitForEvent(t, events, "aquarium-temp", "25.0°C")
 
-	testPrometheus.result.Store(nil)
-	assert.Contains(t, nextEvent(t, events, "temp"), "data: "+tempUnknown)
+	testPrometheus.clear(roomTempQuery)
+	waitForEvent(t, events, "room-temp", tempUnknown)
+}
+
+func waitForEvent(t *testing.T, events *bufio.Scanner, kind, data string) {
+	t.Helper()
+	for range 10 {
+		if strings.Contains(nextEvent(t, events, kind), "data: "+data+"\n") {
+			return
+		}
+	}
+	t.Fatalf("no %s event with %s", kind, data)
 }

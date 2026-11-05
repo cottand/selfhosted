@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
@@ -16,10 +15,8 @@ import (
 
 type scaffold struct {
 	tempPeriod time.Duration
-
-	tempMutex sync.Mutex
-	temp      string
-	tempAt    time.Time
+	aquarium   cachedTemp
+	room       cachedTemp
 }
 
 func (s *scaffold) newServer(ctx context.Context, name string) *http.Server {
@@ -35,7 +32,7 @@ func (s *scaffold) newServer(ctx context.Context, name string) *http.Server {
 func InitService() (*bedrock.Service, string, error) {
 	var name = "s-web-home"
 	ctx := bedrock.ContextForModule(name, context.Background())
-	s := &scaffold{tempPeriod: aquariumTempPeriod}
+	s := &scaffold{tempPeriod: tempPeriod}
 
 	srv := s.newServer(ctx, name)
 

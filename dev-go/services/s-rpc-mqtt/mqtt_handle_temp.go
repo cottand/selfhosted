@@ -17,8 +17,8 @@ const aquariumPill = "pill107"
 
 var tempStat = promauto.NewGaugeVec(prometheus.GaugeOpts{
 	Namespace: util.KebabToSnakeCase(Name),
-	Name:      "pill107_temp",
-	Help:      "Temperature as reported by pill107 (likely aquarium temp)",
+	Name:      "pill_temp",
+	Help:      "Temperature as reported by a Shelly pill",
 }, []string{"shelly_id"})
 
 func (r *mqttScaffold) aquariumTempPollingForever(ctx context.Context) error {

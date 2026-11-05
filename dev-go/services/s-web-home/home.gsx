@@ -1,6 +1,6 @@
 package module
 
-component Home(lights []light, listFailed bool) {
+component Home(lights []light, listFailed bool, roomTemp string) {
 	<!DOCTYPE html>
 	<html lang="en">
 		<head>
@@ -8,51 +8,117 @@ component Home(lights []light, listFailed bool) {
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
 			<title>Home</title>
 			<style>
+				:root {
+					--bg: #f6f4ef;
+					--card: #ffffff;
+					--text: #24211d;
+					--muted: #8c857b;
+					--line: rgb(36 33 29 / 8%);
+					--amber: #e8a33d;
+					--amber-soft: #fdf3e1;
+					--off: #d9d4cb;
+					--water: #3c7f9e;
+					--brick: #a8502a;
+				}
+				* {
+					box-sizing: border-box;
+				}
 				body {
-					font-family: system-ui, sans-serif;
+					font: 15px/1.4 system-ui, sans-serif;
+					color: var(--text);
+					background: var(--bg);
 					max-width: 32rem;
-					margin: 2rem auto;
-					padding: 0 1rem;
+					margin: 0 auto;
+					padding: 2rem 1rem;
+					-webkit-font-smoothing: antialiased;
+				}
+				h1 {
+					font-size: 1.1rem;
+					font-weight: 600;
+					letter-spacing: 0.02em;
+					margin: 0 0 1.5rem;
+				}
+				.room {
+					display: flex;
+					align-items: baseline;
+					gap: 0.5rem;
+					margin-bottom: 1rem;
+				}
+				.room strong {
+					font-size: 2.5rem;
+					font-weight: 200;
+					letter-spacing: -0.02em;
+					font-variant-numeric: tabular-nums;
+				}
+				.label {
+					font-size: 0.75rem;
+					color: var(--muted);
+					text-transform: uppercase;
+					letter-spacing: 0.08em;
 				}
 				.light {
-					padding: 0.75rem 1rem;
+					padding: 0.75rem 0.9rem;
 					margin-bottom: 0.5rem;
-					border-radius: 0.5rem;
-					background: #eee;
+					border-radius: 0.9rem;
+					background: var(--card);
+					border: 1px solid var(--line);
+					box-shadow: 0 1px 2px var(--line);
+					transition: background 0.2s, border-color 0.2s;
 				}
 				.light.on {
-					background: #ffe9a8;
+					background: var(--amber-soft);
+					border-color: rgb(232 163 61 / 45%);
 				}
 				.row {
 					display: flex;
 					align-items: center;
 					justify-content: space-between;
+					gap: 0.5rem;
+				}
+				.name {
+					font-weight: 600;
+				}
+				.status {
+					font-size: 0.8rem;
+					color: var(--muted);
+					font-variant-numeric: tabular-nums;
+				}
+				.tank {
+					font-size: 0.8rem;
+					color: var(--water);
+					font-variant-numeric: tabular-nums;
+				}
+				form {
+					margin: 0;
 				}
 				.toggle {
-					width: 3.5rem;
-					height: 2rem;
+					display: block;
+					width: 2.6rem;
+					height: 1.5rem;
 					border: none;
 					border-radius: 1rem;
-					background: #bbb;
+					background: var(--off);
 					position: relative;
 					cursor: pointer;
+					transition: background 0.2s;
 				}
 				.toggle::after {
 					content: "";
 					position: absolute;
-					top: 0.25rem;
-					left: 0.25rem;
-					width: 1.5rem;
-					height: 1.5rem;
+					top: 0.2rem;
+					left: 0.2rem;
+					width: 1.1rem;
+					height: 1.1rem;
 					border-radius: 50%;
 					background: white;
-					transition: left 0.15s;
+					box-shadow: 0 1px 2px rgb(0 0 0 / 20%);
+					transition: left 0.2s;
 				}
 				.toggle.on {
-					background: #e0a800;
+					background: var(--amber);
 				}
 				.toggle.on::after {
-					left: 1.75rem;
+					left: 1.3rem;
 				}
 				.toggle:disabled {
 					opacity: 0.4;
@@ -61,42 +127,81 @@ component Home(lights []light, listFailed bool) {
 				.brightness {
 					display: flex;
 					align-items: center;
-					gap: 0.75rem;
-					margin-top: 0.5rem;
+					gap: 0.5rem;
+					margin-top: 0.4rem;
 				}
 				.brightness input {
 					flex: 1;
+					min-width: 0;
+					height: 0.25rem;
+					appearance: none;
+					border-radius: 1rem;
+					background: var(--off);
+					cursor: pointer;
+				}
+				.brightness input::-webkit-slider-thumb {
+					appearance: none;
+					width: 1rem;
+					height: 1rem;
+					border-radius: 50%;
+					background: var(--amber);
+					box-shadow: 0 1px 3px rgb(0 0 0 / 25%);
+				}
+				.brightness input::-moz-range-thumb {
+					width: 1rem;
+					height: 1rem;
+					border: none;
+					border-radius: 50%;
+					background: var(--amber);
+					box-shadow: 0 1px 3px rgb(0 0 0 / 25%);
+				}
+				.light:not(.on) .brightness input::-webkit-slider-thumb {
+					background: var(--muted);
+				}
+				.light:not(.on) .brightness input::-moz-range-thumb {
+					background: var(--muted);
 				}
 				.brightness output {
-					min-width: 3rem;
+					min-width: 2.5rem;
 					text-align: right;
+					font-size: 0.8rem;
+					color: var(--muted);
+					font-variant-numeric: tabular-nums;
 				}
 				#light-error {
-					color: #a8502a;
+					color: var(--brick);
+					font-size: 0.85rem;
 				}
 				@media (min-width: 50rem) {
 					body {
 						max-width: 62rem;
+						padding-top: 3rem;
 					}
 					.plan {
 						position: relative;
 						aspect-ratio: 1094 / 800;
 						background: url("/floorplan.svg") center / contain no-repeat;
 					}
+					.room {
+						position: absolute;
+						left: 47%;
+						top: 62%;
+						transform: translate(-50%, -50%);
+						flex-direction: column;
+						align-items: center;
+						gap: 0;
+						margin: 0;
+					}
+					.room strong {
+						font-size: 3.5rem;
+					}
 					.light {
 						position: absolute;
-						box-sizing: border-box;
 						width: 9rem;
 						margin: 0;
-						padding: 0.5rem 0.6rem;
+						padding: 0.55rem 0.7rem;
 						transform: translate(-50%, -50%);
-						box-shadow: 0 1px 4px rgb(0 0 0 / 30%);
-					}
-					.brightness output {
-						min-width: 2.5rem;
-					}
-					.brightness input {
-						min-width: 0;
+						box-shadow: 0 2px 10px rgb(36 33 29 / 10%);
 					}
 					#light-plug103 {
 						left: 34.7%;
@@ -124,12 +229,16 @@ component Home(lights []light, listFailed bool) {
 			</style>
 		</head>
 		<body>
-			<h1>Lights</h1>
+			<h1>Home</h1>
 			{ if listFailed {
 				<p>Could not load lights.</p>
 			} }
 			<p id="light-error" role="alert" hidden></p>
 			<div class="plan">
+				<div class="room">
+					<strong id="room-temp">{roomTemp}</strong>
+					<span class="label">Room</span>
+				</div>
 				{ for _, l := range lights {
 					<LightRow l={l}/>
 				} }
@@ -194,12 +303,14 @@ component Home(lights []light, listFailed bool) {
 
 				const events = new EventSource("/lights/events");
 				events.addEventListener("light", (event) => showRow(event.data));
-				events.addEventListener("temp", (event) => {
-					const temp = document.getElementById("aquarium-temp");
-					if (temp) {
-						temp.textContent = event.data;
-					}
-				});
+				for (const id of ["aquarium-temp", "room-temp"]) {
+					events.addEventListener(id, (event) => {
+						const temp = document.getElementById(id);
+						if (temp) {
+							temp.textContent = event.data;
+						}
+					});
+				}
 			</script>
 		</body>
 	</html>
@@ -209,8 +320,8 @@ component LightRow(l light) {
 	<div id={ "light-" + l.ID } class={ "light", "on": l.Known && l.On }>
 		<div class="row">
 			<div>
-				<strong>{l.ID}</strong>
-				<div>
+				<div class="name">{l.ID}</div>
+				<div class="status">
 					{ if !l.Known {
 						unknown
 					} else if !l.On {
@@ -222,7 +333,7 @@ component LightRow(l light) {
 					} }
 				</div>
 				{ if l.ID == aquariumLight {
-					<div>tank <span id="aquarium-temp">{l.Temp}</span></div>
+					<div class="tank">tank <span id="aquarium-temp">{l.Temp}</span></div>
 				} }
 			</div>
 			<form method="post" action={ "/lights/" + l.ID }>

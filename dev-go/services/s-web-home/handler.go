@@ -64,7 +64,7 @@ func (s *scaffold) home(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		slog.ErrorContext(request.Context(), "failed to list lights", "err", terrors.Propagate(err))
 	}
-	render(writer, request, Home(lights, err != nil))
+	render(writer, request, Home(lights, err != nil, s.roomTemp(request.Context())))
 }
 
 func floorplan(writer http.ResponseWriter, _ *http.Request) {
@@ -202,8 +202,25 @@ func (s *scaffold) lightEvents(writer http.ResponseWriter, request *http.Request
 		}
 	}
 
-	lastTemp := s.aquariumTemp(ctx)
-	if err := send(tempEvent(lastTemp)); err != nil {
+	temps := map[string]func(context.Context) string{
+		"aquarium-temp": s.aquariumTemp,
+		"room-temp":     s.roomTemp,
+	}
+	lastTemps := map[string]string{}
+	sendTemps := func() error {
+		for id, read := range temps {
+			temp := read(ctx)
+			if last, sent := lastTemps[id]; sent && last == temp {
+				continue
+			}
+			lastTemps[id] = temp
+			if err := send(tempEvent(id, temp)); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	if err := sendTemps(); err != nil {
 		return
 	}
 
@@ -220,12 +237,7 @@ func (s *scaffold) lightEvents(writer http.ResponseWriter, request *http.Request
 				return
 			}
 		case <-tempTicker.C:
-			temp := s.aquariumTemp(ctx)
-			if temp == lastTemp {
-				continue
-			}
-			lastTemp = temp
-			if err := send(tempEvent(temp)); err != nil {
+			if err := sendTemps(); err != nil {
 				return
 			}
 		case status, ok := <-updates:

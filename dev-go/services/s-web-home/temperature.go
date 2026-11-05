@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strconv"
+	"sync"
 	"time"
 
 	s_rpc_prometheus "github.com/cottand/selfhosted/dev-go/lib/proto/s-rpc-prometheus"
@@ -12,11 +13,27 @@ import (
 )
 
 const (
-	aquariumLight      = "rgb105"
-	aquariumTempPeriod = 5 * time.Second
-	tempUnknown        = "--°C"
-	aquariumTempQuery  = `max(s_rpc_mqtt_pill107_temp{shelly_id="pill107"})`
+	aquariumLight     = "rgb105"
+	tempPeriod        = 5 * time.Second
+	tempUnknown       = "--°C"
+	aquariumTempQuery = `max(s_rpc_mqtt_pill_temp{shelly_id="pill107"})`
+	roomTempQuery     = "max(digitemp_temperature)"
 )
+
+// cachedTemp is shared by every open page, so viewers do not multiply the queries
+type cachedTemp struct {
+	mutex sync.Mutex
+	value string
+	at    time.Time
+}
+
+func (s *scaffold) aquariumTemp(ctx context.Context) string {
+	return s.temperature(ctx, &s.aquarium, aquariumTempQuery)
+}
+
+func (s *scaffold) roomTemp(ctx context.Context) string {
+	return s.temperature(ctx, &s.room, roomTempQuery)
+}
 
 func (s *scaffold) withTemp(ctx context.Context, l light) light {
 	if l.ID == aquariumLight {
@@ -25,30 +42,29 @@ func (s *scaffold) withTemp(ctx context.Context, l light) light {
 	return l
 }
 
-// aquariumTemp is shared by every open page, so viewers do not multiply the queries
-func (s *scaffold) aquariumTemp(ctx context.Context) string {
-	s.tempMutex.Lock()
-	defer s.tempMutex.Unlock()
+func (s *scaffold) temperature(ctx context.Context, cached *cachedTemp, query string) string {
+	cached.mutex.Lock()
+	defer cached.mutex.Unlock()
 
-	if !s.tempAt.IsZero() && time.Since(s.tempAt) < s.tempPeriod {
-		return s.temp
+	if !cached.at.IsZero() && time.Since(cached.at) < s.tempPeriod {
+		return cached.value
 	}
 	// a viewer leaving must not blank the value for the others
-	temp, err := fetchAquariumTemp(context.WithoutCancel(ctx))
+	temp, err := fetchTemp(context.WithoutCancel(ctx), query)
 	if err != nil {
-		slog.WarnContext(ctx, "failed to fetch aquarium temperature", "err", terrors.Propagate(err))
+		slog.WarnContext(ctx, "failed to fetch temperature", "query", query, "err", terrors.Propagate(err))
 		temp = tempUnknown
 	}
-	s.temp = temp
-	s.tempAt = time.Now()
+	cached.value = temp
+	cached.at = time.Now()
 	return temp
 }
 
-func fetchAquariumTemp(ctx context.Context) (string, error) {
+func fetchTemp(ctx context.Context, query string) (string, error) {
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 
-	response, err := s_rpc_prometheus.QueryInstant(ctx, &s_rpc_prometheus.QueryInstantRequest{PromQLQuery: aquariumTempQuery})
+	response, err := s_rpc_prometheus.QueryInstant(ctx, &s_rpc_prometheus.QueryInstantRequest{PromQLQuery: query})
 	if err != nil {
 		return "", terrors.Augment(err, "failed to query temperature", nil)
 	}
@@ -59,6 +75,7 @@ func fetchAquariumTemp(ctx context.Context) (string, error) {
 	return fmt.Sprintf("%.1f°C", parsed), nil
 }
 
-func tempEvent(temp string) []byte {
-	return []byte("event: temp\ndata: " + temp + "\n\n")
+// tempEvent is named after the id of the element that shows the temperature
+func tempEvent(id, temp string) []byte {
+	return []byte("event: " + id + "\ndata: " + temp + "\n\n")
 }

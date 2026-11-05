@@ -170,8 +170,9 @@ func (r *mqttScaffold) shellyRPCRespAny(ctx context.Context, topic string, rpcMe
 	}
 
 	ctx, span := tracer.Start(ctx, "mqtt_call.shellyRPC", trace.WithAttributes(attribute.String("topic", topic), attribute.String("rpcMethod", rpcMethod), attribute.String("paramsJson", string(paramsJson))))
-	ctx, _ = context.WithDeadline(ctx, time.Now().Add(10*time.Second))
+	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(10*time.Second))
 	defer span.End()
+	defer cancel()
 	defer func() {
 		if err != nil {
 			span.RecordError(err)
