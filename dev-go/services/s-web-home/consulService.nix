@@ -29,6 +29,10 @@ in
       "traefik.http.routers.${name}.tls=true"
       "traefik.http.routers.${name}.entrypoints=web, websecure"
 
+      "traefik.http.routers.${name}-pub.entrypoints=cloudflared"
+      "traefik.http.routers.${name}-pub.rule=Host(`home.dcotta.com`)"
+      "traefik.http.routers.${name}-pub.tls=true"
+
       "traefik.http.middlewares.${name}-header.headers.customresponseheaders.X-dcotta-com-svc=${name}"
     ];
   };

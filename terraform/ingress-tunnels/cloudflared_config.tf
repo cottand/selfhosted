@@ -13,6 +13,7 @@ locals {
         "immich",
         "fish",
         "web",
+        "home",
         # "share",
       ]
     }

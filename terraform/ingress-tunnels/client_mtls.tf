@@ -15,6 +15,7 @@ locals {
     "papra",
     "mealie",
     "immich",
+    "home",
   ])
 
 
