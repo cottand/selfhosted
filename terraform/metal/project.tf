@@ -11,6 +11,10 @@ data "hcloud_image" "ubuntu22" {
   name              = "ubuntu-22.04"
   with_architecture = "x86"
 }
+data "hcloud_image" "ubuntu26" {
+  name              = "ubuntu-26.04"
+  with_architecture = "x86"
+}
 
 resource "hcloud_network_subnet" "sub1" {
   ip_range     = "10.0.1.0/24"
@@ -50,14 +54,46 @@ EOT
   depends_on = [hcloud_network.main]
 }
 
+resource "hcloud_server" "hez4" {
+  name        = "hez4"
+  server_type = "cx23"
+  location    = "nbg1"
+  // nixos-infect fails on 26.04 newer
+  image       = data.hcloud_image.ubuntu22.id
+
+  rebuild_protection = true
+  delete_protection  = true
+
+  network {
+    network_id = hcloud_network.main.id
+    ip         = "10.0.1.4"
+    alias_ips  = []
+  }
+  public_net {
+    ipv4_enabled = false
+    ipv6_enabled = true
+  }
+  firewall_ids = [hcloud_firewall.ssh-wireguard.id]
+  ssh_keys     = [hcloud_ssh_key.nico-m3.name]
+  user_data    = <<EOT
+#cloud-config
+
+runcmd:
+  - curl https://raw.githubusercontent.com/elitak/nixos-infect/master/nixos-infect | PROVIDER=hetznercloud NIX_CHANNEL=nixos-24.05 bash 2>&1 | tee /tmp/infect.log
+# newer nixos messes up the install process (but we're upgrading straight away so it's ok)
+EOT
+
+  depends_on = [hcloud_network.main]
+}
+
 resource "hcloud_firewall" "ssh-wireguard" {
-  name = "my-firewall"
-#   rule {
-#     direction  = "in"
-#     protocol   = "tcp"
-#     port       = 22
-#     source_ips = ["0.0.0.0/0", "::/0"]
-#   }
+  name = "tailscale-ssh"
+  rule {
+    direction  = "in"
+    protocol   = "tcp"
+    port       = 22
+    source_ips = ["0.0.0.0/0", "::/0"]
+  }
   rule {
     direction  = "in"
     protocol   = "icmp"

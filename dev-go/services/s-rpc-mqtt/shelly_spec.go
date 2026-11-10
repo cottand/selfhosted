@@ -43,14 +43,14 @@ var aquariumSchedule = []ShellyCronSpec{
 		Enable:   true,
 		Timespec: "0 16 * * *",
 		Calls: []ShellyCallSpec{
-			{Method: "light.set", Params: ShellyLightParams{Id: 0, Brightness: new(59)}},
+			{Method: "light.set", Params: ShellyLightParams{Id: 0, Brightness: new(35)}},
 		},
 	},
 	{
 		Enable:   true,
 		Timespec: "0 17 * * *",
 		Calls: []ShellyCallSpec{
-			{Method: "light.set", Params: ShellyLightParams{Id: 0, Brightness: new(25)}},
+			{Method: "light.set", Params: ShellyLightParams{Id: 0, Brightness: new(20)}},
 		},
 	},
 	{

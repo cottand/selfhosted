@@ -16,6 +16,9 @@
 
     go-overlay.url = "github:purpleclay/go-overlay";
 
+    disko.url = "github:nix-community/disko";
+    disko.inputs.nixpkgs.follows = "nixpkgs";
+
     gomod2nix = {
       # I don't really use this but want to keep it pinned in dependencies
       url = "github:tweag/gomod2nix";
@@ -157,6 +160,8 @@
           filter (name: elem tag colmenaHive.nodes.${name}.config.deployment.tags) (attrNames colmenaHive.nodes);
       };
       colmena = (import ./hive.nix) (inputs // { inherit overlays; });
+
+      nixosConfigurations = colmenaHive.nodes;
 
       nomadConfigurations.default = inputs.nixnomad.lib.nomadConfiguration {
         modules = [ ./jobs ./dev-go/services/job.nix ];

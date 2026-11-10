@@ -233,7 +233,7 @@ in
     ui = {
       description = "Distributed HA pSQL-like DB";
       links = [
-        { label = "Roach UI"; url = "https://roach-web.tfk.nd"; }
+        { label = "Roach UI"; url = "https://roach-web.i.dcotta.com"; }
         { label = "Roach SQL Grafana"; url = "https://grafana.i.dcotta.com/d/crdb-console-sql/roach-sql?orgId=1&refresh=30s"; }
       ];
     };

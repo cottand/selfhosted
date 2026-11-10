@@ -21,7 +21,7 @@ let
   otlpPort = 9001;
   # docker images are tagged with the repo's commit, and we can actually get that directly from nix
   version = self.inputs.nixpkgs.lib.strings.removeSuffix "-dirty" (self.shortRev or self.dirtyShortRev or "15b2eb6");
-  #version = "eeaea0b";
+  #version = "7bc05e6";
 in
 {
   imports = [

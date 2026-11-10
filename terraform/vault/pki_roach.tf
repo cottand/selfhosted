@@ -23,7 +23,13 @@ resource "vault_pki_secret_backend_role" "intermediate_role-roach-node3" {
   allow_ip_sans      = true
   key_type           = "rsa"
   key_bits           = 4096
-  allowed_domains    = ["roach-db.tfk.nd", "roach-web.tfk.nd", "roach.i.dcotta.com", "node", local.tsDomain]
+  allowed_domains    = [
+    "roach-db.tfk.nd",
+    "roach-web.tfk.nd",
+    "roach-db.i.dcotta.com",
+    "roach-web.i.dcotta.com",
+    "node",
+    local.tsDomain]
   allow_subdomains   = true
   allow_bare_domains = true
   allow_localhost    = false
@@ -39,9 +45,10 @@ resource "vault_pki_secret_backend_cert" "cockroachdb" {
   alt_names   = [
     "*.${local.tsDomain}",
     "roach-web.tfk.nd",
-    "roach.i.dcotta.com",
-    "node",
     "roach-db.tfk.nd",
+    "roach-web.i.dcotta.com",
+    "roach-db.i.dcotta.com",
+    "node",
   ]
 
   ip_sans = [

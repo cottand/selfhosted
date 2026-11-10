@@ -19,12 +19,13 @@ output "oci_control_pool_server_ips" {
 
 # TODO ADAPT DNS
 
-resource "bitwarden-secrets_secret" "ips" {
-  key        = "hetzner/hez/ips"
-  value      = jsonencode(local.hez_server_ips)
-  project_id = var.bitwarden_project_id
-}
-
-output "bitwarden_ips_id" {
-  value = bitwarden-secrets_secret.ips.id
-}
+# resource "bitwarden-secrets_secret" "ips" {
+#   key        = "hetzner/hez/ips"
+#   value      = jsonencode(local.hez_server_ips)
+#   project_id = var.bitwarden_project_id
+# }
+#
+#
+# output "bitwarden_ips_id" {
+#   value = bitwarden-secrets_secret.ips.id
+# }

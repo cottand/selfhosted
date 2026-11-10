@@ -16,10 +16,6 @@
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;
-    users.cottand = {
-      imports = with flakeInputs.cottand.homeManagerModules; [ cli ];
-      home.stateVersion = "22.11";
-    };
     users.nico = {
       imports = with flakeInputs.cottand.homeManagerModules; [ cli ];
       home.stateVersion = "25.05";

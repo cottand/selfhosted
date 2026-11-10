@@ -41,7 +41,7 @@ data "bitwarden-secrets_secret" "cloudflareToken" {
 }
 
 data "bitwarden-secrets_secret" "hetznerToken" {
-  id = "0f9e3a2a-5a27-4f2c-a5b6-b193016a9072"
+  id = "aacaa157-1d09-4d3b-ab09-51dbb11676bf"
 }
 
 provider "cloudflare" {
@@ -69,7 +69,7 @@ provider "aws" {
 }
 
 data "bitwarden-secrets_secret" "ociTfPrivateKey" {
-  id = "e5f873c0-b496-4d86-9ed2-b1e60129b263"
+  id = "139da24f-85eb-43a7-9248-58d38a06584e"
 }
 
 provider "oci" {

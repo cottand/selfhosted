@@ -60,6 +60,10 @@ in
     imports = [ ./machines/${name}/definition.nix ];
     deployment.tags = [ "hetzner" ];
   };
+  hez4 = { name, nodes, ... }: {
+    imports = [ ./machines/${name}/definition.nix ];
+    deployment.tags = [ "hetzner" ];
+  };
   macMini1 = { name, nodes, ... }: {
     imports = [ ./machines/${name}/definition.nix ];
     deployment.tags = [ "local" "macmini" ];

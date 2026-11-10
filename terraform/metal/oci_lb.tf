@@ -234,14 +234,4 @@ resource "oci_core_nat_gateway" "default" {
 }
 
 
-resource "cloudflare_record" "web" {
-  for_each = toset(local.zoneIdsList)
-  zone_id = each.value
-  type    = "A"
-  name    = "web"
-  value   = oci_network_load_balancer_network_load_balancer.ingress.ip_addresses[0].ip_address
-  ttl     = 1
-  comment = "tf managed"
-  proxied = true
-}
 
