@@ -50,5 +50,13 @@
   };
   boot.kernel.sysctl."net.ipv4.ip_forward" = "1";
 
+  services.avahi = {
+    enable = true;
+    nssmdns4 = true;
+    openFirewall = true;
+  };
+  # for UDP mDNS discovery
+
+
   system.stateVersion = "25.05";
 }

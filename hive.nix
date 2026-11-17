@@ -30,7 +30,7 @@ in
       config.allowUnfree = true;
     };
     deployment.tags = [ config.nixpkgs.system ];
-    deployment.targetUser = "colmena";
+    deployment.targetUser = lib.mkDefault  "colmena";
   };
 
   ari = { name, nodes, ... }: {
@@ -62,6 +62,9 @@ in
   };
   hez4 = { name, nodes, ... }: {
     imports = [ ./machines/${name}/definition.nix ];
+#    deployment.sshOptions = [ "-o" "ProxyJump=hez1" ];
+#    deployment.targetHost = "10.0.1.4";
+#    deployment.targetUser = "root";
     deployment.tags = [ "hetzner" ];
   };
   macMini1 = { name, nodes, ... }: {

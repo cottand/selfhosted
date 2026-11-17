@@ -2,7 +2,7 @@
   # based on https://github.com/nix-community/nixos-anywhere-examples/blob/main/configuration.nix
   imports = [
     ./hardware-configuration.nix
-    #./networking.nix # generated at runtime by nixos-infect
+    ./networking.nix # generated at runtime by nixos-infect
     (modulesPath + "/installer/scan/not-detected.nix")
     (modulesPath + "/profiles/qemu-guest.nix")
 
@@ -42,6 +42,8 @@
   services.nomad.settings = {
     client.meta.controlPlane = "true";
   };
+
+  networking.firewall.trustedInterfaces = [ "enp7s0" ];
 
   virtualisation.docker.enable = true;
   networking.firewall.checkReversePath = false;

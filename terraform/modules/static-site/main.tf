@@ -2,12 +2,16 @@ variable "domains" {
   type = list(string)
 }
 
+variable "name" {
+  type = string
+}
+
 variable "cf_account_id" {}
 
 
 resource "cloudflare_pages_project" "nico-dcotta-com" {
   account_id        = var.cf_account_id
-  name              = "nico-dcotta-com"
+  name              = var.name
   production_branch = "master"
 }
 

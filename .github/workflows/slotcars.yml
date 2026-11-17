@@ -1,0 +1,72 @@
+name: slotcars
+
+permissions:
+  contents: read
+  id-token: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "cottand/slotcars commit or branch to deploy"
+        required: true
+        default: "master"
+
+concurrency:
+  group: slotcars-deploy
+  cancel-in-progress: true
+
+env:
+  ATTIC_CACHE: "default"
+  ATTIC_SERVER: "https://attic.tfk.nd/"
+
+jobs:
+  deploy-slotcars:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-build-env
+        name: Set up build env
+        with:
+          tailscale_oauth_clientsecret: ${{ secrets.TAILSCALE_OAUTH_CLIENTSECRET }}
+
+      - name: Import Secrets
+        id: secrets
+        uses: hashicorp/vault-action@v2
+        with:
+          url: https://vault.golden-dace.ts.net
+          role: actions-ro
+          path: jwt-github
+          method: jwt
+          jwtGithubAudience: sigstore
+          caCertificate: ${{ secrets.DCOTTA_ROOT_CA }}
+          secrets: |
+            secret/data/github-actions/cloudflare/workers_token value | CF_TOKEN ;
+            secret/data/github-actions/cloudflare/workers_token accountId  | CF_ACCOUNT_ID ;
+
+      # cottand/slotcars is private, so it is checked out with a read-only
+      # deploy key (terraform/ci/slotcars.tf) rather than fetched as a github: flake reference.
+      - name: Check out slotcars
+        uses: actions/checkout@v4
+        with:
+          repository: cottand/slotcars
+          ref: ${{ inputs.ref }}
+          ssh-key: ${{ secrets.SLOTCARS_DEPLOY_KEY }}
+          path: slotcars
+
+      - name: Build slotcars site
+        run: |
+          nix build -L ./slotcars#site
+
+      - name: Cache results
+        background: true
+        continue-on-error: true
+        run: |
+          attic push "$ATTIC_CACHE" ./result
+
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ steps.secrets.outputs.CF_TOKEN }}
+          accountId: ${{ steps.secrets.outputs.CF_ACCOUNT_ID }}
+          command: pages deploy ./result --project-name=slotcars-dcotta-com --branch=master

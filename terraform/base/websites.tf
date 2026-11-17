@@ -2,6 +2,7 @@ module "nico-dcotta-com" {
   source        = "../modules/static-site"
   cf_account_id = "a0668acd2601331c666d054c71470a40"
   domains       = ["nico.dcotta.com"]
+  name = "nico-dcotta-com"
 }
 
 
@@ -16,4 +17,22 @@ resource "cloudflare_dns_record" "nico-dcotta-com" {
 moved {
   from = cloudflare_record.nico-dcotta-com
   to   = cloudflare_dns_record.nico-dcotta-com
+}
+
+
+module "slotcars-dcotta-com" {
+  source        = "../modules/static-site"
+  cf_account_id = "a0668acd2601331c666d054c71470a40"
+  domains       = ["slotcars.dcotta.com"]
+  name = "slotcars-dcotta-com"
+}
+
+
+resource "cloudflare_dns_record" "slotcars-dcotta-com" {
+  name    = "slotcars"
+  type    = "CNAME"
+  zone_id = local.zoneIds["com"]
+  proxied = true
+  ttl     = 1
+  content = module.slotcars-dcotta-com.pages_domain
 }
