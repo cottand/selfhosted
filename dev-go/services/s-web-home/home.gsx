@@ -236,7 +236,7 @@ component Home(lights []light, listFailed bool, roomTemp string) {
 			<p id="light-error" role="alert" hidden></p>
 			<div class="plan">
 				<div class="room">
-					<strong id="room-temp">{roomTemp}</strong>
+					<strong id={roomTempID}>{roomTemp}</strong>
 					<span class="label">Room</span>
 				</div>
 				{ for _, l := range lights {
@@ -303,14 +303,13 @@ component Home(lights []light, listFailed bool, roomTemp string) {
 
 				const events = new EventSource("/lights/events");
 				events.addEventListener("light", (event) => showRow(event.data));
-				for (const id of ["aquarium-temp", "room-temp"]) {
-					events.addEventListener(id, (event) => {
-						const temp = document.getElementById(id);
-						if (temp) {
-							temp.textContent = event.data;
-						}
-					});
-				}
+				events.addEventListener("temp", (event) => {
+					const { id, value } = JSON.parse(event.data);
+					const temp = document.getElementById(id);
+					if (temp) {
+						temp.textContent = value;
+					}
+				});
 			</script>
 		</body>
 	</html>
@@ -332,8 +331,8 @@ component LightRow(l light) {
 						on
 					} }
 				</div>
-				{ if l.ID == aquariumLight {
-					<div class="tank">tank <span id="aquarium-temp">{l.Temp}</span></div>
+				{ if l.Temp != "" {
+					<div class="tank">tank <span id={tankTempID(l.ID)}>{l.Temp}</span></div>
 				} }
 			</div>
 			<form method="post" action={ "/lights/" + l.ID }>

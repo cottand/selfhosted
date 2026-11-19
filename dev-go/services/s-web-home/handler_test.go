@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -269,55 +270,59 @@ func TestSetLightFailure(t *testing.T) {
 	assert.Equal(t, http.StatusBadGateway, response.StatusCode)
 }
 
-func TestAquariumTemp(t *testing.T) {
+func TestTankTemp(t *testing.T) {
 	startFakeMqtt(t)
+	query := tankTempQuery("pill107")
 
-	testPrometheus.set(aquariumTempQuery, "24.36")
+	testPrometheus.set(query, "24.36")
 	s := &scaffold{tempPeriod: time.Hour}
-	assert.Equal(t, "24.4°C", s.aquariumTemp(context.Background()))
+	assert.Equal(t, "24.4°C", s.temperature(context.Background(), query))
 
 	calls := testPrometheus.calls.Load()
-	testPrometheus.set(aquariumTempQuery, "30")
-	assert.Equal(t, "24.4°C", s.aquariumTemp(context.Background()))
+	testPrometheus.set(query, "30")
+	assert.Equal(t, "24.4°C", s.temperature(context.Background(), query))
 	assert.Equal(t, calls, testPrometheus.calls.Load())
 
-	testPrometheus.clear(aquariumTempQuery)
+	testPrometheus.clear(query)
 	s = &scaffold{tempPeriod: time.Hour}
-	assert.Equal(t, tempUnknown, s.aquariumTemp(context.Background()))
+	assert.Equal(t, tempUnknown, s.temperature(context.Background(), query))
 
-	testPrometheus.set(aquariumTempQuery, "not a number")
+	testPrometheus.set(query, "not a number")
 	s = &scaffold{tempPeriod: time.Hour}
-	assert.Equal(t, tempUnknown, s.aquariumTemp(context.Background()))
+	assert.Equal(t, tempUnknown, s.temperature(context.Background(), query))
 }
 
-func TestRoomTempIsCachedSeparately(t *testing.T) {
+func TestTempsAreCachedSeparately(t *testing.T) {
 	startFakeMqtt(t)
-	testPrometheus.set(aquariumTempQuery, "24")
+	testPrometheus.set(tankTempQuery("pill107"), "24")
+	testPrometheus.set(tankTempQuery("pill2"), "26")
 	testPrometheus.set(roomTempQuery, "19.25")
 	s := &scaffold{tempPeriod: time.Hour}
 
-	assert.Equal(t, "24.0°C", s.aquariumTemp(context.Background()))
+	assert.Equal(t, "24.0°C", s.withTemp(context.Background(), light{ID: "rgb105"}).Temp)
+	assert.Equal(t, "26.0°C", s.withTemp(context.Background(), light{ID: "rgb108"}).Temp)
 	assert.Equal(t, "19.2°C", s.roomTemp(context.Background()))
 }
 
-func TestOnlyAquariumLightShowsTemp(t *testing.T) {
+func TestOnlyTankLightsShowTemp(t *testing.T) {
 	startFakeMqtt(t)
-	testPrometheus.set(aquariumTempQuery, "24")
+	testPrometheus.set(tankTempQuery("pill2"), "26")
 	s := &scaffold{tempPeriod: time.Hour}
 
-	tank, err := renderLightEvent(context.Background(), s.withTemp(context.Background(), light{ID: aquariumLight, Known: true}))
+	tank, err := renderLightEvent(context.Background(), s.withTemp(context.Background(), light{ID: "rgb108", Known: true}))
 	failOnError(t, err)
-	assert.Contains(t, string(tank), `id="aquarium-temp"`)
-	assert.Contains(t, string(tank), "24.0°C")
+	assert.Contains(t, string(tank), `id="temp-rgb108"`)
+	assert.Contains(t, string(tank), "26.0°C")
 
 	plug, err := renderLightEvent(context.Background(), s.withTemp(context.Background(), light{ID: "plug103", Known: true}))
 	failOnError(t, err)
-	assert.NotContains(t, string(plug), "aquarium-temp")
+	assert.NotContains(t, string(plug), `class="tank"`)
 }
 
 func TestTempEvents(t *testing.T) {
 	startFakeMqtt(t)
-	testPrometheus.set(aquariumTempQuery, "24")
+	testPrometheus.set(tankTempQuery("pill107"), "24")
+	testPrometheus.set(tankTempQuery("pill2"), "26")
 	testPrometheus.set(roomTempQuery, "19")
 	url := startServer(t)
 
@@ -330,21 +335,22 @@ func TestTempEvents(t *testing.T) {
 	defer response.Body.Close()
 	events := bufio.NewScanner(response.Body)
 
-	waitForEvent(t, events, "room-temp", "19.0°C")
+	waitForTemp(t, events, roomTempID, "19.0°C")
 
-	testPrometheus.set(aquariumTempQuery, "25")
-	waitForEvent(t, events, "aquarium-temp", "25.0°C")
+	testPrometheus.set(tankTempQuery("pill2"), "27")
+	waitForTemp(t, events, "temp-rgb108", "27.0°C")
 
 	testPrometheus.clear(roomTempQuery)
-	waitForEvent(t, events, "room-temp", tempUnknown)
+	waitForTemp(t, events, roomTempID, tempUnknown)
 }
 
-func waitForEvent(t *testing.T, events *bufio.Scanner, kind, data string) {
+func waitForTemp(t *testing.T, events *bufio.Scanner, id, value string) {
 	t.Helper()
-	for range 10 {
-		if strings.Contains(nextEvent(t, events, kind), "data: "+data+"\n") {
+	want := fmt.Sprintf(`data: {"id":%q,"value":%q}`, id, value)
+	for range 20 {
+		if strings.Contains(nextEvent(t, events, "temp"), want) {
 			return
 		}
 	}
-	t.Fatalf("no %s event with %s", kind, data)
+	t.Fatalf("no temperature event for %s with %s", id, value)
 }

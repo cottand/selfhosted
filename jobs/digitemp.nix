@@ -25,6 +25,12 @@ in
       };
       restart.mode = "delay";
 
+      constraints = [{
+        attribute = "\${meta.box}";
+        operator = "=";
+        value = "ari";
+      }];
+
       service."${name}-metrics" = rec  {
         connect.sidecarService = {
           proxy = {

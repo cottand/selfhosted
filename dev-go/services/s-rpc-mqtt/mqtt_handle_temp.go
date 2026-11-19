@@ -13,7 +13,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
-const aquariumPill = "pill107"
+const aquariumPill1 = "pill107"
+const aquariumPill2 = "pill2"
 
 var tempStat = promauto.NewGaugeVec(prometheus.GaugeOpts{
 	Namespace: util.KebabToSnakeCase(Name),
@@ -27,8 +28,10 @@ func (r *mqttScaffold) aquariumTempPollingForever(ctx context.Context) error {
 	for {
 		select {
 		case <-ticker.C:
-			err := r.aquariumTempPoll(ctx)
-			if err != nil {
+			if	err := r.aquariumTempPoll(ctx, aquariumPill1); err != nil {
+				slog.ErrorContext(ctx, "failed to poll temp", "err", err)
+			}
+			if	err := r.aquariumTempPoll(ctx, aquariumPill2); err != nil {
 				slog.ErrorContext(ctx, "failed to poll temp", "err", err)
 			}
 
@@ -38,11 +41,11 @@ func (r *mqttScaffold) aquariumTempPollingForever(ctx context.Context) error {
 	}
 }
 
-func (r *mqttScaffold) aquariumTempPoll(ctx context.Context) error {
+func (r *mqttScaffold) aquariumTempPoll(ctx context.Context, shellyID string) error {
 	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(10*time.Second))
 	defer cancel()
 
-	rsp, err := r.shellyRPCResp(ctx, "shelly/"+aquariumPill+"/rpc", "Temperature.GetStatus", map[string]any{"id": 200})
+	rsp, err := r.shellyRPCResp(ctx, "shelly/"+shellyID+"/rpc", "Temperature.GetStatus", map[string]any{"id": 200})
 	if err != nil {
 		return terrors.Augment(err, "could not get temp status", nil)
 	}
@@ -52,7 +55,7 @@ func (r *mqttScaffold) aquariumTempPoll(ctx context.Context) error {
 	}
 
 	if parsed.Result != nil {
-		tempStat.WithLabelValues(aquariumPill).Set(parsed.Result.TC)
+		tempStat.WithLabelValues(shellyID).Set(parsed.Result.TC)
 	}
 
 	return nil

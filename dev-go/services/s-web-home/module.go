@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
@@ -15,8 +16,8 @@ import (
 
 type scaffold struct {
 	tempPeriod time.Duration
-	aquarium   cachedTemp
-	room       cachedTemp
+	// query to *cachedTemp
+	temps sync.Map
 }
 
 func (s *scaffold) newServer(ctx context.Context, name string) *http.Server {

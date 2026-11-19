@@ -13,6 +13,9 @@
     '';
   };
 
+
+
+
   services.nomad.extraSettingsPlugins = [ ./plugins ];
   services.nomad.extraPackages = [ pkgs.libusb1 ];
   services.nomad.settings = {

@@ -32,7 +32,7 @@ type light struct {
 	Known      bool
 	On         bool
 	Brightness int
-	// Temp is only set for aquariumLight
+	// Temp is only set for lights in tankPills
 	Temp string
 }
 
@@ -202,14 +202,11 @@ func (s *scaffold) lightEvents(writer http.ResponseWriter, request *http.Request
 		}
 	}
 
-	temps := map[string]func(context.Context) string{
-		"aquarium-temp": s.aquariumTemp,
-		"room-temp":     s.roomTemp,
-	}
+	queries := tempQueries()
 	lastTemps := map[string]string{}
 	sendTemps := func() error {
-		for id, read := range temps {
-			temp := read(ctx)
+		for id, query := range queries {
+			temp := s.temperature(ctx, query)
 			if last, sent := lastTemps[id]; sent && last == temp {
 				continue
 			}

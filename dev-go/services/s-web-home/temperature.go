@@ -2,6 +2,7 @@ package module
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"strconv"
@@ -13,12 +14,32 @@ import (
 )
 
 const (
-	aquariumLight     = "rgb105"
-	tempPeriod        = 5 * time.Second
-	tempUnknown       = "--°C"
-	aquariumTempQuery = `max(s_rpc_mqtt_pill_temp{shelly_id="pill107"})`
-	roomTempQuery     = "max(digitemp_temperature)"
+	tempPeriod    = 5 * time.Second
+	tempUnknown   = "--°C"
+	roomTempID    = "room-temp"
+	roomTempQuery = "max(digitemp_temperature)"
 )
+
+// tankPills maps each aquarium light to the Shelly pill measuring that tank's water
+var tankPills = map[string]string{
+	"rgb105": "pill107",
+	"rgb108": "pill2",
+}
+
+func tankTempQuery(pill string) string {
+	return fmt.Sprintf(`max(s_rpc_mqtt_pill_temp{shelly_id=%q})`, pill)
+}
+
+func tankTempID(lightID string) string { return "temp-" + lightID }
+
+// tempQueries maps the id of each element showing a temperature to the query for it
+func tempQueries() map[string]string {
+	queries := map[string]string{roomTempID: roomTempQuery}
+	for lightID, pill := range tankPills {
+		queries[tankTempID(lightID)] = tankTempQuery(pill)
+	}
+	return queries
+}
 
 // cachedTemp is shared by every open page, so viewers do not multiply the queries
 type cachedTemp struct {
@@ -27,22 +48,20 @@ type cachedTemp struct {
 	at    time.Time
 }
 
-func (s *scaffold) aquariumTemp(ctx context.Context) string {
-	return s.temperature(ctx, &s.aquarium, aquariumTempQuery)
-}
-
 func (s *scaffold) roomTemp(ctx context.Context) string {
-	return s.temperature(ctx, &s.room, roomTempQuery)
+	return s.temperature(ctx, roomTempQuery)
 }
 
 func (s *scaffold) withTemp(ctx context.Context, l light) light {
-	if l.ID == aquariumLight {
-		l.Temp = s.aquariumTemp(ctx)
+	if pill, ok := tankPills[l.ID]; ok {
+		l.Temp = s.temperature(ctx, tankTempQuery(pill))
 	}
 	return l
 }
 
-func (s *scaffold) temperature(ctx context.Context, cached *cachedTemp, query string) string {
+func (s *scaffold) temperature(ctx context.Context, query string) string {
+	stored, _ := s.temps.LoadOrStore(query, &cachedTemp{})
+	cached := stored.(*cachedTemp)
 	cached.mutex.Lock()
 	defer cached.mutex.Unlock()
 
@@ -75,7 +94,10 @@ func fetchTemp(ctx context.Context, query string) (string, error) {
 	return fmt.Sprintf("%.1f°C", parsed), nil
 }
 
-// tempEvent is named after the id of the element that shows the temperature
 func tempEvent(id, temp string) []byte {
-	return []byte("event: " + id + "\ndata: " + temp + "\n\n")
+	data, _ := json.Marshal(struct {
+		ID    string `json:"id"`
+		Value string `json:"value"`
+	}{id, temp})
+	return []byte("event: temp\ndata: " + string(data) + "\n\n")
 }
