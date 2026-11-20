@@ -23,15 +23,23 @@ moved {
 module "slotcars-dcotta-com" {
   source        = "../modules/static-site"
   cf_account_id = "a0668acd2601331c666d054c71470a40"
-  domains       = ["slotcars.dcotta.com"]
-  name = "slotcars-dcotta-com"
+  domains       = ["slotcars.dcotta.com", "mmd-racing.com"]
+  name = "mmd-racing-com"
 }
-
 
 resource "cloudflare_dns_record" "slotcars-dcotta-com" {
   name    = "slotcars"
   type    = "CNAME"
   zone_id = local.zoneIds["com"]
+  proxied = true
+  ttl     = 1
+  content = module.slotcars-dcotta-com.pages_domain
+}
+
+resource "cloudflare_dns_record" "mmd-racing-com" {
+  name    = "@"
+  type    = "CNAME"
+  zone_id = local.zoneIds["mmd-racing"]
   proxied = true
   ttl     = 1
   content = module.slotcars-dcotta-com.pages_domain

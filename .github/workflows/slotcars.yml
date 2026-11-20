@@ -69,4 +69,4 @@ jobs:
         with:
           apiToken: ${{ steps.secrets.outputs.CF_TOKEN }}
           accountId: ${{ steps.secrets.outputs.CF_ACCOUNT_ID }}
-          command: pages deploy ./result --project-name=slotcars-dcotta-com --branch=master
+          command: pages deploy ./result --project-name=mmd-racing-com --branch=master
