@@ -14,6 +14,8 @@ in
         config = util.mkEnvoyProxyConfig {
           otlpService = "proxy-${name}-http";
           otlpUpstreamPort = 9001;
+          # uploads go on to GitHub before responding
+          extra.local_request_timeout_ms = 60 * 1000;
           extra.protocol = "http";
         };
       };

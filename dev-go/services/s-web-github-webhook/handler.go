@@ -79,7 +79,7 @@ func ghWebhookSecret(ctx context.Context) (string, error) {
 	}
 	whSecret, ok := secret["value"]
 	if !ok {
-		return "", terrors.NotFound("missing_secret", "failed to patse webhook secret from vault", nil)
+		return "", terrors.NotFound("missing_secret", "failed to parse webhook secret from vault", nil)
 	}
 	return whSecret, nil
 }

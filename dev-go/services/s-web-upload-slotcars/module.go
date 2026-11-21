@@ -17,9 +17,9 @@ func newServer(ctx context.Context, name string) *http.Server {
 	return &http.Server{
 		Addr:        "localhost:7005",
 		BaseContext: func(_ net.Listener) context.Context { return ctx },
-		// generous enough for spreadsheet uploads over slow connections
+		// generous enough for spreadsheet uploads over slow connections, and for the GitHub round trip
 		ReadTimeout:  time.Minute,
-		WriteTimeout: 10 * time.Second,
+		WriteTimeout: time.Minute,
 		Handler:      otelhttp.NewHandler(MakeHTTPHandler(), name+"-http"),
 	}
 }

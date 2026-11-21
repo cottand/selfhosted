@@ -69,7 +69,7 @@ component Upload() {
 			<h1>Slotcars</h1>
 			<form id="upload" method="post" action="/upload" enctype="multipart/form-data">
 				<label class="drop">
-					<input type="file" name="file" accept=".csv,.tsv,.xlsx,.xls,.ods"/>
+					<input type="file" name="file" accept=".xlsx"/>
 					Drag or upload spreadsheet
 				</label>
 			</form>
@@ -93,9 +93,10 @@ component Upload() {
 					try {
 						const response = await fetch(form.action, { method: "POST", body });
 						if (!response.ok) {
-							throw new Error(await response.text());
+							const isText = response.headers.get("Content-Type")?.startsWith("text/plain");
+							throw new Error(isText ? (await response.text()).trim() : response.status + " " + response.statusText);
 						}
-						showStatus("Uploaded " + file.name, false);
+						showStatus("Uploaded " + file.name + " to the catalog", false);
 					} catch (err) {
 						showStatus("Failed to upload " + file.name + ": " + err.message, true);
 					}
