@@ -16,6 +16,7 @@ locals {
     "mealie",
     "immich",
     "home",
+    "upload-slotcars",
   ])
 
 

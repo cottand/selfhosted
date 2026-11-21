@@ -29,6 +29,7 @@ in
     ./s-web-github-webhook/consulService.nix
     ./s-web-flights/consulService.nix
     ./s-web-home/consulService.nix
+    ./s-web-upload-slotcars/consulService.nix
   ];
   job.${name} = {
     update = {

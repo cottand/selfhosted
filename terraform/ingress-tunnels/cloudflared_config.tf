@@ -14,6 +14,7 @@ locals {
         "fish",
         "web",
         "home",
+        "upload-slotcars",
         # "share",
       ]
     }

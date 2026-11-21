@@ -14,6 +14,7 @@ import (
 	s_web_github_webhook "github.com/cottand/selfhosted/dev-go/services/s-web-github-webhook"
 	s_web_home "github.com/cottand/selfhosted/dev-go/services/s-web-home"
 	s_web_portfolio "github.com/cottand/selfhosted/dev-go/services/s-web-portfolio"
+	s_web_upload_slotcars "github.com/cottand/selfhosted/dev-go/services/s-web-upload-slotcars"
 )
 
 func main() {
@@ -29,6 +30,7 @@ func main() {
 	bedrock.Register(s_web_github_webhook.InitService)
 	bedrock.Register(s_web_flights.InitService)
 	bedrock.Register(s_web_home.InitService)
+	bedrock.Register(s_web_upload_slotcars.InitService)
 
 	bedrock.RunRegistered()
 }

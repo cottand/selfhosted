@@ -1,0 +1,52 @@
+package module
+
+import (
+	"context"
+	"errors"
+	"log/slog"
+	"net"
+	"net/http"
+	"time"
+
+	"github.com/cottand/selfhosted/dev-go/lib/bedrock"
+	"github.com/monzo/terrors"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+)
+
+func newServer(ctx context.Context, name string) *http.Server {
+	return &http.Server{
+		Addr:        "localhost:7005",
+		BaseContext: func(_ net.Listener) context.Context { return ctx },
+		// generous enough for spreadsheet uploads over slow connections
+		ReadTimeout:  time.Minute,
+		WriteTimeout: 10 * time.Second,
+		Handler:      otelhttp.NewHandler(MakeHTTPHandler(), name+"-http"),
+	}
+}
+
+func InitService() (*bedrock.Service, string, error) {
+	var name = "s-web-upload-slotcars"
+	ctx := bedrock.ContextForModule(name, context.Background())
+
+	srv := newServer(ctx, name)
+
+	var serverErr error
+	go func() {
+		err := srv.ListenAndServe()
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			slog.ErrorContext(ctx, "failed to start HTTP: "+terrors.Propagate(err).Error())
+			serverErr = err
+		}
+	}()
+
+	service := bedrock.Service{
+		Name: name,
+		OnShutdown: func() error {
+			return errors.Join(
+				terrors.Augment(srv.Close(), "failed to close http server", nil),
+				terrors.Augment(serverErr, "failed to close server", nil),
+			)
+		},
+	}
+	return &service, name, nil
+}
