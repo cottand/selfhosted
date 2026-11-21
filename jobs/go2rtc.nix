@@ -3,7 +3,7 @@ let
   name = "go2rtc";
   image = "ghcr.io/alexxit/go2rtc";
   version = "1.9.15";
-  cpu = 2500;
+  cpu = 3000;
   mem = 512;
   ports = {
     web = 1984;
@@ -20,8 +20,8 @@ let
   mediamtx = {
     image = "bluenviron/mediamtx";
     version = "1.21.4";
-    cpu = 500;
-    mem = 256;
+    cpu = 900;
+    mem = 512;
     ports = {
       rtsp = 8554;
       hls = 8888;
