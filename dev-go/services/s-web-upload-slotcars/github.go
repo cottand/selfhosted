@@ -16,9 +16,9 @@ import (
 )
 
 const (
-	catalogContentsURL = "https://api.github.com/repos/cottand/slotcars/contents/catalog.xlsx"
-	catalogCommitMsg   = "s-web-upload-slotcars: automated upload"
-	ghTokenSecretPath  = "services/s-web-upload-slotcars/gh/slotcars-contents-rw"
+	contentsURL       = "https://api.github.com/repos/cottand/slotcars/contents/"
+	commitMsg         = "s-web-upload-slotcars: automated upload"
+	ghTokenSecretPath = "services/s-web-upload-slotcars/gh/slotcars-contents-rw"
 )
 
 var ghClient = &http.Client{
@@ -38,14 +38,14 @@ func ghToken(ctx context.Context) (string, error) {
 	return token, nil
 }
 
-// uploadCatalog creates or replaces catalog.xlsx in cottand/slotcars with content
-func uploadCatalog(ctx context.Context, content []byte) error {
+// uploadFile creates or replaces the file at path in cottand/slotcars with content
+func uploadFile(ctx context.Context, path string, content []byte) error {
 	token, err := ghToken(ctx)
 	if err != nil {
 		return err
 	}
 
-	sha, err := catalogSHA(ctx, token)
+	sha, err := fileSHA(ctx, token, path)
 	if err != nil {
 		return err
 	}
@@ -55,7 +55,7 @@ func uploadCatalog(ctx context.Context, content []byte) error {
 		Content string `json:"content"`
 		SHA     string `json:"sha,omitempty"`
 	}{
-		Message: catalogCommitMsg,
+		Message: commitMsg,
 		Content: base64.StdEncoding.EncodeToString(content),
 		SHA:     sha,
 	})
@@ -63,7 +63,7 @@ func uploadCatalog(ctx context.Context, content []byte) error {
 		return terrors.Augment(err, "failed to marshal github request", nil)
 	}
 
-	response, err := ghDo(ctx, token, http.MethodPut, bytes.NewReader(body))
+	response, err := ghDo(ctx, token, http.MethodPut, path, bytes.NewReader(body))
 	if err != nil {
 		return err
 	}
@@ -74,10 +74,10 @@ func uploadCatalog(ctx context.Context, content []byte) error {
 	return nil
 }
 
-// catalogSHA returns the blob SHA of the current catalog.xlsx, which GitHub requires in order to
+// fileSHA returns the blob SHA of the file currently at path, which GitHub requires in order to
 // replace it, or an empty string if there is none yet
-func catalogSHA(ctx context.Context, token string) (string, error) {
-	response, err := ghDo(ctx, token, http.MethodGet, nil)
+func fileSHA(ctx context.Context, token, path string) (string, error) {
+	response, err := ghDo(ctx, token, http.MethodGet, path, nil)
 	if err != nil {
 		return "", err
 	}
@@ -98,8 +98,8 @@ func catalogSHA(ctx context.Context, token string) (string, error) {
 	return existing.SHA, nil
 }
 
-func ghDo(ctx context.Context, token, method string, body io.Reader) (*http.Response, error) {
-	request, err := http.NewRequestWithContext(ctx, method, catalogContentsURL, body)
+func ghDo(ctx context.Context, token, method, path string, body io.Reader) (*http.Response, error) {
+	request, err := http.NewRequestWithContext(ctx, method, contentsURL+path, body)
 	if err != nil {
 		return nil, terrors.Augment(err, "failed to build github request", nil)
 	}
@@ -112,7 +112,7 @@ func ghDo(ctx context.Context, token, method string, body io.Reader) (*http.Resp
 
 	response, err := ghClient.Do(request)
 	if err != nil {
-		return nil, terrors.Augment(err, "failed to call github", map[string]string{"method": method})
+		return nil, terrors.Augment(err, "failed to call github", map[string]string{"method": method, "path": path})
 	}
 	return response, nil
 }
@@ -121,6 +121,7 @@ func ghError(response *http.Response) error {
 	msg, _ := io.ReadAll(io.LimitReader(response.Body, 4<<10))
 	return terrors.New("github_error", fmt.Sprintf("unexpected github response %d: %s", response.StatusCode, msg), map[string]string{
 		"method": response.Request.Method,
+		"path":   response.Request.URL.Path,
 		"status": response.Status,
 	})
 }
