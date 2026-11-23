@@ -49,34 +49,47 @@ func imagesPage(writer http.ResponseWriter, request *http.Request) {
 }
 
 func uploadCatalog(writer http.ResponseWriter, request *http.Request) {
-	upload(writer, request, func(filename string) (string, error) {
+	upload(writer, request, func(filename string) (uploadTarget, error) {
 		if !strings.EqualFold(filepath.Ext(filename), ".xlsx") {
-			return "", fmt.Errorf("%q is not an Excel spreadsheet, only .xlsx files are accepted", filename)
+			return uploadTarget{}, fmt.Errorf("%q is not an Excel spreadsheet, only .xlsx files are accepted", filename)
 		}
-		return "catalog.xlsx", nil
+		return uploadTarget{path: "catalog.xlsx"}, nil
 	})
 }
 
 func uploadImage(writer http.ResponseWriter, request *http.Request) {
 	id, kind := request.PathValue("id"), request.PathValue("kind")
-	upload(writer, request, func(filename string) (string, error) {
+	upload(writer, request, func(filename string) (uploadTarget, error) {
 		if !validID.MatchString(id) {
-			return "", fmt.Errorf("%q is not a valid ID", id)
+			return uploadTarget{}, fmt.Errorf("%q is not a valid ID", id)
 		}
 		if !slices.Contains(imageKinds, kind) {
-			return "", fmt.Errorf("%q is not a known image kind, expected one of %s", kind, strings.Join(imageKinds, ", "))
+			return uploadTarget{}, fmt.Errorf("%q is not a known image kind, expected one of %s", kind, strings.Join(imageKinds, ", "))
 		}
 		ext := filepath.Ext(filename)
 		if !slices.Contains(imageExtensions, strings.ToLower(ext)) {
-			return "", fmt.Errorf("%q is not a supported image, expected one of %s", filename, imageAccept)
+			return uploadTarget{}, fmt.Errorf("%q is not a supported image, expected one of %s", filename, imageAccept)
 		}
-		return "assets/" + id + "/" + kind + ext, nil
+		return uploadTarget{
+			path: "assets/" + id + "/" + kind + ext,
+			// so that eg slot.png replaces slot.jpg
+			supersedes: func(name string) bool {
+				return strings.TrimSuffix(name, filepath.Ext(name)) == kind
+			},
+		}, nil
 	})
 }
 
-// upload commits the file uploaded in the 'file' field to the repo path returned by destination,
+type uploadTarget struct {
+	path string
+	// supersedes reports whether an existing file in the same directory as path gets replaced by
+	// this upload, and should be deleted. May be nil.
+	supersedes func(name string) bool
+}
+
+// upload commits the file uploaded in the 'file' field to the target returned by destination,
 // which receives the uploaded file's name and may reject it with an error to show the user
-func upload(writer http.ResponseWriter, request *http.Request, destination func(filename string) (string, error)) {
+func upload(writer http.ResponseWriter, request *http.Request, destination func(filename string) (uploadTarget, error)) {
 	ctx := request.Context()
 	request.Body = http.MaxBytesReader(writer, request.Body, maxUploadBytes)
 	file, header, err := request.FormFile("file")
@@ -90,7 +103,7 @@ func upload(writer http.ResponseWriter, request *http.Request, destination func(
 	}
 	defer file.Close()
 
-	path, err := destination(header.Filename)
+	target, err := destination(header.Filename)
 	if err != nil {
 		http.Error(writer, err.Error(), http.StatusBadRequest)
 		return
@@ -103,9 +116,9 @@ func upload(writer http.ResponseWriter, request *http.Request, destination func(
 		return
 	}
 
-	slog.InfoContext(ctx, "received upload", "name", header.Filename, "size", header.Size, "path", path)
-	if err := uploadFile(ctx, path, content); err != nil {
-		slog.ErrorContext(ctx, "failed to upload file to github", "path", path, "err", terrors.Propagate(err))
+	slog.InfoContext(ctx, "received upload", "name", header.Filename, "size", header.Size, "path", target.path)
+	if err := uploadFile(ctx, target.path, content, target.supersedes); err != nil {
+		slog.ErrorContext(ctx, "failed to upload file to github", "path", target.path, "err", terrors.Propagate(err))
 		// not a 502, which Cloudflare would replace with its own error page
 		http.Error(writer, "failed to upload the file to GitHub, try again later", http.StatusInternalServerError)
 		return

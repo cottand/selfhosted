@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"path"
 	"time"
 
 	"github.com/cottand/selfhosted/dev-go/lib/secretstore"
@@ -16,10 +17,11 @@ import (
 )
 
 const (
-	contentsURL       = "https://api.github.com/repos/cottand/slotcars/contents/"
 	commitMsg         = "s-web-upload-slotcars: automated upload"
 	ghTokenSecretPath = "services/s-web-upload-slotcars/gh/slotcars-contents-rw"
 )
+
+var contentsURL = "https://api.github.com/repos/cottand/slotcars/contents/"
 
 var ghClient = &http.Client{
 	Timeout:   30 * time.Second,
@@ -38,13 +40,42 @@ func ghToken(ctx context.Context) (string, error) {
 	return token, nil
 }
 
-// uploadFile creates or replaces the file at path in cottand/slotcars with content
-func uploadFile(ctx context.Context, path string, content []byte) error {
+// uploadFile creates or replaces the file at filePath in cottand/slotcars with content. If supersedes
+// is not nil, files in the same directory whose name it matches are deleted once the upload succeeds
+func uploadFile(ctx context.Context, filePath string, content []byte, supersedes func(name string) bool) error {
 	token, err := ghToken(ctx)
 	if err != nil {
 		return err
 	}
+	return replaceFile(ctx, token, filePath, content, supersedes)
+}
 
+func replaceFile(ctx context.Context, token, filePath string, content []byte, supersedes func(name string) bool) error {
+	var superseded []ghEntry
+	if supersedes != nil {
+		siblings, err := listDir(ctx, token, path.Dir(filePath))
+		if err != nil {
+			return err
+		}
+		for _, entry := range siblings {
+			if entry.Type == "file" && entry.Path != filePath && supersedes(entry.Name) {
+				superseded = append(superseded, entry)
+			}
+		}
+	}
+
+	if err := putFile(ctx, token, filePath, content); err != nil {
+		return err
+	}
+	for _, entry := range superseded {
+		if err := deleteFile(ctx, token, entry); err != nil {
+			return terrors.Augment(err, "uploaded file but failed to delete the file it supersedes", map[string]string{"superseded": entry.Path})
+		}
+	}
+	return nil
+}
+
+func putFile(ctx context.Context, token, path string, content []byte) error {
 	sha, err := fileSHA(ctx, token, path)
 	if err != nil {
 		return err
@@ -72,6 +103,57 @@ func uploadFile(ctx context.Context, path string, content []byte) error {
 		return ghError(response)
 	}
 	return nil
+}
+
+func deleteFile(ctx context.Context, token string, entry ghEntry) error {
+	body, err := json.Marshal(struct {
+		Message string `json:"message"`
+		SHA     string `json:"sha"`
+	}{
+		Message: commitMsg,
+		SHA:     entry.SHA,
+	})
+	if err != nil {
+		return terrors.Augment(err, "failed to marshal github request", nil)
+	}
+
+	response, err := ghDo(ctx, token, http.MethodDelete, entry.Path, bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		return ghError(response)
+	}
+	return nil
+}
+
+type ghEntry struct {
+	Name string `json:"name"`
+	Path string `json:"path"`
+	SHA  string `json:"sha"`
+	Type string `json:"type"`
+}
+
+// listDir returns the entries of the directory at path, or none if it does not exist yet
+func listDir(ctx context.Context, token, path string) ([]ghEntry, error) {
+	response, err := ghDo(ctx, token, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+	if response.StatusCode == http.StatusNotFound {
+		return nil, nil
+	}
+	if response.StatusCode != http.StatusOK {
+		return nil, ghError(response)
+	}
+
+	var entries []ghEntry
+	if err := json.NewDecoder(response.Body).Decode(&entries); err != nil {
+		return nil, terrors.Augment(err, "failed to decode github directory listing", map[string]string{"path": path})
+	}
+	return entries, nil
 }
 
 // fileSHA returns the blob SHA of the file currently at path, which GitHub requires in order to
