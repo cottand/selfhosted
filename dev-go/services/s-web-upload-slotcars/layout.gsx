@@ -19,6 +19,8 @@ component Page(title string, children gsx.Node) {
 					--accent: #3c7f9e;
 					--accent-soft: #e6f0f4;
 					--error: #a8502a;
+					--danger: #c62828;
+					--danger-hover: #a51f1f;
 				}
 				* {
 					box-sizing: border-box;
@@ -61,6 +63,26 @@ component Page(title string, children gsx.Node) {
 				.drop input {
 					display: none;
 				}
+				.delete {
+					display: block;
+					width: 100%;
+					margin-top: 0.5rem;
+					padding: 0.7rem 1rem;
+					font: inherit;
+					color: #ffffff;
+					background: var(--danger);
+					border: 0;
+					border-radius: 12px;
+					cursor: pointer;
+					transition: background 0.15s;
+				}
+				.delete:hover {
+					background: var(--danger-hover);
+				}
+				.delete:disabled {
+					opacity: 0.6;
+					cursor: progress;
+				}
 				.status {
 					margin: 0.75rem 0 0;
 					color: var(--muted);
@@ -74,10 +96,17 @@ component Page(title string, children gsx.Node) {
 			<h1>{title}</h1>
 			{children}
 			<script>
-				for (const form of document.querySelectorAll("form.upload")) {
-					const drop = form.querySelector(".drop");
-					const input = form.querySelector("input");
-					const status = form.querySelector(".status");
+				async function errorMessage(response) {
+					const isText = response.headers.get("Content-Type")?.startsWith("text/plain");
+					return isText ? (await response.text()).trim() : response.status + " " + response.statusText;
+				}
+
+				for (const container of document.querySelectorAll(".upload")) {
+					const form = container.querySelector("form");
+					const drop = container.querySelector(".drop");
+					const input = container.querySelector("input");
+					const status = container.querySelector(".status");
+					const deleteButton = container.querySelector(".delete");
 
 					function showStatus(message, isError) {
 						status.textContent = message;
@@ -92,8 +121,7 @@ component Page(title string, children gsx.Node) {
 						try {
 							const response = await fetch(form.action, { method: "POST", body });
 							if (!response.ok) {
-								const isText = response.headers.get("Content-Type")?.startsWith("text/plain");
-								throw new Error(isText ? (await response.text()).trim() : response.status + " " + response.statusText);
+								throw new Error(await errorMessage(response));
 							}
 							showStatus("Uploaded " + file.name, false);
 						} catch (err) {
@@ -105,6 +133,25 @@ component Page(title string, children gsx.Node) {
 						if (input.files.length > 0) {
 							upload(input.files[0]);
 							input.value = "";
+						}
+					});
+
+					deleteButton?.addEventListener("click", async () => {
+						if (!confirm(deleteButton.textContent.trim() + "?")) {
+							return;
+						}
+						deleteButton.disabled = true;
+						showStatus("Deleting…", false);
+						try {
+							const response = await fetch(form.action, { method: "DELETE" });
+							if (!response.ok) {
+								throw new Error(await errorMessage(response));
+							}
+							showStatus(await response.text(), false);
+						} catch (err) {
+							showStatus("Failed to delete: " + err.message, true);
+						} finally {
+							deleteButton.disabled = false;
 						}
 					});
 
@@ -127,12 +174,19 @@ component Page(title string, children gsx.Node) {
 	</html>
 }
 
-component DropZone(action string, accept string, label string) {
-	<form class="upload" method="post" action={action} enctype="multipart/form-data">
-		<label class="drop">
-			<input type="file" name="file" accept={accept}/>
-			{label}
-		</label>
+// DropZone renders a box to upload a file to action. If deleteLabel is not empty, it also renders a
+// button with that label that sends a DELETE to action.
+component DropZone(action string, accept string, label string, deleteLabel string) {
+	<div class="upload">
+		<form method="post" action={action} enctype="multipart/form-data">
+			<label class="drop">
+				<input type="file" name="file" accept={accept}/>
+				{label}
+			</label>
+		</form>
+		{ if deleteLabel != "" {
+			<button type="button" class="delete">{deleteLabel}</button>
+		} }
 		<p class="status" hidden></p>
-	</form>
+	</div>
 }

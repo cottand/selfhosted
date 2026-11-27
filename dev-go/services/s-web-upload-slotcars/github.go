@@ -75,6 +75,34 @@ func replaceFile(ctx context.Context, token, filePath string, content []byte, su
 	return nil
 }
 
+// deleteFiles deletes the files in directory dir of cottand/slotcars whose name matches, and
+// returns their paths
+func deleteFiles(ctx context.Context, dir string, matches func(name string) bool) ([]string, error) {
+	token, err := ghToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return removeFiles(ctx, token, dir, matches)
+}
+
+func removeFiles(ctx context.Context, token, dir string, matches func(name string) bool) ([]string, error) {
+	entries, err := listDir(ctx, token, dir)
+	if err != nil {
+		return nil, err
+	}
+	var deleted []string
+	for _, entry := range entries {
+		if entry.Type != "file" || !matches(entry.Name) {
+			continue
+		}
+		if err := deleteFile(ctx, token, entry); err != nil {
+			return deleted, err
+		}
+		deleted = append(deleted, entry.Path)
+	}
+	return deleted, nil
+}
+
 func putFile(ctx context.Context, token, path string, content []byte) error {
 	sha, err := fileSHA(ctx, token, path)
 	if err != nil {

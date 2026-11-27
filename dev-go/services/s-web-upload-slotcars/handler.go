@@ -32,6 +32,7 @@ func MakeHTTPHandler() http.Handler {
 	mux.HandleFunc("POST /upload", uploadCatalog)
 	mux.HandleFunc("GET /image/{id}", imagesPage)
 	mux.HandleFunc("POST /image/{id}/{kind}", uploadImage)
+	mux.HandleFunc("DELETE /image/{id}/{kind}", deleteImage)
 	return mux
 }
 
@@ -57,14 +58,28 @@ func uploadCatalog(writer http.ResponseWriter, request *http.Request) {
 	})
 }
 
+func validateImage(id, kind string) error {
+	if !validID.MatchString(id) {
+		return fmt.Errorf("%q is not a valid ID", id)
+	}
+	if !slices.Contains(imageKinds, kind) {
+		return fmt.Errorf("%q is not a known image kind, expected one of %s", kind, strings.Join(imageKinds, ", "))
+	}
+	return nil
+}
+
+// isKind matches the file names of images of kind, whatever their extension
+func isKind(kind string) func(name string) bool {
+	return func(name string) bool {
+		return strings.TrimSuffix(name, filepath.Ext(name)) == kind
+	}
+}
+
 func uploadImage(writer http.ResponseWriter, request *http.Request) {
 	id, kind := request.PathValue("id"), request.PathValue("kind")
 	upload(writer, request, func(filename string) (uploadTarget, error) {
-		if !validID.MatchString(id) {
-			return uploadTarget{}, fmt.Errorf("%q is not a valid ID", id)
-		}
-		if !slices.Contains(imageKinds, kind) {
-			return uploadTarget{}, fmt.Errorf("%q is not a known image kind, expected one of %s", kind, strings.Join(imageKinds, ", "))
+		if err := validateImage(id, kind); err != nil {
+			return uploadTarget{}, err
 		}
 		ext := filepath.Ext(filename)
 		if !slices.Contains(imageExtensions, strings.ToLower(ext)) {
@@ -73,11 +88,34 @@ func uploadImage(writer http.ResponseWriter, request *http.Request) {
 		return uploadTarget{
 			path: "assets/" + id + "/" + kind + ext,
 			// so that eg slot.png replaces slot.jpg
-			supersedes: func(name string) bool {
-				return strings.TrimSuffix(name, filepath.Ext(name)) == kind
-			},
+			supersedes: isKind(kind),
 		}, nil
 	})
+}
+
+func deleteImage(writer http.ResponseWriter, request *http.Request) {
+	ctx := request.Context()
+	id, kind := request.PathValue("id"), request.PathValue("kind")
+	if err := validateImage(id, kind); err != nil {
+		http.Error(writer, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	deleted, err := deleteFiles(ctx, "assets/"+id, isKind(kind))
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to delete image from github", "id", id, "kind", kind, "deleted", deleted, "err", terrors.Propagate(err))
+		// not a 502, which Cloudflare would replace with its own error page
+		http.Error(writer, "failed to delete the image from GitHub, try again later", http.StatusInternalServerError)
+		return
+	}
+
+	slog.InfoContext(ctx, "deleted image", "id", id, "kind", kind, "deleted", deleted)
+	writer.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	if len(deleted) == 0 {
+		_, _ = fmt.Fprintf(writer, "There was no %s image for %s to delete", kind, id)
+		return
+	}
+	_, _ = fmt.Fprintf(writer, "Deleted %s", strings.Join(deleted, ", "))
 }
 
 type uploadTarget struct {
